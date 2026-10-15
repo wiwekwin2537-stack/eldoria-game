@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v4.99</title>
+<title>ตำนานเอลโดเรีย v4.99b</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -18796,6 +18796,16 @@ setInterval(()=>{try{if(typeof updBadge==='function')updBadge()}catch(e){}},1000
 // 7) ฉากเล่าเรื่อง (cinematic): แตะข้ามเร็ว ๆ 2 ครั้งในบรรทัดสุดท้าย → เกมแจ้ง error "reading 't'" (ตัวหน่วง 0.25 วิ ไปอ่านบรรทัดที่เลยท้ายแล้ว)
 cineText=function(){const c=cineEl.querySelector('.ct');if(!c)return;c.style.opacity=0;setTimeout(()=>{const L=CINE.L&&CINE.L[CINE.i];if(!L)return;c.textContent=L.t;c.style.opacity=1},250);CINE.t0=performance.now()};window.cineText=cineText;
 }catch(e){console.warn('fix119',e)}
+
+</script>
+
+<script>
+// fix121 (v4.99b) — 🔮 ลงแท่นผนึกจากในหอผนึกอสูรไม่ได้ (เจ้าของแจ้ง 2026-10-15: "มันบอกต้องอยู่ทุ่งหญ้า")
+// สาเหตุ: fix113 ย้ายแท่นผนึกเข้าไปในอาคาร (D.shop='seal113') แต่ enter62 ห้ามเข้าลานบอสตอนอยู่ในร้าน
+// แก้: ถ้าอยู่ในหอผนึก ให้ออกจากอาคาร (leaveShop) กลับเมืองก่อน แล้วค่อยเข้าลานบอสตามปกติ
+try{
+{const _e=enter62;enter62=function(i){try{if(D&&D.shop==='seal113'&&typeof leaveShop==='function'){leaveShop(true)}}catch(e){console.warn('fix121',e)}return _e.apply(this,arguments)};window.enter62=enter62}
+}catch(e){console.warn('fix121',e)}
 
 </script>
 
