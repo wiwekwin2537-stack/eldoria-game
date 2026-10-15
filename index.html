@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v4.99b</title>
+<title>ตำนานเอลโดเรีย v5.00</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -258,6 +258,10 @@ window.BOOT106={set:function(p,s){p=Math.max(0,Math.min(100,p|0));F.style.width=
 <div id="acts"><button id="atk" aria-label="ตีธรรมดา">⚔️</button><button id="dashb" aria-label="พุ่ง">💨</button>
 <button class="sk" id="sk1"></button><button class="sk" id="sk2"></button><button class="sk" id="sk3"></button></div>
 <div id="bag" hidden></div>
+<script>
+// fix123: นาฬิกาเซิร์ฟเวอร์ (กันผู้เล่นเปลี่ยนเวลาเครื่องเพื่อรับของรายวัน/ล้างโควตา) — SRV.off ตั้งจาก /api/ping ใน fix123 ท้ายไฟล์
+window.SRV={pb:null,ok:false};window.srvNow=function(){return SRV.pb!=null?performance.now()+SRV.pb:Date.now()}; // อิง performance.now() → เปลี่ยนนาฬิกาเครื่องระหว่างเล่นก็ไม่มีผล
+</script>
 <script>
 // ===== v4.6.5 กันจอดำ: เบราว์เซอร์/หน้าเว็บที่ห้ามใช้ที่เก็บข้อมูล → ใช้หน่วยความจำชั่วคราวแทน (เล่นได้ แต่ปิดหน้าแล้วเซฟหาย) =====
 (function(){function test(n){try{var s=window[n];var k='__fm_t';s.setItem(k,'1');s.removeItem(k);return true}catch(e){return false}}
@@ -4067,7 +4071,7 @@ function drawBow(k,tier,pull){const Q=TIERS[tier];k.strokeStyle='#5a3418';k.line
 // (แก้ในเงื่อนไขการโดนของสไลม์/มอน ด้วย P.rngHit)
 
 // ---------- ปรมาจารย์อาชีพ (เลือกสาย) ----------
-NPC_DATA.push({name:'ปรมาจารย์อาชีพ',c:'#4a2a6a',h:'#e8e4f0',x:25.5,y:11.6,fixed:1,g:'m',age:'elder',beard:1,hat:'wizard',lines:['เลือกเส้นทางของเจ้า: ดาบ เวท หรือธนู']});
+NPC_DATA.push({name:'ปรมาจารย์อาชีพ',c:'#4a2a6a',h:'#e8e4f0',x:25.5,y:11.6,fixed:1,g:'m',age:'elder',beard:1,hat:'wizard',lines:['เลือกเส้นทางของเจ้า — มีให้เลือกถึง 11 อาชีพ']});
 function openClassMenu(){ZM.open=false;SHOPK=null;STN.open=null;hideBag();sfx('ui');const cur=P.cls;let h='<button class="mini x xclose" onclick="closeClassMenu()">✕</button><b>🎓 ปรมาจารย์อาชีพ — เลือกสายอาชีพ</b><small>อาชีพปัจจุบัน: '+CLS[cur].e+' '+CLS[cur].n+(cur==='none'?' · เลือกครั้งแรกฟรี':' · เปลี่ยนอาชีพ 500 เหรียญ (สกิลที่เรียนแล้วยังอยู่)')+'</small>';
  for(const k of ['sword','mage','archer']){const C=CLS[k],L=CSKILLS[k];h+='<button class="mini zbtn cls'+(cur===k?' on':'')+'" onclick="pickClass(\''+k+'\')"><b style="color:'+C.col+'">'+C.e+' '+C.n+'</b>'+(cur===k?' <span class="zl">✓ ปัจจุบัน</span>':'')+'<small>'+C.d+'<br>ติดตัว: '+C.pas+'<br>สกิล: '+L.map(s=>s.e+' '+s.n+' (Lv.'+s.lv+')').join(' · ')+'</small></button>'}
  shopEl.innerHTML=h;shopEl.hidden=false;CM.open=true}
@@ -4338,7 +4342,7 @@ const QT=[['kill','slime','กำจัดสไลม์',8,0,20],['kill','skel
  ['item','gel','ส่งเจลสไลม์',6,0,25],['item','bone','ส่งกระดูกเก่า',6,1,100],['item','pelt','ส่งหนังหมาป่า',4,18,100],['fish',0,'ตกปลา',4,0,100],['mine',0,'ขุดแร่',6,3,100],['boss',0,'ล้มบอส',1,12,100],['floor',0,'ลงดันเจี้ยนถึงชั้น',0,1,100]];
 function qGen(){const L=P.lv,C=QT.filter(q=>L>=q[4]&&L<=q[5]+10);const q=C[Math.random()*C.length|0];const n=q[0]==='floor'?Math.min(DGMAX7(),DG.max+1+Math.floor(Math.random()*3)):Math.max(1,Math.round(q[3]*(.8+Math.random()*.6)));
  return{t:q[0],k:q[1],d:q[2]+' '+n+(q[0]==='floor'?'':q[0]==='item'?' ชิ้น':q[0]==='fish'?' ตัว':q[0]==='mine'?' ก้อน':q[0]==='boss'?' ตัว':' ตัว'),n,c:0,coin:Math.round((20+L*8)*(q[0]==='boss'?3:q[0]==='floor'?2:1)),xp:Math.round(need(L)*(q[0]==='boss'?.35:.18)),es:q[0]==='boss'||q[0]==='floor'?2:Math.random()<.5?1:0}}
-function qRefresh(force){const d=Math.floor(Date.now()/3600000);if(force||QST.day!==d||QST.offer.length<4){QST.day=d;QST.offer=[qGen(),qGen(),qGen(),qGen()]}}
+function qRefresh(force){const d=Math.floor(srvNow()/3600000);if(force||QST.day!==d||QST.offer.length<4){QST.day=d;QST.offer=[qGen(),qGen(),qGen(),qGen()]}}
 function questEv(t,k,o){let ch=false;for(const q of QST.act){if(q.c>=q.n)continue;if(t==='kill'&&q.t==='kill'&&q.k===k){q.c++;ch=true}else if(t===q.t&&(t==='fish'||t==='mine'||t==='boss')){q.c++;ch=true}else if(t==='floor'&&q.t==='floor'&&k>=q.n){q.c=q.n;ch=true}
  if(ch&&q.c>=q.n){say('📜 เควสสำเร็จ: '+q.d+' — กลับไปรับรางวัลที่กิลด์');sfx('bell')}}if(ch)saveX()}
 {const _fc=fishCatch;fishCatch=function(){_fc();questEv('fish')}}
@@ -4844,7 +4848,7 @@ function ownerTalk(id){const S=SD2[id],o=D.owner;if(!S||!o)return false;const gr
 function npcTalk(n){const L=n.lines&&n.lines.length?n.lines:['สวัสดีจ้า'];n.i=n.i||0;const say1=()=>{talk(n,L[n.i++%L.length],[{t:'💬 คุยต่อ',stay:true,f:say1},BYE])};say1()}
 {const _ta=townAct;townAct=function(){if(!D||!D.town)return _ta();
   if(Math.hypot(P.x-(23*T+16),P.y-(28*T+10))<40)return _ta();
-  const cm=D.npcs.find(q=>q.name==='ปรมาจารย์อาชีพ');if(cm&&Math.hypot(cm.x-P.x,cm.y-8-P.y)<48){talk(cm,P.lv<CLASS_LV?'เจ้ายังอ่อนประสบการณ์นัก… กลับมาเมื่อถึง Lv.'+CLASS_LV+' แล้วข้าจะชี้ทางให้':'เส้นทางของนักรบ จอมเวท หรือนักธนู… เจ้าพร้อมจะเลือกแล้วหรือยัง?',[{t:'⚔️ เลือกอาชีพ',c:'go',f:()=>openClassMenu()},{t:'🌟 ดูสกิล/พาสซีฟ',f:()=>openSkw('pas')},{t:'💬 คุยเล่น',stay:true,f:()=>npcTalk(cm)},BYE]);return true}
+  const cm=D.npcs.find(q=>q.name==='ปรมาจารย์อาชีพ');if(cm&&Math.hypot(cm.x-P.x,cm.y-8-P.y)<48){talk(cm,P.lv<CLASS_LV?'เจ้ายังอ่อนประสบการณ์นัก… กลับมาเมื่อถึง Lv.'+CLASS_LV+' แล้วข้าจะชี้ทางให้':'มีถึง 11 เส้นทาง ตั้งแต่นักรบ จอมเวท นักธนู ไปจนถึงนินจา อัศวิน และนักอัญเชิญ… เจ้าพร้อมจะเลือกแล้วหรือยัง?',[{t:'⚔️ เลือกอาชีพ',c:'go',f:()=>openClassMenu()},{t:'🌟 ดูสกิล/พาสซีฟ',f:()=>openSkw('pas')},{t:'💬 คุยเล่น',stay:true,f:()=>npcTalk(cm)},BYE]);return true}
   const s=stallNear();if(s){const n=D.npcs.find(q=>q.name===VENDOR[s.type])||{name:VENDOR[s.type]};const S=SD2['st_'+s.type];
    talk(n,pick(['มาจ้า ของสด ๆ ทุกวัน เลือกได้เลย!','วันนี้ของดีราคาถูกจ้า ลองดูก่อนได้นะ','อ้าว ผู้กล้า! แวะมาอุดหนุนหน่อยจ้า']),[{t:'🛒 ดูของในแผง',c:'go',f:()=>{openShop('st_'+s.type);n.bub={txt:'เลือกเลยจ้า!',t:2}}},{t:'💬 คุยเล่น',stay:true,f:()=>npcTalk(n)},BYE],n.name+(S?' · '+S.name:''));return true}
   const v=DIRV[P.dir],ax=P.x+v[0]*26,ay=P.y-8+v[1]*26;
@@ -5842,7 +5846,7 @@ function heartbeat(v){tone(55,40,.18,'sine',v,0,'mu');tone(52,38,.16,'sine',v*.8
   return _mt()}}
 
 // ---------- 6) บอสโหดที่สุด: จักรพรรดิเงาแห่งห้วงลึก (ดันเจี้ยนชั้น 100) ----------
-const ABYSS={n:'จักรพรรดิเงาแห่งห้วงลึก',hp:3.6,atk:1.1};
+const ABYSS={n:'เงาแห่งห้วงลึก',hp:3.6,atk:1.1};
 {const _sb=spawnBoss;spawnBoss=function(){_sb();if(!(D&&D.dg===100&&D.boss))return;const b=D.boss;b.abyss=1;b.nm=ABYSS.n;b.max=b.hp=Math.round(b.hp*ABYSS.hp);b.atk=Math.round(b.atk*ABYSS.atk);b.col=['#2a1a3a','#0a0610','#c040ff'];b.sc*=1.15;
   b.ph=1;b.orbT=3;b.tpT=6;b.sumT=9;b.ringT=5;shake(6,.8);sfx('warp');banner('☠️ '+ABYSS.n,'ผู้ทำลายผลึกอรุณ — บอสที่โหดที่สุดในเอลโดเรีย','blue');
   setTimeout(()=>{if(D&&D.boss===b)say('“เจ้าคิดหรือว่าเศษแสงเพียงห้าชิ้น… จะหยุดความมืดนิรันดร์ได้?”')},1200)}}
@@ -5865,7 +5869,7 @@ function abyssShot(b,a,sp,dmg,c,r){ZPROJ.push({x:b.x,y:b.y-30*b.sc,vx:Math.cos(a
 // ---------- 7) ภารกิจสุดท้าย ----------
 STCH[13].t='บทที่ 13: ผู้ทำลายผลึก';STCH[13].d='ลงดันเจี้ยนชั้น 100 และปราบ '+ABYSS.n;STCH[13].need=()=>[STORY.f100?1:0,1];
 STCH[13].intro='เศษผลึกทั้งห้าเผยความจริง… ผู้ทำลายผลึกอรุณคือ '+ABYSS.n+' ที่หลับใหลอยู่ใต้ชั้นที่ร้อย มันแข็งแกร่งกว่าทุกสิ่งที่เจ้าเคยเผชิญ — เตรียมตัวให้พร้อม ตีบวกอาวุธ ใส่รูน และพกยาให้เต็มกระเป๋า';
-STCH[13].done=['เจ้า… ปราบจักรพรรดิเงาได้จริง ๆ! แสงอรุณกลับคืนสู่แผ่นดินแล้ว','ข้าในนามแห่งเอลโดเรีย ขอมอบ “โฉนดที่ดินผู้กล้า” ทางทิศตะวันออกของทุ่งหญ้าให้แก่เจ้า','จงสร้างบ้าน ปลูกผัก เลี้ยงสัตว์ และใช้ชีวิตอย่างสงบสุขที่เจ้าสมควรได้รับ'];
+STCH[13].done=['เจ้า… ปราบเงาแห่งห้วงลึกได้จริง ๆ! แสงอรุณกลับคืนสู่แผ่นดินแล้ว','ข้าในนามแห่งเอลโดเรีย ขอมอบ “โฉนดที่ดินผู้กล้า” ทางทิศตะวันออกของทุ่งหญ้าให้แก่เจ้า','จงสร้างบ้าน ปลูกผัก เลี้ยงสัตว์ และใช้ชีวิตอย่างสงบสุขที่เจ้าสมควรได้รับ'];
 STCH[13].rw={coin:30000,xp:80000,bless:6,end:1,deed:1};
 STCH[14].t='บทส่งท้าย: ชีวิตใหม่ของผู้กล้า';STCH[14].d='สร้างบ้านหลังแรกในที่ดินผู้กล้า (ไปทางประตูมิติในทุ่งหญ้า)';
 {const _g=giveRw;giveRw=function(r){const L=_g(r);if(r&&r.deed){HOME.unlocked=1;saveHome&&saveHome();L.push('📜 โฉนดที่ดินผู้กล้า')}return L}}
@@ -7035,7 +7039,7 @@ if(AU.c&&!AU._mz){AU._mz=1;setInterval(musicTick,140)}else{const _iv=setInterval
 // ---------------- 2) เนื้อเรื่องเข้มข้น: คัตซีนตัวละคร ----------------
 const CAST={gareth:{n:'กัปตันแกเร็ธ',skin:'#e8c4a0',hair:'#6a4a2a',beard:1,armor:'#8a8e9a',cape:'#1a3a8a'},princess:{n:'เจ้าหญิงเอเลน่า',skin:'#f6dcc4',hair:'#f0d070',crown:'#ffd23a',dress:'#e888b8',fem:1},
  morvane:{n:'อัครเวทมอร์เวน',skin:'#d8c8c0',hair:'#2a1a3a',hood:'#4a1a6a',eye:'#c040ff'},king:{n:'พระราชาอัลดริค',skin:'#ecc8a4',hair:'#e8e8e8',beard:1,crown:'#ffd23a',robe:'#8a1a1a'},
- iris:{n:'ไอริส',skin:'#f4d8bc',hair:'#c8843a',fem:1,dress:'#3a5a9a'},emperor:{n:'จักรพรรดิเงา',skin:'#140a1c',hair:'#000',crown:'#6a2a8a',eye:'#ff3a5a',shadow:1},
+ iris:{n:'ไอริส',skin:'#f4d8bc',hair:'#c8843a',fem:1,dress:'#3a5a9a'},emperor:{n:'เงาแห่งห้วงลึก',skin:'#140a1c',hair:'#000',crown:'#6a2a8a',eye:'#ff3a5a',shadow:1},
  dragon:{n:'มังกรคริสตัล',dragon:1}};
 function cineBust(k,W,H,t,who,s){const C=CAST[who];if(!C)return;const cx=W*.5,cy=H*.33,S=s*1.0;
  const bg=k.createRadialGradient(cx,cy,10,cx,cy,H*.8);bg.addColorStop(0,C.shadow?'rgba(120,20,60,.5)':C.dragon?'rgba(90,200,255,.35)':'rgba(255,230,170,.25)');bg.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=bg;k.fillRect(0,0,W,H);
@@ -7091,7 +7095,7 @@ const STORYCS={
  s11:[CB6('king','แกเร็ธ… สหายเก่าของข้า… จงอย่าให้การเสียสละของเขาสูญเปล่า ข่าวว่าเจ้าหญิงถูกผนึกไว้ที่ชั้นห้าสิบ')],
  e11:[{s:'crystal',t:'ที่ชั้นห้าสิบ เจ้าพบเจ้าหญิงในผนึกคริสตัล — และทำลายมันได้สำเร็จ'},CB6('princess','เจ้ามาจริง ๆ… ข้ารู้ว่าเจ้าต้องมา… แต่แกเร็ธ… ไม่นะ…')],
  s12:[CB6('princess','มังกรคริสตัลเคยเป็นผู้พิทักษ์ผลึกอรุณ ความมืดครอบงำมัน… ได้โปรดปลดปล่อยมันด้วย')],
- e12:[CB6('dragon','ขอบใจ… ที่ปลดปล่อยข้า… จงฟัง… จักรพรรดิเงาเคยเป็นผู้กล้าคนแรก… ผู้ที่ถูกความมืดกลืนกินเพราะสิ้นหวัง…'),CB6('dragon','อย่าให้หัวใจเจ้า… เป็นเช่นเขา…')],
+ e12:[CB6('dragon','ขอบใจ… ที่ปลดปล่อยข้า… จงฟัง… เงาแห่งห้วงลึกเคยเป็นผู้กล้าคนแรก… ผู้ที่ถูกความมืดกลืนกินเพราะสิ้นหวัง…'),CB6('dragon','อย่าให้หัวใจเจ้า… เป็นเช่นเขา…')],
  s13:[CB6('morvane','ลงมาให้ถึงชั้นร้อยสิ ผู้กล้า… นายท่านหิวกระหายแสงในตัวเจ้า!'),CB6('princess','ข้าจะสวดภาวนาให้เจ้าทุกคืน… กลับมานะ สัญญากับข้า'),CB6('king','ทั้งแผ่นดินฝากไว้กับเจ้า… และฝากแกเร็ธด้วย')],
  e13:[CB6('emperor','แสง… อบอุ่นเช่นนี้… ข้าลืมไปนานแสนนาน… ขอบใจ… ผู้กล้าแห่งรุ่นหลัง…'),CB6('princess','เจ้ากลับมาแล้ว! ทั้งเมืองรอเจ้าอยู่ที่ปราสาท')]};
 STORY.cs=STORY.cs||{};
@@ -8769,7 +8773,7 @@ const EventSystem=(()=>{const DB=GAME_DATABASE,LSK='fm_ev7';let ovr={};try{ovr=J
  const lastBoss={};
  setInterval(()=>Guard.run('eventSpawns',()=>{if(!D||!D.zone||D.home||PAUSED||P.dead)return;const where=D.dg?'dungeon':'zone';
   for(const E of active()){for(const S of (E.specialSpawns||[])){if(!(S.where||['zone']).includes(where))continue;const alive=D.mobs.filter(m=>!m.dead&&m.mid===S.monsterId).length;if(alive<(S.max||1)&&Math.random()<(S.chancePerSec||.02))EventBus.emit('SPAWN_REQUEST',{monsterId:S.monsterId,event:E.eventId})}
-   if(E.seasonalBossId&&where==='zone'){const alive=D.mobs.some(m=>!m.dead&&m.mid===E.seasonalBossId);const now=Date.now();if(!alive&&now-(lastBoss[E.eventId]||0)>(E.seasonalBossEverySec||300)*1000){lastBoss[E.eventId]=now;const M=DB.monster(E.seasonalBossId);
+   if(E.seasonalBossId&&where==='zone'){const alive=D.mobs.some(m=>!m.dead&&m.mid===E.seasonalBossId);const now=srvNow();if(!alive&&now-(lastBoss[E.eventId]||0)>(E.seasonalBossEverySec||300)*1000){lastBoss[E.eventId]=now;const M=DB.monster(E.seasonalBossId);
      EventBus.emit('SPAWN_REQUEST',{monsterId:E.seasonalBossId,event:E.eventId,r:180,announce:(E.icon||'⚠️')+' '+(M?M.name:'บอสอีเวนต์')+' ปรากฏตัวแล้ว!'})}}}}),1000);
  // แจ้งเมื่อมีอีเวนต์ตอนเริ่มเกม
  setTimeout(()=>{for(const E of active())EventBus.emit(EV.EVENT_STARTED,{eventId:E.eventId,name:E.name,icon:E.icon,boot:true})},2500);
@@ -9393,15 +9397,15 @@ const CARTSHOUT8=['ดูทางด้วยสิเห้ย!','หลบห
   shopEl.insertAdjacentHTML('afterbegin','<div class="shnote" style="margin:4px 0;padding:6px 8px;border-radius:8px;font-size:12px;font-weight:700;background:'+(ok?'#1d4a2a':'#5a1f1f')+';border:1px solid '+(ok?'#4fd27a':'#ff7a6a')+';color:#fff">'+txt.replace(/[<>]/g,'')+'</div>');
   const el=shopEl.querySelector('.shnote');setTimeout(()=>{try{el&&el.remove()}catch(e){}},3200)}}
 // ---------- 4) บอสไม่รีเซ็ตเมื่อออก-เข้าใหม่ (มีคูลดาวน์จริง เก็บถาวร) ----------
-const BCD8={get(){try{return JSON.parse(localStorage.getItem('fm_bcd8')||'{}')}catch(e){return{}}},set(o){try{const now=Date.now();for(const k in o)if(now-o[k]>3600e3)delete o[k];localStorage.setItem('fm_bcd8',JSON.stringify(o))}catch(e){}},ms:{z:10*60e3,dg:15*60e3}};
-BCD8.apply=function(key,kind){if(!D||!D.zone)return;const t=BCD8.get()[key];if(!t)return;const rem=t+BCD8.ms[kind]-Date.now();if(rem<=0)return;
+const BCD8={get(){try{return JSON.parse(localStorage.getItem('fm_bcd8')||'{}')}catch(e){return{}}},set(o){try{const now=srvNow();for(const k in o)if(now-o[k]>3600e3)delete o[k];localStorage.setItem('fm_bcd8',JSON.stringify(o))}catch(e){}},ms:{z:10*60e3,dg:15*60e3}};
+BCD8.apply=function(key,kind){if(!D||!D.zone)return;const t=BCD8.get()[key];if(!t)return;const rem=t+BCD8.ms[kind]-srvNow();if(rem<=0)return;
  D.bossT=Math.max(1,rem/1000);D.boss=null;D.mobs=D.mobs.filter(m=>!m.boss);
  if(kind==='dg'){D.chest={x:D.zone.arena.x*T+16,y:D.zone.arena.y*T+16,open:true}}
  setTimeout(()=>{try{say('🕒 บอสที่นี่เพิ่งถูกกำจัด — จะกลับมาในอีก '+Math.ceil(rem/60000)+' นาที'+(kind==='dg'?' (ไปชั้นถัดไปได้เลย)':''))}catch(e){}},50)};
 {const _ez=enterZone;enterZone=function(i){_ez(i);try{const Z=ZONES[i];if(Z&&!Z.dg)BCD8.apply('z'+i,'z')}catch(e){}}}
 {const _ed=enterDg;enterDg=function(f){_ed(f);try{BCD8.apply('dg'+f,'dg')}catch(e){}}}
 {const _mk=mobKill;mobKill=function(m){const isB=m&&m.boss&&D&&D.zone,key=isB?(D.dg?'dg'+D.dg:'z'+D.zone.zi):null;_mk(m);
-  if(key){const o=BCD8.get();o[key]=Date.now();BCD8.set(o);if(!D||!D.dg){try{if(D&&D.zone){D.bossT=BCD8.ms.z/1000;say('🏆 ปราบบอสสำเร็จ! บอสจะกลับมาอีกใน 10 นาที (ออกแล้วเข้าใหม่ก็ไม่รีเซ็ต)')}}catch(e){}}}}}
+  if(key){const o=BCD8.get();o[key]=srvNow();BCD8.set(o);if(!D||!D.dg){try{if(D&&D.zone){D.bossT=BCD8.ms.z/1000;say('🏆 ปราบบอสสำเร็จ! บอสจะกลับมาอีกใน 10 นาที (ออกแล้วเข้าใหม่ก็ไม่รีเซ็ต)')}}catch(e){}}}}}
 // ---------- 5) มอนติดแร่/กำแพงแล้วไม่ไล่ → เลี่ยงอ้อมไปอีกทาง ----------
 {const _mv=mvM;mvM=function(m,dx,dy){const len=Math.hypot(dx,dy);if(!m||!m.F||len<1e-3||m.st==='lunge'||m.kx||m.ky)return _mv(m,dx,dy);
   const x0=m.x,y0=m.y;
@@ -9437,9 +9441,9 @@ window.NETSMOOTH8=function(o,dt){const age=Math.min(.22,(performance.now()-(o.sn
 //  ข้อ 24 โคมไฟไม่บังป้ายร้าน (แก้ที่ LAMP_DATA ใน b46) · ข้อ 21 กระเป๋าร้านชำต่างสี/ขนาดตามระดับ · ข้อ 6,7 ดันเจี้ยนรอบเดียวกัน = แผนที่เดียวกัน
 // =====================================================================
 // ---------- ดันเจี้ยน: แผนที่ขึ้นกับ "รอบเวลา" 15 นาที ไม่ใช่วินาทีที่กดเข้า — เพื่อนเข้าในรอบเดียวกันได้แผนที่เดียวกัน ----------
-window.DGROUND8=()=>Math.floor(Date.now()/900000);
+window.DGROUND8=()=>Math.floor(srvNow()/900000);
 window.DGSEED8=f=>DGROUND8()*7919+(f|0)*131;
-{const _ed2=enterDg;enterDg=function(f){_ed2(f);if(!D||!D.dg)return;const left=Math.max(1,Math.ceil((900000-Date.now()%900000)/60000)),rid=(DGROUND8()%9000+1000);
+{const _ed2=enterDg;enterDg=function(f){_ed2(f);if(!D||!D.dg)return;const left=Math.max(1,Math.ceil((900000-srvNow()%900000)/60000)),rid=(DGROUND8()%9000+1000);
   setTimeout(()=>{try{if(D&&D.dg===f)say('🗺️ แผนที่รอบ #'+rid+' — เพื่อนที่เข้าชั้นนี้ในรอบเดียวกันจะได้แผนที่เหมือนกัน (เปลี่ยนรอบในอีก ~'+left+' นาที)')}catch(e){}},2500)}}
 // ---------- เหมือง: ผังตายตัวต่อเหมืองอยู่แล้ว (seed คงที่) — ล้างแคชตอนเข้าใหม่ให้ได้ผังเดิมแน่นอนเสมอ ----------
 // ---------- ไอคอนกระเป๋าร้านชำ: ใบเล็ก=ผ้าใบน้ำตาล · กลาง=หนังเขียว · ใหญ่=ม่วงขอบทองและใหญ่กว่า ----------
@@ -9897,7 +9901,7 @@ function wbWin10(d){const s=wbReward10(d);try{refreshInv();saveGame(true)}catch(
 // HUD บอสโลก (มุมบน) + ปุ่มเมนู
 const wbHud10=document.createElement('div');wbHud10.style.cssText='position:absolute;left:50%;top:calc(66px + var(--st,0px));transform:translateX(-50%);z-index:5;font:900 11px system-ui,"Noto Sans Thai";color:#fff;background:rgba(60,16,8,.88);border:1.5px solid #ff8a3a;border-radius:10px;padding:3px 10px;display:none;text-align:center;min-width:170px;cursor:pointer';
 gid('wrap').appendChild(wbHud10);wbHud10.onclick=()=>openWb10();
-setInterval(()=>{try{const show=WB10.on&&titleEl.hidden&&!inTower10();wbHud10.style.display=show?'':'none';if(!show)return;const left=Math.max(0,(WB10.end-Date.now())/1000);
+setInterval(()=>{try{const show=WB10.on&&titleEl.hidden&&!inTower10();wbHud10.style.display=show?'':'none';if(!show)return;const left=Math.max(0,(WB10.end-srvNow())/1000);
   wbHud10.innerHTML='🐉 บอสโลก '+(inWb10()?'':'ปรากฏแล้ว! (แตะเพื่อไป) ')+'· ⌛ '+Math.floor(left/60)+':'+String(Math.floor(left%60)).padStart(2,'0')+' · 👥 '+WB10.n+
    (inWb10()&&WB10.top.length?'<div style="font-weight:600;font-size:10px;opacity:.9">'+WB10.top.slice(0,3).map((t,i)=>(i+1)+'. '+esc10(t[0])+' '+fmt10(t[1])).join(' · ')+'</div>':'')}catch(e){}},500);
 function openWb10(){const nx=WB10.next?new Date(WB10.next):null,th=nx?nx.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'}):'12:00 / 20:00';
@@ -10081,12 +10085,12 @@ const EV11={K:[
   {k:'gold',n:'🪙 ฝนเหรียญ: เหรียญ ×2',d:'ล่ามอนได้เหรียญสองเท่า'},
   {k:'meteor',n:'☄️ ฝนดาวตก',d:'ดาวตกลงทุ่งหญ้าและเหมือง — วิ่งไปเก็บหินตีบวกและอัญมณี'},
   {k:'drop',n:'🎁 เทศกาลดรอป: วัตถุดิบ ×2',d:'มอนดรอปวัตถุดิบเพิ่มเป็นสองเท่า'}],cur:null,said:''};
-function evNow11(){const d=new Date(Date.now()+7*3600e3),h=d.getUTCHours(),mi=d.getUTCMinutes();if(h%2||h===12||h===20||mi>=40)return null;
- const day=Math.floor((Date.now()+7*3600e3)/864e5);return Object.assign({end:Date.now()+(40-mi)*60e3-d.getUTCSeconds()*1e3},EV11.K[(day*3+h/2)%EV11.K.length])}
+function evNow11(){const d=new Date(srvNow()+7*3600e3),h=d.getUTCHours(),mi=d.getUTCMinutes();if(h%2||h===12||h===20||mi>=40)return null;
+ const day=Math.floor((srvNow()+7*3600e3)/864e5);return Object.assign({end:srvNow()+(40-mi)*60e3-d.getUTCSeconds()*1e3},EV11.K[(day*3+h/2)%EV11.K.length])}
 window.EV11=EV11;window.evNow11=evNow11;
 const evHud11=document.createElement('div');evHud11.style.cssText='position:absolute;right:8px;top:calc(92px + var(--st,0px));z-index:5;font:800 10.5px system-ui,"Noto Sans Thai";color:#fff;background:linear-gradient(90deg,#7a3aa8,#c8508a);border:1.5px solid #ffd0f0;border-radius:9px;padding:3px 8px;display:none;pointer-events:none;max-width:46vw;text-align:right';
 gid('wrap').appendChild(evHud11);
-setInterval(()=>{try{const e=evNow11();EV11.cur=e;if(!e||!titleEl.hidden){evHud11.style.display='none';return}const left=Math.max(0,(e.end-Date.now())/1000);
+setInterval(()=>{try{const e=evNow11();EV11.cur=e;if(!e||!titleEl.hidden){evHud11.style.display='none';return}const left=Math.max(0,(e.end-srvNow())/1000);
   evHud11.style.display='';evHud11.innerHTML=e.n+' · ⌛ '+Math.floor(left/60)+':'+String(Math.floor(left%60)).padStart(2,'0');
   const key=e.k+'@'+Math.floor(e.end/60e3);if(EV11.said!==key){EV11.said=key;try{sysSay('🎉 อีเวนต์เริ่มแล้ว! '+e.n+' — '+e.d+' (40 นาที)');banner('🎉 '+e.n,e.d)}catch(_){}}}catch(_){}},1000);
 {const _gx=gainXp;gainXp=function(n){return _gx(EV11.cur&&EV11.cur.k==='xp'&&n>0?n*2:n)}}
@@ -10992,9 +10996,9 @@ window.VS19n19=()=>{VS19.n=''};
 // ---------- ธนาคาร ----------
 const BANK19=(()=>{let B={coin:0,day:0,log:[]};try{Object.assign(B,JSON.parse(localStorage.getItem('fm_bank19')||'{}')||{})}catch(e){}B.coin=Math.max(0,Math.floor(B.coin||0));B.log=Array.isArray(B.log)?B.log.slice(-12):[];return B})();
 const bankSave19=()=>{try{localStorage.setItem('fm_bank19',JSON.stringify(BANK19))}catch(e){}try{saveGame(true)}catch(e){}};
-const dayNo19=()=>Math.floor((Date.now()+7*3600e3)/864e5);
+const dayNo19=()=>Math.floor((srvNow()+7*3600e3)/864e5);
 const bankLog19=(t,n)=>{BANK19.log.push([Date.now(),t,n]);if(BANK19.log.length>12)BANK19.log.shift()};
-function bankInterest19(){const d=dayNo19();if(!BANK19.day){BANK19.day=d;return 0}const days=Math.min(7,d-BANK19.day);if(days<=0)return 0;let tot=0;for(let i=0;i<days;i++){const it=Math.min(400,Math.floor(BANK19.coin*.002));BANK19.coin+=it;tot+=it}BANK19.day=d;if(tot>0)bankLog19('ดอกเบี้ย '+days+' วัน',tot);return tot}
+function bankInterest19(){if(!SRV.ok)return 0;const d=dayNo19();if(!BANK19.day){BANK19.day=d;return 0}const days=Math.min(7,d-BANK19.day);if(days<=0)return 0;let tot=0;for(let i=0;i<days;i++){const it=Math.min(400,Math.floor(BANK19.coin*.002));BANK19.coin+=it;tot+=it}BANK19.day=d;if(tot>0)bankLog19('ดอกเบี้ย '+days+' วัน',tot);return tot}
 const bkW19=mk6('bank19');const BK19={n:''};
 function openBank19(){if(!(D&&D.shop==='bank')){say('🏦 ฝาก/ถอนเหรียญได้ที่ธนาคารเอลโดเรีย (ถนนล่าง ข้างกิลด์)');sfx('thud');return}const it=bankInterest19();if(it>0){bankSave19();say('💰 ได้ดอกเบี้ย +'+it.toLocaleString()+' เหรียญ')}p6open(bkW19);bankRender19()}
 window.openBank19=openBank19;
@@ -14296,9 +14300,9 @@ const RARE64=new Set(['estone','bless','gem','scale','core','phoenix']);
 {const _tk=talk;talk=function(n,txt,ch,name){try{if(Array.isArray(ch)&&ch.some(c=>/สู้ชั้นนี้อีกครั้ง/.test(c&&c.t||'')))ch=ch.filter(c=>!/สู้ชั้นนี้อีกครั้ง/.test(c&&c.t||''))}catch(e){}return _tk.call(this,n,txt,ch,name)};window.talk=talk}
 // ---------- 4) บอสตำนาน: รอ 30 นาทีหลังชนะ ----------
 const LBCD64={get(){try{return JSON.parse(localStorage.getItem('fm_lbcd64')||'{}')}catch(e){return{}}},set(o){try{localStorage.setItem('fm_lbcd64',JSON.stringify(o))}catch(e){}},ms:30*60e3};
-{const _en=enter62;enter62=function(i){const t=LBCD64.get()[i],rem=t?t+LBCD64.ms-Date.now():0;if(rem>0){say('🕒 '+LB62[i].n+' เพิ่งถูกผนึก — กลับมาได้ในอีก '+Math.ceil(rem/60000)+' นาที');sfx('thud');return}return _en.apply(this,arguments)};window.enter62=enter62}
-{const _mk=mobKill;mobKill=function(m){const w=m&&m.lb62&&D&&D.lb62!=null&&!D.won,i=D&&D.lb62;const r=_mk.apply(this,arguments);try{if(w&&D.won===1){const o=LBCD64.get();o[i]=Date.now();LBCD64.set(o)}}catch(e){}return r};window.mobKill=mobKill}
-{const _oa=openAltar62;openAltar62=function(){const r=_oa.apply(this,arguments);try{const o=LBCD64.get();if(DLG.open)for(const c of DLG.ch){const m=/^(\S+) (.+?) \(Lv/.exec(c.t||'');if(!m)continue;const i=LB62.findIndex(B=>B.n===m[2]);const rem=i>=0&&o[i]?o[i]+LBCD64.ms-Date.now():0;if(rem>0){c.t+=' 🕒'+Math.ceil(rem/60000)+'น.';c.c=''}}if(DLG.open)dlgShowChoices()}catch(e){}return r};window.openAltar62=openAltar62}
+{const _en=enter62;enter62=function(i){const t=LBCD64.get()[i],rem=t?t+LBCD64.ms-srvNow():0;if(rem>0){say('🕒 '+LB62[i].n+' เพิ่งถูกผนึก — กลับมาได้ในอีก '+Math.ceil(rem/60000)+' นาที');sfx('thud');return}return _en.apply(this,arguments)};window.enter62=enter62}
+{const _mk=mobKill;mobKill=function(m){const w=m&&m.lb62&&D&&D.lb62!=null&&!D.won,i=D&&D.lb62;const r=_mk.apply(this,arguments);try{if(w&&D.won===1){const o=LBCD64.get();o[i]=srvNow();LBCD64.set(o)}}catch(e){}return r};window.mobKill=mobKill}
+{const _oa=openAltar62;openAltar62=function(){const r=_oa.apply(this,arguments);try{const o=LBCD64.get();if(DLG.open)for(const c of DLG.ch){const m=/^(\S+) (.+?) \(Lv/.exec(c.t||'');if(!m)continue;const i=LB62.findIndex(B=>B.n===m[2]);const rem=i>=0&&o[i]?o[i]+LBCD64.ms-srvNow():0;if(rem>0){c.t+=' 🕒'+Math.ceil(rem/60000)+'น.';c.c=''}}if(DLG.open)dlgShowChoices()}catch(e){}return r};window.openAltar62=openAltar62}
 // ---------- 5) เมนูหลัก: เอาวาปออก ----------
 try{for(const nm of ['หอคอย','บอสโลก','บอสตำนาน']){const i=PM7.findIndex(m=>m[1]===nm);if(i>=0)PM7.splice(i,1)}pmRender7()}catch(e){}
 // บอสโลก: ไม่มีปุ่มวาป — เดินไปประตูลานบอสโลกในทุ่งหญ้า (ข้างประตูมิติ)
@@ -14718,7 +14722,7 @@ function portal72(front){const x=WBG64.x,y=WBG64.y,t=performance.now()/1000,on=!
   if(on){ctx.globalCompositeOperation='lighter';for(let i=0;i<3;i++){const a=t*2.6+i*2.094,px=x+Math.cos(a)*40,py=y-36+Math.sin(a)*10;if(Math.sin(a)<0)continue;const g=ctx.createRadialGradient(px,py,0,px,py,7);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,140,60,0)');ctx.fillStyle=g;ctx.fillRect(px-7,py-7,14,14)}ctx.globalCompositeOperation='source-over';
    if(Math.random()<.5)try{const a=Math.random()*6.28,r=60;rfxP(x+Math.cos(a)*r,y-34+Math.sin(a)*r*.6,-Math.cos(a)*55,-Math.sin(a)*35,.9,Math.random()<.5?'255,170,80':'255,90,170',1.6,'spark')}catch(e){}}
   ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#1a0a14';
-  let s='🐉 ประตูมิติบอสโลก',s2=on?'เปิดแล้ว! เหลือ '+Math.max(0,Math.ceil(((WB10.end||0)-Date.now())/60000))+' นาที':'ปิด · เปิดเมื่อบอสเกิด 12:00 / 20:00';
+  let s='🐉 ประตูมิติบอสโลก',s2=on?'เปิดแล้ว! เหลือ '+Math.max(0,Math.ceil(((WB10.end||0)-srvNow())/60000))+' นาที':'ปิด · เปิดเมื่อบอสเกิด 12:00 / 20:00';
   ctx.strokeText(s,x,y-96);ctx.fillStyle=on?'#ffe08a':'#c8b8d8';ctx.fillText(s,x,y-96);ctx.font='600 10px system-ui,"Noto Sans Thai",sans-serif';ctx.strokeText(s2,x,y-84);ctx.fillStyle=on?'#ffb07a':'#9a8aaa';ctx.fillText(s2,x,y-84);
   if(Math.hypot(P.x-x,P.y-y)<48){const s3=on?'กดโต้ตอบเพื่อเข้าลานบอสโลก':'ประตูยังปิดอยู่';ctx.strokeText(s3,x,y+24);ctx.fillStyle='#fff';ctx.fillText(s3,x,y+24)}}
  ctx.restore()}
@@ -14742,7 +14746,7 @@ const pbZone72=()=>{try{const Z=D&&D.zone;if(!Z||D.dg||!Z.Zd||!NAT16[Z.Zd.id])re
 function pbSpots72(Z){if(Z.pbSp72)return Z.pbSp72;const R=srand(9173*((Z.zi|0)+5)),F=[];for(let y=3;y<Z.m.length-3;y++)for(let x=3;x<Z.m[0].length-3;x++){if(Z.m[y][x]!==FL)continue;let ok=1;for(let b=-2;b<=2&&ok;b++)for(let a=-2;a<=2;a++){if(!Z.m[y+b]||Z.m[y+b][x+a]!==FL){ok=0;break}const o=Z.oreAt&&Z.oreAt[(y+b)*ZW+x+a];if(o){ok=0;break}}
   if(ok&&Math.hypot(x-Z.ent.x,y-Z.ent.y)>18&&Math.hypot(x-Z.arena.x,y-Z.arena.y)>9)F.push([x,y])}
  const out=[];for(let i=0;i<3&&F.length;i++){let best=null;for(let k=0;k<60;k++){const c=F[Math.floor(R()*F.length)];if(out.every(o=>Math.hypot(o[0]-c[0],o[1]-c[1])>14)){best=c;break}}if(!best)best=F[Math.floor(R()*F.length)];out.push(best)}return Z.pbSp72=out}
-function pbSpawn72(){const Z=pbZone72();if(!Z||P.dead)return 0;try{if(W33.mode==='mirror')return 0}catch(e){}const st=PB72.get(),now=Date.now(),sp=pbSpots72(Z),Zd=Z.Zd;let n=0;
+function pbSpawn72(){const Z=pbZone72();if(!Z||P.dead)return 0;try{if(W33.mode==='mirror')return 0}catch(e){}const st=PB72.get(),now=srvNow(),sp=pbSpots72(Z),Zd=Z.Zd;let n=0;
  const ppl=Math.min(5,1+(()=>{try{return NET.others.size}catch(e){return 0}})());
  PBT72.forEach((T,i)=>{const key=Zd.id+':'+i;if(D.mobs.some(m=>!m.dead&&m.pb72&&m.pbi===i))return;if(now-(st.k[key]||0)<PB72.ms)return;const s=sp[i];if(!s)return;
   const mb=i===2?[Zd.boss.f,Zd.boss.n,Zd.boss.c]:Zd.mobs[i%Zd.mobs.length],L=(Zd.lv?Zd.lv[1]:20)+T.dl;
@@ -14754,7 +14758,7 @@ window.pbSpawn72=pbSpawn72;
 {const _zh=zHit;zHit=function(x,y){try{if(D&&D.zone&&D.zone.K&&!D.dg&&!P.dead&&!window.INPT10&&Math.abs(x-P.x)<.5&&Math.abs(y-P.y)<.5){const N=NAT16[D.zone.Zd&&D.zone.Zd.id];if(N&&!N.lava){window.INPT10=1;try{return _zh.apply(this,arguments)}finally{window.INPT10=0}}}}catch(e){}return _zh.apply(this,arguments)};window.zHit=zHit}
 {const _ez=enterZone;enterZone=function(i){const r=_ez.apply(this,arguments);setTimeout(()=>{try{pbSpawn72()}catch(e){}},2600);return r};window.enterZone=enterZone}
 setInterval(()=>{try{if(pbZone72()&&!PAUSED)pbSpawn72()}catch(e){}},15000);
-{const _mk=mobKill;mobKill=function(m){const r=_mk.apply(this,arguments);try{if(m&&m.pb72&&!m.pbRew72){m.pbRew72=1;const T=PBT72[m.pbi|0],key=(m.pbz||'')+':'+(m.pbi|0),st=PB72.get(),now=Date.now();st.k[key]=now;
+{const _mk=mobKill;mobKill=function(m){const r=_mk.apply(this,arguments);try{if(m&&m.pb72&&!m.pbRew72){m.pbRew72=1;const T=PBT72[m.pbi|0],key=(m.pbz||'')+':'+(m.pbi|0),st=PB72.get(),now=srvNow();st.k[key]=now;
    if(now-(st.c[key]||0)<PB72.ms){PB72.set(st);sysSay('👹 รับรางวัล '+T.n+' ไปแล้ว — รออีก '+Math.ceil((PB72.ms-(now-st.c[key]))/60000)+' นาที');return r}
    st.c[key]=now;PB72.set(st);const W=T.rw,R=[];const add=(k,n,lab)=>{n=Math.round(n);if(n>0){inv[k]=(inv[k]|0)+n;R.push(lab+' ×'+n.toLocaleString())}};
    add('coin',W.coin*(1+(m.L|0)/40),'🪙');add('estone',W.est,'💎 หินเสริมพลัง');add('gem',W.gem,'💎 อัญมณี');if(Math.random()<W.bl)add('bless',1,'✨ หินพร');
@@ -16460,7 +16464,7 @@ window.E92=E92;
 const save92=()=>{try{localStorage.setItem('fm_end92',JSON.stringify({pg:E92.pg,e:E92.e,eggs:E92.eggs,pets:E92.pets,f:E92.f}))}catch(e){}};
 window.save92=save92;
 const fmt92=n=>Math.round(n).toLocaleString('en-US');
-const wk92=()=>Math.floor(((Date.now()+7*36e5)/864e5+3)/7); // สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย (ตรงกับ accounts.js)
+const wk92=()=>Math.floor(((srvNow()+7*36e5)/864e5+3)/7); // สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย (ตรงกับ accounts.js)
 const wkFix92=()=>{const w=wk92();if(E92.e.wk!==w){E92.e.wk=w;E92.e.cur=0;save92()}};wkFix92();
 const PGMAX92=200,PGCAP92=50;
 const PGK92=[['dmg','⚔️','ดาเมจ',.006,'%'],['hp','❤️','เลือดสูงสุด',.01,'%'],['dr','🛡️','ลดดาเมจที่โดน',.003,'%'],['crit','💥','โอกาสคริ',.003,'%']];
@@ -16548,10 +16552,10 @@ if(HOME&&HOME.pet&&!(HOME.pet in E92.pets))E92.pets[HOME.pet]=0;
 {const _ba=buyAnimal;buyAnimal=function(k){const r=_ba.apply(this,arguments);try{const a=ANIMS.find(q=>q.k===k);if(a&&a.pet&&HOME.pet===k&&!(k in E92.pets)){E92.pets[k]=0;save92()}}catch(e){}return r};window.buyAnimal=buyAnimal}
 function eggPut92(){if((inv.egg92|0)<1){say('ไม่มี 🥚 ไข่สัตว์ลึกลับ — ได้จากหอคอยนิรันดร์ / ร้านดาวนิรันดร์');sfx('thud');return}
  if(E92.eggs.length>=SLOTS92){say('แท่นฟักเต็มแล้ว ('+SLOTS92+' ช่อง)');sfx('thud');return}
- inv.egg92--;E92.eggs.push({t:Date.now()});refreshInv();save92();saveGame(true);sfx('ui');say('🥚 วางไข่ในแท่นฟักแล้ว — ฟักออกใน 20 นาที');render92()}
+ inv.egg92--;E92.eggs.push({t:srvNow()});refreshInv();save92();saveGame(true);sfx('ui');say('🥚 วางไข่ในแท่นฟักแล้ว — ฟักออกใน 20 นาที');render92()}
 function eggRush92(i){const g=E92.eggs[i];if(!g)return;if((inv.star92|0)<5){say('ต้องใช้ 🌟 ดาวนิรันดร์ 5 ดวง');sfx('thud');return}
  inv.star92-=5;g.t-=HATCH92;refreshInv();save92();sfx('gem');render92()}
-function eggOpen92(i){const g=E92.eggs[i];if(!g||Date.now()-g.t<HATCH92)return;
+function eggOpen92(i){const g=E92.eggs[i];if(!g||srvNow()-g.t<HATCH92)return;
  const L=petList92();if(!L.length)return;const a=L[Math.floor(Math.random()*L.length)];let r=Math.random()*100,s=1;for(let j=0;j<STARW92.length;j++){if(r<STARW92[j]){s=j+1;break}r-=STARW92[j]}
  E92.eggs.splice(i,1);const had=a.k in E92.pets,old=star92(a.k);let msg;
  if(!had||s>old){E92.pets[a.k]=s;msg=(had?'⬆️ อัปดาว! ':'🎉 ได้สัตว์ใหม่! ')+a.n+' '+'★'.repeat(s)}
@@ -16612,7 +16616,7 @@ window.open92=open92;
 const eggIcon92=()=>{try{return iconURL('mat:egg92')}catch(e){return ''}};
 function render92(){if(w92.hidden)return;wkFix92();const t=TAB92.t;
  let h='<div class="w" style="width:min(480px,96%);height:auto;max-height:92%"><div class="hd"><b>🌠 ตำนาน — เนื้อหาหลัง Lv.150</b><button onclick="p6close(w92)">✕</button></div><div class="bd" style="flex-direction:column;overflow-y:auto;padding:9px">';
- h+='<div class="tb92">'+TABS92.map(([k,n])=>'<button class="'+(t===k?'on':'')+'" onclick="TAB92_(\''+k+'\')">'+n+(k==='pg'&&pgFree92()?' ('+pgFree92()+')':'')+(k==='egg'&&E92.eggs.some(g=>Date.now()-g.t>=HATCH92)?' ❗':'')+'</button>').join('')+'</div>';
+ h+='<div class="tb92">'+TABS92.map(([k,n])=>'<button class="'+(t===k?'on':'')+'" onclick="TAB92_(\''+k+'\')">'+n+(k==='pg'&&pgFree92()?' ('+pgFree92()+')':'')+(k==='egg'&&E92.eggs.some(g=>srvNow()-g.t>=HATCH92)?' ❗':'')+'</button>').join('')+'</div>';
  if(TABX92[t]){try{h+=TABX92[t]()}catch(e){console.warn('tab92',e)}}
  else if(t==='pg'){const g=E92.pg,nd=pgNeed92(g.lv),pc=g.lv>=PGMAX92?100:Math.min(100,g.xp/nd*100);
   h+='<div class="hl92">ถึง Lv.'+MAXLV+' (เลเวลสูงสุด) แล้ว XP จะสะสมเป็น "ดาวตำนาน" แทน · ขึ้นดาว 1 ครั้ง = แต้ม 1 แต้ม · แตะ +1 / +5 เพื่อใส่พลัง</div>';
@@ -16624,7 +16628,7 @@ function render92(){if(w92.hidden)return;wkFix92();const t=TAB92.t;
     '<button class="bt92" '+(fr?'':'disabled')+' onclick="pgPut92(\''+k+'\',1)">+1</button><button class="bt92" '+(fr?'':'disabled')+' onclick="pgPut92(\''+k+'\',5)">+5</button></div>'}
   h+='</div><button class="bt92 g go92" onclick="pgReset92()">🔄 ล้างแต้มทั้งหมด (🪙 50,000)</button>'}
  else if(t==='end'){const ok=endOk92(),f=endNext92();
-  const ms=((wk92()+1)*7-3)*864e5-7*36e5-Date.now(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
+  const ms=((wk92()+1)*7-3)*864e5-7*36e5-srvNow(),dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5);
   h+='<div class="hl92">ต่อจากหอคอยบอส 12 ชั้น · ชั้น 13 ขึ้นไปไม่มีที่สิ้นสุด บอสเก่งขึ้นทุกชั้น · เวลา 5 นาที/ชั้น · ทุกวันจันทร์เริ่มปีนใหม่ แข่งอันดับทั้งเซิร์ฟ</div>';
   h+='<div class="bx92"><div class="h92">♾️ สัปดาห์นี้ถึงชั้น '+(E92.e.cur?EF0+E92.e.cur:'-')+'</div><div>สถิติสูงสุดตลอดกาล: ชั้น '+(E92.e.best?EF0+E92.e.best:'-')+' · รีเซ็ตใน '+dd+' วัน '+hh+' ชม.</div>'+
    '<div style="margin-top:3px">🌟 ดาวนิรันดร์ที่มี: <b>'+fmt92(inv.star92|0)+'</b> · 🥚 ไข่: <b>'+(inv.egg92|0)+'</b></div></div>';
@@ -16639,7 +16643,7 @@ function render92(){if(w92.hidden)return;wkFix92();const t=TAB92.t;
  else{h+='<div class="hl92">วางไข่ในแท่นฟัก รอ 20 นาที ได้สัตว์เลี้ยงสุ่ม ★1–★5 · ทุกดาว = สเตตัสทุกอย่าง +2 (ตัวที่พาเดิน) · แตะการ์ดเพื่อสลับตัวที่พาเดิน</div>';
   h+='<div class="bx92"><div class="h92">🥚 แท่นฟักไข่ ('+E92.eggs.length+'/'+SLOTS92+') · มีไข่ '+(inv.egg92|0)+' ฟอง</div><div class="eg92">';
   for(let i=0;i<SLOTS92;i++){const g=E92.eggs[i];if(!g){h+='<div><span style="opacity:.6">ช่องว่าง</span>'+((inv.egg92|0)?'<button class="bt92" onclick="eggPut92()">วางไข่</button>':'')+'</div>';continue}
-   const rem=HATCH92-(Date.now()-g.t);h+='<div><img src="'+eggIcon92()+'">'+(rem<=0?'<button class="bt92" onclick="eggOpen92('+i+')">🐣 ฟักเลย!</button>':
+   const rem=HATCH92-(srvNow()-g.t);h+='<div><img src="'+eggIcon92()+'">'+(rem<=0?'<button class="bt92" onclick="eggOpen92('+i+')">🐣 ฟักเลย!</button>':
     '<span>⏳ '+Math.floor(rem/60000)+':'+String(Math.floor(rem%60000/1000)).padStart(2,'0')+'</span><button class="bt92 g" onclick="eggRush92('+i+')">เร่ง 🌟5</button>')+'</div>'}
   h+='</div></div><div class="bx92"><div class="h92">🐾 คอลเลกชันสัตว์เลี้ยง ('+Object.keys(E92.pets).length+'/'+petList92().length+')</div><div class="pg92">';
   for(const a of petList92()){const own=a.k in E92.pets,s=star92(a.k);h+='<div class="pc92 '+(HOME.pet===a.k?'on':own?'':'lk')+'" data-pk="'+a.k+'" '+(own?'onclick="petUse92(\''+a.k+'\')"':'')+'><span class="cv"></span><div><b>'+a.n+'</b></div><div class="st">'+(own?(s?'★'.repeat(s):'☆ ร้านค้า'):'🔒')+'</div>'+(HOME.pet===a.k?'<div class="ok92">พาเดินอยู่</div>':'')+'</div>'}
@@ -18049,7 +18053,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)flush107()}
 //  นับความคืบหน้าจากสถิติกลาง ST20 (kills boss tree ore fish — ระบบเดียวกับฉายา) + STORY.c2b (บอสดันเจี้ยนเมือง 2) + ห่อ enhItem (ตีบวก)
 //  เก็บใน localStorage 'fm_daily108' (ขึ้นคลาวด์พร้อมเซฟอื่นอัตโนมัติ) · เมนู 📅 รายวัน
 try{
-const day108=()=>new Date(Date.now()+7*3600e3).toISOString().slice(0,10);
+const day108=()=>new Date(srvNow()+7*3600e3).toISOString().slice(0,10);
 const DY={day:'',ci:0,ciDay:'',q:[],bonus:0,shown:''};try{Object.assign(DY,JSON.parse(localStorage.getItem('fm_daily108')||'{}')||{})}catch(e){}
 const sv108=()=>{try{localStorage.setItem('fm_daily108',JSON.stringify(DY))}catch(e){}};
 // ---------- รางวัล ----------
@@ -18080,10 +18084,12 @@ let base108=snap108();
 function roll108(){const lv=P.lv|0,C=QP108.filter(q=>lv>=(q.min||0)&&lv<=(q.max||999));const L=[];const pool=C.slice();
  while(L.length<4&&pool.length){const q=pool.splice(Math.random()*pool.length|0,1)[0];const n=q.n(lv);L.push({t:q.t,d:q.d+' '+n+' '+q.u,n,c:0,ok:0,coin:Math.round(150+lv*12),xp:Math.round(need(lv)*.08),es:q.t==='boss'||q.t==='c2b'?2:1})}
  DY.q=L;DY.bonus=0}
-function chkDay108(){const d=day108();if(DY.day!==d){DY.day=d;roll108();sv108();base108=snap108()}}
+function chkDay108(){if(!SRV.ok)return;const d=day108();if(DY.day!==d){DY.day=d;roll108();sv108();base108=snap108()}}
 function prog108(t,n){if(!n)return;let ch=0;for(const q of DY.q){if(q.t!==t||q.ok||q.c>=q.n)continue;q.c=Math.min(q.n,q.c+n);ch=1;if(q.c>=q.n){try{say('📅 เควสรายวันสำเร็จ: '+q.d+' — เปิดเมนู 📅 รายวัน เพื่อรับรางวัล');sfx('bell')}catch(e){}}}if(ch){sv108();if(!W108.hidden)render108()}}
 setInterval(()=>{try{if(typeof P==='undefined'||!P||!titleEl.hidden)return;chkDay108();const s=snap108();for(const k in s){const d=s[k]-(base108[k]|0);if(d>0&&d<500)prog108(k,d)}base108=s}catch(e){}},1000);
 {const _e=enhItem;enhItem=function(id){const l0=(ENH&&ENH[id])||0,c0=inv.coin;const r=_e.apply(this,arguments);try{if(((ENH&&ENH[id])||0)!==l0||inv.coin!==c0)prog108('enh',1)}catch(e){}return r};window.enhItem=enhItem}
+// fix123: ตีบวกจริงอยู่ที่ enhStart7 (enhItem แค่เปิดหน้าต่าง) → เควสรายวัน "ตีบวก" ไม่เคยขยับ
+{const _s=enhStart7;enhStart7=function(){const b0=!!ENHS.busy,c0=inv.coin;const r=_s.apply(this,arguments);try{if(!b0&&ENHS.busy&&inv.coin!==c0)prog108('enh',1)}catch(e){}return r};window.enhStart7=enhStart7}
 // ---------- หน้าต่าง ----------
 const W108=mk6('dy108');
 const css108=document.createElement('style');css108.textContent=
@@ -18108,14 +18114,14 @@ function render108(){chkDay108();const lv=P.lv|0,today=day108(),can=DY.ciDay!==t
  h+='</div></div>';W108.innerHTML=h}
 const bonusL108=()=>[['coin',800+(P.lv|0)*30],['estone',3],['bless',1]];
 window.tab108x=t=>{tab108=t;sfx('ui');render108()};
-window.claim108=()=>{chkDay108();const today=day108();if(DY.ciDay===today)return;const cur=DY.ci%7,L=CI108[cur](P.lv|0);DY.ciDay=today;DY.ci++;sv108();give108(L);try{sfx('chest');flash('#ffe9a0',.25)}catch(e){}try{banner('🎁 เช็กอินวันที่ '+(cur+1),rwTxt108(L),'green')}catch(e){say('🎁 ได้รับ '+rwTxt108(L))}render108()};
+window.claim108=()=>{if(!SRV.ok){say('⏳ กำลังเทียบเวลากับเซิร์ฟเวอร์ ลองใหม่อีกครั้ง');sfx('thud');return}chkDay108();const today=day108();if(DY.ciDay===today)return;const cur=DY.ci%7,L=CI108[cur](P.lv|0);DY.ciDay=today;DY.ci++;sv108();give108(L);try{sfx('chest');flash('#ffe9a0',.25)}catch(e){}try{banner('🎁 เช็กอินวันที่ '+(cur+1),rwTxt108(L),'green')}catch(e){say('🎁 ได้รับ '+rwTxt108(L))}render108()};
 window.qc108=i=>{const q=DY.q[i];if(!q||q.ok||q.c<q.n)return;q.ok=1;sv108();give108([['coin',q.coin],['estone',q.es]]);try{gainXp(q.xp)}catch(e){}try{sfx('chest')}catch(e){}say('📅 รับรางวัลเควสรายวัน: 🪙 '+fmt108(q.coin)+' · XP '+fmt108(q.xp)+' · หินเสริมพลัง ×'+q.es);render108()};
 window.qb108=()=>{if(DY.bonus||!DY.q.every(q=>q.ok))return;DY.bonus=1;sv108();const L=bonusL108();give108(L);try{sfx('chest');flash('#ffe9a0',.3)}catch(e){}try{banner('🎁 หีบโบนัสรายวัน',rwTxt108(L),'green')}catch(e){}render108()};
 const open108=t=>{if(t)tab108=t;render108();p6open(W108)};window.open108=open108;
 // เมนู
 try{if(!PM7.some(m=>m[1]==='รายวัน')){const at=PM7.findIndex(m=>m[1]==='ตั้งค่า');PM7.splice(at<0?PM7.length:at,0,['📅','รายวัน',()=>open108()]);pmRender7()}}catch(e){}
 // เด้งเองเมื่อเข้าเกมวันใหม่ (ยังไม่รับเช็กอิน)
-setInterval(()=>{try{const today=day108();if(DY.ciDay===today||DY.shown===today)return;if(/devtest/.test(location.search)&&!window.__popup108)return;if(!(D&&(D.town||D.city2)))return;if(!titleEl.hidden||(typeof intro!=='undefined'&&!intro.hidden)||PAUSED||document.getElementById('boot106')||(typeof DLG!=='undefined'&&DLG.open)||(typeof cineEl!=='undefined'&&!cineEl.hidden))return;if(!(P.lv>0)||P.dead)return;DY.shown=today;sv108();open108('ci')}catch(e){}},2500);
+setInterval(()=>{try{const today=day108();if(DY.ciDay===today||DY.shown===today)return;if(/devtest/.test(location.search)&&!window.__popup108)return;if(!(D&&(D.town||D.city2)))return;if(!titleEl.hidden||(typeof intro!=='undefined'&&!intro.hidden)||PAUSED||document.getElementById('boot106')||(typeof DLG!=='undefined'&&DLG.open)||(typeof cineEl!=='undefined'&&!cineEl.hidden))return;if(!(P.lv>0)||P.dead)return;if(typeof STORY!=='undefined'&&(STORY.ch|0)<1)return;/* fix123: ผู้เล่นใหม่ยังไม่ได้คุยกับพระราชา — ไม่เด้งทับคำแนะนำการเล่น */DY.shown=today;sv108();open108('ci')}catch(e){}},2500);
 window.DY108=DY;
 }catch(e){console.warn('fix108',e)}
 
@@ -18484,7 +18490,7 @@ function pic113(B){const c=document.createElement('canvas');c.width=c.height=168
 function open113(){if(typeof in62==='function'&&in62()){openAltar62();return}
  const cd=(typeof LBCD64!=='undefined')?LBCD64.get():{};let h='<div class="w"><div class="hd"><b>🐲 แท่นผนึกอสูร — บอสตำนาน</b><button onclick="p6close(gid(\'al113\'))">✕</button></div><div class="bd">'
  +'<div class="in113">🧙 <b>ผู้เฝ้าแท่นผนึก:</b> "อสูรทั้งหกถูกผนึกไว้ในคริสตัลนี้ จะปลดผนึกตัวไหนออกมาสู้ จ่ายค่าท้าแล้วเข้าไปได้เลย ชนะได้ <b>ตราอสูร</b> 1–2 อัน · สะสม <b>10 อัน</b> แลกชิ้นชุดบอสที่ต้องการ · มีเวลา 8 นาที หลบ <b>วงแดง</b> ให้ดี"</div><div class="gr113">';
- LB62.forEach((B,i)=>{const seal=inv['lbm'+i]|0,rem=cd[i]?cd[i]+LBCD64.ms-Date.now():0,lv=P.lv>=B.lv,setN=(window.B59&&B59[i])?B59[i].n:'';
+ LB62.forEach((B,i)=>{const seal=inv['lbm'+i]|0,rem=cd[i]?cd[i]+LBCD64.ms-srvNow():0,lv=P.lv>=B.lv,setN=(window.B59&&B59[i])?B59[i].n:'';
   h+='<div class="bc113'+(lv?'':' lk')+'"><div class="tp113"><canvas data-b="'+i+'"></canvas><div><div class="nm113">'+B.e+' '+B.n+'</div><div class="lv113">Lv.'+B.lv+(lv?'':' 🔒')+'</div></div></div>'
   +'<div class="tx113"><span>💰 ค่าท้า: 🪙 '+B.cost.toLocaleString('en-US')+'</span><span>🔱 ตราอสูร: '+seal+'/10</span>'+(setN?'<span>🎁 ดรอป: ชุด'+setN+'</span>':'')+'<span>⚠️ '+(B.tip||'')+'</span>'+(rem>0?'<span style="color:#ff9a6a">🕒 พักฟื้นอีก '+Math.ceil(rem/60000)+' นาที</span>':'')+'</div>'
   +'<div class="bt113"><button '+(lv&&rem<=0&&inv.coin>=B.cost?'':'disabled')+' onclick="go113('+i+')">⚔️ ท้าสู้</button><button class="g" '+(seal>=10?'':'disabled')+' onclick="seal113('+i+')">🔱 แลกตรา</button></div></div>'});
@@ -18726,18 +18732,20 @@ try{if(!PM7.some(m=>m[1]==='อัญมณี')){const at=PM7.findIndex(m=>m[1]
 //  กันทุกทางเข้า: ห่อ enter62 (ปุ่มท้าในหน้าต่าง/เมนู) + ตรวจตอนเข้าลานจริง (ปุ่ม "ท้าอีกครั้ง" ในบทสนทนาเดิมเรียก enter62 ตัวในของ fix62) → เกินโควตา = ถูกส่งกลับ + คืนค่าท้า
 //  หน้าต่างหอผนึก (open113) แสดง "🎟️ วันนี้ลงได้อีก x/2" ทุกการ์ด
 try{
-const LIM=2;const day=()=>new Date(Date.now()+7*3600e3).toISOString().slice(0,10);
-const Q=(()=>{let d={};try{d=JSON.parse(localStorage.getItem('fm_seal118')||'{}')||{}}catch(e){}if(d.day!==day())d={day:day(),n:{}};d.n=d.n||{};return d})();
-const sv=()=>{try{localStorage.setItem('fm_seal118',JSON.stringify(Q))}catch(e){}};
-const chk=()=>{if(Q.day!==day()){Q.day=day();Q.n={};sv()}};
+const LIM=2;const day=()=>new Date(srvNow()+7*3600e3).toISOString().slice(0,10);
+// fix123: เก็บแยกตามวัน {d:{'2026-10-15':{0:2}}} — เปลี่ยนเวลาเครื่องไป-กลับ ไม่ทำให้ตัวนับของวันจริงหาย
+const QS=(()=>{let d={};try{d=JSON.parse(localStorage.getItem('fm_seal118')||'{}')||{}}catch(e){}const o={d:d.d||{}};if(d.day&&d.n)o.d[d.day]=Object.assign({},o.d[d.day]||{},d.n);return o})();
+const Q={get n(){const k=day();return QS.d[k]||(QS.d[k]={})},set n(v){QS.d[day()]=v||{}}};
+const sv=()=>{try{const ks=Object.keys(QS.d).sort();while(ks.length>10)delete QS.d[ks.shift()];localStorage.setItem('fm_seal118',JSON.stringify(QS))}catch(e){}};
+const chk=()=>{};
 const left=i=>{chk();return Math.max(0,LIM-(Q.n[i]|0))};window.seal118left=left;
 // fix122: เดิมยกเว้นตอนอยู่ในห้องบอส (in62) + นับเฉพาะตอน "ข้างนอก → เข้าห้อง" → กดท้าซ้ำจากในห้องบอสได้ไม่จำกัด (ไม่ถูกนับ)
 //  → ตรวจโควตาทุกครั้งไม่ว่าอยู่ที่ไหน · นับทันทีตอนจ่ายค่าท้าสำเร็จ · ตัวตรวจสำรองดูจาก "ห้องบอสใหม่" (D ใหม่) ไม่ใช่แค่ null→เข้า
 let pend=null;
-{const _e=enter62;enter62=function(i){if(left(i)<=0){say('🎟️ วันนี้ลง'+(LB62[i]?LB62[i].n:'บอสตัวนี้')+'ครบ '+LIM+' ครั้งแล้ว — พรุ่งนี้มาใหม่ (รีเซ็ตเที่ยงคืน)');sfx('thud');return}
+{const _e=enter62;enter62=function(i){if(!SRV.ok){say('⏳ กำลังเทียบเวลากับเซิร์ฟเวอร์ ลองใหม่อีกครั้ง');sfx('thud');return}if(left(i)<=0){say('🎟️ วันนี้ลง'+(LB62[i]?LB62[i].n:'บอสตัวนี้')+'ครบ '+LIM+' ครั้งแล้ว — พรุ่งนี้มาใหม่ (รีเซ็ตเที่ยงคืน)');sfx('thud');return}
  const c0=inv.coin|0;const r=_e.apply(this,arguments);if((inv.coin|0)<c0){chk();Q.n[i]=(Q.n[i]|0)+1;sv();pend=i}return r};window.enter62=enter62}
 let wasD=null;
-setInterval(()=>{try{const now=(typeof in62==='function'&&in62())?D.lb62:null;if(now!=null&&D!==wasD){if(pend===now){pend=null}else{chk();const n=(Q.n[now]|0)+1;if(n>LIM){const B=LB62[now];inv.coin=(inv.coin|0)+((B&&B.cost)|0);try{refreshInv()}catch(e){}say('🎟️ วันนี้ลง'+(B?B.n:'')+'ครบ '+LIM+' ครั้งแล้ว — คืนค่าท้าให้แล้ว');try{leave62()}catch(e){}}else{Q.n[now]=n;sv()}}}wasD=now!=null?D:null}catch(e){}},300);
+setInterval(()=>{try{const now=(typeof in62==='function'&&in62())?D.lb62:null;if(now!=null&&D!==wasD){try{const B=LB62[now];if(B)say(B.e+' ลานผนึก'+B.n+' — ปราบให้ได้ภายใน 8 นาที หลบวงแดง!')}catch(e){}if(pend===now){pend=null}else{chk();const n=(Q.n[now]|0)+1;if(n>LIM){const B=LB62[now];inv.coin=(inv.coin|0)+((B&&B.cost)|0);try{refreshInv()}catch(e){}say('🎟️ วันนี้ลง'+(B?B.n:'')+'ครบ '+LIM+' ครั้งแล้ว — คืนค่าท้าให้แล้ว');try{leave62()}catch(e){}}else{Q.n[now]=n;sv()}}}wasD=now!=null?D:null}catch(e){}},300);
 // แสดงในหน้าต่างหอผนึก
 setInterval(()=>{try{const W=document.getElementById('al113');if(!W||W.hidden)return;W.querySelectorAll('.bc113').forEach(card=>{const cv=card.querySelector('canvas[data-b]');if(!cv)return;const i=+cv.dataset.b,l=left(i);let s=card.querySelector('.q118');if(!s){s=document.createElement('span');s.className='q118';const tx=card.querySelector('.tx113');if(tx)tx.appendChild(s)}const t='🎟️ วันนี้ลงได้อีก '+l+'/'+LIM+' ครั้ง';if(s.textContent!==t){s.textContent=t;s.style.color=l>0?'#7ed957':'#ff8a6a';s.style.display='block'}const b=card.querySelector('.bt113 button');if(b&&l<=0)b.disabled=true})}catch(e){}},300);
 }catch(e){console.warn('fix118',e)}
@@ -18811,6 +18819,68 @@ try{
 {const _e=enter62;enter62=function(i){try{if(D&&D.shop==='seal113'&&typeof leaveShop==='function'){leaveShop(true)}}catch(e){console.warn('fix121',e)}return _e.apply(this,arguments)};window.enter62=enter62}
 }catch(e){console.warn('fix121',e)}
 
+</script>
+
+<script>
+// fix123 (v5.00) — 🔒 ปิดช่องโหว่ก่อนเปิดเซิร์ฟ (ตรวจเล่นจริง 2026-10-15)
+//  1) นาฬิกาเซิร์ฟเวอร์: เดิมรางวัลรายวัน/เควสรายวัน/โควตาบอสตำนาน/คูลดาวน์/ดอกเบี้ยธนาคาร ใช้เวลาเครื่อง → เลื่อนเวลามือถือ = รับซ้ำได้ไม่จำกัด
+//     → ใช้เวลาเซิร์ฟเวอร์ (/api/ping + เวลาที่ได้จากการเซฟ) · ระหว่างยังไม่ได้เวลาเซิร์ฟเวอร์ ระบบรายวันรอก่อน
+//  2) ซื้อของแผงร้านผู้เล่น / ประมูล / เปิดแผงขาย: เดิมหักเหรียญ/เอาของออก แล้วส่งให้เซิร์ฟเวอร์ทันที โดยเซฟขึ้นคลาวด์ทีหลัง (ทุก 15 วิ)
+//     → ปิดแอปทันทีหลังซื้อ = เหรียญกลับมา (อีกฝ่ายได้เงินไปแล้ว) = ปั๊มเงิน/ปั๊มของกับเพื่อนได้
+//     → ต้องเซฟขึ้นคลาวด์สำเร็จก่อน ค่อยส่งคำสั่งซื้อ/ประมูล/วางขาย
+//  3) ประมูล: เดิมหักเงินตอนเซิร์ฟเวอร์ตอบรับ (ถ้าเงินไม่พอตอนนั้นจะหักเหลือ 0) → กดประมูลหลายชิ้นพร้อมกันด้วยเงินก้อนเดียว แล้วโดนแซง = ได้คืนหลายเท่า
+//     → หักเงินก่อนส่ง · ประมูลได้ทีละครั้ง · ไม่สำเร็จคืนเงิน
+try{
+// ---------- 1) server clock ----------
+const setOff123=(st,t0,t1)=>{if(!(st>1.5e12))return;SRV.pb=st-(t0+t1)/2;SRV.ok=true};
+{const _c=CLOUD.call;CLOUD.call=async function(path,body,ms){const t0=performance.now();const r=await _c.apply(this,arguments);try{const t1=performance.now();if(r&&r.ok){if(path==='/api/ping'&&r.t)setOff123(r.t,t0,t1);else if(path==='/api/save'&&r.upd&&t1-t0<8000)setOff123(r.upd,t0,t1)}}catch(e){}return r}}
+const ping123=async()=>{try{if(!CLOUD.base()){SRV.ok=true;return}await CLOUD.call('/api/ping',{},8000)}catch(e){}};
+ping123();setInterval(()=>{if(!SRV.ok||Math.random()<.02)ping123()},5000);
+// ---------- 2) sync-before-send for player trades ----------
+const sl123=ms=>new Promise(r=>setTimeout(r,ms));
+async function safeSync123(){for(let i=0;i<80&&CLOUD.inflight;i++)await sl123(100);const t0=CLOUD.t||0;try{saveGame(true)}catch(e){}
+ try{await CLOUD.sync(true)}catch(e){}return (CLOUD.t||0)>t0}
+window.safeSync123=safeSync123;
+const HOLD123=/^\{"t":"(stall|sbuy|abid)"/;let q123=Promise.resolve();
+{const _send=WebSocket.prototype.send;WebSocket.prototype.send=function(m){const ws=this;
+ if(typeof m==='string'&&HOLD123.test(m)&&!(m.startsWith('{"t":"stall"')&&/"items":\[\]|^\{"t":"stall"\}$/.test(m))&&CLOUD.base()&&typeof FM_ACCT!=='undefined'&&FM_ACCT){
+  q123=q123.then(async()=>{const ok=await safeSync123();if(ok){try{_send.call(ws,m)}catch(e){}}
+   else{const t=(m.match(/^\{"t":"(\w+)"/)||[])[1];try{say('☁️ เซฟขึ้นเซิร์ฟเวอร์ไม่สำเร็จ — '+(t==='stall'?'ยังไม่ได้เปิดแผงขาย':'ยกเลิกรายการนี้แล้ว')+' ลองใหม่อีกครั้ง');sfx('thud')}catch(e){}
+    if(t==='abid')try{aucFail123()}catch(e){}}});return}
+ return _send.call(this,m)}}
+// ซื้อจากแผง: ตอบกลับช้าเกิน 10 วิ เกมคืนเงินไปแล้ว แต่ซื้อสำเร็จทีหลัง → หักเงินอีกครั้ง (เดิมได้ของฟรี)
+{const _g=stallGot10;stallGot10=function(d){try{const key=d.from+':'+(d.item?d.item.i:d.i);if(d.ok&&d.item&&BUY10[key]==null){inv.coin=Math.max(0,(inv.coin|0)-(d.item.p|0));try{say('🪙 หักค่าของ '+(d.item.p|0).toLocaleString()+' (ซื้อสำเร็จหลังหมดเวลา)')}catch(e){}}}catch(e){}const r=_g.apply(this,arguments);try{if(d&&d.ok)safeSync123()}catch(e){}return r};window.stallGot10=stallGot10}
+// ปิดแผง/ถอนของ พร้อมกับที่มีคนซื้อพอดี → เดิมของกลับเข้ากระเป๋าผู้ขาย และผู้ซื้อก็ได้ของ (ของซ้ำ) → ถ้าขายไปแล้วให้หักของคืน + ได้เงินตามปกติ
+{const _s=stallSold10;stallSold10=function(d){try{const it=d&&d.item;if(it&&!STALL10.items.some(x=>x.i===d.i)){
+  if(it.k==='mat'){inv[it.id]=Math.max(0,(inv[it.id]|0)-(it.n|0))}else if(GEAR[it.id]>0){GEAR[it.id]--;if(GEAR[it.id]<=0)delete GEAR[it.id]}
+  inv.coin=(inv.coin|0)+(it.p|0);try{refreshInv();saveGame(true)}catch(e){}try{say('💰 '+(d.bn||'ผู้เล่น')+' ซื้อ '+(it.nm||it.id)+' ไปก่อนเก็บร้าน — ได้ 🪙 '+(it.p|0).toLocaleString())}catch(e){}try{safeSync123()}catch(e){}return}}catch(e){}const r=_s.apply(this,arguments);try{safeSync123()}catch(e){}return r};window.stallSold10=stallSold10}
+// ---------- 3) auction: pay first, one bid at a time ----------
+let AUCP=null;
+function aucFail123(){if(!AUCP)return;inv.coin=(inv.coin|0)+AUCP.amt;AUCP=null;try{refreshInv();saveGame(true)}catch(e){}}
+window.aucBid10=id=>{const el=gid('ab10_'+id),amt=Math.floor(+(el&&el.value)||0);if(!ON10.auth){say('🔨 ต้องเข้าสู่ระบบบัญชีออนไลน์ก่อน');sfx('thud');return}
+ if(AUCP){say('🔨 รอผลการประมูลครั้งก่อนสักครู่');sfx('thud');return}
+ if(!(amt>0)||amt>(inv.coin|0)){say('🪙 เหรียญไม่พอ');sfx('thud');return}
+ inv.coin-=amt;AUCP={amt,id,t:Date.now()};try{refreshInv();saveGame(true)}catch(e){}ws10({t:'abid',id,amt});
+ setTimeout(()=>{if(AUCP&&Date.now()-AUCP.t>=29e3){aucFail123();say('⌛ ประมูลไม่สำเร็จ (หมดเวลา) — คืนเหรียญแล้ว')}},30000)};
+{const _nm=netMsg;netMsg=function(d){try{if(d&&d.t==='abid_ok'){if(AUCP){inv.coin=(inv.coin|0)+(d.amt|0);AUCP=null}else if((inv.coin|0)<(d.amt|0)){d=Object.assign({},d)}}
+ else if(d&&d.t==='abid_no'){aucFail123()}}catch(e){}return _nm.call(this,d)};window.netMsg=netMsg}
+// ---------- 3b) ปุ่ม GM: เดิมดูแค่ชื่อไอดีในเครื่อง → ต้องให้เซิร์ฟเวอร์ยืนยันว่าเป็น GM ด้วย (ON10.gm จาก auth) ----------
+try{const _ga=gmAllowed;gmAllowed=function(){if(!_ga())return false;try{if(sessionStorage.getItem('fm_gm7')==='1')return true;if(CLOUD.base()&&!(typeof ON10!=='undefined'&&ON10.gm))return false}catch(e){}return true};window.gmAllowed=gmAllowed;
+ setInterval(()=>{try{if(gmAllowed()&&!document.getElementById('gmb'))gmBtn()}catch(e){}},3000)}catch(e){}
+// ---------- 4) เนื้อเรื่องที่ไม่ตรงกับเกม ----------
+try{const F=t=>STCH.find(c=>c&&typeof c.t==='string'&&c.t.startsWith(t));
+ // บท 13: บอสชั้น 100 ชื่อ "จักรพรรดิเงาแห่งห้วงลึก" ซ้ำกับ "จักรพรรดิเงา" บอสใหญ่ภาค 3 (บท 22–26 บอกว่าจักรพรรดิเงาคือผู้อยู่เบื้องหลัง "เงาแห่งห้วงลึก")
+ const c13=F('บทที่ 13:');if(c13){c13.d='ลงดันเจี้ยนชั้น 100 และปราบ '+ABYSS.n;if(typeof c13.intro==='string')c13.intro=c13.intro.replace(/จักรพรรดิเงาแห่งห้วงลึก/g,ABYSS.n);if(Array.isArray(c13.done))c13.done=c13.done.map(x=>x.replace('ปราบจักรพรรดิเงาได้จริง','ปราบเงาแห่งห้วงลึกได้จริง'))}
+ // บท 2: บอกให้ตี "อาวุธเหล็ก" แต่เงื่อนไขคืออาวุธเซ็ตพฤกษาโบราณ (ดาบเริ่มต้นคือดาบนักล่าเงา ไม่ใช่ดาบหิน)
+ const c2=F('บทที่ 2:');if(c2&&typeof c2.intro==='string')c2.intro='อาวุธเริ่มต้นสู้อสูรในเหมืองไม่ไหวแล้ว! ไปหาบอริน "หนวดเหล็ก" ที่โรงตีเหล็ก รับตำราช่าง แล้วคราฟอาวุธเซ็ตพฤกษาโบราณด้วยมือเจ้าเอง (Lv.5)';
+ // บท 3: มี 11 อาชีพ ไม่ใช่แค่ ดาบ เวท ธนู
+ const c3=F('บทที่ 3:');if(c3&&typeof c3.intro==='string')c3.intro='ปรมาจารย์อาชีพที่จัตุรัสรอคนอย่างเจ้าอยู่ เมื่อถึง Lv.10 จงไปเลือกทางของตน — มีให้เลือกถึง 11 อาชีพ ตั้งแต่นักรบ จอมเวท นักธนู ไปจนถึงนินจาและนักอัญเชิญ';
+ // บท 18: แท่นผนึกย้ายมาอยู่ในหอผนึกอสูรกลางเมืองแล้ว (fix113) ไม่ได้อยู่ใต้หอคอย
+ const c18=F('บทที่ 18:');if(c18&&typeof c18.intro==='string')c18.intro=c18.intro.replace('แท่นผนึกอสูรใต้หอคอยสั่นสะเทือน','แท่นผนึกอสูรในหอผนึกกลางเมืองสั่นสะเทือน');
+ // บท 27: ที่ดินผู้กล้าถูกเอาออกจากเกมแล้ว (fix114) ผู้เล่นใหม่ไม่เคยเห็น
+ const c27=F('บทที่ 27:');if(c27&&typeof c27.intro==='string')c27.intro=c27.intro.replace('ประตูขวาของเมืองที่เคยพาไปที่ดินผู้กล้า บัดนี้คือถนนสู่นครวารี','ประตูขวา (ตะวันออก) ของเมืองคือถนนสู่นครวารี');
+}catch(e){console.warn('fix123 story',e)}
+}catch(e){console.warn('fix123',e)}
 </script>
 
 </body>

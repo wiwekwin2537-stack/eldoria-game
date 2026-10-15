@@ -57,7 +57,7 @@ function lbAv(a) { try { if (!a || typeof a !== 'object') return null; const o =
   return JSON.stringify(o).length <= 600 ? o : null; } catch (e) { return null; } }
 // v4.80: หอคอยนิรันดร์ อันดับรายสัปดาห์ (สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย — ตรงกับ wk92 ในเกม)
 const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
-function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag); const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
+function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); // fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
 
 // ---------- กิลด์ผู้เล่น (เอกสารเดียว: Upstash key eld:guilds หรือไฟล์ data/guilds.json) ----------
@@ -181,6 +181,9 @@ async function handle(path_, d, ip) {
   if (path_ === '/api/register') {
     const pw = String(d.pw || ''); if (pw.length < 6 || pw.length > 64) return { err: 'badpw' };
     if (await dbGet(lid)) return { err: 'taken' };
+    // fix123: ไอดี GM (GM_IDS) สมัครใหม่ไม่ได้ — กันคนอื่นแย่งสมัครไอดี GM ที่ยังว่างแล้วได้สิทธิ์ GM (เสกของ/อนุมัติเติมเงิน)
+    //         ถ้าเจ้าของยังไม่ได้สมัครไอดี GM บนเซิร์ฟเวอร์ใหม่ ให้ตั้ง env GM_ALLOW_REG=1 ชั่วคราว สมัครเสร็จแล้วลบออก
+    if (GM_IDS.includes(lid) && process.env.GM_ALLOW_REG !== '1') return { err: 'taken' };
     const salt = crypto.randomBytes(16).toString('hex');
     const rec = { id, name: clean(d.name, 14), salt, hash: await hashPw(pw, salt), created: Date.now(), rev: 0, lv: 0, upd: 0, save: '', bak: '', tokens: [], gm: GM_IDS.includes(lid) };
     const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
@@ -204,7 +207,7 @@ async function handle(path_, d, ip) {
     if (lv0 >= 5 && rec.lv - lv0 >= 25 && rec.upd - t0 < 30 * 60e3) rec.flag = (rec.flag | 0) + 1; // เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
-    try { await lbLoad(); const S = rec.stat || {}, X = d.stat || {}; LB.map[lid] = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, u: Date.now() };
+    try { await lbLoad(); const S = rec.stat || {}, X = d.stat || {}; LB.map[lid] = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
       const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; } catch (e) {}
     try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
     if (!await dbSet(lid, rec)) return { err: 'store' };
