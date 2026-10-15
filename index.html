@@ -14246,11 +14246,11 @@ const COL62={hit:'255,80,60',thorn:'150,255,100',pool:'80,255,190',ice:'170,230,
   if(Math.random()<.12&&window.drop59){try{const piece=['sword','staff','bow','helm','chest','pants','arm','neck','ring'][Math.random()*9|0],id=piece+B59[i].t;GEAR[id]=(GEAR[id]|0)+1;R.push('👑 '+ITEMS[id].name)}catch(e){}}
   const coin=Math.round(B.cost*1.2);inv.coin+=coin;R.push('🪙 '+coin.toLocaleString());try{const x=Math.round(need(P.lv)*.5);gainXp(x);R.push('⭐ XP +'+x.toLocaleString())}catch(e){}
   try{refreshInv();saveGame(true)}catch(e){}flash('#ffd84a',.4);sfx('chest');try{chatAnn((P.name||'ผู้กล้า')+' ปราบ'+B.n+' สำเร็จ!')}catch(e){}
-  setTimeout(()=>{try{talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'🏆 ปราบ '+B.n+' สำเร็จ!\n'+R.join(' · '),[{t:'🔁 ท้าอีกครั้ง ('+B.cost.toLocaleString()+' 🪙)',c:'go',f:()=>enter62(i)},{t:'🔱 แลกตราอสูร',f:()=>openAltar62()},{t:'🏰 ออกจากลาน',f:()=>leave62()},BYE],'🐲 บอสตำนาน')}catch(e){}},900);return r};window.mobKill=mobKill}
+  setTimeout(()=>{try{talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'🏆 ปราบ '+B.n+' สำเร็จ!\n'+R.join(' · '),[{t:'🔱 แลกตราอสูร',f:()=>openAltar62()},{t:'🏰 ออกจากลาน',f:()=>leave62()},BYE],'🐲 บอสตำนาน')}catch(e){}},900);return r};window.mobKill=mobKill}
 // ---------- แท่นผนึกอสูร (เมนู) ----------
 function openAltar62(){if(in62()){talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'จะยอมแพ้หรือ? ออกตอนนี้ไม่ได้รางวัล',[{t:'🏰 ออกจากลาน',c:'go',f:()=>leave62()},BYE],'🐲 บอสตำนาน');return}
  const txt='🐲 บอสตำนาน 6 ตัว — เลือดมหาศาล มีท่าไม้ตาย (หลบวงแดง) · เวลา 8 นาที\nชนะได้ตราอสูร 1–2 อัน · 10 อัน = แลกชิ้นเซ็ตตามใจ · มีโอกาสดรอปชิ้นเซ็ตทันที';
- const ch=LB62.map((B,i)=>({t:B.e+' '+B.n+' (Lv.'+B.lv+' · '+B.cost.toLocaleString()+'🪙 · ตรา '+(inv['lbm'+i]|0)+'/10)',c:P.lv>=B.lv?'go':'',f:()=>enter62(i)}));
+ const ch=LB62.map((B,i)=>({t:B.e+' '+B.n+' (Lv.'+B.lv+' · '+B.cost.toLocaleString()+'🪙 · ตรา '+(inv['lbm'+i]|0)+'/10)',c:P.lv>=B.lv?'go':'',f:()=>window.enter62(i)}));
  ch.push({t:'🔱 แลกตราอสูร → ชิ้นเซ็ต',stay:true,f:()=>pickSet62()},BYE);talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},txt,ch,'🐲 บอสตำนาน')}
 function pickSet62(){const ch=LB62.map((B,i)=>({t:B.e+' '+(window.B59?B59[i].n:B.n)+' — ตรา '+(inv['lbm'+i]|0)+'/10',stay:true,f:()=>pickPiece62(i)}));ch.push(BYE);talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'เลือกเซ็ตที่จะแลก (ใช้ตราอสูรของบอสตัวนั้น 10 อัน)',ch,'🔱 แลกตรา')}
 function pickPiece62(i){const S=B59[i],K=['sword','staff','bow','helm','chest','pants','arm','neck','ring'];const ch=K.map(k=>({t:KINDS[k]+S.n,f:()=>{if((inv['lbm'+i]|0)<10){say('🔱 ตราไม่พอ (มี '+(inv['lbm'+i]|0)+'/10)');sfx('thud');return}inv['lbm'+i]-=10;const id=k+S.t;GEAR[id]=(GEAR[id]|0)+1;try{refreshInv();saveGame(true)}catch(e){}sfx('chest');flash(S.r[1],.3);say('👑 แลกได้ '+ITEMS[id].name+' ['+S.r[0]+']')}}));ch.push(BYE);talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'เลือกชิ้นที่ต้องการ ('+S.n+' · ต้อง Lv.'+S.lv+')',ch,'🔱 แลกตรา')}
@@ -18731,9 +18731,13 @@ const Q=(()=>{let d={};try{d=JSON.parse(localStorage.getItem('fm_seal118')||'{}'
 const sv=()=>{try{localStorage.setItem('fm_seal118',JSON.stringify(Q))}catch(e){}};
 const chk=()=>{if(Q.day!==day()){Q.day=day();Q.n={};sv()}};
 const left=i=>{chk();return Math.max(0,LIM-(Q.n[i]|0))};window.seal118left=left;
-{const _e=enter62;enter62=function(i){if(!(typeof in62==='function'&&in62())&&left(i)<=0){say('🎟️ วันนี้ลง'+(LB62[i]?LB62[i].n:'บอสตัวนี้')+'ครบ '+LIM+' ครั้งแล้ว — พรุ่งนี้มาใหม่ (รีเซ็ตเที่ยงคืน)');sfx('thud');return}return _e.apply(this,arguments)};window.enter62=enter62}
-let was=null;
-setInterval(()=>{try{const now=(typeof in62==='function'&&in62())?D.lb62:null;if(now!=null&&was==null){chk();const n=(Q.n[now]|0)+1;if(n>LIM){const B=LB62[now];inv.coin=(inv.coin|0)+((B&&B.cost)|0);try{refreshInv()}catch(e){}say('🎟️ วันนี้ลง'+(B?B.n:'')+'ครบ '+LIM+' ครั้งแล้ว — คืนค่าท้าให้แล้ว');try{leave62()}catch(e){}}else{Q.n[now]=n;sv()}}was=now}catch(e){}},300);
+// fix122: เดิมยกเว้นตอนอยู่ในห้องบอส (in62) + นับเฉพาะตอน "ข้างนอก → เข้าห้อง" → กดท้าซ้ำจากในห้องบอสได้ไม่จำกัด (ไม่ถูกนับ)
+//  → ตรวจโควตาทุกครั้งไม่ว่าอยู่ที่ไหน · นับทันทีตอนจ่ายค่าท้าสำเร็จ · ตัวตรวจสำรองดูจาก "ห้องบอสใหม่" (D ใหม่) ไม่ใช่แค่ null→เข้า
+let pend=null;
+{const _e=enter62;enter62=function(i){if(left(i)<=0){say('🎟️ วันนี้ลง'+(LB62[i]?LB62[i].n:'บอสตัวนี้')+'ครบ '+LIM+' ครั้งแล้ว — พรุ่งนี้มาใหม่ (รีเซ็ตเที่ยงคืน)');sfx('thud');return}
+ const c0=inv.coin|0;const r=_e.apply(this,arguments);if((inv.coin|0)<c0){chk();Q.n[i]=(Q.n[i]|0)+1;sv();pend=i}return r};window.enter62=enter62}
+let wasD=null;
+setInterval(()=>{try{const now=(typeof in62==='function'&&in62())?D.lb62:null;if(now!=null&&D!==wasD){if(pend===now){pend=null}else{chk();const n=(Q.n[now]|0)+1;if(n>LIM){const B=LB62[now];inv.coin=(inv.coin|0)+((B&&B.cost)|0);try{refreshInv()}catch(e){}say('🎟️ วันนี้ลง'+(B?B.n:'')+'ครบ '+LIM+' ครั้งแล้ว — คืนค่าท้าให้แล้ว');try{leave62()}catch(e){}}else{Q.n[now]=n;sv()}}}wasD=now!=null?D:null}catch(e){}},300);
 // แสดงในหน้าต่างหอผนึก
 setInterval(()=>{try{const W=document.getElementById('al113');if(!W||W.hidden)return;W.querySelectorAll('.bc113').forEach(card=>{const cv=card.querySelector('canvas[data-b]');if(!cv)return;const i=+cv.dataset.b,l=left(i);let s=card.querySelector('.q118');if(!s){s=document.createElement('span');s.className='q118';const tx=card.querySelector('.tx113');if(tx)tx.appendChild(s)}const t='🎟️ วันนี้ลงได้อีก '+l+'/'+LIM+' ครั้ง';if(s.textContent!==t){s.textContent=t;s.style.color=l>0?'#7ed957':'#ff8a6a';s.style.display='block'}const b=card.querySelector('.bt113 button');if(b&&l<=0)b.disabled=true})}catch(e){}},300);
 }catch(e){console.warn('fix118',e)}
