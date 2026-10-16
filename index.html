@@ -14248,7 +14248,7 @@ const COL62={hit:'255,80,60',thorn:'150,255,100',pool:'80,255,190',ice:'170,230,
 {const _mk=mobKill;mobKill=function(m){if(!(m&&m.lb62&&in62()))return _mk.apply(this,arguments);const i=D.lb62,B=LB62[i],r=_mk.apply(this,arguments);if(D.won)return r;D.won=1;AOE62.length=0;
   for(const q of D.mobs)if(q!==m&&!q.dead)q.dead=true;const k='lbm'+i,n=1+(Math.random()<.25?1:0);inv[k]=(inv[k]|0)+n;const R=['🔱 ตราอสูร ×'+n+' (มี '+inv[k]+'/10)'];
   if(Math.random()<.12&&window.drop59){try{const piece=['sword','staff','bow','helm','chest','pants','arm','neck','ring'][Math.random()*9|0],id=piece+B59[i].t;GEAR[id]=(GEAR[id]|0)+1;R.push('👑 '+ITEMS[id].name)}catch(e){}}
-  const coin=Math.round(B.cost*1.2);inv.coin+=coin;R.push('🪙 '+coin.toLocaleString());try{const x=Math.round(need(P.lv)*.5);gainXp(x);R.push('⭐ XP +'+x.toLocaleString())}catch(e){}
+  const coin=Math.round(B.cost*1.2);inv.coin+=coin;R.push('🪙 '+coin.toLocaleString());try{/* fix125: บอสตำนานตัวเลเวลต่ำให้ XP ครึ่งเลเวลของผู้เล่นเลเวลสูง → คิดจากเลเวลบอส */const x=Math.round(need(Math.min(P.lv,(m.L|0)||B.lv+3))*.5);gainXp(x);R.push('⭐ XP +'+x.toLocaleString())}catch(e){}
   try{refreshInv();saveGame(true)}catch(e){}flash('#ffd84a',.4);sfx('chest');try{chatAnn((P.name||'ผู้กล้า')+' ปราบ'+B.n+' สำเร็จ!')}catch(e){}
   setTimeout(()=>{try{talk({name:'แท่นผนึกอสูร',c:'#8a4aff'},'🏆 ปราบ '+B.n+' สำเร็จ!\n'+R.join(' · '),[{t:'🔱 แลกตราอสูร',f:()=>openAltar62()},{t:'🏰 ออกจากลาน',f:()=>leave62()},BYE],'🐲 บอสตำนาน')}catch(e){}},900);return r};window.mobKill=mobKill}
 // ---------- แท่นผนึกอสูร (เมนู) ----------
@@ -14762,7 +14762,7 @@ setInterval(()=>{try{if(pbZone72()&&!PAUSED)pbSpawn72()}catch(e){}},15000);
    if(now-(st.c[key]||0)<PB72.ms){PB72.set(st);sysSay('👹 รับรางวัล '+T.n+' ไปแล้ว — รออีก '+Math.ceil((PB72.ms-(now-st.c[key]))/60000)+' นาที');return r}
    st.c[key]=now;PB72.set(st);const W=T.rw,R=[];const add=(k,n,lab)=>{n=Math.round(n);if(n>0){inv[k]=(inv[k]|0)+n;R.push(lab+' ×'+n.toLocaleString())}};
    add('coin',W.coin*(1+(m.L|0)/40),'🪙');add('estone',W.est,'💎 หินเสริมพลัง');add('gem',W.gem,'💎 อัญมณี');if(Math.random()<W.bl)add('bless',1,'✨ หินพร');
-   try{const x=Math.round(need(P.lv)*W.xp);gainXp(x);R.push('⭐ XP +'+x.toLocaleString())}catch(e){}
+   try{/* fix125: เดิมคิด % จากเลเวลผู้เล่น → Lv.150 ฟาร์มอสูรปาร์ตี้ป่าลำธาร (Lv.29) ได้ 1.8 เลเวลทุก 20 นาที · คิดจากเลเวลที่ต่ำกว่าระหว่างผู้เล่นกับอสูร */const x=Math.round(need(Math.min(P.lv,(m.L|0)||P.lv))*W.xp);gainXp(x);R.push('⭐ XP +'+x.toLocaleString())}catch(e){}
    if(Math.random()<W.set){const nm=setPiece72(setIdx72());if(nm){R.push('👑 '+nm);try{chatAnn((P.name||'ผู้กล้า')+' ได้ชุดบอส '+nm+' จาก'+T.n+'!')}catch(e){}}}
    try{refreshInv();saveGame(true)}catch(e){}banner('👹 ปราบ'+T.n+'!',R.slice(0,3).join(' · '),'');sysSay('👹 รางวัล'+T.n+': '+R.join(' · '))}}catch(e){console.warn('pb72',e)}return r};window.mobKill=mobKill}
 }catch(e){console.warn('fix72',e)}
@@ -18867,6 +18867,33 @@ window.aucBid10=id=>{const el=gid('ab10_'+id),amt=Math.floor(+(el&&el.value)||0)
 // ---------- 3b) ปุ่ม GM: เดิมดูแค่ชื่อไอดีในเครื่อง → ต้องให้เซิร์ฟเวอร์ยืนยันว่าเป็น GM ด้วย (ON10.gm จาก auth) ----------
 try{const _ga=gmAllowed;gmAllowed=function(){if(!_ga())return false;try{if(sessionStorage.getItem('fm_gm7')==='1')return true;if(CLOUD.base()&&!(typeof ON10!=='undefined'&&ON10.gm))return false}catch(e){}return true};window.gmAllowed=gmAllowed;
  setInterval(()=>{try{if(gmAllowed()&&!document.getElementById('gmb'))gmBtn()}catch(e){}},3000)}catch(e){}
+// ---------- 3c) fix125: ใส่อุปกรณ์ระดับ 1–8 ได้ทุกเลเวล (ระดับ 9–10 / ชุดบอส / ชุดนครวารี มีเลเวลขั้นต่ำอยู่แล้ว) ----------
+//  → Lv.1 รับชุดระดับ 8 จากเพื่อน (แผงร้าน/ทิ้งของ) แล้วใส่ได้ทันที = ข้ามการเก็บเลเวล
+//  → เลเวลขั้นต่ำ = เลเวลที่ปลดตำราช่างระดับนั้น (1:Lv5 · 2:Lv20 · 3:Lv40 · 4:Lv60 · 5:Lv80 · 6:Lv85 · 7:Lv92 · 8:Lv98)
+try{const req125=it=>{if(!it||it.boss59||it.c2101||it.extra7||!(it.tier>=1&&it.tier<=8))return 0;if(it.kind==='axe'||it.kind==='pick')return 0;const q=SMQ[it.tier];return q?(q.lv|0):0};window.req125=req125;
+ const _eq=equipItem;equipItem=function(id){const it=ITEMS[id],L=req125(it);if(L&&P.lv<L){say('🔒 '+it.name+' ต้อง Lv.'+L+' ขึ้นไป');sfx('thud');return}return _eq.apply(this,arguments)};window.equipItem=equipItem}catch(e){console.warn('fix125 eq',e)}
+// ---------- 3d) fix125: บอร์ดเควสกิลด์ ----------
+//  1) Lv.111 ขึ้นไป เปิดบอร์ดเควสแล้วเกม error (ทุกเควสตั้งเลเวลสูงสุดไว้ 100+10 → ไม่มีเควสให้สุ่ม) → เลเวลเกินใช้เควสระดับสูงสุดแทน
+//  2) ฟาร์ม XP ไม่จำกัด: รับเควส → มีเควสใหม่มาแทนทันที + รีเฟรช 20🪙 ได้ไม่จำกัด → เลือกแต่ "ขุดแร่ 6 ก้อน" 3 อันพร้อมกัน
+//     ขุดหิน 8 ก้อน (ครั้งเดียวนับทั้ง 3 เควส) = 17% ของเลเวล ทุก ~1 นาที (Lv.100 ≈ 10 เลเวล/ชม.)
+//     → รับเควสแล้วช่องว่างจนบอร์ดรีเฟรชรอบชั่วโมง · รีเฟรชแบบจ่ายเงินได้ 3 ครั้ง/ชม. · รับรางวัล XP ได้ 12 เควส/วัน (เกินนั้นได้เหรียญ/หินตามปกติ ไม่ได้ XP)
+try{
+ qGen=function(){const L=P.lv;let C=QT.filter(q=>L>=q[4]&&L<=q[5]+10);if(!C.length)C=QT.filter(q=>L>=q[4]&&q[5]>=100);const q=C[Math.random()*C.length|0];
+  const n=q[0]==='floor'?Math.min(DGMAX7(),DG.max+1+Math.floor(Math.random()*3)):Math.max(1,Math.round(q[3]*(.8+Math.random()*.6)));
+  return{t:q[0],k:q[1],d:q[2]+' '+n+(q[0]==='floor'?'':q[0]==='item'?' ชิ้น':q[0]==='fish'?' ตัว':q[0]==='mine'?' ก้อน':' ตัว'),n,c:0,coin:Math.round((20+L*8)*(q[0]==='boss'?3:q[0]==='floor'?2:1)),xp:Math.round(need(L)*(q[0]==='boss'?.35:.18)),es:q[0]==='boss'||q[0]==='floor'?2:Math.random()<.5?1:0}};window.qGen=qGen;
+ const GQ={get(){let o={};try{o=JSON.parse(localStorage.getItem('fm_gq125')||'{}')||{}}catch(e){}const d=new Date(srvNow()+7*3600e3).toISOString().slice(0,10),h=Math.floor(srvNow()/3600000);if(o.d!==d){o.d=d;o.x=0}if(o.h!==h){o.h=h;o.r=0}return o},set(o){try{localStorage.setItem('fm_gq125',JSON.stringify(o))}catch(e){}}};
+ const XMAX=12,RMAX=3;window.GQ125=GQ;
+ qRefresh=function(force){const d=Math.floor(srvNow()/3600000);if(force){const o=GQ.get();if((o.r|0)>=RMAX)return false;o.r=(o.r|0)+1;GQ.set(o)}
+  if(force||QST.day!==d||!QST.offer.length){QST.day=d;QST.offer=[qGen(),qGen(),qGen(),qGen()]}return true};window.qRefresh=qRefresh;
+ qTake=function(i){if(QST.act.length>=3){say('รับเควสได้สูงสุด 3 เควส');sfx('thud');return}const q=QST.offer.splice(i,1)[0];if(!q)return;if(q.t==='floor'&&DG.max>=q.n)q.c=q.n;QST.act.push(q);sfx('ui');say('📜 รับเควส: '+q.d);saveX();openGuild('mine')};window.qTake=qTake;
+ {const _qc=qClaim;qClaim=function(i){const q=QST.act[i];const o=GQ.get();let cut=false;if(q&&(o.x|0)>=XMAX&&q.xp>0){q.xp=0;cut=true}
+  const n0=QST.act.length;const r=_qc.apply(this,arguments);if(QST.act.length<n0){o.x=(o.x|0)+1;GQ.set(o);if(cut)say('📜 วันนี้รับ XP จากเควสกิลด์ครบ '+XMAX+' เควสแล้ว — ได้เหรียญ/หินตามปกติ (XP รีเซ็ตเที่ยงคืน)')}return r};window.qClaim=qClaim}
+ {const _og=openGuild;openGuild=function(){const r=_og.apply(this,arguments);try{const o=GQ.get();const sm=shopEl.querySelector('.ghd small')||shopEl.querySelector('small');
+   if(sm)sm.textContent='เควสสำเร็จแล้ว '+QST.done+' · รับได้พร้อมกัน 3 เควส · บอร์ดใหม่ทุก 1 ชม. · รีเฟรชเองเหลือ '+Math.max(0,RMAX-(o.r|0))+'/'+RMAX+' · รับ XP วันนี้ '+Math.min(o.x|0,XMAX)+'/'+XMAX;
+   for(const b of shopEl.querySelectorAll('button')){if(/รีเฟรช/.test(b.textContent))b.setAttribute('onclick',"refresh125()")}
+   const em=shopEl.querySelector('.gempty');if(em&&/ไม่มีเควสบนบอร์ด/.test(em.textContent))em.textContent='รับเควสบนบอร์ดหมดแล้ว — เควสใหม่มาต้นชั่วโมงถัดไป'}catch(e){}return r};window.openGuild=openGuild}
+ window.refresh125=()=>{if((inv.coin|0)<20){say('เหรียญไม่พอ');return}if(!qRefresh(1)){say('🔄 รีเฟรชครบ '+RMAX+' ครั้งในชั่วโมงนี้แล้ว — รอบอร์ดใหม่ต้นชั่วโมง');sfx('thud');return}inv.coin-=20;refreshInv();openGuild('board')};
+}catch(e){console.warn('fix125 guild',e)}
 // ---------- 4) เนื้อเรื่องที่ไม่ตรงกับเกม ----------
 try{const F=t=>STCH.find(c=>c&&typeof c.t==='string'&&c.t.startsWith(t));
  // บท 13: บอสชั้น 100 ชื่อ "จักรพรรดิเงาแห่งห้วงลึก" ซ้ำกับ "จักรพรรดิเงา" บอสใหญ่ภาค 3 (บท 22–26 บอกว่าจักรพรรดิเงาคือผู้อยู่เบื้องหลัง "เงาแห่งห้วงลึก")
