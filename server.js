@@ -12,7 +12,7 @@ const ipCount = new Map(), banned = new Map(), players = new Map(), history = []
 let nextId = 1;
 // ไฟล์เว็บ (ถ้ามี) — เสิร์ฟเกมจากเซิร์ฟเวอร์เดียวกันได้
 const STATIC = { '/': ['index.html','text/html; charset=utf-8'], '/index.html': ['index.html','text/html; charset=utf-8'], '/manifest.webmanifest': ['manifest.webmanifest','application/manifest+json'],
-  '/sw.js': ['sw.js','text/javascript; charset=utf-8'], '/icon-192.png': ['icon-192.png','image/png'], '/icon-512.png': ['icon-512.png','image/png'], '/vendor/three.min.js': ['three.min.js','text/javascript; charset=utf-8'], '/assets/loading.jpg': ['loading.jpg','image/jpeg'] };
+  '/sw.js': ['sw.js','text/javascript; charset=utf-8'], '/icon-192.png': ['icon-192.png','image/png'], '/icon-512.png': ['icon-512.png','image/png'], '/vendor/three.min.js': ['three.min.js','text/javascript; charset=utf-8'], '/assets/loading.jpg': ['loading.jpg','image/jpeg'], '/loading.jpg': ['loading.jpg','image/jpeg'] }; /* v5.08: เกม (v5.04+) เรียก loading.jpg ตรง ๆ — เดิมไม่มีในรายการ ถ้าเปิดเกมจาก Render หน้าโหลดได้ข้อความแทนรูป */
 const ACC = require('./accounts');
 const WORLD = require('./world');
 const PVP = require('./pvp');

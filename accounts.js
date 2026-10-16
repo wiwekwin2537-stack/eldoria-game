@@ -205,7 +205,9 @@ async function handle(path_, d, ip) {
     if ((d.base | 0) !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
-    if (lv0 >= 5 && rec.lv - lv0 >= 25 && rec.upd - t0 < 30 * 60e3) rec.flag = (rec.flag | 0) + 1; // เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ
+    const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
+    if (up >= 40) rec.flag = Math.max(2, (rec.flag | 0) + 2); /* v5.08: เลเวลกระโดด 40+ ในเซฟเดียว (เกมเซฟทุก 15 วิ เล่นจริงขึ้นไม่ถึง) = แก้เซฟโกง → ซ่อนจากตารางอันดับทันที · เดิมบัญชีใหม่เซฟแรกเป็น Lv.200 แล้วขึ้นอันดับ 1 ได้เลย (เซฟแรกไม่ถูกตรวจ · โดนจับครั้งเดียวยังไม่ซ่อน) */
+    else if (lv0 >= 5 && up >= 25 && fast) rec.flag = (rec.flag | 0) + 1; /* เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ */
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
     try { await lbLoad(); const S = rec.stat || {}, X = d.stat || {}; LB.map[lid] = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
