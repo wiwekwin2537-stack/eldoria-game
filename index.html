@@ -6539,7 +6539,7 @@ const SKART={
 function skillIcon(name){if(SKI6[name]!==undefined)return SKI6[name];const fn=SKART[name];if(!fn)return SKI6[name]=null;const c=document.createElement('canvas');c.width=c.height=96;const q=c.getContext('2d');q.lineCap='round';q.lineJoin='round';try{fn(q,96)}catch(e){}
  const v=q.createLinearGradient(0,0,0,96);v.addColorStop(0,'rgba(255,255,255,.12)');v.addColorStop(.4,'rgba(255,255,255,0)');v.addColorStop(1,'rgba(0,0,0,.25)');q.fillStyle=v;q.fillRect(0,0,96,96);return SKI6[name]=c.toDataURL()}
 window.skillIcon=skillIcon;
-setInterval(()=>{for(const b of document.querySelectorAll('#acts .sk')){const n=b.getAttribute('aria-label'),lock=b.classList.contains('lock'),u=!lock&&n?skillIcon(n):null;const want=u?'url('+u+')':'';if(b._ski!==want){b._ski=want;b.style.backgroundImage=want;b.classList.toggle('hasi',!!u)}}},300);
+setInterval(()=>{for(const b of document.querySelectorAll('#acts .sk')){const n=b.getAttribute('aria-label'),lock=b.classList.contains('lock'),u=n?skillIcon(n):null;/* fix135: สกิลที่ยังไม่เรียนก็โชว์รูป (มืด + กุญแจ) */const want=u?'url('+u+')':'';if(b._ski!==want){b._ski=want;b.style.backgroundImage=want;b.classList.toggle('hasi',!!u)}}},300);
 {const _r=renderSkw;renderSkw=function(){_r();try{for(const c of skwEl.querySelectorAll('.card.sk')){const nm=c.querySelector('b'),e=c.querySelector('.e');if(!nm||!e)continue;const u=skillIcon(nm.textContent.trim());if(u)e.innerHTML='<img src="'+u+'">'}}catch(e){}}}
 
 
@@ -17088,7 +17088,7 @@ function drawUnder95(){const t=performance.now()/1000,[x0,y0,x1,y1]=view95();
   const lab=(ok?'':'🔒 ')+p.n,sub='Lv.'+p.lv+'–'+p.lv2;ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';
   ctx.strokeText(lab,x,y-64);ctx.fillStyle=ok?'#fff':'#c8c0d8';ctx.fillText(lab,x,y-64);ctx.font='bold 10px system-ui';ctx.strokeText(sub,x,y+36);ctx.fillStyle=ok?'#9dffb0':'#ff9a9a';ctx.fillText(sub,x,y+36);ctx.textAlign='left'});
  // วงเวทกลับเมือง 1 (ป้าย)
- const Zm=D.zone,ex=Zm.ent.x*T+16,ey=(Zm.ent.y+2)*T+16;ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText('⛵ กลับเมืองเอลโดเรีย',ex,ey+28);ctx.fillStyle='#fff';ctx.fillText('⛵ กลับเมืองเอลโดเรีย',ex,ey+28);ctx.textAlign='left';
+ const Zm=D.zone,ex=Zm.ent.x*T+16,ey=(Zm.ent.y+2)*T+16;ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText('⛵ เรือไปท่าเรือตะวันออก',ex,ey+28);ctx.fillStyle='#fff';ctx.fillText('⛵ เรือไปท่าเรือตะวันออก',ex,ey+28);ctx.textAlign='left';
  for(const n of D.npcs||[])if(n.y<P.y)try{drawNPC(n,t)}catch(e){}}
 // ---------- วาด: ชาวเมืองข้างหน้า + ของที่บังตัวละคร + ป้ายกด E (หลังตัวละคร) ----------
 {const _dt=drawDmgTxt;drawDmgTxt=function(dt){try{if(inC2())drawOver95()}catch(e){}return _dt.apply(this,arguments)};window.drawDmgTxt=drawDmgTxt}
@@ -17097,7 +17097,7 @@ function drawOver95(){const t=performance.now()/1000;for(const n of D.npcs||[])i
  const [x0,y0,x1,y1]=view95();
  for(const o of C2.occ){if(o.x0>x1||o.x0+o.w<x0||o.y0>y1||o.y0+o.h<y0)continue;let hit=false;for(const e of ents){if(e.y<o.base&&e.y>o.y0-10&&e.x>o.x0-10&&e.x<o.x0+o.w+10){hit=true;break}}if(hit)ctx.drawImage(o.cv,o.x0,o.y0)}
  const b=near95();if(b){let x,y,txt;if(b.k==='door'){x=b.d.x;y=b.d.y-6;txt='🚪 กด E เข้า '+b.d.n}else if(b.k==='portal'){const pp=portalPos95(b.i,C2.portals.length);x=pp.x;y=pp.y-80;txt=P.lv>=b.p.lv?'🌀 กด E ลง '+b.p.n:'🔒 ต้อง Lv.'+b.p.lv}
-  else if(b.k==='npc'){x=b.n.x;y=b.n.y-62;txt='💬 กด E คุยกับ'+b.n.name}else{const Zm=D.zone;x=Zm.ent.x*T+16;y=(Zm.ent.y+2)*T-10;txt='⛵ กด E กลับเมืองเอลโดเรีย'}
+  else if(b.k==='npc'){x=b.n.x;y=b.n.y-62;txt='💬 กด E คุยกับ'+b.n.name}else{const Zm=D.zone;x=Zm.ent.x*T+16;y=(Zm.ent.y+2)*T-10;txt='⛵ กด E ล่องเรือไปท่าเรือตะวันออก (ทางกลับเอลโดเรีย)'}
   ctx.font='bold 12px system-ui,"Noto Sans Thai",sans-serif';const w=ctx.measureText(txt).width+16;ctx.fillStyle='rgba(20,14,34,.85)';ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-18,w,22,8):ctx.rect(x-w/2,y-18,w,22);ctx.fill();ctx.strokeStyle='#e8c14a';ctx.lineWidth=1.5;ctx.stroke();
   ctx.fillStyle='#ffe6a8';ctx.textAlign='center';ctx.fillText(txt,x,y-3);ctx.textAlign='left'}}
 // ---------- ทางไปเมือง 2 ----------
@@ -18223,11 +18223,15 @@ function pick110(B){const now=performance.now();let best=null,bs=1e9;
  for(const g of gathers110()){const key=g.tx+','+g.ty;if(A2.ban.get(key)>now)continue;const r=reach110(B,g.tx,g.ty,true);if(!r)continue;const s=r.d+4;if(s<bs){bs=s;best={k:g.tree?'tree':'ore',g,x:g.x,y:g.y,to:r,key}}}
  return best}
 // ---------- ใช้สกิล ----------
-function skill110(dist){if(!CF.skill||P.cls==='none'||performance.now()<A2.skT)return;A2.skT=performance.now()+450;
- const L=CSKILLS[P.cls]||[],bar=(typeof barOf==='function'?barOf():[0,1,2,3]).slice(0,6).reverse();// v4.97: ใช้ครบ 6 ช่อง (เดิมได้แค่ 4 เพราะ six41 ไม่ใช่ตัวแปรกลาง) · ไล่จากช่อง 6 ลงมา ท่าแรงได้ใช้ก่อน
+function skill110(dist){if(!CF.skill||P.cls==='none'||performance.now()<A2.skT)return;A2.skT=performance.now()+250;
+ /* fix142: เดิมไล่ช่อง 6→1 (ท่าแรงก่อน) แต่ช่อง 4–6 คูลดาวน์ยาว/มีเงื่อนไข ออโต้เลยรอนานไม่ลื่น + ไม่เคยกดฮีล
+    → ตอนนี้: เลือดต่ำกว่า 55% กดฮีลก่อน (💚 เยียวยา / สกิลฮีลอาชีพ) · ไล่ช่อง 1-2-3 ก่อน (ลื่นเหมือนเดิม) แล้วค่อย 4-5-6 ตอน 1-3 ติดคูลดาวน์ */
+ const L=CSKILLS[P.cls]||[],bar=(typeof barOf==='function'?barOf():[0,1,2,3]).slice(0,6);
+ try{if(P.hp<BAL.hp*.55){const hb=gid('sk4');if(hb&&hb.style.display!=='none'&&SK.own[2]&&P.mp>=15){const n0=P.mp;hb.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));if(P.mp<n0)return}
+   for(const i of bar){const S=L[i];if(!S||!/รักษา|ฟื้นฟู|เยียวยา|ฮีล/.test(S.n+' '+(S.d||'')))continue;if(skOwned(i)&&!((CS.cd[i]||0)>0)&&P.mp>=cskMp(S,0)){try{useSkill(i)}catch(e){}if((CS.cd[i]||0)>0)return}}}}catch(e){}
  try{if(dist<=(isRng()?220:110)&&typeof ULT!=='undefined'&&ULT.v>=100&&!ULT.cast){castUlt();return}}catch(e){}// อัลติเมทเต็ม = ใช้เลย
- for(const i of bar){const S=L[i];if(!S)continue;try{if(!skOwned(i))continue;if((CS.cd[i]||0)>0)continue;if(P.cls!=='none'&&wKind()!==NEEDW[P.cls])return;const mp=cskMp(S,0);if(P.mp<mp)continue;}catch(e){continue}
-  if(dist>(isRng()?220:90))continue;const nw=performance.now();A2.fl=A2.fl||{};if(A2.fl[i]>nw)continue;const mp0=P.mp;try{useSkill(i)}catch(e){}if((CS.cd[i]||0)<=0&&P.mp>=mp0){A2.fl[i]=nw+3000;continue}return}}// กดแล้วไม่ออก (เงื่อนไขท่าไม่ครบ) → ข้ามช่องนั้น 3 วิ ไปกดช่องอื่น
+ for(const i of bar){const S=L[i];if(!S)continue;if(/วาร์ป/.test(S.n))continue;/* สกิลวาร์ปล้วน ๆ ไม่ใช้ตอนออโต้ (เดิมวาร์ปมั่วทั้งแมพ) */try{if(!skOwned(i))continue;if((CS.cd[i]||0)>0)continue;if(P.cls!=='none'&&wKind()!==NEEDW[P.cls])return;const mp=cskMp(S,0);if(P.mp<mp)continue;}catch(e){continue}
+  if(dist>(isRng()?220:90))continue;const nw=performance.now();A2.fl=A2.fl||{};if(A2.fl[i]>nw)continue;const mp0=P.mp;try{useSkill(i)}catch(e){}if((CS.cd[i]||0)<=0&&P.mp>=mp0){A2.fl[i]=nw+3000;continue}return}}
 // ตีโดยไม่ไปกด "คุย/ใช้" ของที่อยู่ใกล้ (ป้ายประตูแมพ/NPC) — เดิม attack() เรียก interact() ก่อน ทำให้ออโต้ไปเปิดเมนูประตูแมพค้าง
 function atk110(){const si=interact;interact=function(){return false};try{attack(true)}finally{interact=si}}
 // ---------- ติ๊กหลัก ----------
@@ -19436,6 +19440,592 @@ window.lkTog131=(id,i)=>{if(LK.id!==id){LK.id=id;LK.s.clear()}if(LK.s.has(i))LK.
    b.style.cssText='flex:none;min-width:0;width:auto;height:auto;padding:0 6px;margin-left:6px;font-size:12px;border-radius:6px;border:1px solid '+(on?'#6ad8ff':'#5a5070')+';background:'+(on?'#1a4a6a':'#241c34');b.onclick=e=>{e.stopPropagation();lkTog131(k,i)};el.appendChild(b)});
   const rb=box.querySelector('button[onclick^="opRoll111"]');if(rb){rb.insertAdjacentHTML('afterend','');const sm=document.createElement('small');sm.style.cssText='display:block;width:100%;color:#9fd8ff;margin-top:3px';sm.textContent='🔒 หินล็อกออป: มี '+(inv.lock130|0)+(LK.s.size?' · จะใช้ '+LK.s.size+' ก้อน':' · แตะ 🔓 ที่บรรทัดเพื่อล็อก');rb.parentNode.appendChild(sm)}}catch(e){}return r};window.icShow=icShow}
 }catch(e){console.warn('fix131',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix132 (v5.03) — ดันเจี้ยน: กด E ลงชั้นต่อทันทีหลังเปิดกล่อง → ของจากกล่องที่ยังไม่ได้เก็บ (หรือกระเป๋าเต็ม) ถูกทิ้งไว้หายหมด
+//   → ก่อนลงชั้น เก็บของรอบกล่องเข้ากระเป๋าให้เอง · ถ้าเต็มเก็บไม่หมด เตือนก่อน (กด E อีกครั้งภายใน 5 วิ = ยืนยันลง)
+// =====================================================================
+try{
+const nearChest=()=>{try{const c=D&&D.dg&&D.chest;if(!c)return [];return drops.filter(d=>Math.hypot(d.x-c.x,d.y-c.y)<160)}catch(e){return []}};
+let warnT=0;
+{const _g=dgGo7;dgGo7=function(f){try{if(D&&D.dg&&D.chest&&D.chest.open){const L=nearChest();let got=0,left=0;
+   for(const d of L){const ik=DROPMAP[d.type]||d.type;if(canTake(ik)===true){inv[ik]=(inv[ik]|0)+1;got++;drops.splice(drops.indexOf(d),1);try{if(window.logPick)logPick(ik)}catch(e){}}else left++}
+   if(got){try{refreshInv();sfx('coin')}catch(e){}}
+   if(left&&performance.now()>warnT){warnT=performance.now()+5000;say('🎒 กระเป๋าเต็ม — ของจากกล่องยังเหลือ '+left+' ชิ้น · กด E อีกครั้งภายใน 5 วิ ถ้าจะทิ้งแล้วลงชั้นต่อ');sfx('thud');return}
+   warnT=0}}catch(e){console.warn('dg132',e)}return _g.apply(this,arguments)};window.dgGo7=dgGo7}
+}catch(e){console.warn('fix132',e)}
+</script>
+
+<script>
+// fix133 (v5.03) — ไอดีเดียวกันเข้าเล่นจากเครื่องใหม่ → เครื่องเก่าโดนเตะทันที (เดิมรอจนเซฟรอบถัดไป ~15 วิ)
+try{{const _nm=netMsg;netMsg=function(d){try{if(d&&d.t==='dupe'){try{ON10.auth=false}catch(e){}try{ONL32.kick('⚠️ บัญชีนี้ถูกเข้าเล่นจากอีกเครื่อง — เข้าสู่ระบบใหม่เพื่อโหลดข้อมูลล่าสุด')}catch(e){location.reload()}return}}catch(e){}return _nm.apply(this,arguments)};window.netMsg=netMsg}}catch(e){console.warn('fix133',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix134 (v5.03) — จุดเข้า-ออกเป็นธรรมชาติ + 🧭 ผู้นำทางสองพี่น้อง (วาปแบบเสียเงิน ไปได้เฉพาะที่เคยไป)
+//  A) ลานผนึก (บอสตำนาน): เข้าจากในหอผนึกอสูร → ออกมากลางเมือง ✗ → ตอนนี้กลับเข้าไปยืนในหอผนึกอสูรที่เดิม
+//  B) ล่องเรือกลับจากเมือง 2 → เดิมโผล่ขอบเมือง → ตอนนี้ขึ้นฝั่งข้างผู้นำทางที่น้ำพุ
+//  C) กัปตันเรือ 2 คน → "อาร์เทน ผู้นำทาง" (เมืองเอลโดเรีย) และ "เอเดน ผู้นำทาง" น้องชาย (นครวารี)
+//     พาไปได้ทุกที่ "ที่เคยไปแล้ว" เสียเงินรายครั้ง · เมนูลัด 🏙️ เมือง 2 (วาปฟรี) เปลี่ยนเป็นบอกทางไปหาผู้นำทาง
+// =====================================================================
+try{
+const cover=(o,f)=>{try{if(window.LoadingScreenManager&&LoadingScreenManager.cover)return LoadingScreenManager.cover(o,f)}catch(e){}f()};
+// ---------- A) ลานผนึก → กลับเข้าหอผนึกอสูร ----------
+const RT={};window.RT134=RT;
+{const _e=enter62;enter62=function(){const was=D&&D.shop==='seal113'?{x:P.x,y:P.y,t:Date.now()}:null;const r=_e.apply(this,arguments);if(was)RT.lb=was;return r};window.enter62=enter62}
+{const _l=leave62;leave62=function(){const R=RT.lb;if(!R||!in62()||Date.now()-R.t>6*3600e3)return _l.apply(this,arguments);delete RT.lb;try{AOE62.length=0}catch(e){}
+  cover({icon:'🔮',title:'กลับหอผนึกอสูร'},()=>{try{exitD()}catch(e){}try{if(!D||!D.town)enterTown(1)}catch(e){}try{enterShop('seal113')}catch(e){}P.x=R.x;P.y=R.y;P.dir='d';P.kx=P.ky=0;try{say('🔮 กลับมาที่หอผนึกอสูรแล้ว')}catch(e){}})};window.leave62=leave62}
+// ---------- สถานที่ที่เคยไป ----------
+const VK='fm_visit134';let V={};try{V=JSON.parse(localStorage.getItem(VK)||'{}')||{}}catch(e){}
+const visit=k=>{if(V[k])return;V[k]=Date.now();try{localStorage.setItem(VK,JSON.stringify(V))}catch(e){}};window.visit134=visit;window.VISIT134=V;
+{const _ez=enterZone;enterZone=function(i){const r=_ez.apply(this,arguments);try{const Z=ZONES[i];if(Z&&!Z.dg&&i<200&&D&&D.zone&&!D.dg)visit('z:'+i)}catch(e){}return r};window.enterZone=enterZone}
+setInterval(()=>{try{if(!titleEl.hidden)return;if(D&&D.city2)visit('c2');if(!D)visit('field');if(D&&D.dg)visit('cave')}catch(e){}},1500);
+// ---------- C) ผู้นำทาง ----------
+const NM1='อาร์เทน ผู้นำทาง',NM2='เอเดน ผู้นำทาง';
+setInterval(()=>{try{if(!D||!D.npcs)return;for(const n of D.npcs){if(!n.c2warp||n.g134)continue;n.g134=1;
+  if(D.city2){n.name=NM2;n.lines=['ข้าชื่อเอเดน น้องชายของอาร์เทนที่เมืองเอลโดเรีย','เคยไปที่ไหนมาแล้ว ข้าพาไปได้หมด — ค่าเดินทางนิดหน่อย']}
+  else{n.name=NM1;n.lines=['ข้าชื่ออาร์เทน ผู้นำทางแห่งเอลโดเรีย','น้องชายข้า เอเดน ประจำอยู่ที่นครวารี','ที่ไหนที่เจ้าเคยไปแล้ว ข้าพาไปได้ในพริบตา']}}}catch(e){}},500);
+const leaveAll=()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}for(let k=0;k<3&&D;k++){try{exitD()}catch(e){break}}};
+const nearGuide=()=>{P.x=24.5*T;P.y=20.2*T;P.dir='d';P.kx=P.ky=0};
+/* ค่าเดินทาง (fix137 ปรับตามรายได้จริง): มอนให้ ≈ เลเวล+8 เหรียญ/ตัว · ฟาร์มจริง ~30 ตัว/นาที → 1 นาที ≈ 30×(Lv+8)
+   ใกล้ (ทุ่งหญ้า/ถ้ำ) ≈ 20 วิของรายได้ · เหมือง/ป่า ≈ 40 วิตามเลเวลแมพ · ข้ามเมือง ≈ 1.5 นาที (ขั้นต่ำ 2,000) — เดินไปเองยังฟรี */
+const r10=v=>Math.max(10,Math.round(v/10)*10),feeNear=()=>r10(10*((P.lv|0)+8)),feeZone=lv=>r10(20*(lv+8)),feeCross=()=>Math.max(2000,r10(45*((P.lv|0)+8)));window.FEE137={feeNear,feeZone,feeCross};
+function dests(){const L=[],c2=!!(D&&D.city2);
+ if(c2)L.push({k:'town',n:'🏰 เมืองเอลโดเรีย (ข้างอาร์เทน)',p:feeCross(),go:()=>{leaveAll();enterTown(1);nearGuide()}});
+ else if(V.c2&&P.lv>=C2.LV)L.push({k:'c2',n:'🏙️ นครวารีอัสตรา (ข้างเอเดน)',p:feeCross(),go:()=>{try{enterCity2()}catch(e){}}});
+ L.push({k:'field',n:'🌾 ทุ่งหญ้า — หน้าประตูมิติ',p:feeNear(),go:()=>{leaveAll();P.x=ZG.x;P.y=ZG.y+48;P.dir='d'}});
+ if(V.cave)L.push({k:'cave',n:'🗝️ หน้าถ้ำดันเจี้ยน',p:r10(feeNear()*1.5),go:()=>{leaveAll();P.x=CV.tx*T+16;P.y=(CV.ty+2)*T+16;P.dir='d'}});
+ if(V.port144&&window.enterRoad144)L.push({k:'port',n:'⚓ ท่าเรือตะวันออก (ข้างลุงบรอม)',p:c2?feeCross():feeNear(),go:()=>{leaveAll();enterRoad144('port',1)}});
+ ZONES.forEach((Z,i)=>{if(!Z||Z.dg||i>=200||!V['z:'+i])return;const lv=(Z.lv&&Z.lv[0])|0;L.push({k:'z'+i,n:(Z.e||'⛏️')+' '+Z.n+' (Lv.'+lv+')',p:feeZone(lv),go:()=>{leaveAll();enterZone(i)}})});
+ return L}
+function guide(n){const L=dests(),me=D&&D.city2?NM2:NM1;
+ const txt=(D&&D.city2?'ข้าคือเอเดน น้องชายอาร์เทน':'ข้าคืออาร์เทน ผู้นำทางแห่งเอลโดเรีย')+' — จะไปที่ไหนดี?\nพาไปได้เฉพาะที่ที่เจ้าเคยไปมาแล้ว · คิดค่าเดินทางรายครั้ง · 🪙 มี '+(inv.coin|0).toLocaleString()+(L.length<=2?'\n(ไปเที่ยวเหมือง ป่า ถ้ำ หรือนครวารีก่อน แล้วจะมีที่ให้เลือกมากขึ้น)':'');
+ const ch=L.slice(0,12).map(d=>({t:d.n+' · 🪙'+d.p.toLocaleString(),c:inv.coin>=d.p?'go':'',f:()=>{if((inv.coin|0)<d.p){say('🪙 ค่าเดินทางไม่พอ (ต้องใช้ '+d.p+')');sfx('thud');return}
+   inv.coin-=d.p;try{refreshInv();saveGame(true)}catch(e){}sfx('warp');cover({icon:'🧭',title:d.n.replace(/^\S+\s/,''),tip:me+' พาเดินทาง'},()=>{try{d.go()}catch(e){console.warn('guide134',e)}});setTimeout(()=>{try{say('🧭 '+me+': ถึงแล้ว เดินทางปลอดภัยนะ!')}catch(e){}},900)}}));
+ ch.push(BYE);G134.on=1;try{talk(n,txt,ch,'🧭 ผู้นำทาง')}finally{G134.on=0}}
+window.guide134=guide;
+const G134={on:0};
+{const _tk=talk;talk=function(n){if(n&&n.c2warp&&!G134.on){guide(n);return}return _tk.apply(this,arguments)};window.talk=talk}
+{const _nt=npcTalk;npcTalk=function(n){if(n&&n.c2warp){guide(n);return}return _nt.apply(this,arguments)};window.npcTalk=npcTalk}
+/* เมือง 2 → คุยกับเอเดน (ป้าย "กด E คุยกับ" ใช้ npcTalk) · ท่าเรือขาออกยังกลับเมือง 1 ได้ฟรีเหมือนเดิม แต่ขึ้นฝั่งข้างอาร์เทน */
+{const _ex=exitD;exitD=function(){const fromC2=!!(D&&D.city2);const r=_ex.apply(this,arguments);if(fromC2)RT.c2t=Date.now();return r};window.exitD=exitD}
+{const _et=enterTown;enterTown=function(){const r=_et.apply(this,arguments);try{if(RT.c2t&&Date.now()-RT.c2t<4000){RT.c2t=0;nearGuide();setTimeout(()=>{try{if(D&&D.town&&!D.shop)nearGuide()}catch(e){}},80)}}catch(e){}return r};window.enterTown=enterTown}
+/* เมนูลัด "เมือง 2" เดิมวาปฟรีทันที → บอกให้ไปหาผู้นำทาง */
+try{const m=PM7.find(x=>x[1]==='เมือง 2');if(m)m[2]=()=>{if(D&&D.city2){say('อยู่ในนครวารีอัสตราแล้ว — คุยกับเอเดนผู้นำทางที่ท่าเรือเพื่อเดินทาง');return}say('🧭 ไปนครวารี: คุยกับ "อาร์เทน ผู้นำทาง" ข้างน้ำพุกลางเมือง หรือเดินออกขอบขวาของเมือง');try{if(typeof GUIDE!=='undefined'&&D&&D.town)GUIDE.to=[24.5*T,20*T]}catch(e){}}}catch(e){}
+}catch(e){console.warn('fix134',e)}
+</script>
+
+<script>
+// fix135 (v5.03) — UI: ปุ่มสกิลที่ยังไม่ได้เรียน เดิมเป็นวงว่างมีแต่ 🔒 → โชว์รูปสกิลจริงแบบมืด/ขาวดำ + กุญแจมุมล่าง (รู้ว่าจะได้สกิลอะไร)
+try{const st=document.createElement('style');st.textContent='#acts .sk.lock.hasi{filter:grayscale(.9) brightness(.62);opacity:.9}#acts .sk.lock.hasi::after{content:"🔒";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;opacity:.95;line-height:1;filter:brightness(1.6) drop-shadow(0 1px 2px #000);pointer-events:none}#acts .sk.lock.hasi .ic{display:block!important;position:absolute;right:-3px;bottom:-3px;left:auto;top:auto;width:auto;height:auto;font-size:15px;line-height:1;transform:none;color:#fff!important;filter:drop-shadow(0 1px 2px #000);text-shadow:none!important}';document.head.appendChild(st)}catch(e){}
+</script>
+
+<script>
+// =====================================================================
+// fix136 (v5.03) — 🛡️ เช็กกันถอยหลัง (regression) ต่อท้าย SystemValidator.runFullGamePlaytest()
+//  ทุกเรื่องที่เคยแก้ไปแล้ว ต้องมีเช็กอยู่ใน REG136 → แก้อันใหม่แล้วอันเก่าพัง บอทจะฟ้องทันที (module:'regression')
+//  ⚠️ AI ทุกตัว: แก้บัคเสร็จ ให้เพิ่มเช็กของเรื่องนั้นลง REG136 ด้วย (ชื่อ + ฟังก์ชันคืน null = ผ่าน / ข้อความ = พัง)
+// =====================================================================
+try{
+const sl=ms=>new Promise(r=>setTimeout(r,ms));
+const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(f())return true}catch(e){}await sl(120)}return false};
+const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
+const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
+const REG136=[
+ ['เมนูหลักมีตลาด/เทรด/จดหมาย และไม่มีเมนูคุณสมบัติซ้ำ',async()=>{const n=PM7.map(m=>m[1]);if(!n.includes('ตลาดกลาง'))return 'ไม่มีปุ่มตลาดกลาง';if(n.includes('เทรด'))return 'ปุ่มเทรดกลับมาในเมนู (ต้องเทรดแบบเจอตัวเท่านั้น)';if(n.includes('คุณสมบัติ'))return 'เมนูคุณสมบัติกลับมาซ้ำกับหน้าสถานะ';return null}],
+ ['เวลาเซิร์ฟเวอร์ srvNow',async()=>typeof srvNow==='function'&&isFinite(srvNow())?null:'srvNow หาย'],
+ ['หน้าสถานะ: คุณสมบัติ + ช่องถอดชุดอยู่ใต้ตัวละคร',async()=>{openChar();await sl(300);const ok=gid('chst128')&&gid('chpick')&&gid('chpick').parentNode===chp.querySelector('.chr');chSlot('helm');await sl(150);const has=/ถอด|สวมใส่|ว่าง|ยังไม่มี/.test(gid('chpick').textContent);toggleChar();return ok&&has?null:'แผงคุณสมบัติ/ช่องถอดชุดหาย'}],
+ ['ตลาดกลาง/เทรด เปิดหน้าต่างได้',async()=>{try{openMk130('buy');await sl(200);const a=!mkW130.hidden&&/ตลาดกลาง/.test(mkW130.textContent);p6close(mkW130);openTr130();await sl(150);const b=!trW130.hidden&&/เทรด/.test(trW130.textContent);p6close(trW130);return a&&b?null:'หน้าต่างตลาด/เทรดไม่ขึ้น'}catch(e){return 'error '+e.message}}],
+ ['ชนิดของในตลาด (MKK130) ครบ',async()=>window.MKK130&&MKK130.mat&&MKK130.gear&&typeof MKK130.gear.peek==='function'?null:'ทะเบียนชนิดของหาย'],
+ ['ค่าหลบหลีก: Lv สูงหลบมอนเลเวลต่ำ',async()=>{const lv=P.lv;P.lv=150;const d=dodge129({L:1});const b=dodge129({L:1,pvp7:1});P.lv=lv;return d>=.6&&b===0?null:'หลบ='+d+' pvp='+b}],
+ ['อัลติเมทประจำอาชีพ (ไม่ซ้ำท่าดาบ/เวท) + เพดานดาเมจ',async()=>{if(!window.UCAP128)return 'ไม่มีเพดานดาเมจอัลติ';const c0=P.cls,bad=[];try{for(const c of ['ninja','cleric','sniper']){if(!NEWU73[c])continue;P.cls=c;FX73.length=0;ultFire(BASEU28[c]);if(!FX73.length)bad.push(c)}}finally{P.cls=c0;FX73.length=0;try{ULT.fx.length=0}catch(e){}}return bad.length?'อาชีพที่ได้ท่าแม่แบบแทน: '+bad.join(','):null}],
+ ['ปุ่มสกิลที่ยังไม่เรียนโชว์รูป+ล็อก',async()=>{const L=[...document.querySelectorAll('#acts .sk.lock')].filter(b=>b.getAttribute('aria-label')&&b.getAttribute('aria-label')!=='null');if(!L.length)return null;await sl(400);return L.every(b=>b.style.backgroundImage)?null:'สกิลล็อกไม่มีรูป'}],
+ ['หินล็อกออป (ไอเท็มใหม่)',async()=>INVMETA.lock130&&typeof lkTog131==='function'?null:'หินล็อกออปหาย'],
+ ['ผู้นำทางสองพี่น้อง + ไปได้เฉพาะที่เคยไป',async()=>{await toTown();await sl(1200);const g=D&&D.npcs&&D.npcs.find(n=>n.c2warp);if(!g||!/อาร์เทน/.test(g.name))return 'ไม่พบอาร์เทน ผู้นำทาง (เจอ '+(g&&g.name)+')';
+   const sv=Object.assign({},window.VISIT134);for(const k in VISIT134)delete VISIT134[k];guide134(g);await sl(200);const n0=DLG.ch.length;dlgClose(true);Object.assign(VISIT134,sv);guide134(g);await sl(200);const n1=DLG.ch.length;dlgClose(true);
+   return n0<=3&&n1>=n0?null:'จำนวนที่ไปได้ไม่ตรงกับที่เคยไป ('+n0+'/'+n1+')'}],
+ ['ออกจากลานผนึก → กลับหอผนึกอสูร',async()=>{await toTown();enterShop('seal113');await sl(600);const lv=P.lv;P.lv=Math.max(P.lv,120);const c=inv.coin;inv.coin=Math.max(c,1e6);try{enter62(0)}catch(e){}P.lv=lv;const ok=await until(()=>in62(),6000);inv.coin=c;if(!ok)return null;await sl(800);leave62();await until(()=>!in62(),8000);await sl(1500);const w=where();await toTown();return w==='shop:seal113'?null:'ออกมาที่ '+w}],
+ ['ประตูมิติบอสโลกไม่กระพริบตามตัวละคร',async()=>{await toTown();try{exitD()}catch(e){}await sl(400);P.x=WBG64.x+60;P.y=WBG64.y+40;const al=new Set(),pr=CanvasRenderingContext2D.prototype,_ft=pr.fillText;pr.fillText=function(t){if(/ประตูมิติบอสโลก/.test(t)&&this.canvas.isConnected)al.add(this.globalAlpha);return _ft.apply(this,arguments)};
+   try{P.iframe=1.2;await sl(500)}finally{pr.fillText=_ft;P.iframe=0}return [...al].every(a=>a>.99)?null:'alpha='+[...al].join(',')}],
+];
+REG136.push(
+ ['บ้านของคุณ: สร้าง/อัปเกรดได้ในเมือง (ไม่มีทางตันไปที่ดิน)',async()=>{if(typeof houseBuild137!=='function')return 'ไม่มีเมนูสร้างบ้านในเมือง';const t0=DLG.open;try{openLife('house')}catch(e){return 'error '+e.message}await sl(150);const ok=DLG.open&&/บ้านของคุณ|ซ่อมแซม|อัปเกรด|ดีที่สุด/.test(DLG.txt)&&!/ที่ดินผู้กล้าก่อน/.test(DLG.txt);dlgClose(true);return ok?null:'เมนูสร้างบ้านยังพาไปที่ดิน'}],
+ ['บ้านพักชาวเมือง: ครอบครัว A/B นอนบ้านพัก (ไม่ใช่โรงเตี๊ยม)',async()=>{const H=window.HOMES81;return H&&H.A.door==='ware'&&H.B.door==='ware'&&SHOP_DATA.ware.name==='บ้านพักชาวเมือง'?null:'ประตูบ้าน='+(H&&H.A.door)+' ชื่อ='+SHOP_DATA.ware.name}],
+ ['ค่าเดินทางผู้นำทางตามรายได้ (ไม่ถูกเกิน)',async()=>{const F=window.FEE137;if(!F)return 'ไม่มีสูตรค่าเดินทาง';const lv=P.lv;P.lv=150;const a=F.feeNear(),c=F.feeCross();P.lv=lv;return a>=1000&&c>=5000?null:'Lv150 ค่าใกล้='+a+' ข้ามเมือง='+c}],
+ ['เมนูหลักจัด 4 หมวด + มีหน้าแนะนำการพัฒนา',async()=>{try{pmRender7()}catch(e){}const h=[...pm7.querySelectorAll('.gh139')].map(x=>x.textContent);if(h.length<4)return 'หัวข้อหมวด='+h.length;if(!PM7.some(m=>m[1]==='แนะนำ'))return 'ไม่มีปุ่มแนะนำ';if(PM7.some(m=>m[1]==='จอย'))return 'ปุ่มจอยยังซ้ำในเมนูหลัก';try{openAdv140();await sl(150);const ok=!advW140.hidden&&/ตอนนี้ควรทำ/.test(advW140.textContent);p6close(advW140);return ok?null:'หน้าแนะนำไม่ขึ้น'}catch(e){return 'error '+e.message}}],
+ ['ค่าตีบวกตามระดับไอเท็ม',async()=>{const sv=ENHS.sel;try{ENHS.sel='sword1';const a=ENHCFG.cost(5).gold;ENHS.sel='sword10';const b=ENHCFG.cost(5).gold;return b>=a*4?null:'ระดับ1='+a+' ระดับ10='+b}finally{ENHS.sel=sv}}],
+ ['แผงร้านพาไปตลาดกลาง + บทที่ 15 นับตลาดกลาง',async()=>{const c=STCH.find(c=>c&&c.t&&c.t.indexOf('บทที่ 15:')===0);if(c&&!/ตลาดกลาง/.test(c.d))return 'บท 15 ยังไม่พูดถึงตลาดกลาง';try{window.stallGo10();await sl(200);const ok=!mkW130.hidden;p6close(mkW130);return ok?null:'เปิดแผงแล้วไม่พาไปตลาดกลาง'}catch(e){return 'error '+e.message}}],
+ ['ข้อความ/คู่มือไม่พูดถึงที่ดินผู้กล้าแล้ว',async()=>{try{openGuide77()}catch(e){}await sl(300);const g=gid('gb66');const bad=g&&/ที่ดินผู้กล้า/.test(g.innerText);try{p6close(g)}catch(e){}return bad?'คู่มือยังมีที่ดินผู้กล้า':null}]);
+window.REG136=REG136;
+{const _run=SystemValidator.runFullGamePlaytest;SystemValidator.runFullGamePlaytest=async function(opt){const R=await _run.apply(this,arguments);
+  const sv={cls:P.cls,lv:P.lv,coin:inv.coin},god=window.GM7&&GM7.god;try{if(window.GM7)GM7.god=true}catch(e){}const out=[];
+  for(const [name,fn] of REG136){let m=null;try{m=await fn()}catch(e){m='error '+e.message}if(m){const b={module:'regression',type:'regression',scene:where(),detail:name+' — '+m,sev:'major'};out.push(b);try{R.bugs.push(b)}catch(e){}}}
+  try{P.cls=sv.cls;P.lv=sv.lv;inv.coin=sv.coin;recalcStats();refreshInv()}catch(e){}try{if(window.GM7)GM7.god=god}catch(e){}try{await toTown()}catch(e){}
+  try{R.regression={checks:REG136.length,fail:out.length}}catch(e){}return R};window.SystemValidator=SystemValidator}
+}catch(e){console.warn('fix136',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix137 (v5.03) — ที่ดินผู้กล้าถูกเลิกใช้แล้ว แต่ยังมีของค้าง (เจ้าของแจ้ง 2026-10-16)
+//  A) "บ้านของคุณ" ในเมือง: กด 🔨 สร้าง/อัปเกรด → เดิมขึ้น "ไปที่ที่ดินผู้กล้าก่อนนะ" (ทางตัน · บทส่งท้ายทำไม่ได้) + ต้องใช้ค้อน (ถูกลบแล้ว)
+//     → สร้าง/อัปเกรดได้ที่หน้าบ้านเลย ใช้วัตถุดิบ+เหรียญเท่าเดิม ไม่ต้องใช้ค้อน · คู่ครอง (แต่งงานแล้ว) อยู่ที่บ้านนี้ คุย/รับอาหารเช้าได้
+//  B) ข้อความทุกจุดที่ยังพูดถึงที่ดิน/ฟาร์ม/ค้อน → แก้ให้ตรง (คู่มือ · ที่มาของไอเท็ม · ฉากแต่งงาน · ข้อความระบบ)
+//  C) โรงเตี๊ยมแน่น: ครอบครัวบุญมี+บรูโน่ (fix115 ให้ไปนอนโรงเตี๊ยม) → "บ้านพักชาวเมือง" (เดิมคลังสมบัติ หัวเมืองข้างหอคอย ซ้ำกับธนาคาร)
+//     กลางคืนเดินเข้าบ้านพัก · โรงเตี๊ยมเหลือแค่นักดื่ม/นักเดินทาง · ฝากของย้ายไปที่ธนาคาร (มีปุ่ม 📦 อยู่แล้ว)
+// =====================================================================
+try{
+// ---------- C) บ้านพักชาวเมือง ----------
+try{const W=(window.SD||SHOP_DATA).ware||SHOP_DATA.ware;if(W){W.name='บ้านพักชาวเมือง';W.emoji='🏘️';if(W.owner)W.owner.name='ป้าจันทร์ แม่บ้านประจำบ้านพัก'}}catch(e){}
+try{SIGN_ICONS.ware=k=>{k.lineJoin='round';k.fillStyle='#c86a3a';k.strokeStyle='#3a1a08';k.lineWidth=2.5;k.beginPath();k.moveTo(-14,-2);k.lineTo(0,-14);k.lineTo(14,-2);k.closePath();k.fill();k.stroke();
+  k.fillStyle='#f0dcb0';k.fillRect(-10,-2,20,14);k.strokeRect(-10,-2,20,14);k.fillStyle='#6a4020';k.fillRect(-3,4,6,8);k.fillStyle='#ffe08a';k.fillRect(-8,1,4,4);k.fillRect(4,1,4,4)}}catch(e){}
+try{const H=window.HOMES81||(window.W81&&W81.HOMES81);if(H){H.A.door='ware';H.B.door='ware';H.A.n='บ้านพักชาวเมือง';H.B.n='บ้านพักชาวเมือง'}}catch(e){}
+const sleepers=()=>{try{return (D&&D.npcs||[]).filter(n=>n.l81&&n.l81.hid==='home'&&(n.l81.h==='A'||n.l81.h==='B'))}catch(e){return []}};
+{const _es=enterShop;enterShop=function(id){if(id==='ware'){const z=sleepers(),night=(typeof night48==='function'&&night48());
+  talk({name:'ป้าจันทร์ แม่บ้านประจำบ้านพัก',c:'#a86a3a'},'🏘️ บ้านพักชาวเมือง — ครอบครัวบุญมีกับครอบครัวบรูโน่พักอยู่ที่นี่\n'+(night&&z.length?'💤 ตอนนี้ดึกแล้ว ทุกคนหลับกันอยู่ '+z.length+' คน — เบา ๆ หน่อยนะจ๊ะ':'กลางวันพวกเขาออกไปทำงานกันหมด ตกค่ำถึงจะกลับมา')+'\n📦 ถ้าจะฝากของ ไปที่ธนาคารเอลโดเรีย (ฝั่งล่างของเมือง) ได้เลยจ้ะ',[BYE],'🏘️ บ้านพักชาวเมือง');return}
+  return _es.apply(this,arguments)};window.enterShop=enterShop}
+// ---------- A) บ้านของคุณ: สร้าง/อัปเกรดในเมือง ----------
+const benefit=lv=>'นอนพัก (18:00–05:00) ได้บัฟค่าพลังทุกอย่าง +'+lv+' นาน 10 นาที';
+function houseBuild137(){const h=HOME.house|0,nx=HOUSE[h+1];
+ if(!nx){talk({name:'บ้านของคุณ',c:'#8a5a2a'},'🏰 '+HOUSE[h].n+' — บ้านของเจ้าดีที่สุดในแผ่นดินแล้ว!\n'+benefit(h),[BYE],'🏠 บ้านของคุณ');return}
+ const ok=costOK(nx.c),cost=Object.entries(nx.c).map(([k,v])=>(k==='coin'?'🪙':MN(k)+' ')+v.toLocaleString()+' (มี '+((inv[k]|0).toLocaleString())+')').join(' · ');
+ talk({name:'บ้านของคุณ',c:'#8a5a2a'},(h?'ตอนนี้: '+HOUSE[h].n+'\n':'')+'🔨 '+(h?'อัปเกรดเป็น ':'ซ่อมแซมเป็น ')+nx.n+' (ขั้น '+(h+1)+'/'+(HOUSE.length-1)+')\nใช้: '+cost+'\nได้: '+benefit(h+1)+(ok?'':'\n⚠️ วัตถุดิบยังไม่พอ'),
+  [...(ok?[{t:'🔨 สร้าง '+nx.n,c:'go',f:()=>{if(!costOK(nx.c))return;payCost(nx.c);HOME.house=h+1;saveHome();try{refreshInv();saveGame(true)}catch(e){}shake(3,.4);sfx('chest');
+     try{banner('🏠 '+nx.n+' สร้างเสร็จ!',h===0?'บ้านหลังแรกของผู้กล้า':'อัปเกรดบ้านเรียบร้อย','green')}catch(e){}try{for(let i=0;i<40;i++)rfxP(5.5*T+(Math.random()-.5)*120,6*T-Math.random()*60,(Math.random()-.5)*90,-60-Math.random()*80,1.1,i%2?'255,220,120':'255,255,255',2.4,'spark')}catch(e){}}}]:[]),BYE],'🏠 บ้านของคุณ')}
+window.houseBuild137=houseBuild137;
+{const _ol=openLife;openLife=function(tab){if(!(D&&D.home)&&(tab==='house'||tab==='farm'||tab==='deco')){houseBuild137();return}return _ol.apply(this,arguments)};window.openLife=openLife}
+/* คู่ครองอยู่ที่บ้านของคุณ (เดิมยืนอยู่ในที่ดิน ซึ่งไม่มีแล้ว) */
+{const _hm=houseMenu;houseMenu=function(){const r=_hm.apply(this,arguments);try{if(HOME.spouse&&DLG.open&&typeof spouseTalk==='function'&&!DLG.ch.some(c=>c.sp137)){const R=ROM[HOME.spouse];DLG.ch.unshift({t:'💍 คุยกับ'+((R&&R.dn)||'คู่ครอง'),c:'go',sp137:1,f:()=>{spouseTalk();return false}});try{dlgShowChoices()}catch(e){}}}catch(e){}return r};window.houseMenu=houseMenu}
+// ---------- B) ข้อความ ----------
+const FIX=[[/ที่บ้านในที่ดินผู้กล้า/g,'ที่บ้านของคุณในเมือง'],[/สร้างบ้านหลังแรกในที่ดินผู้กล้าแล้ว!/g,'สร้างบ้านหลังแรกแล้ว!'],[/ฝากของได้ที่ "คลังสมบัติ" \(หัวเมืองฝั่งขวา\) · ธนาคาร · หรือที่ดินของคุณ/g,'ฝากของได้ที่ธนาคารเอลโดเรีย (คุยกับคุณธนา → 📦 ฝากของ)'],
+ [/ใส่ค้อนในช่องลัดแล้วกดโจมตีเพื่อเปิดเมนูสร้าง/g,'กด E ที่ป้ายหน้าบ้านเพื่อสร้าง/อัปเกรด'],[/\(ปลูกในที่ดินผู้กล้า\)/g,''],[/ลุงบุญมี \(ที่ดินผู้กล้า\) หรือ/g,''],[/<b>คลังสมบัติ<\/b> ฝากของ/g,'<b>ธนาคาร</b> ฝากของด้วย'],[/<b>ที่ดินผู้กล้า<\/b> ปลูกผัก\/เลี้ยงสัตว์ \(ประตูมิติในทุ่งหญ้า\) · /g,'<b>บ้านของคุณ</b> (หลังคาเขียว มุมซ้ายบน) สร้าง/อัปเกรด นอนรับบัฟ · ']];
+const fx=s=>{if(typeof s!=='string')return s;for(const [a,b] of FIX)s=s.replace(a,b);return s};window.fixTxt137=fx;
+/* say เป็น const แก้ทับไม่ได้ → แก้ข้อความที่แถบข้อความ (#msg) แทน */
+try{const me=gid('msg');if(me)new MutationObserver(()=>{try{const t=me.textContent,f=fx(t);if(f!==t)me.textContent=f}catch(e){}}).observe(me,{childList:true,characterData:true,subtree:true})}catch(e){}
+try{const _t=talk;talk=function(n,txt,ch,name){if(Array.isArray(ch))for(const c of ch)if(c&&typeof c.t==='string')c.t=fx(c.t);return _t.call(this,n,fx(txt),ch,name)};window.talk=talk}catch(e){console.warn('137 talk',e)}
+try{const _c=cinePlay;cinePlay=function(L,done){try{if(Array.isArray(L))L=L.map(x=>x&&typeof x.t==='string'?Object.assign({},x,{t:fx(x.t)}):x)}catch(e){}return _c.call(this,L,done)};window.cinePlay=cinePlay}catch(e){console.warn('137 cine',e)}
+try{const _b=banner;banner=function(a,b,c){return _b.call(this,fx(a),fx(b),c)};window.banner=banner}catch(e){console.warn('137 banner',e)}
+try{for(const k in INVMETA)if(Array.isArray(INVMETA[k])&&typeof INVMETA[k][1]==='string')INVMETA[k][1]=INVMETA[k][1].replace(/ · ใส่ช่องลัดแล้วกดโจมตีเพื่อใช้ · อัปเกรดได้ที่เมนูส.*$/,'').replace(/\s*\(ใช้ได้ในที่ดินผู้กล้า\)/,'')}catch(e){}
+try{const _s7=src7;src7=function(k){let S=[];try{S=_s7.apply(this,arguments)||[]}catch(e){}return S.filter(x=>!/ที่ดินผู้กล้า|ร้านฟาร์ม/.test(String(x&&x[1]))).map(x=>[x[0],String(x[1]).replace('ตกปลา (บ่อในที่ดิน/แหล่งน้ำ)','ตกปลาที่ริมน้ำ')])};window.src7=src7}catch(e){console.warn('137 src',e)}
+/* คู่มือ 📖: หัวข้อที่ดินผู้กล้า (ฟาร์ม) เลิกใช้ → แทนด้วยบ้านของคุณ */
+try{const gw=gid('gb66');if(gw)new MutationObserver(()=>{try{for(const d of gw.querySelectorAll('details')){const sm=d.querySelector('summary');if(!sm||d.f137)continue;d.f137=1;
+  if(/ที่ดินผู้กล้า \(ฟาร์ม\)/.test(sm.textContent)){sm.textContent='🏠 บ้านของคุณ';const b=d.querySelector('div,p,small')||d;if(b!==d)b.innerHTML='บ้านหลังคาเขียว <b>มุมซ้ายบนของเมืองเอลโดเรีย</b> (ได้หลังจบบท 13) · กด E ที่ป้ายหน้าบ้าน → <b>🔨 สร้าง/อัปเกรด</b> ใช้วัตถุดิบ+เหรียญ (7 ขั้น กระท่อม → ปราสาทเพชร) · นอนพัก 18:00–05:00 ได้บัฟค่าพลังทุกอย่างตามขั้นบ้าน · แต่งงานแล้วคู่ครองอยู่บ้านนี้'}
+  else d.innerHTML=fx(d.innerHTML)}}catch(e){}}).observe(gw,{childList:true,subtree:true})}catch(e){}
+/* ป้ายชื่อบ้านพักวาดลงแผนที่เมืองตอนสร้างเมือง (สร้างไปก่อนสคริปต์นี้โหลด) → สร้างใหม่ 1 ครั้งเมื่ออยู่ในเมือง */
+try{const _bt=buildTown;buildTown=function(){const r=_bt.apply(this,arguments);try{dcv._v137=1}catch(e){}return r};window.buildTown=buildTown}catch(e){console.warn('137 bt',e)}
+{const rb=()=>{try{if(!D||!D.town||D.shop||D.city2||!dcv||dcv._v137)return;const x=P.x,y=P.y,dr=P.dir;buildTown();mkMini(dcv,TW,TH,2.6);P.x=x;P.y=y;P.dir=dr}catch(e){console.warn('fix137 rebuild',e)}};setInterval(rb,700)}
+}catch(e){console.warn('fix137',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix138 (v5.03) — 💰 เศรษฐกิจ: ทางใช้เงินน้อยเกินเทียบรายได้ (ฟาร์มได้หลักแสน/ชม.)
+//  ค่าตีบวก (Gold) เดิมไม่ดูระดับของ → ตี +0→+15 ทั้งชุดใช้แค่ ~68,000 (ผู้เล่น Lv.150 ฟาร์ม ~15 นาที)
+//  ตอนนี้คูณตามระดับไอเท็ม: ระดับ 0–2 เท่าเดิม (มือใหม่ไม่ลำบาก) · ระดับละ +50% หลังจากนั้น (ระดับ 5 ×2.5 · ระดับ 8 ×4 · ระดับ 10 ×5 · สูงสุด ×7)
+// =====================================================================
+try{
+const mult=id=>{try{const t=(ITEMS[id]&&ITEMS[id].tier)|0;return 1+.5*Math.max(0,Math.min(14,t)-2)}catch(e){return 1}};window.ENHMULT138=mult;
+{const _c=ENHCFG.cost;ENHCFG.cost=function(l){const c=Object.assign({},_c.apply(this,arguments));try{const id=(typeof ENHS!=='undefined')&&ENHS.sel;if(id)c.gold=Math.round(c.gold*mult(id)/10)*10}catch(e){}return c}}
+}catch(e){console.warn('fix138',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix139 (v5.03) — เมนูหลัก 4 หมวด + ระบบค้าขายไม่ซ้ำซ้อน
+//  A) เมนู 27 ปุ่มเรียงมั่ว → จัดเป็น 4 หมวดมีหัวข้อ (ตัวละคร · พัฒนา&ผจญภัย · สังคม&ค้าขาย · ระบบ) · ปุ่ม 🎮 จอย ย้ายเข้าตั้งค่า → ปุ่มควบคุม
+//  B) แผงร้านในลานตลาด (ต้องยืนออนไลน์) ซ้ำกับตลาดกลาง → เปิดแผงใหม่ = ไปลงขายตลาดกลาง (ขายได้แม้ออฟไลน์) · เดินเข้าลานตลาด = เปิดกระดานตลาดกลาง
+//     ของที่ค้างในแผงเดิมยังเก็บคืนได้ · บทที่ 15 นับการลงขาย/ซื้อในตลาดกลางด้วย · "ประมูล" → "ประมูลบอส" (ของจากบอสโลก)
+// =====================================================================
+try{
+// ---------- A) เมนู ----------
+const GROUPS=[['👤 ตัวละคร',['สถานะ','กระเป๋า','สกิล','พาสซีฟ','ชำนาญ','เควส','รายวัน','จดหมาย']],
+ ['⚔️ พัฒนา & ผจญภัย',['แนะนำ','อัปดาว','อัญมณี','ตำนาน','PvP','ฉายา','อันดับ']],
+ ['🤝 สังคม & ค้าขาย',['ตลาดกลาง','เทรด','ประมูลบอส','กิลด์','ปาร์ตี้','ผู้คน','เหรียญ/โดเนท']],
+ ['⚙️ ระบบ',['คู่มือ','ตั้งค่า','เสียง','ติดตั้งเกม','ออกเกม']]];
+try{const j=PM7.findIndex(m=>m[1]==='จอย');if(j>=0)PM7.splice(j,1);const a=PM7.find(m=>m[1]==='ประมูล');if(a)a[1]='ประมูลบอส'}catch(e){}
+const base=l=>String(l||'').replace(/\s+\d+$/,'').replace(/^(เปิดเสียง|ปิดเสียง)$/,'เสียง');
+const st=document.createElement('style');st.textContent='#pm7 .gh139{grid-column:1/-1;font:800 11px system-ui,"Noto Sans Thai",sans-serif;color:#ffd86a;letter-spacing:.3px;padding:2px 2px 0;border-bottom:1px solid rgba(232,193,74,.3);margin-top:2px}#pm7 .gh139:first-child{margin-top:0}';document.head.appendChild(st);
+{const _r=pmRender7;pmRender7=function(){const r=_r.apply(this,arguments);try{const btns=[...pm7.querySelectorAll('button[data-i]')],used=new Set(),frag=document.createDocumentFragment();
+  for(const [gn,L] of GROUPS){const mine=btns.filter(b=>{const m=PM7[+b.dataset.i];return m&&L.includes(base(m[1]))&&!used.has(b)}).sort((a,b)=>L.indexOf(base(PM7[+a.dataset.i][1]))-L.indexOf(base(PM7[+b.dataset.i][1])));
+   if(!mine.length)continue;const h=document.createElement('div');h.className='gh139';h.textContent=gn;frag.appendChild(h);for(const b of mine){used.add(b);frag.appendChild(b)}}
+  const rest=btns.filter(b=>!used.has(b));if(rest.length){const h=document.createElement('div');h.className='gh139';h.textContent='✨ อื่น ๆ';frag.appendChild(h);rest.forEach(b=>frag.appendChild(b))}
+  pm7.innerHTML='';pm7.appendChild(frag)}catch(e){console.warn('pm139',e)}return r};window.pmRender7=pmRender7}
+try{pmRender7()}catch(e){}
+/* จอย → ตั้งค่า > ปุ่มควบคุม */
+try{const sec=[...menuEl.querySelectorAll('b.sec')].find(b=>/ปุ่มควบคุม/.test(b.textContent));if(sec&&typeof open109==='function'){const b=document.createElement('button');b.className='mini';b.style.cssText='display:block;width:100%;margin:4px 0 6px;height:auto;padding:7px;font-size:13px';b.textContent='🎮 เล่นด้วยจอย (Bluetooth/USB) — ตั้งค่าจอย';b.onclick=()=>{try{toggleMenu()}catch(e){}open109()};sec.after(b)}}catch(e){}
+// ---------- B) ค้าขาย ----------
+const toMk=why=>{try{p6close(stW10)}catch(e){}say('🏪 '+why);try{openMk130('sell')}catch(e){}};
+try{const _g=window.stallGo10;window.stallGo10=function(){toMk('แผงร้านเปลี่ยนเป็นตลาดกลางแล้ว — ลงขายที่นี่ ขายได้แม้ออฟไลน์ เงินเข้าจดหมายเอง')}}catch(e){}
+try{const _a=window.stallAdd10;window.stallAdd10=function(){toMk('วางของขายที่ 🏪 ตลาดกลางได้เลย (ขายได้แม้ออฟไลน์)')}}catch(e){}
+{const _e=enterMk10;enterMk10=function(){const r=_e.apply(this,arguments);setTimeout(()=>{try{if(inMk10()&&typeof openMk130==='function'){openMk130('buy');say('🏪 ลานตลาดกลาง — ซื้อขายผ่านกระดานตลาดกลาง (เปิดได้จากเมนูตัวละครทุกที่)')}}catch(e){}},1400);return r};window.enterMk10=enterMk10}
+/* บทที่ 15 */
+const mk15=()=>{try{if(!STORY.mk11){STORY.mk11=1;saveStory()}}catch(e){}};
+{const _nm=netMsg;netMsg=function(d){try{if(d&&(d.t==='mkSellOk'||d.t==='mkPayOk'||d.t==='mkSold'))mk15()}catch(e){}return _nm.apply(this,arguments)};window.netMsg=netMsg}
+try{const c=STCH.find(c=>c&&c.t&&c.t.indexOf('บทที่ 15:')===0);if(c)c.d='เปิด 🏪 ตลาดกลาง (เมนูตัวละคร หรือเดินเข้าลานตลาดประตูใต้) แล้วลงขายหรือซื้อของ 1 ครั้ง'}catch(e){}
+}catch(e){console.warn('fix139',e)}
+</script>
+<script>
+// =====================================================================
+// fix140 (v5.03) — 📈 แนะนำการพัฒนา: ระบบพัฒนาตัวละครมีเยอะ (ตีบวก/ออป/รูน/อัญมณี/พาสซีฟ/ชำนาญ/อัปดาว/ตำนาน…) ผู้เล่นใหม่ไม่รู้เริ่มตรงไหน
+//  หน้าเดียวบอก "ตอนนี้ควรทำอะไร" ตามสถานะจริง + รายการทุกระบบเรียงตามเลเวลที่เปิด (✅ เปิดแล้ว / 🔒 ยังไม่ถึง) + ปุ่มพาไป
+// =====================================================================
+try{
+const W=mk6('adv140');window.advW140=W;
+const css=document.createElement('style');css.textContent='#adv140 .w{width:min(640px,97%);height:min(560px,96%)}#adv140 .bd{display:block!important;overflow-y:auto;padding:8px 10px;text-align:left;font:600 12.5px/1.45 system-ui,"Noto Sans Thai",sans-serif}'
++'#adv140 .nx{background:linear-gradient(180deg,#3a2c14,#24190c);border:1.5px solid #ffd86a;border-radius:12px;padding:8px 10px;margin-bottom:8px}#adv140 .nx b{color:#ffe9a0}#adv140 .nx div{display:flex;gap:8px;align-items:center;margin-top:5px}#adv140 .nx div span{flex:1}'
++'#adv140 .rw{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:5px}#adv140 .rw.lk{opacity:.55}#adv140 .rw .ic{font-size:20px;width:28px;text-align:center}#adv140 .rw .t{flex:1;min-width:0}#adv140 .rw .t b{color:#fff}#adv140 .rw .t small{display:block;color:#b8b0c8;font-size:11px}'
++'#adv140 button.go{border:0;border-radius:9px;padding:6px 10px;height:auto;font:800 12px system-ui,"Noto Sans Thai";background:linear-gradient(180deg,#ffd86a,#d9a42a);color:#2a1a06;white-space:nowrap;cursor:pointer}#adv140 .lv{font-size:10.5px;color:#9fd8ff;white-space:nowrap}';document.head.appendChild(css);
+const call=f=>()=>{p6close(W);setTimeout(()=>{try{f()}catch(e){say('ยังเปิดหน้านี้ไม่ได้ตอนนี้')}},60)};
+const SYS=[
+ {lv:1,ic:'📜',n:'เควสหลัก (เนื้อเรื่อง)',d:'ทำตามแถบภารกิจด้านบน ได้เงิน/XP/ของดีที่สุดในช่วงแรก',go:()=>openJournal()},
+ {lv:1,ic:'⭐',n:'อัปค่าพลัง',d:'เลเวลอัปได้แต้ม 3 แต้ม — STR ตีแรง · VIT เลือด · AGI คริ/ธนู · INT เวท',go:()=>openChar()},
+ {lv:1,ic:'⚔️',n:'สกิลอาชีพ',d:'เรียนสกิลที่ร้านสกิลในเมือง ปลดล็อกตามเลเวล',go:()=>openSkw('sk')},
+ {lv:3,ic:'🔨',n:'ตีบวกอาวุธ/ชุด',d:'ที่ทั่งร้านอาวุธ ใช้หินเสริมพลัง (ดรอปดันเจี้ยน) + แร่ + เหรียญ — ค่าพลังขึ้นมากที่สุด',go:()=>{if(D&&D.town)enterShop('gear');else say('ไปที่ร้านอาวุธในเมือง (บอริน หนวดเหล็ก)')}},
+ {lv:5,ic:'🗝️',n:'ดันเจี้ยน 100 ชั้น',d:'ถ้ำในทุ่งหญ้า — แหล่งหินเสริมพลัง/อุปกรณ์ · ชั้นละบอส 1 ตัว',go:()=>{say('🗝️ ถ้ำดันเจี้ยนอยู่ในทุ่งหญ้า ทางเหนือของประตูมิติ')}},
+ {lv:5,ic:'🌟',n:'ต้นไม้พาสซีฟ',d:'แต้มพาสซีฟได้ตามเลเวล — ดาเมจ/คริ/เลือด เพิ่มถาวร',go:()=>openSkw('pas')},
+ {lv:10,ic:'🎯',n:'ชำนาญสกิล',d:'ใช้สกิลบ่อย ๆ จะเลื่อนขั้นชำนาญ สกิลแรงขึ้น',go:()=>openSkw('msk')},
+ {lv:10,ic:'🎲',n:'ออปอุปกรณ์ · หินสุ่ม/ล็อกออป',d:'อุปกรณ์มีค่าพิเศษสุ่ม 1–4 บรรทัด แตะไอเท็มในกระเป๋า → สุ่มใหม่/ล็อกบรรทัดที่ชอบ',go:()=>toggleBag()},
+ {lv:20,ic:'🐲',n:'บอสตำนาน (หอผนึกอสูร)',d:'บ้านหลังคาม่วงในเมือง — ชนะได้ตราอสูร แลกชิ้นชุดบอส',go:()=>{say('🔮 หอผนึกอสูร: บ้านหลังคาม่วงแถวบนของเมือง')}},
+ {lv:20,ic:'💎',n:'รูน & อัญมณี',d:'ใส่รูนธาตุในช่องอุปกรณ์ / เจาะรูใส่อัญมณีเพิ่มค่าพลัง',go:()=>open117()},
+ {lv:25,ic:'🗼',n:'หอคอยบอส',d:'มุมขวาบนของเมือง 12 ชั้น บอสเลือดสูง จับเวลา 5 นาที',go:()=>{say('🗼 ประตูหอคอยอยู่มุมขวาบนของเมือง')}},
+ {lv:30,ic:'🐉',n:'บอสโลก 12:00 / 20:00',d:'ตีร่วมกันทั้งเซิร์ฟ อันดับดาเมจได้รางวัล · ของหายากเข้าประมูลบอส',go:()=>openWb10()},
+ {lv:30,ic:'🐾',n:'อัปดาวสัตว์เลี้ยง/สัตว์ขี่',d:'ใช้ชิ้นส่วนสัตว์ (ดรอปมอน/บอส) อัปดาวเพิ่มค่าพลัง',go:()=>open112()},
+ {lv:30,ic:'🏪',n:'ตลาดกลาง & เทรด',d:'ขายของเหลือใช้ ซื้อวัตถุดิบที่ขาด (ขายได้แม้ออฟไลน์)',go:()=>openMk130('buy')},
+ {lv:150,ic:'🌠',n:'ตำนาน (หลังเลเวลตัน)',d:'Lv.150+ แต้มตำนานเพิ่มค่าพลังต่อไม่สิ้นสุด',go:()=>open92()},
+ {lv:150,ic:'🏙️',n:'นครวารีอัสตรา (เมือง 2)',d:'ดันเจี้ยนใหม่ วัตถุดิบระดับสูง — คุยกับอาร์เทน ผู้นำทาง ข้างน้ำพุ',go:()=>{say('🧭 คุยกับอาร์เทน ผู้นำทาง ข้างน้ำพุกลางเมือง')}}];
+function next(){const N=[];try{if(P.sp>0)N.push(['⭐','มีแต้มค่าพลังเหลือ '+P.sp+' แต้ม — อัปก่อนออกไปสู้',()=>openChar()])}catch(e){}
+ try{const f=typeof ptFree==='function'?ptFree():0;if(f>0)N.push(['🌟','มีแต้มพาสซีฟเหลือ '+f+' แต้ม',()=>openSkw('pas')])}catch(e){}
+ try{const c=STCH[STORY.ch];if(c&&STORY.st!=='done')N.push(['📜',(STORY.st==='report'?'กลับไปรายงานพระราชา — ':'')+c.t,()=>openJournal()])}catch(e){}
+ try{const w=P.armor&&P.armor.sword,l=w?(ENH[w]|0):0,want=Math.min(15,Math.floor(P.lv/8));if(w&&l<want)N.push(['🔨','อาวุธ +'+l+' ยังต่ำไปสำหรับ Lv.'+P.lv+' (แนะนำ +'+want+')',()=>SYS[3].go()])}catch(e){}
+ try{if((inv.opt111|0)>0)N.push(['🎲','มีหินสุ่มออป '+inv.opt111+' ก้อน — ลองสุ่มออปอาวุธ',()=>toggleBag()])}catch(e){}
+ return N.slice(0,4)}
+function render(){const lv=P.lv|0,N=next();let h='<div class="w"><div class="hd"><b>📈 แนะนำการพัฒนา</b><button onclick="p6close(advW140)">✕</button></div><div class="bd">';
+ h+='<div class="nx"><b>👉 ตอนนี้ควรทำ</b>'+(N.length?N.map((x,i)=>'<div><span>'+x[0]+' '+x[1]+'</span><button class="go" data-n="'+i+'">ไป</button></div>').join(''):'<div><span>✨ ทุกอย่างพร้อมแล้ว — ลุยดันเจี้ยน/บอสเก็บของดีต่อได้เลย</span></div>')+'</div>';
+ h+='<b style="color:#ffe9a0">🗺️ ระบบพัฒนาตัวละครทั้งหมด (เรียงตามเลเวลที่เปิด)</b>';
+ SYS.forEach((S,i)=>{const on=lv>=S.lv;h+='<div class="rw'+(on?'':' lk')+'"><div class="ic">'+S.ic+'</div><div class="t"><b>'+S.n+'</b><small>'+S.d+'</small></div><span class="lv">'+(on?'✅':'🔒 Lv.'+S.lv)+'</span>'+(on?'<button class="go" data-s="'+i+'">เปิด</button>':'')+'</div>'});
+ W.innerHTML=h+'</div></div>';W._n=N}
+W.addEventListener('click',e=>{const b=e.target.closest('button.go');if(!b)return;if(b.dataset.s!=null)call(SYS[+b.dataset.s].go)();else if(b.dataset.n!=null&&W._n[+b.dataset.n])call(W._n[+b.dataset.n][2])()});
+window.openAdv140=()=>{render();p6open(W)};
+try{const at=PM7.findIndex(m=>m[1]==='อัปดาว');PM7.splice(at<0?2:at,0,['📈','แนะนำ',()=>openAdv140()]);pmRender7()}catch(e){}
+}catch(e){console.warn('fix140',e)}
+</script>
+
+<script>
+// fix141 (v5.03) — 🤝 เทรดต้องเจอตัวกัน (เจ้าของสั่ง): เอาปุ่มเทรดออกจากเมนูหลัก + ปุ่ม 🔁 หน้าผู้คน · ขอเทรดได้ทางเดียว = แตะตัวผู้เล่นที่อยู่ใกล้ → 🤝 ขอเทรด
+//   (เซิร์ฟเวอร์ market.js ตรวจซ้ำ: ฉากเดียวกัน ห่างไม่เกิน 220px)
+try{
+try{const i=PM7.findIndex(m=>m[1]==='เทรด');if(i>=0){PM7.splice(i,1);pmRender7()}}catch(e){}
+try{const st=document.createElement('style');st.textContent='#ppl72 .tr130b{display:none!important}';document.head.appendChild(st)}catch(e){}
+{const _r=window.trReq130;window.trReq130=function(name){try{if(!name)return;let o=null;for(const x of NET.others.values())if(x.name===name){o=x;break}
+  if(!o||Math.hypot(o.x-P.x,o.y-P.y)>200){say('🤝 ต้องอยู่ใกล้กันถึงจะเทรดได้ — นัดเจอกันแล้วแตะตัวเพื่อน → 🤝 ขอเทรด');sfx('thud');return}}catch(e){}return _r.apply(this,arguments)}}
+}catch(e){console.warn('fix141',e)}
+</script>
+
+<script>
+// fix142 (v5.03) — 🤖 ออโต้ฟาร์ม: ใช้สกิล 1-2-3 ก่อนแบบเดิม (ลื่น) แล้วค่อย 4-5-6 · ไม่กดสกิลวาร์ปล้วน · กดฮีล 💚 เยียวยา เมื่อเลือด < 55% (รวมตอนถอยหนี) — แก้ใน skill110 (fix110) + ตัวกดฮีลนี้
+try{setInterval(()=>{try{if(!AUTO.on||P.dead||PAUSED||P.hp>=BAL.hp*.55||!SK.own[2]||P.mp<15||P.cls==='none')return;const hb=gid('sk4');if(hb&&hb.style.display!=='none')hb.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}))}catch(e){}},400)}catch(e){console.warn('fix142',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix143 (v5.03) — 🎬 สกิลแบบ MMORPG 2D (เจ้าของ: "ใช้สกิลต้องมีท่าทาง · นินจาต้องเป็นเงาวับสับไปมา · วาปต้องมีเงาพุ่ง · แยกร่างต้องเป็นร่างนินจา ไม่ใช่กระดูก")
+//  1) เงาตัวละคร (afterimage) วาดจากตัวละครจริง (ชุด/อาวุธที่ใส่) ย้อมสีตามอาชีพ
+//  2) ทุกสกิลที่พุ่ง/วาป (ตัวละครย้ายตำแหน่งทันที) → เงาไล่ตามทาง + เส้นแสงพุ่ง
+//  3) อัลตินินจา "พันเงาพิฆาต": ตัวจริงหายเป็นเงา วาบไปฟันศัตรูทีละตัว (เงาโผล่ข้างเป้า + รอยดาบเสี้ยวจันทร์) ปิดท้ายฟันกากบาท
+//  4) ร่างแยกเงา (นินจา) = เงานินจาจริง แทนโครงกระดูก
+//  5) ใช้สกิลทุกครั้ง: วงเวทหมุนใต้เท้า + แสงลอยขึ้น + ตัวลอยนิดหนึ่ง (ท่าร่าย) สีตามอาชีพ
+//  6) กระสุนเวท (ฉีดเวท): หางแสงไล่ แกนสว่าง ประกายตอนยิง และระเบิดตอนโดน
+// =====================================================================
+try{
+const now=()=>performance.now();
+const CC={sword:'150,205,255',mage:'150,120,255',archer:'255,210,90',ninja:'140,120,255',sniper:'120,230,255',paladin:'255,232,150',cleric:'190,240,255',necro:'120,255,170',monk:'255,180,100',dragoon:'255,110,90',summoner:'160,225,110',none:'255,240,200'};
+const rgbOf=()=>CC[P.cls]||CC.none;
+const TINT={ninja:'brightness(.32) sepia(1) hue-rotate(210deg) saturate(2.4)',mage:'brightness(.9) sepia(1) hue-rotate(200deg) saturate(3)',sword:'brightness(.85) sepia(1) hue-rotate(175deg) saturate(2)',monk:'brightness(.95) sepia(1) hue-rotate(-5deg) saturate(2.5)',dragoon:'brightness(.8) sepia(1) hue-rotate(-30deg) saturate(3)',paladin:'brightness(1.1) sepia(1) hue-rotate(5deg) saturate(1.6)'};
+const tintOf=c=>c||P.cls;
+const FILT=(()=>{try{const k=document.createElement('canvas').getContext('2d');k.filter='blur(1px)';return k.filter==='blur(1px)'}catch(e){return false}})();
+// ---------- 1) วาดเงาตัวละคร ----------
+let HIDE=0;
+const GOFF=document.createElement('canvas');GOFF.width=GOFF.height=128;const GK=GOFF.getContext('2d');
+const TCOL={ninja:'34,26,80',mage:'90,80,230',sword:'70,120,200',monk:'200,130,40',dragoon:'180,50,40',paladin:'220,190,90',cleric:'140,200,240',necro:'40,140,90',summoner:'80,150,60',archer:'200,150,40',sniper:'60,160,200'};
+function ghost(x,y,dir,a,tint,at,glow){if(a<=.02)return;const sv={x:P.x,y:P.y,dir:P.dir,mv:P.mv,at:P.at,dash:P.dash,t:P.t,draw:P.draw},od=window._drawingOther,hid=HIDE,sc=ctx;
+ try{GK.setTransform(1,0,0,1,0,0);GK.globalCompositeOperation='source-over';GK.clearRect(0,0,128,128);ctx=GK;window._drawingOther=true;HIDE=0;P.x=64;P.y=100;P.dir=dir||P.dir;P.mv=false;P.at=at==null?-1:at;P.dash=0;P.draw=true;heroBody()}
+ catch(e){}finally{ctx=sc;Object.assign(P,sv);window._drawingOther=od;HIDE=hid}
+ try{const col=(typeof tint==='string'&&/^\d/.test(tint))?tint:(TCOL[tint]||TCOL[P.cls]||'40,30,90');GK.setTransform(1,0,0,1,0,0);GK.globalCompositeOperation='source-atop';GK.fillStyle='rgba('+col+',.86)';GK.fillRect(0,0,128,128);GK.globalCompositeOperation='source-over';
+  ctx.save();if(glow){ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(x,y-18,2,x,y-18,38);g.addColorStop(0,'rgba('+glow+','+(.55*a)+')');g.addColorStop(1,'rgba('+glow+',0)');ctx.fillStyle=g;ctx.fillRect(x-38,y-56,76,76);ctx.globalCompositeOperation='source-over'}
+  ctx.globalAlpha*=a;ctx.drawImage(GOFF,x-64,y-100);if(glow){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a*.35;ctx.drawImage(GOFF,x-65,y-101);ctx.drawImage(GOFF,x-63,y-99)}ctx.restore()}catch(e){}}
+window.ghost143=ghost;
+const G=[],ST=[];window.G143=G;
+const addG=(x,y,dir,o)=>{o=o||{};G.push({x,y,dir,t:0,l:o.l||.42,a:o.a||.7,at:o.at,tint:o.tint||tintOf(P.cls),glow:o.glow||rgbOf(),dl:o.dl||0});if(G.length>40)G.shift()};
+const addStreak=(x0,y0,x1,y1,rgb,l,w)=>{ST.push({x0,y0,x1,y1,rgb:rgb||rgbOf(),t:0,l:l||.3,w:w||10});if(ST.length>20)ST.shift()};
+{const _hb=heroBody;heroBody=function(){if(HIDE&&!window._drawingOther&&!window.__IN_OTHER8)return;let lift=0;try{if(CAST.t<CAST.l&&!window._drawingOther&&!window.__IN_OTHER8)lift=Math.sin(Math.min(1,CAST.t/CAST.l)*Math.PI)*3.5}catch(e){}
+  if(!lift)return _hb.apply(this,arguments);ctx.save();ctx.translate(0,-lift);try{return _hb.apply(this,arguments)}finally{ctx.restore()}};window.heroBody=heroBody}
+// ---------- 5) วงเวทตอนใช้สกิล ----------
+const CAST={t:9,l:.55,rgb:'255,255,255',big:0};
+let LASTSK=0;
+{const _u=useSkill;useSkill=function(i){const c0=(CS.cd&&CS.cd[i])||0;const r=_u.apply(this,arguments);try{if(((CS.cd&&CS.cd[i])||0)>c0+.01){LASTSK=now();Object.assign(CAST,{t:0,l:i>=3?.75:.55,rgb:rgbOf(),big:i>=2?1:0});
+   for(let k=0;k<(i>=2?18:10);k++){const a=Math.random()*6.28,r0=14+Math.random()*16;rfxP(P.x+Math.cos(a)*r0,P.y+Math.sin(a)*r0*.4,0,-40-Math.random()*60,.7,CAST.rgb,1.6+Math.random()*1.4,'spark')}}}catch(e){}return r};window.useSkill=useSkill}
+{const _cu=castUlt;castUlt=function(){const was=!!ULT.cast;const r=_cu.apply(this,arguments);try{if(!was&&ULT.cast){LASTSK=now()+1500;Object.assign(CAST,{t:0,l:1.1,rgb:rgbOf(),big:2})}}catch(e){}return r};window.castUlt=castUlt}
+function drawCast(){if(CAST.t>=CAST.l)return;const u=CAST.t/CAST.l,a=u<.2?u/.2:1-(u-.2)/.8,R=(CAST.big?34:26)+u*10,t=now()/1000;ctx.save();ctx.translate(P.x,P.y+2);ctx.scale(1,.38);ctx.globalCompositeOperation='lighter';
+ const g=ctx.createRadialGradient(0,0,R*.2,0,0,R*1.25);g.addColorStop(0,'rgba('+CAST.rgb+','+(.35*a)+')');g.addColorStop(1,'rgba('+CAST.rgb+',0)');ctx.fillStyle=g;ctx.fillRect(-R*1.3,-R*1.3,R*2.6,R*2.6);
+ ctx.strokeStyle='rgba('+CAST.rgb+','+(.9*a)+')';ctx.lineWidth=2.2;for(const [rr,sp] of [[R,1.4],[R*.66,-2.2]]){ctx.save();ctx.rotate(t*sp);ctx.beginPath();ctx.arc(0,0,rr,0,7);ctx.stroke();const n=rr>20?10:6;for(let i=0;i<n;i++){const aa=i*6.283/n;ctx.save();ctx.translate(Math.cos(aa)*rr,Math.sin(aa)*rr);ctx.rotate(aa);ctx.fillStyle='rgba(255,255,255,'+(.85*a)+')';ctx.fillRect(-2.5,-1,5,2);ctx.restore()}ctx.restore()}
+ ctx.save();ctx.rotate(-t*.9);ctx.beginPath();for(let i=0;i<=5;i++){const aa=i*Math.PI*.8;ctx.lineTo(Math.cos(aa)*R*.66,Math.sin(aa)*R*.66)}ctx.stroke();ctx.restore();ctx.restore();
+ ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a*.5;const pg=ctx.createLinearGradient(0,P.y-90,0,P.y);pg.addColorStop(0,'rgba('+CAST.rgb+',0)');pg.addColorStop(1,'rgba('+CAST.rgb+',.5)');ctx.fillStyle=pg;ctx.fillRect(P.x-14,P.y-90,28,90);ctx.restore()}
+// ---------- 2) พุ่ง/วาป → เงาไล่ ----------
+const LP={x:0,y:0,D:null,ok:false};
+{const _pt=playerTick;playerTick=function(dt){const r=_pt.apply(this,arguments);try{const d=Math.min(.05,dt||.016);CAST.t+=d;
+  for(let i=G.length-1;i>=0;i--){const g=G[i];if(g.dl>0){g.dl-=d;continue}g.t+=d;if(g.t>=g.l)G.splice(i,1)}for(let i=ST.length-1;i>=0;i--){ST[i].t+=d;if(ST[i].t>=ST[i].l)ST.splice(i,1)}
+  if(LP.ok&&LP.D===D&&!P.dead&&P.cls!=='none'&&now()-LASTSK<1200){const dx=P.x-LP.x,dy=P.y-LP.y,dd=Math.hypot(dx,dy);
+   if(dd>46&&dd<900){const n=Math.min(7,Math.max(3,Math.round(dd/26)));for(let k=0;k<n;k++){const u=k/n;addG(LP.x+dx*u,LP.y+dy*u,P.dir,{l:.28+u*.25,a:.25+u*.5,dl:0})}addStreak(LP.x,LP.y-16,P.x,P.y-16,rgbOf(),.32,14);
+    for(let k=0;k<12;k++)rfxP(LP.x+dx*Math.random(),LP.y-16+dy*Math.random(),(Math.random()-.5)*40,-20-Math.random()*30,.5,rgbOf(),1.8,'spark')}}
+  LP.x=P.x;LP.y=P.y;LP.D=D;LP.ok=true}catch(e){}return r};window.playerTick=playerTick}
+// ---------- วาดทั้งหมด (โลก) ----------
+function drawStreaks(){for(const s of ST){const a=1-s.t/s.l;ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';const g=ctx.createLinearGradient(s.x0,s.y0,s.x1,s.y1);g.addColorStop(0,'rgba('+s.rgb+',0)');g.addColorStop(1,'rgba('+s.rgb+','+(.7*a)+')');
+ ctx.strokeStyle=g;ctx.lineWidth=s.w*a+2;ctx.beginPath();ctx.moveTo(s.x0,s.y0);ctx.lineTo(s.x1,s.y1);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,'+(.8*a)+')';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(s.x0+(s.x1-s.x0)*.4,s.y0+(s.y1-s.y0)*.4);ctx.lineTo(s.x1,s.y1);ctx.stroke();ctx.restore()}}
+function crescent(x,y,ang,a,rgb,R){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba('+rgb+','+(.75*a)+')';ctx.beginPath();ctx.arc(0,0,R,-1.25,1.25);ctx.arc(-R*.28,0,R*.82,1.15,-1.15,true);ctx.closePath();ctx.fill();
+ ctx.fillStyle='rgba(255,255,255,'+(.9*a)+')';ctx.beginPath();ctx.arc(0,0,R,-.9,.9);ctx.arc(-R*.12,0,R*.9,.85,-.85,true);ctx.closePath();ctx.fill();ctx.restore()}
+{const _h=hero;hero=function(){const mine=!window.__IN_OTHER8&&!(ctx&&ctx.canvas&&!ctx.canvas.isConnected);
+  if(mine){try{drawCast();for(const g of G){if(g.dl>0)continue;ghost(g.x,g.y,g.dir,g.a*(1-g.t/g.l),g.tint,g.at,g.glow)}drawStreaks()}catch(e){}}
+  const r=_h.apply(this,arguments);
+  if(mine){try{for(const f of (window.FX73||[])){if(f.k!=='ns144'||f.dl>0||f.x==null)continue;const u=Math.min(1,f.t/f.l);crescent(f.x+(f.side||1)*4,f.y-18,f.ang,1-u,'170,160,255',30+u*14)}}catch(e){}}
+  return r};window.hero=hero}
+// ---------- 3) อัลตินินจา ----------
+try{if(window.NEWU73){NEWU73.ninja=function(){const L=enemies().filter(e=>!e.dead&&Math.hypot(e.x-P.x,e.y-P.y)<300).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y)),n=10,T0=now();
+   HIDE=1;let px=P.x,py=P.y;setTimeout(()=>{HIDE=0},1150);
+   for(let k=0;k<12;k++)rfxP(P.x+(Math.random()-.5)*20,P.y-10-Math.random()*30,(Math.random()-.5)*60,-30-Math.random()*40,.6,'90,80,160',3,'spark');
+   for(let i=0;i<n;i++)FX73.push({k:'ns144',t:0,dl:i*.09,l:.3,i,tick:f=>{if(f.hit)return;f.hit=1;const e=L.length?L[i%L.length]:null,side=i%2?1:-1;f.side=side;
+     f.x=e?e.x+side*24:P.x+(Math.random()-.5)*200;f.y=e?e.y:P.y+(Math.random()-.5)*120;f.ang=(side>0?Math.PI:0)+(Math.random()-.5)*1.2;
+     if(e)hurtE(e,2.2,{kb:60,ult:1,col:'#c8d0ff'});tone(1500,500,.12,'square',.03);addStreak(px,py-16,f.x,f.y-16,'140,120,255',.25,12);
+     addG(f.x,f.y,side>0?'l':'r',{l:.38,a:.95,at:.55,tint:tintOf('ninja'),glow:'140,120,255'});px=f.x;py=f.y;
+     for(let k=0;k<8;k++)rfxP(f.x-side*10,f.y-18,(Math.random()-.5)*140,(Math.random()-.5)*90-20,.4,'190,180,255',2,'spark')}});
+   FX73.push({k:'nx',t:0,dl:1.0,l:.6,tick:f=>{if(f.hit)return;f.hit=1;HIDE=0;addStreak(px,py-16,P.x,P.y-16,'140,120,255',.3,14);
+     enemies().filter(e=>!e.dead&&Math.hypot(e.x-P.x,e.y-P.y)<170).forEach(e=>hurtE(e,6,{kb:300,stun:1,ult:1,col:'#ffffff'}));shake(7,.4);try{boom(1)}catch(e){}
+     try{RFX.push({k:'ring',x:P.x,y:P.y,t:0,l:.6,rgb:'140,150,255',s:180})}catch(e){}for(let k=0;k<40;k++){const a=Math.random()*6.28,s=60+Math.random()*200;rfxP(P.x,P.y-14,Math.cos(a)*s,Math.sin(a)*s*.55-40,.7,'200,200,255',2.4,'spark')}}})}}}catch(e){console.warn('ult143',e)}
+// ---------- 4) ร่างแยกเงา = เงานินจาจริง ----------
+{const _md=minDraw;minDraw=function(o,t){try{const S=o&&o.S;if(S&&(S===MSPEC.shade46||S.n==='ร่างแยกเงา')){const fade=Math.min(1,(o.l-o.t)/1.5)*(1-(o.born||0)*.8);
+   const dir=o.f<0?'l':o.f>0?'r':(o.vx<0?'l':'r'),atk=(o.cd!=null&&o.cd>(S.cd||.7)-.25)?.5:null;
+   ctx.save();ctx.globalAlpha=.35*fade;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(o.x,o.y+2,10,4,0,0,7);ctx.fill();ctx.restore();
+   ghost(o.x,o.y,dir,.82*fade,tintOf('ninja'),atk,'140,120,255');if(Math.random()<.25)rfxP(o.x+(Math.random()-.5)*14,o.y-8-Math.random()*24,0,-18,.6,'110,100,200',2.2,'spark');return}}catch(e){}return _md.apply(this,arguments)};window.minDraw=minDraw}
+// ---------- 6) กระสุนเวท ----------
+const PCOL=p=>p.fire?'255,140,50':p.ice?'140,220,255':p.bolt25||p.k==='spark'?'255,240,120':P.cls==='necro'?'120,255,170':P.cls==='cleric'?'200,240,255':'160,130,255';
+const LIVE=new Map();
+{const _da=drawAir;drawAir=function(){const r=_da.apply(this,arguments);try{const seen=new Set();for(const p of PROJ){if(p.k!=='bolt'&&!p.fire&&!p.ice)continue;seen.add(p);let L=LIVE.get(p);if(!L){L={tr:[],rgb:PCOL(p)};LIVE.set(p,L)}L.tr.push([p.x,p.y]);if(L.tr.length>9)L.tr.shift();L.x=p.x;L.y=p.y;
+   ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';for(let i=1;i<L.tr.length;i++){const u=i/L.tr.length;ctx.strokeStyle='rgba('+L.rgb+','+(.55*u)+')';ctx.lineWidth=2+u*7;ctx.beginPath();ctx.moveTo(L.tr[i-1][0],L.tr[i-1][1]);ctx.lineTo(L.tr[i][0],L.tr[i][1]);ctx.stroke()}
+   const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,14);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.35,'rgba('+L.rgb+',.8)');g.addColorStop(1,'rgba('+L.rgb+',0)');ctx.fillStyle=g;ctx.fillRect(p.x-14,p.y-14,28,28);
+   const tt=now()/120;for(let k=0;k<3;k++){const a=tt+k*2.09;ctx.fillStyle='rgba(255,255,255,.8)';ctx.fillRect(p.x+Math.cos(a)*8-1,p.y+Math.sin(a)*8-1,2,2)}ctx.restore()}
+  for(const [p,L] of LIVE){if(seen.has(p))continue;LIVE.delete(p);try{RFX.push({k:'ring',x:L.x,y:L.y,t:0,l:.35,rgb:L.rgb,s:34});for(let k=0;k<12;k++){const a=Math.random()*6.28,s=40+Math.random()*90;rfxP(L.x,L.y,Math.cos(a)*s,Math.sin(a)*s*.6-20,.45,k%2?L.rgb:'255,255,255',2,'spark')}}catch(e){}}}catch(e){}return r};window.drawAir=drawAir}
+{const _sh=shoot;shoot=function(kind,o){const r=_sh.apply(this,arguments);try{if(kind==='bolt'||kind==='fireball'){const dv=(o&&o.dv)||DIRV[P.dir]||[1,0],x=P.x+dv[0]*16,y=P.y-16+dv[1]*10,rgb=kind==='fireball'?'255,140,50':rgbOf();
+   try{RFX.push({k:'ring',x,y,t:0,l:.25,rgb,s:22})}catch(e){}for(let k=0;k<7;k++)rfxP(x,y,dv[0]*80+(Math.random()-.5)*60,dv[1]*50+(Math.random()-.5)*50-20,.3,rgb,1.8,'spark')}}catch(e){}return r};window.shoot=shoot}
+}catch(e){console.warn('fix143',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix144 (v5.03) — 🛤️ ถนนตะวันออก + ⚓ ท่าเรือ (เจ้าของ: "เดินออกขวาแล้วถึงเมือง 2 เลย มันต้องเดินทางไกล · มีท่าเรือก็ต้องมี NPC ท่าเรือให้คุยเพื่อข้าม")
+//  เมืองเอลโดเรีย ประตูขวา → แมพ "ถนนตะวันออก" (ยาว 124 ช่อง: ทุ่ง ป่า ลำธาร+สะพาน ศาลาพักทาง ป้ายบอกทาง)
+//   → สุดทางคือ "ท่าเรือตะวันออก" (สะพานไม้ยื่นลงทะเล เรือข้ามฟาก ที่ทำการท่า ลังสินค้า)
+//   → คุยกับ "ลุงบรอม คนเรือ" เพื่อล่องเรือไปนครวารีอัสตรา (Lv.150) · ขากลับจากนครวารี ลงเรือ → ขึ้นฝั่งที่ท่าเรือนี้
+//  ถนนเดินได้ทุกเลเวล (ไม่มีมอน ปลอดภัย) — ที่ล็อก Lv.150 คือเรือข้ามทะเล · ผู้นำทางพามาที่ท่าเรือได้เมื่อเคยมาแล้ว
+// =====================================================================
+try{
+const R144={Zm:null};window.R144=R144;
+const RW=124,RH=24;
+const sm=v=>Math.max(0,Math.min(1,v));
+const roadY=x=>Math.round(12+2.4*sm((x-6)/10)*sm((86-x)/10)*Math.sin(x/11));
+window.roadY144=roadY;
+const SEA=103;
+const isPier=(x,y)=>(x>=SEA&&x<=116&&y>=11&&y<=13)||(x>=SEA&&x<=108&&y>=18&&y<=19);
+const OFFICE={x0:92,x1:97,y0:3,y1:6},HUT={x0:60,x1:63,y0:4,y1:6};
+const CRATES=[[99,8],[100,8],[99,16],[90,17],[91,17],[101,16]];
+function buildRoad144(){if(R144.Zm)return R144.Zm;const W=RW,H=RH,m=[];
+ for(let y=0;y<H;y++){m[y]=[];for(let x=0;x<W;x++)m[y][x]=(y<2||y>=H-2)?WL:FL}
+ for(let y=0;y<H;y++)m[y][0]=Math.abs(y-roadY(0))<=1?GATE:WL;
+ const trees=[];
+ for(let x=2;x<89;x++)for(let y=2;y<H-2;y++){const ry=roadY(x);if(Math.abs(y-ry)<=2)continue;if(x>=39&&x<=44)continue;if(x>=56&&x<=70&&y<ry)continue;if(x<6&&Math.abs(y-ry)<5)continue;
+  const h=hash(x*3.1,y*1.7);if(h>.86&&!trees.some(([a,b])=>Math.abs(a-x)<2&&Math.abs(b-y)<2)){m[y][x]=WL;trees.push([x,y])}}
+ for(let y=2;y<H-2;y++)for(const x of [41,42])if(Math.abs(y-roadY(x))>1)m[y][x]=WL;
+ for(let y=HUT.y0;y<=HUT.y1;y++)for(let x=HUT.x0;x<=HUT.x1;x++)m[y][x]=WL;
+ for(let y=OFFICE.y0;y<=OFFICE.y1;y++)for(let x=OFFICE.x0;x<=OFFICE.x1;x++)m[y][x]=WL;
+ for(const [x,y] of CRATES)m[y][x]=WL;
+ for(let y=0;y<H;y++)for(let x=SEA;x<W;x++)m[y][x]=isPier(x,y)?FL:WL;
+ /* ---- วาดพื้นหลัง ---- */
+ const c=document.createElement('canvas');c.width=W*T;c.height=H*T;const k=c.getContext('2d');
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const px=x*T,py=y*T,h=hash(x*1.3,y*2.7),ry=roadY(x),dr=Math.abs(y-ry);
+  if(x>=SEA){const d=x-SEA;k.fillStyle=d<1?'#3f9fc8':d<4?'#2f86b8':'#246fa4';k.fillRect(px,py,T,T);if(h>.6){k.fillStyle='rgba(255,255,255,.12)';k.fillRect(px+4+h*10,py+8+h*12,10,2)}continue}
+  const sand=x>=88,shore=x>=SEA-2;
+  if(sand){k.fillStyle=shore?(h>.5?'#e6d6a6':'#dccb98'):(h>.5?'#d8c894':'#cfbd88');k.fillRect(px,py,T,T);if(h>.85){k.fillStyle='rgba(120,90,50,.25)';k.fillRect(px+h*20,py+h*18,3,2)}}
+  else{k.fillStyle=h>.5?'#78a85a':'#70a052';k.fillRect(px,py,T,T);if(h>.7){k.fillStyle='#5f9046';for(let i=0;i<3;i++)k.fillRect(px+((h*97+i*11)%28),py+((h*53+i*7)%26),2,5)}
+   if(h>.93&&dr>2){k.fillStyle=['#ff8ab0','#ffe06a','#ffffff','#b08aff'][Math.floor(h*97)%4];k.beginPath();k.arc(px+8+h*14,py+10+h*10,2.2,0,7);k.fill()}}
+  if(dr<=1&&x<SEA-1){k.fillStyle=sand?(h>.5?'#c8a878':'#bf9e70'):(h>.5?'#b8955f':'#ad8a56');k.fillRect(px,py,T,T);
+   if(dr===1){k.fillStyle=sand?'rgba(216,200,148,.6)':'rgba(112,160,82,.55)';const e=y<ry?py:py+T-6;for(let i=0;i<T;i+=4)k.fillRect(px+i,e+((i*7+x)%3),4,6-((i+x)%3))}
+   else{k.fillStyle='rgba(80,55,30,.35)';k.fillRect(px,py+9,T,2);k.fillRect(px,py+21,T,2)}if(h>.75){k.fillStyle='#8a7a6a';k.beginPath();k.arc(px+h*28,py+5+h*20,1.8,0,7);k.fill()}}}
+ /* แนวป่าทึบขอบบน/ล่าง */
+ for(let x=0;x<88;x++)for(const yy of [0,1,H-2,H-1]){const px=x*T+16,py=yy*T+18,h=hash(x,yy*9);k.fillStyle='#2f5a2a';k.beginPath();k.arc(px+(h-.5)*10,py,20,0,7);k.fill();k.fillStyle='#3d7034';k.beginPath();k.arc(px-6+(h-.5)*8,py-6,12,0,7);k.fill()}
+ for(let x=88;x<SEA;x++)for(const yy of [0,1,H-2,H-1]){const px=x*T,py=yy*T;k.fillStyle='#8a8478';k.fillRect(px,py,T,T);k.fillStyle='#a29c8e';k.fillRect(px+2,py+2,T-6,T-10);k.fillStyle='#6e695f';k.fillRect(px,py+T-6,T,6)}
+ /* ลำธาร + สะพานไม้ */
+ for(let y=2;y<H-2;y++)for(const x of [41,42]){const px=x*T,py=y*T;if(Math.abs(y-roadY(x))<=1)continue;k.fillStyle='#4a9ed0';k.fillRect(px,py,T,T);k.fillStyle='rgba(255,255,255,.18)';k.fillRect(px+6+((y*7)%14),py+10,12,2)}
+ for(const x of [41,42]){k.fillStyle='#6a8a5a';k.fillRect(x*T,2*T,T,3)}
+ {const by=roadY(41);k.fillStyle='#7a5432';k.fillRect(40.6*T,(by-1)*T-4,2.8*T,3*T+8);for(let i=0;i<11;i++){k.fillStyle=i%2?'#a8794a':'#9a6c40';k.fillRect(40.6*T+i*8.1,(by-1)*T-2,7,3*T+4)}
+  k.fillStyle='#5a3a1e';k.fillRect(40.6*T,(by-1)*T-8,2.8*T,5);k.fillRect(40.6*T,(by+2)*T+2,2.8*T,5);for(const xx of [40.6,41.95,43.3]){k.fillRect(xx*T,(by-1)*T-14,5,10);k.fillRect(xx*T,(by+2)*T-2,5,10)}}
+ /* ต้นไม้ */
+ for(const [x,y] of trees){const px=x*T+16,py=y*T+16,h=hash(x,y),pine=h>.55;k.fillStyle='rgba(0,0,0,.2)';k.beginPath();k.ellipse(px,py+10,14,5,0,0,7);k.fill();k.fillStyle='#5a3a1a';k.fillRect(px-4,py-4,8,15);
+  if(pine){k.fillStyle='#2e6a3a';for(let i=0;i<3;i++){k.beginPath();k.moveTo(px,py-34+i*9);k.lineTo(px-15+i*1,py-8+i*6);k.lineTo(px+15-i*1,py-8+i*6);k.closePath();k.fill()}k.fillStyle='#3e8a4a';k.beginPath();k.moveTo(px,py-34);k.lineTo(px-6,py-22);k.lineTo(px+4,py-24);k.fill()}
+  else{k.fillStyle='#3a7a34';k.beginPath();k.arc(px,py-14,16,0,7);k.fill();k.fillStyle='#4f9a42';k.beginPath();k.arc(px-5,py-19,9,0,7);k.fill();k.fillStyle='#62ae52';k.beginPath();k.arc(px-7,py-22,4,0,7);k.fill()}}
+ /* รั้วไม้ช่วงต้นทาง */
+ for(let x=3;x<18;x++){const ry=roadY(x);for(const yy of [ry-2.3,ry+2.1]){k.fillStyle='#7a5432';k.fillRect(x*T,yy*T+6,T,3);k.fillRect(x*T,yy*T+14,T,3);k.fillStyle='#5a3a1e';k.fillRect(x*T+2,yy*T,4,20)}}
+ /* ศาลาพักทาง */
+ {const x0=HUT.x0*T,y0=HUT.y0*T,w=(HUT.x1-HUT.x0+1)*T,h=(HUT.y1-HUT.y0+1)*T;k.fillStyle='#8a5e3a';k.fillRect(x0+4,y0+16,w-8,h-16);k.fillStyle='#6a4428';for(let i=0;i<w-8;i+=10)k.fillRect(x0+4+i,y0+16,2,h-16);
+  k.fillStyle='#a8452f';k.beginPath();k.moveTo(x0-10,y0+22);k.lineTo(x0+w/2,y0-14);k.lineTo(x0+w+10,y0+22);k.closePath();k.fill();k.fillStyle='#c85a3a';k.fillRect(x0-10,y0+18,w+20,6);
+  k.fillStyle='#3a2414';k.fillRect(x0+w/2-12,y0+h-26,24,26);k.fillStyle='#ffd88a';k.fillRect(x0+14,y0+38,14,12);k.fillRect(x0+w-28,y0+38,14,12);
+  k.fillStyle='#4a2e16';k.fillRect(x0+w/2-46,y0+h+2,30,6);k.fillRect(x0+w/2+16,y0+h+2,30,6);k.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';k.textAlign='center';k.fillStyle='#fff';k.strokeStyle='rgba(0,0,0,.7)';k.lineWidth=3;k.strokeText('🍵 ศาลาพักทาง',x0+w/2,y0-18);k.fillText('🍵 ศาลาพักทาง',x0+w/2,y0-18)}
+ /* ป้ายบอกทาง */
+ const sign=(x,a,b)=>{const ry=roadY(x),px=x*T+16,py=(ry-2)*T+8;k.fillStyle='#4a2e16';k.fillRect(px-2,py-4,4,30);k.fillStyle='#7a4e26';k.strokeStyle='#3a2410';k.lineWidth=1.5;
+  k.beginPath();k.moveTo(px-44,py-18);k.lineTo(px+40,py-18);k.lineTo(px+48,py-10);k.lineTo(px+40,py-2);k.lineTo(px-44,py-2);k.closePath();k.fill();k.stroke();
+  k.beginPath();k.moveTo(px+44,py);k.lineTo(px-40,py);k.lineTo(px-48,py+8);k.lineTo(px-40,py+16);k.lineTo(px+44,py+16);k.closePath();k.fill();k.stroke();
+  k.font='bold 9px system-ui,"Noto Sans Thai",sans-serif';k.textAlign='center';k.fillStyle='#ffe8b0';k.fillText(a,px,py-7);k.fillText(b,px,py+11)};
+ sign(7,'⚓ ท่าเรือตะวันออก →','← 🏰 เมืองเอลโดเรีย');sign(36,'⚓ ท่าเรือ  อีก 2 ช่วงทาง →','← 🏰 เอลโดเรีย');sign(72,'⚓ ท่าเรือ ใกล้แล้ว →','← 🍵 ศาลาพักทาง');sign(87,'⛵ ท่าเรือตะวันออก','← 🏰 เอลโดเรีย');
+ /* ท่าเรือ: พื้นไม้หน้าท่า + สะพานไม้ยื่นลงทะเล */
+ const plank=(x0,y0,x1,y1)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const px=x*T,py=y*T;k.fillStyle=(x+y)%2?'#9a6c40':'#a8794a';k.fillRect(px,py,T,T);k.fillStyle='rgba(60,35,15,.45)';for(let i=0;i<T;i+=8)k.fillRect(px+i,py,1.5,T);k.fillStyle='rgba(255,230,180,.08)';k.fillRect(px,py,T,3)}};
+ plank(SEA-3,10,SEA-1,14);plank(SEA,11,116,13);plank(SEA,18,108,19);plank(SEA-2,17,SEA-1,20);
+ for(const [x0,x1,y0,y1] of [[SEA,116,11,13],[SEA,108,18,19]]){k.fillStyle='#4a2e16';for(let x=x0;x<=x1+1;x+=2){k.fillRect(x*T-3,y0*T-6,6,8);k.fillRect(x*T-3,(y1+1)*T-2,6,10)}k.fillStyle='rgba(20,40,60,.35)';k.fillRect(x0*T,(y1+1)*T+6,(x1-x0+1)*T,5)}
+ /* ที่ทำการท่าเรือ */
+ {const x0=OFFICE.x0*T,y0=OFFICE.y0*T,w=(OFFICE.x1-OFFICE.x0+1)*T,h=(OFFICE.y1-OFFICE.y0+1)*T;k.fillStyle='#d8d0c0';k.fillRect(x0,y0+10,w,h-10);k.fillStyle='#bfb6a4';for(let i=0;i<h-10;i+=8)k.fillRect(x0,y0+10+i,w,1);
+  k.fillStyle='#2a5a8a';k.beginPath();k.moveTo(x0-12,y0+18);k.lineTo(x0+w/2,y0-22);k.lineTo(x0+w+12,y0+18);k.closePath();k.fill();k.fillStyle='#3a7ab0';k.fillRect(x0-12,y0+14,w+24,6);
+  k.fillStyle='#4a2e16';k.fillRect(x0+w/2-14,y0+h-34,28,34);k.fillStyle='#9ad0ff';for(const xx of [16,w-36])k.fillRect(x0+xx,y0+34,20,16);
+  k.fillStyle='#4a2e16';k.fillRect(x0+w/2-60,y0-2,120,20);k.strokeStyle='#e8c14a';k.lineWidth=1.5;k.strokeRect(x0+w/2-60,y0-2,120,20);k.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';k.textAlign='center';k.fillStyle='#ffe8b0';k.fillText('⚓ ที่ทำการท่าเรือ',x0+w/2,y0+12)}
+ /* ลัง/ถัง */
+ for(const [x,y] of CRATES){const px=x*T,py=y*T;if((x+y)%2){k.fillStyle='#8a5a2a';k.fillRect(px+3,py+2,T-6,T-4);k.strokeStyle='#5a3a1a';k.lineWidth=2;k.strokeRect(px+3,py+2,T-6,T-4);k.beginPath();k.moveTo(px+3,py+2);k.lineTo(px+T-3,py+T-2);k.moveTo(px+T-3,py+2);k.lineTo(px+3,py+T-2);k.stroke()}
+  else{k.fillStyle='#7a4a22';k.beginPath();k.ellipse(px+16,py+16,11,14,0,0,7);k.fill();k.fillStyle='#4a4a4a';k.fillRect(px+5,py+8,22,3);k.fillRect(px+5,py+21,22,3)}}
+ /* ตาข่ายจับปลา/เสาไฟ */
+ for(const [x,y] of [[SEA-3,9.3],[SEA-3,15.2],[96,9.3]]){const px=x*T+16,py=y*T;k.fillStyle='#3a3a3a';k.fillRect(px-2,py-30,4,34);k.fillStyle='#ffd86a';k.fillRect(px-5,py-38,10,9)}
+ const floor=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(m[y][x]===FL)floor.push([x,y]);
+ return R144.Zm={zi:744,name:'road144',Zd:{id:'road144',n:'ถนนตะวันออก',e:'🛤️',lv:[1,1],dark:0,amb:'dust',pal:{vd:'#2f5a2a'},mobs:[],boss:null,ores:[],raw:'stone',ing:'ingSt'},
+  m,ores:[],oreAt:{},floor,ent:{x:2,y:roadY(2)+1},arena:{x:60,y:12},seen:new Uint8Array(W*H).fill(1),W,H,cv:c}}
+window.buildRoad144=buildRoad144;
+const inRoad=()=>!!(D&&D.road144);window.inRoad144=inRoad;
+const NPCD=[
+ {name:'ทหารยามด่านตะวันออก',c:'#4a5a8a',h:'#c8c8d4',x:4,y:9.9,fixed:1,spear:1,lines:['ถนนเส้นนี้ทอดยาวไปถึงท่าเรือตะวันออก','เดินตามถนนไปเรื่อย ๆ ถึงท่าเรือแล้วคุยกับลุงบรอมคนเรือ','ทางนี้ปลอดภัย ไม่มีอสูร — ขี่สัตว์ไปจะถึงไวขึ้น']},
+ {name:'นักเดินทางพเนจร',c:'#3a8a5a',h:'#6b4a2a',hat:1,x:28,y:15.4,fixed:1,lines:['เดินมาครึ่งวันแล้ว ยังไม่ถึงท่าเรือเลย','ได้ยินว่านครวารีอัสตราใหญ่กว่าเอลโดเรียหลายเท่า']},
+ {name:'ป้าน้ำชา',c:'#c05a7a',h:'#6b4a2a',g:'f',apron:1,x:61.5,y:8.2,fixed:1,lines:['แวะพักดื่มน้ำชาก่อนสิ ทางยังอีกไกล','ศาลานี้เปิดให้คนเดินทางพักฟรี','ข้าเห็นผู้กล้าเดินผ่านไปท่าเรือทุกวัน']},
+ {name:'พ่อค้าเร่',c:'#a8452f',h:'#3a2a1a',beard:1,x:66,y:8.6,fixed:1,lines:['ข้าขนผ้าไหมจากนครวารีมาขายเอลโดเรีย','เรือของลุงบรอมไม่เคยล่มสักครั้ง']},
+ {name:'เจ้าท่าเรือ',c:'#2a4a7a',h:'#e8e0d0',beard:1,hat:1,x:94.5,y:7.9,fixed:1,lines:['ยินดีต้อนรับสู่ท่าเรือตะวันออก','เรือข้ามฟากไปนครวารีอัสตราจอดอยู่ปลายสะพาน — คุยกับลุงบรอมได้เลย','ทะเลช่วงนี้มีอสูรทะเล ผู้กล้าต่ำกว่า Lv.'+((window.C2&&C2.LV)||150)+' ห้ามข้ามเด็ดขาด']},
+ {name:'ชาวประมง',c:'#4a6a8a',h:'#3a2a1a',hat:1,x:106,y:18.7,fixed:1,lines:['วันนี้ปลาทูเต็มลำเลย!','ปลายสะพานนี้ตกปลาดีที่สุดในแถบนี้']},
+ {name:'ลุงบรอม คนเรือ',c:'#3a5a7a',h:'#d8d0c0',beard:1,hat:1,x:113,y:11.5,fixed:1,ferry:1,lines:['เรือข้าพาข้ามไปนครวารีอัสตรา','ทะเลวันนี้สงบ ลมดี เหมาะแก่การล่องเรือ']}];
+const mkN=()=>NPCD.map(d=>{const n=mkNPC(d);n.ferry=d.ferry;n.home={x:n.x,y:n.y};n.dir=d.ferry?'l':'d';return n});
+/* ---- เข้า/ออก ---- */
+const LV=()=>(window.C2&&C2.LV)||150;
+function setup(at){const Zm=buildRoad144();try{if(D&&D.shop)leaveShop(true)}catch(e){}for(let i=0;i<3&&D;i++){try{exitD()}catch(e){break}}
+ try{if(window.RT134)RT134.c2t=0}catch(e){}try{closeZMenu()}catch(e){}
+ ZW=Zm.W;ZH=Zm.H;setScene('field');flushDrops();if(!(dsav&&dsav.length))dsav=slimes.splice(0);else slimes.length=0;ZPROJ.length=0;
+ D={zone:Zm,mobs:[],spT:1e9,bossT:1e9,boss:null,ret:[ZG.x,ZG.y+40],ban:0,road144:1,npcs:mkN()};dm=Zm.m;dcv=Zm.cv;mkMini(Zm.cv,ZW,ZH,2);
+ if(at==='port'){P.x=110.5*T;P.y=12.5*T;P.dir='l'}else{P.x=2.2*T;P.y=roadY(2)*T+16;P.dir='r'}P.kx=P.ky=0;
+ try{visit134('road144');if(at==='port')visit134('port144')}catch(e){}
+ try{if(at==='port')banner('⚓ ท่าเรือตะวันออก','ขึ้นฝั่งแล้ว · เดินตามถนนไปทางตะวันตกจะถึงเมืองเอลโดเรีย','green');else banner('🛤️ ถนนตะวันออก','เดินตามถนนไปทางขวา สุดทางคือท่าเรือ · คุยกับลุงบรอมเพื่อข้ามไปนครวารี','green')}catch(e){}}
+function enterRoad144(at,nocover){if(D&&(D.tower10||D.wb10||D.dg||D.arena8||D.duel29||D.mk10||D.home)){say('ออกจากที่นี่ก่อน แล้วค่อยเดินทาง');sfx('thud');return false}
+ if(nocover){setup(at);return true}
+ LoadingScreenManager.cover(at==='port'?{icon:'⛵',title:'ท่าเรือตะวันออก',tip:'ล่องเรือกลับจากนครวารี · ขึ้นฝั่งแล้วเดินถนนตะวันออกกลับเมืองเอลโดเรีย'}:{icon:'🛤️',title:'ถนนตะวันออก',tip:'เส้นทางจากเมืองเอลโดเรียสู่ท่าเรือตะวันออก · ไม่มีอสูร ขี่สัตว์ไปได้'},()=>setup(at));return true}
+window.enterRoad144=enterRoad144;
+let busy=0;
+function toTown144(){if(busy)return;busy=1;setTimeout(()=>{busy=0},2500);LoadingScreenManager.cover({icon:'🏰',title:'เมืองเอลโดเรีย',tip:'กลับเข้าประตูตะวันออก'},()=>{try{exitD()}catch(e){}try{enterTown()}catch(e){}try{P.x=(TW-4)*T;P.y=16.6*T;P.dir='l';P.kx=P.ky=0}catch(e){}})}
+window.toTown144=toTown144;
+/* ประตูขวาของเมือง → ถนนตะวันออก (ทุกเลเวล) */
+{const _h=dhit;dhit=function(x,y){if(D&&D.town&&!D.shop&&x+7>=(TW-1)*T&&y>14*T&&y<19*T){for(const [a,b] of [[-7,-4],[7,-4],[-7,4],[7,4]]){const tx=Math.floor((x+a)/T),ty=Math.floor((y+b)/T);if(!dm[ty]||(dm[ty][tx]!==FL&&dm[ty][tx]!==GATE))return true}return false}return _h.apply(this,arguments)};window.dhit=dhit}
+{const _ex=exitD;exitD=function(){if(D&&D.town&&!D.shop&&P.x>(TW-3)*T){if(busy)return;busy=1;setTimeout(()=>{busy=0},2500);P.x=(TW-4)*T;try{enterRoad144('west')}catch(e){console.warn(e)}return}return _ex.apply(this,arguments)};window.exitD=exitD}
+/* เมือง 2 ท่าเรือ → กลับมาขึ้นฝั่งที่ท่าเรือตะวันออก */
+backToCity1=function(){enterRoad144('port')};window.backToCity1=backToCity1;
+/* เดินถึงขอบซ้าย → กลับเมือง */
+{const _uz=updZone;updZone=function(dt){const r=_uz.apply(this,arguments);try{if(inRoad()){D.bossT=1e9;const tx=Math.floor(P.x/T),ty=Math.floor(P.y/T);if(dm[ty]&&dm[ty][tx]===GATE)toTown144();
+   for(const n of D.npcs){if(n.bub&&(n.bub.t-=dt)<=0)n.bub=null;const d=Math.hypot(P.x-n.x,P.y-n.y);if(d<70&&!n.ferry)n.dir=Math.abs(P.x-n.x)>Math.abs(P.y-n.y)?(P.x<n.x?'l':'r'):(P.y<n.y?'u':'d')}}}catch(e){}return r};window.updZone=updZone}
+{const _sm=spawnMob;spawnMob=function(){if(inRoad())return;return _sm.apply(this,arguments)};window.spawnMob=spawnMob}
+{const _sb=spawnBoss;spawnBoss=function(){if(inRoad()){D.bossT=1e9;return}return _sb.apply(this,arguments)};window.spawnBoss=spawnBoss}
+/* ---- คุย ---- */
+const nearN=()=>{if(!inRoad())return null;let b=null,bd=44;for(const n of D.npcs){const q=Math.hypot(P.x-n.x,P.y-n.y);if(q<bd){bd=q;b=n}}return b};
+function ferry(n){const lv=LV();
+ if(P.lv<lv){talk(n,'ฮ่า ๆ ผู้กล้าตัวน้อย ใจกล้าดีนี่! แต่ทะเลช่วงนี้มีอสูรทะเลชุม ข้าพาข้ามได้เฉพาะผู้กล้า Lv.'+lv+' ขึ้นไป\n(ตอนนี้ Lv.'+P.lv+') — ไปฝึกให้แกร่งก่อนแล้วค่อยกลับมานะ',[BYE],'⛵ ลุงบรอม คนเรือ');return}
+ talk(n,'เรือข้าพร้อมออกแล้ว! ข้ามทะเลไปนครวารีอัสตรา ใช้เวลาไม่นาน\nค่าเรือ? ไม่ต้อง — เล่าเรื่องผจญภัยให้ข้าฟังระหว่างทางก็พอ',[{t:'⛵ ลงเรือไปนครวารีอัสตรา',c:'go',f:()=>{try{sfx('warp')}catch(e){}try{enterCity2('boat')}catch(e){console.warn(e)}}},BYE],'⛵ ลุงบรอม คนเรือ')}
+window.ferry144=ferry;
+{const _it=interact;interact=function(){try{if(inRoad()&&!(DLG&&DLG.open)){const n=nearN();if(!n)return false;n.dir=Math.abs(P.x-n.x)>Math.abs(P.y-n.y)?(P.x<n.x?'l':'r'):(P.y<n.y?'u':'d');if(n.ferry)ferry(n);else npcTalk(n);return true}}catch(e){console.warn('road it',e)}return _it.apply(this,arguments)};window.interact=interact}
+/* ---- วาด: ทะเล เรือ นกนางนวล NPC ป้ายกด E ---- */
+const view=()=>{const t=ctx.getTransform(),z=t.a||1,x0=-t.e/z,y0=-t.f/z;return [x0,y0,x0+VW/z,y0+VH/z]};
+function under(){const t=performance.now()/1000,[x0,y0,x1,y1]=view();ctx.save();ctx.globalAlpha=1;
+ if(x1>SEA*T){ctx.lineWidth=1.4;const tx0=Math.max(SEA,Math.floor(x0/T)),tx1=Math.min(RW-1,Math.ceil(x1/T)),ty0=Math.max(0,Math.floor(y0/T)),ty1=Math.min(RH-1,Math.ceil(y1/T));
+  for(let y=ty0;y<=ty1;y++)for(let x=tx0;x<=tx1;x++){if(isPier(x,y)||(x*7+y*3)%3)continue;const ph=t*1.6+x*.9+y*1.3,a=.16+.14*Math.sin(ph),px=x*T+8+Math.sin(ph*.7)*5,py=y*T+16+Math.cos(ph*.5)*4;ctx.strokeStyle='rgba(255,255,255,'+a+')';ctx.beginPath();ctx.moveTo(px,py);ctx.quadraticCurveTo(px+6,py-3,px+12,py);ctx.stroke()}
+  ctx.fillStyle='rgba(255,255,255,.35)';for(let y=2;y<RH-2;y++){if(isPier(SEA,y))continue;const w=3+2*Math.sin(t*2+y);ctx.fillRect(SEA*T-1,y*T,w,T)}
+  /* เรือข้ามฟาก */
+  {const bx=119.5*T,by=12.3*T+Math.sin(t*1.3)*2.5,rk=Math.sin(t*1.1)*.025;ctx.save();ctx.translate(bx,by);ctx.rotate(rk);
+   ctx.fillStyle='rgba(0,30,60,.3)';ctx.beginPath();ctx.ellipse(0,26,92,14,0,0,7);ctx.fill();
+   ctx.fillStyle='#6a3e1e';ctx.beginPath();ctx.moveTo(-96,-4);ctx.lineTo(96,-4);ctx.lineTo(74,28);ctx.lineTo(-80,28);ctx.closePath();ctx.fill();ctx.fillStyle='#8a5a2e';ctx.fillRect(-92,-6,184,10);ctx.fillStyle='#c8a050';ctx.fillRect(-92,6,184,3);
+   ctx.fillStyle='#4a2a12';ctx.fillRect(-3,-120,6,118);ctx.fillRect(-46,-104,92,4);
+   ctx.fillStyle='#f4ecd8';ctx.beginPath();ctx.moveTo(-44,-100);ctx.quadraticCurveTo(-4+Math.sin(t*2)*4,-60,-44,-14);ctx.lineTo(44,-14);ctx.quadraticCurveTo(4+Math.sin(t*2)*4,-60,44,-100);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#2a5a8a';ctx.fillRect(-44,-62,88,10);ctx.fillStyle='#e84a4a';ctx.beginPath();ctx.moveTo(3,-120);ctx.lineTo(24+Math.sin(t*4)*3,-114);ctx.lineTo(3,-108);ctx.fill();
+   ctx.fillStyle='#ffd84a';ctx.font='bold 10px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.fillText('วารีมณี',0,20);ctx.restore()}
+  /* เรือประมงเล็ก */
+  for(const [x,y,s] of [[110.2,18.9,1],[111.6,20.6,.8]]){const bx=x*T,by=y*T+Math.sin(t*1.7+x)*2;ctx.fillStyle='#7a4a22';ctx.beginPath();ctx.moveTo(bx-26*s,by-6);ctx.lineTo(bx+26*s,by-6);ctx.lineTo(bx+18*s,by+8);ctx.lineTo(bx-18*s,by+8);ctx.closePath();ctx.fill();ctx.fillStyle='#d8c090';ctx.fillRect(bx-24*s,by-8,48*s,3)}}
+ /* นกนางนวล */
+ if(x1>86*T)for(let i=0;i<4;i++){const gx=(98+i*5)*T+Math.sin(t*.4+i)*90,gy=(4+i*3)*T+Math.cos(t*.6+i*2)*30,f=Math.sin(t*8+i)*5;ctx.strokeStyle='rgba(250,250,250,.9)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx-8,gy-f);ctx.quadraticCurveTo(gx-3,gy-4,gx,gy);ctx.quadraticCurveTo(gx+3,gy-4,gx+8,gy-f);ctx.stroke()}
+ /* ลำธารไหล */
+ if(x0<43*T&&x1>41*T){ctx.fillStyle='rgba(255,255,255,.22)';for(let y=2;y<RH-2;y++){if(Math.abs(y-roadY(41))<=1)continue;const o=((t*40+y*13)%T);ctx.fillRect(41*T+8,y*T+o,10,2);ctx.fillRect(42*T+10,y*T+((o+15)%T),8,2)}}
+ ctx.restore();for(const n of D.npcs)if(n.y<P.y)try{drawNPC(n,t)}catch(e){}}
+function over(){const t=performance.now()/1000;for(const n of D.npcs)if(n.y>=P.y)try{drawNPC(n,t)}catch(e){}
+ const n=nearN();if(n&&!(DLG&&DLG.open)){const txt=n.ferry?(P.lv>=LV()?'⛵ กด E คุยกับลุงบรอม (ข้ามไปนครวารี)':'⛵ กด E คุยกับลุงบรอม (🔒 Lv.'+LV()+')'):'💬 กด E คุยกับ'+n.name;
+  ctx.save();ctx.globalAlpha=1;ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText(txt,n.x,n.y-62);ctx.fillStyle='#fff';ctx.fillText(txt,n.x,n.y-62);ctx.restore()}
+ if(P.x<4*T){ctx.save();ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';const s='← 🏰 เดินซ้ายเข้าเมืองเอลโดเรีย';ctx.strokeText(s,2*T,roadY(0)*T-34);ctx.fillStyle='#ffe8b0';ctx.fillText(s,2*T,roadY(0)*T-34);ctx.restore()}
+ try{for(const q of D.npcs)if(q.bub)bubble(q.bub.txt,Math.round(q.x),Math.round(q.y)-50)}catch(e){}}
+{const _dd=drawDrops;drawDrops=function(){try{if(inRoad())under()}catch(e){}return _dd.apply(this,arguments)};window.drawDrops=drawDrops}
+{const _dt=drawDmgTxt;drawDmgTxt=function(dt){try{if(inRoad())over()}catch(e){}return _dt.apply(this,arguments)};window.drawDmgTxt=drawDmgTxt}
+/* ป้ายที่ประตูขวาของเมือง */
+{const _ds=drawStall;drawStall=function(s,t){if(s&&s.sign114){const x=(TW-2.6)*T,y=14.3*T;ctx.save();ctx.globalAlpha=1;ctx.fillStyle='#4a2e16';ctx.fillRect(x-2,y,4,26);ctx.fillStyle='#5a3a1e';ctx.strokeStyle='#e8c14a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-40,y-14);ctx.lineTo(x+32,y-14);ctx.lineTo(x+40,y-5);ctx.lineTo(x+32,y+4);ctx.lineTo(x-40,y+4);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 9px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.fillText('🛤️ ถนนตะวันออก · ⚓ ท่าเรือ →',x-2,y-2);ctx.restore();return}return _ds.apply(this,arguments)};window.drawStall=drawStall}
+/* ---- เนื้อเรื่อง ---- */
+try{const c27=STCH.find(c=>c&&c.id==='c2go');if(c27){c27.t='บทที่ 27: ถนนสู่นครวารี';c27.d='ถึง Lv.'+LV()+' แล้วเดินออกประตูขวา (ตะวันออก) ของเมืองเอลโดเรีย ตามถนนตะวันออกไปจนถึงท่าเรือ คุยกับลุงบรอมคนเรือเพื่อล่องเรือไปนครวารีอัสตรา แล้วคุยกับผู้บัญชาการไลอ้อสกลางลาน';
+  c27.intro='จักรพรรดิเงาถูกผนึกแล้ว… แต่เงาของมันแตกเป็นห้าเสี่ยง หนีไปซ่อนในดันเจี้ยนใต้ "นครวารีอัสตรา" เมืองแห่งดันเจี้ยนโพ้นทะเลตะวันออก — ออกประตูขวาของเมือง เดินตามถนนตะวันออกไปถึงท่าเรือ แล้วให้ลุงบรอมคนเรือพาข้ามทะเลไปพบผู้บัญชาการไลอ้อส'}}catch(e){}
+try{const m=PM7.find(x=>x[1]==='เมือง 2');if(m)m[2]=()=>{if(D&&D.city2){say('อยู่ในนครวารีอัสตราแล้ว — คุยกับเอเดนผู้นำทางที่ท่าเรือเพื่อเดินทาง');return}say('🧭 ไปนครวารี: ออกประตูขวาของเมือง เดินตามถนนตะวันออกถึงท่าเรือ แล้วคุยกับลุงบรอมคนเรือ (หรือจ้างอาร์เทนผู้นำทาง ถ้าเคยไปแล้ว)')}}catch(e){}
+/* ---- REG136: กันถอยหลัง (fix141–144) ---- */
+try{if(window.REG136)REG136.push(
+ ['เทรดต้องเจอตัว: ไม่มีปุ่มเทรดในเมนู + ขอเทรดเช็กระยะ',async()=>{if(PM7.some(m=>m[1]==='เทรด'))return 'ปุ่มเทรดกลับมาในเมนู';return typeof window.trReq130==='function'&&/200/.test(String(window.trReq130))?null:'trReq130 ไม่เช็กระยะ'}],
+ ['ออโต้ฟาร์มกดฮีลเมื่อเลือดน้อย + สกิลวาดเงานินจา',async()=>{if(!/shade46/.test(String(minDraw)))return 'ร่างแยกเงานินจากลับเป็นโครงกระดูก';const u=window.NEWU73&&NEWU73.ninja;if(u&&!/ns144/.test(String(u.f||u.fire||u)))return 'อัลตินินจาไม่ใช่พันเงาพิฆาต';return null}],
+ ['ถนนตะวันออก: เดินจากประตูเมืองถึงท่าเรือได้ + มีลุงบรอมคนเรือ',async()=>{const Z=buildRoad144(),W=Z.W,H=Z.H,q=[[1,roadY(1)]],seen=new Uint8Array(W*H);seen[q[0][1]*W+1]=1;let ok=false;
+   while(q.length){const [x,y]=q.shift();if(x===112&&y===12){ok=true;break}for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+a,ny=y+b;if(nx<0||ny<0||nx>=W||ny>=H||seen[ny*W+nx])continue;const t=Z.m[ny][nx];if(t!==FL&&t!==GATE)continue;seen[ny*W+nx]=1;q.push([nx,ny])}}
+   if(!ok)return 'เดินไม่ถึงท่าเรือ (ทางตัน)';if(Z.m[roadY(0)][0]!==GATE)return 'ขอบซ้ายไม่มีทางกลับเมือง';if(!NPCD.some(d=>d.ferry))return 'ไม่มีคนเรือ';
+   if(!/enterRoad144/.test(String(backToCity1)))return 'เรือจากนครวารีไม่กลับมาท่าเรือตะวันออก';return null}]);}catch(e){}
+}catch(e){console.warn('fix144',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix145 (v5.03) — ⚔️ อาวุธในมือไม่ตรงกับตอนโจมตี (ผู้เล่นแจ้ง: "ถืออาวุธอันหนึ่ง พอยิงเวทเป็นอีกอัน" — เคยแก้ fix87 แล้วแต่ยังไม่หาย)
+//  ต้นเหตุ (ทำซ้ำได้ทั้ง 11 อาชีพ × มี/ไม่มีอาวุธแฟชั่น):
+//   1) ท่ายิงเวทของคทา (staffAt7 จาก v46h) วาด "คทาธรรมดาตามระดับ" เสมอ — ไม่ใช้หน้าตาอาวุธอาชีพ (fix25/fix87) ไม่ย้อมสี (fix27) ไม่ใช้อาวุธแฟชั่น (fix58/fix104)
+//      → นักเวท/นักบวช/เนโคร/ซัมมอนเนอร์ ยืนถือคทาอาชีพ แต่ตอนยิงกลายเป็นคทาสีทองอันเดิมทุกคน
+//   2) สีย้อมอาวุธอาชีพสายเดิม (FLT27 ดาบ/คทา/ธนู) ไปย้อมทับอาวุธแฟชั่นด้วย → ดาบแฟชั่นตอนเก็บหลัง/ถือ = สีเหลือง แต่ตอนฟัน = สีจริง
+//   3) คทาแฟชั่นตอนเก็บไว้หลัง (ในเมือง) โชว์คทาธรรมดา
+//  แก้: ทุกท่าใช้ลำดับเดียวกับตอนยืนถือ → อาวุธแฟชั่นของอาชีพ ▸ หน้าตาอาวุธอาชีพ ▸ สีย้อมอาชีพ ▸ อาวุธปกติ (ห่อฟังก์ชันเดิม ไม่รื้อระบบ)
+// =====================================================================
+try{
+const fwMine145=()=>{try{const k=FASH&&FASH.wpn,W=k&&typeof FWPN!=='undefined'&&FWPN[k];return W&&W.cls===P.cls?k:null}catch(e){return null}};
+window.fwMine145=fwMine145;
+/* 2) สีย้อมอาชีพไม่ทับอาวุธแฟชั่น */
+{const _wf=withFlt27;withFlt27=function(fn,self,args){if(fwMine145())return fn.apply(self,args);return _wf(fn,self,args)};window.withFlt27=withFlt27}
+/* 1) ท่ายิงเวท: คทาเดียวกับที่ถือ */
+{const _sa=staffAt7;staffAt7=function(hx,hy,ang,sc){try{if(wKind()==='staff'){const fw=fwMine145();
+   if(fw){const W=FWPN[fw],t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);ctx.drawImage(fashSword(fw),-23,STF_GRIP7,46,46);
+    if(W&&W.glow){ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(0,STF_GRIP7+8,0,0,STF_GRIP7+8,18);g.addColorStop(0,'rgba('+W.glow+','+(.22+.12*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+W.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-18,STF_GRIP7-10,36,36)}ctx.restore();return}
+   if(STAFF25.has(P.cls)&&window.cwOk25&&cwOk25()){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);try{wpn25(P.cls,ctx)}catch(e){}ctx.restore();return}
+   if(typeof cwOld27==='function'&&cwOld27()){ctx.save();ctx.filter=FLT27[P.cls]||'none';try{return _sa.apply(this,arguments)}finally{ctx.restore()}}}}catch(e){}
+  return _sa.apply(this,arguments)};window.staffAt7=staffAt7}
+/* 3) คทาแฟชั่นตอนเก็บหลัง */
+{const _ti=toolIcon;toolIcon=function(type,tier,sz){try{if(window.BACKSW7>0&&type==='staff'&&wKind()==='staff'){const fw=fwMine145();if(fw)return fashSword(fw)}}catch(e){}return _ti.apply(this,arguments)};window.toolIcon=toolIcon}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['อาวุธตอนยิงเวท = อาวุธที่ถือ (แฟชั่น/อาชีพ/สีย้อม)',async()=>{const sv={cls:P.cls,w:P.armor.sword,fw:FASH.wpn},s0=ctx,c=document.createElement('canvas');c.width=c.height=64;document.body.appendChild(c);const k=c.getContext('2d');let bad=null;
+   try{ctx=k;const id=['cw_mage5','cw_mage3','cw_mage1','cw_mage0'].find(i=>ITEMS[i]);if(!id)return null;P.cls='mage';P.armor.sword=id;
+    FASH.wpn=FWPN.w_mage?'w_mage':null;if(FASH.wpn){let got=null;const di=k.drawImage;k.drawImage=function(img){if(got==null)got=img;return di.apply(this,arguments)};staffAt7(32,40,0,1);k.drawImage=di;if(got!==fashSword('w_mage'))bad='ยิงเวทไม่ใช้คทาแฟชั่น'}
+    if(!bad){FASH.wpn=null;let f=null;const di=k.drawImage;k.drawImage=function(img){if(f==null)f=k.filter;return di.apply(this,arguments)};staffAt7(32,40,0,1);k.drawImage=di;if(cwOld27()&&(!f||f==='none'))bad='ยิงเวทไม่ย้อมสีคทาอาชีพ'}
+    if(!bad&&FWPN.w_sword){P.cls='sword';P.armor.sword=['cw_sword5','cw_sword1'].find(i=>ITEMS[i])||P.armor.sword;FASH.wpn='w_sword';let f='x';withFlt27(()=>{f=k.filter},null,[]);if(f!=='none')bad='สีย้อมอาชีพทับดาบแฟชั่น'}}
+   catch(e){bad='error '+e.message}finally{ctx=s0;P.cls=sv.cls;P.armor.sword=sv.w;FASH.wpn=sv.fw;c.remove()}return bad}]);}catch(e){}
+}catch(e){console.warn('fix145',e)}
 </script>
 
 </body>

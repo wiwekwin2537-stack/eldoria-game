@@ -51,6 +51,8 @@
 - `node --check server.js accounts.js world.js pvp.js party.js market.js sw.js`
 - เช็กทุก `<script>` ใน `index.html` ด้วย `new Function(...)` ต้องไม่มี error
 - บอทตรวจในเกม: `SystemValidator.runFullGamePlaytest()` ต้องได้ `bugs: []`
+  - บอทนี้รวม **เช็กกันถอยหลัง (regression)** ไว้ด้วย (`REG136` ใน fix136 ท้าย index.html) — ผลอยู่ที่ `regression:{checks,fail}` ต้อง `fail: 0`
+  - **กฎ: แก้บัคหรือเพิ่มระบบเสร็จ ต้องเพิ่มเช็กของเรื่องนั้นลง `REG136` ทุกครั้ง** (ชื่อ + ฟังก์ชันคืน `null` = ผ่าน / ข้อความ = พัง) → แก้อันใหม่แล้วอันเก่าพังจะรู้ทันที ไม่ต้องไล่ตรวจของเดิมซ้ำด้วยมือ
 
 ## 6. 🛠️ ข้อมูลระบบ
 

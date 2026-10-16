@@ -84,6 +84,8 @@ function mkMsg(p, d, now) {
 }
 // ---------- เทรด ----------
 const TR = new Map(); let trNext = 1;
+/* v5.03: เทรดต้องเจอตัว — ฉากเดียวกัน ห่างไม่เกิน 220 พิกเซล (เจ้าของสั่ง: นัดเพื่อนมาเจอก่อนค่อยเทรด) */
+const near = (a, b) => !!(a.st && b.st && a.sc && a.sc === b.sc && Math.hypot(a.st.x - b.st.x, a.st.y - b.st.y) <= 220);
 const trOf = p => p.tr && TR.get(p.tr);
 const other = (T, p) => T.a === p.id ? T.b : T.a;
 function trState(T) { for (const id of [T.a, T.b]) { const p = H.players.get(id); if (!p) continue; const o = other(T, p);
@@ -107,12 +109,14 @@ function trMsg(p, d, now) {
       const to = findByName(clean(d.to, 14)); if (!to || to === p) { send(p, { t: 'trNo', why: 'ไม่พบผู้เล่นที่ออนไลน์อยู่' }); return true; }
       if (!to.acct) { send(p, { t: 'trNo', why: to.name + ' ยังไม่ได้เข้าสู่ระบบบัญชี' }); return true; }
       if (to.acct === p.acct) { send(p, { t: 'trNo', why: 'เทรดกับบัญชีตัวเองไม่ได้' }); return true; }
+      if (!near(p, to)) { send(p, { t: 'trNo', why: 'ต้องอยู่ใกล้กันถึงจะเทรดได้ — นัดเจอกันแล้วแตะตัวเพื่อน' }); return true; }
       if (trOf(p) || trOf(to)) { send(p, { t: 'trNo', why: 'มีคนกำลังเทรดอยู่' }); return true; }
       to.trInv = { from: p.id, t: now }; send(to, { t: 'trInv', fid: p.id, from: p.name, lv: p.st ? p.st.lv : 0 }); send(p, { t: 'trSent', to: to.name }); return true; }
     case 'trAns': { const f = H.players.get(d.fid | 0); const ok = p.trInv && p.trInv.from === (d.fid | 0) && now - p.trInv.t < 60e3; p.trInv = null;
       if (!f || !ok) { send(p, { t: 'trNo', why: 'คำขอเทรดหมดอายุแล้ว' }); return true; }
       if (!d.yes) { send(f, { t: 'trNo', why: p.name + ' ปฏิเสธการเทรด' }); return true; }
       if (trOf(p) || trOf(f) || !p.acct || !f.acct) { send(p, { t: 'trNo', why: 'เริ่มเทรดไม่ได้ตอนนี้' }); return true; }
+      if (!near(p, f)) { send(p, { t: 'trNo', why: 'อยู่ห่างกันเกินไป — เดินไปใกล้ ๆ กันก่อน' }); send(f, { t: 'trNo', why: p.name + ' อยู่ห่างเกินไป' }); return true; }
       const T = { id: trNext++, a: f.id, b: p.id, st: 'open', off: { [f.id]: { items: [], coin: 0 }, [p.id]: { items: [], coin: 0 } }, lock: {}, ok: {}, com: {}, acct: { [f.id]: f.acct, [p.id]: p.acct }, nm: { [f.id]: f.name, [p.id]: p.name }, lv: { [f.id]: f.st ? f.st.lv : 0, [p.id]: p.st ? p.st.lv : 0 }, t: now };
       TR.set(T.id, T); f.tr = p.tr = T.id; for (const q of [f, p]) send(q, { t: 'trOpen', tid: T.id }); trState(T); return true; }
     case 'trSet': { const T = trOf(p); if (!T || T.st !== 'open' || T.id !== (d.tid | 0)) return true; const off = normOffer(d, num);

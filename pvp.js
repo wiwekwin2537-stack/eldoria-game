@@ -27,8 +27,10 @@ function duelOk(p, to) { const D = p.duel && DUELS.get(p.duel); return !!(D && t
 function startDuel(a, b, now) { const D = { id: nextDuel++, a, b, st: 'count', t0: now, fight: now + DUEL_COUNT, end: now + DUEL_COUNT + DUEL_DUR }; DUELS.set(D.id, D); a.duel = b.duel = D.id; a.inv = b.inv = null;
   for (const [p, side] of [[a, 0], [b, 1]]) { const o = other(D, p); H.send(p, { t: 'duelgo', did: D.id, side, count: DUEL_COUNT, dur: DUEL_DUR, opp: { id: o.id, name: o.name, lv: o.st ? o.st.lv : 1, cls: o.st ? o.st.cls : '', pr: pub(o.acct && RT.map[o.acct]) } }); }
   H.broadcast({ t: 'sys', txt: '⚔️ ศึกดวลเริ่มแล้ว! ' + a.name + ' VS ' + b.name }); }
-function endDuel(D, w, why) { if (D.st === 'end') return; D.st = 'end'; const now = Date.now(); const l = w ? other(D, w) : null;
-  const key = [D.a.acct || D.a.name, D.b.acct || D.b.name].sort().join('|'), recent = now - (pairT.get(key) || 0) < 10 * 60e3; pairT.set(key, now);
+function endDuel(D, w, why) { if (D.st === 'end') return; D.st0 = D.st; D.st = 'end'; const now = Date.now(); const l = w ? other(D, w) : null;
+  /* v5.03: ดวลจบเร็วโดยไม่ได้น็อกจริง (หนี/ออก ใน 20 วิแรก) = ไม่คิดแต้ม/เกียรติยศ — กันไอดีแฝดท้าแล้วหนีปั๊มเกียรติยศ */
+  const short = why !== 'ko' && why !== 'time' && (D.st0 !== 'fight' || now - D.fight < 20000);
+  const key = [D.a.acct || D.a.name, D.b.acct || D.b.name].sort().join('|'), recent = short || now - (pairT.get(key) || 0) < 10 * 60e3; if (!short) pairT.set(key, now);
   const ranked = !!(D.a.acct && D.b.acct && D.a.acct !== D.b.acct && !recent);
   let dw = 0; const ra = rec(D.a), rb = rec(D.b);
   if (ranked) { const ea = 1 / (1 + Math.pow(10, (rb.r - ra.r) / 400)), sa = !w ? .5 : w === D.a ? 1 : 0, K = 32; dw = K * (sa - ea);
@@ -46,8 +48,8 @@ const toArena = o => { const s = JSON.stringify(o); for (const p of arenaPlayers
 const kdOf = p => { let k = AR.kd.get(p.id); if (!k) { k = { n: p.name, k: 0, d: 0, s: 0, best: 0 }; AR.kd.set(p.id, k); AR.sbDirty = true; } k.n = p.name; return k; };
 const sbList = () => [...AR.kd.entries()].filter(([id]) => { const p = H.players.get(id); return p && p.sc === 'arena'; }).map(([id, k]) => ({ id, n: k.n, k: k.k, d: k.d, s: k.s })).sort((a, b) => b.k - a.k || a.d - b.d).slice(0, 8);
 const STREAK = { 3: '🔥 กำลังเดือด!', 5: '💀 ไร้เทียมทาน!', 8: '👑 เทพสงคราม!', 12: '☠️ ปีศาจสังเวียน!!' };
-function arenaKo(p, by) { const v = kdOf(p), k = kdOf(by), vs = v.s; v.d++; v.s = 0; k.k++; k.s++; k.best = Math.max(k.best, k.s); AR.sbDirty = true;
-  const bounty = vs >= 5 ? 8 : vs >= 3 ? 4 : 0; H.send(by, { t: 'honor', n: 2 + bounty, why: bounty ? 'ล่าค่าหัว ' + p.name : 'ล้ม ' + p.name, streak: k.s });
+function arenaKo(p, by, farm) { const v = kdOf(p), k = kdOf(by), vs = v.s; v.d++; v.s = 0; k.k++; k.s++; k.best = Math.max(k.best, k.s); AR.sbDirty = true;
+  const bounty = vs >= 5 ? 8 : vs >= 3 ? 4 : 0; if (!farm) H.send(by, { t: 'honor', n: 2 + bounty, why: bounty ? 'ล่าค่าหัว ' + p.name : 'ล้ม ' + p.name, streak: k.s }); else H.send(by, { t: 'sys', txt: '⚠️ ล้ม ' + p.name + ' ซ้ำบ่อยเกินไป — ไม่ได้เกียรติยศ (คู่เดิมได้ 3 ครั้ง/10 นาที)' });
   toArena({ t: 'akill', by: by.name, v: p.name, s: k.s, shut: vs >= 3 ? vs : 0 });
   if (STREAK[k.s]) H.broadcast({ t: 'sys', txt: '⚔️ ' + by.name + ' ' + STREAK[k.s] + ' (ล้มติดกัน ' + k.s + ' คนในสนามประลอง)' });
   if (vs >= 3) H.broadcast({ t: 'sys', txt: '🛑 ' + by.name + ' ปิดตำนาน ' + p.name + ' (สตรีค ' + vs + ')!' }); }
@@ -72,9 +74,13 @@ function onMsg(p, d, now) {
   }
   return false;
 }
-function ko(p, byId) { const by = H.players.get(+byId); const D = p.duel && DUELS.get(p.duel);
-  if (D) { if (D.st === 'fight') endDuel(D, by && by.duel === D.id ? by : other(D, p), 'ko'); return true; }
-  if (p.sc === 'arena' && by && by.sc === 'arena' && by !== p) { arenaKo(p, by); return true; }
+/* v5.03: การน็อกต้องมีการตีจริงจากคนที่อ้างว่าเป็นผู้ชนะภายใน 6 วิ (server.js บันทึก hitBy) · คนที่ตายนับได้ทุก 4 วิ · คู่เดิมได้เกียรติยศไม่เกิน 3 ครั้ง/10 นาที */
+const realHit = (p, by, now) => !!(by && p.hitBy && p.hitBy.id === by.id && now - p.hitBy.t < 6000);
+const PAIRK = new Map();
+function ko(p, byId) { const by = H.players.get(+byId); const D = p.duel && DUELS.get(p.duel), now = Date.now();
+  if (D) { if (D.st === 'fight') { const o = other(D, p); if (realHit(p, o, now)) endDuel(D, o, 'ko'); else endDuel(D, o, 'quit'); } return true; }
+  if (p.sc === 'arena' && by && by.sc === 'arena' && by !== p) { if (!realHit(p, by, now) || now - (p.koT || 0) < 4000) return true; p.koT = now; p.hitBy = null;
+    const key = (by.acct || by.name) + '>' + (p.acct || p.name), L = (PAIRK.get(key) || []).filter(t => now - t < 10 * 60e3); L.push(now); PAIRK.set(key, L); arenaKo(p, by, L.length > 3); return true; }
   return false; }
 function onClose(p) { const D = p.duel && DUELS.get(p.duel); if (D) endDuel(D, other(D, p), 'leave'); AR.kd.delete(p.id); AR.sbDirty = true; }
 function top() { return Object.values(RT.map).filter(x => x.w + x.l + (x.d || 0) > 0).sort((a, b) => b.r - a.r).slice(0, 20).map(x => ({ n: x.n, r: Math.round(x.r), w: x.w, l: x.l, cls: x.cls || '', lv: x.lv || 0, rank: rankOf(x.r) })); }

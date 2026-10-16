@@ -201,7 +201,8 @@ async function handle(path_, d, ip) {
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
   if (path_ === '/api/save') {
     const save = String(d.save || ''); if (!save || save.length > MAX_SAVE) return { err: 'size' };
-    if (!d.force && (d.base | 0) !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
+    /* v5.03: ไม่ยอมให้เซฟทับแบบ force แล้ว — เครื่องเก่า (เวอร์ชันเก่าที่ค้างแคช) เซฟทับเซฟใหม่กว่าได้ = ช่องปั๊มของเมื่อเล่น 2 เครื่อง */
+    if ((d.base | 0) !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     if (lv0 >= 5 && rec.lv - lv0 >= 25 && rec.upd - t0 < 30 * 60e3) rec.flag = (rec.flag | 0) + 1; // เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ

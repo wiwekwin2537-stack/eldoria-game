@@ -65,7 +65,10 @@ function init(h) { H = h;
 function onMsg(p, d, now) {
   const { send, clean, num, ACC } = H;
   switch (d.t) {
-    case 'auth': ACC.verify(d.id, d.token).then(async v => { if (!v) { send(p, { t: 'auth_no' }); return; } p.acct = v.lid; p.gm = v.gm; try { const g = await ACC.guildOf(v.lid); p.gid = g ? g.id : ''; p.gtag = g ? g.tag : ''; p.gname = g ? g.name : ''; } catch (e) {} send(p, { t: 'auth_ok', gm: v.gm, g: p.gid ? { id: p.gid, tag: p.gtag, name: p.gname } : null });
+    case 'auth': ACC.verify(d.id, d.token).then(async v => { if (!v) { send(p, { t: 'auth_no' }); return; }
+        /* v5.03: ไอดีเดียวเข้าจากเครื่องใหม่ → เครื่องเก่าโดนเตะทันที + ตัดสิทธิ์ออนไลน์ (ตลาด/เทรด/จดหมาย) กันเล่น 2 เครื่องปั๊มของ */
+        for (const o of H.players.values()) if (o !== p && o.acct === v.lid) { o.acct = null; o.gm = false; send(o, { t: 'dupe' }); }
+        p.acct = v.lid; p.gm = v.gm; try { const g = await ACC.guildOf(v.lid); p.gid = g ? g.id : ''; p.gtag = g ? g.tag : ''; p.gname = g ? g.name : ''; } catch (e) {} send(p, { t: 'auth_ok', gm: v.gm, g: p.gid ? { id: p.gid, tag: p.gtag, name: p.gname } : null });
         try { const m = await ACC.mailList(v.lid); send(p, { t: 'mbox', list: m }); } catch (e) {}
         try { if (v.gm && ACC.topPend) { const n = await ACC.topPend(); if (n) send(p, { t: 'gmtop', n }); } } catch (e) {} }).catch(() => {}); return true;
     case 'mlist': if (!p.acct) return true; ACC.mailList(p.acct).then(m => send(p, { t: 'mbox', list: m })).catch(() => {}); return true;

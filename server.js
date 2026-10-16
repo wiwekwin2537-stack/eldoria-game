@@ -103,6 +103,7 @@ wss.on('connection', (ws, req) => {
       if (Math.hypot(p.st.x - to.st.x, p.st.y - to.st.y) > 450) return;
       p.pvpT = p.pvpT.filter(t => now - t < 1000); if (p.pvpT.length >= 10) return; p.pvpT.push(now);
       const dmg = Math.round(num(d.dmg, 1, 150 + p.st.lv * 45));
+      to.hitBy = { id, t: now }; /* v5.03: จำว่าใครตีล่าสุด — ใช้ตรวจการน็อกจริง (กันส่ง pvpko ปลอมปั๊มเกียรติยศ) */
       send(to, { t: 'pvphit', from: id, name: p.name, dmg, crit: !!d.crit });
     } else if (d.t === 'pvpko') {
       if (PVP.ko(p, d.by)) return; const by = players.get(+d.by); if (by && by.sc === p.sc) broadcast({ t: 'sys', txt: '⚔️ ' + by.name + ' ล้ม ' + p.name + (p.sc === 'arena' ? ' ในสนามประลอง!' : ' ในการดวล PvP!') });
