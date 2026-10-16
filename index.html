@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v5.05</title>
+<title>ตำนานเอลโดเรีย v5.06</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -20448,6 +20448,42 @@ try{if(window.REG136)REG136.push(
  ['อาวุธอาชีพแต่ละระดับหน้าตาไม่ซ้ำกัน (fix148)',async()=>{const bad=[];for(const c of Object.keys(CW27)){const seen=new Set();for(let t=0;t<11;t++){const id='cw_'+c+t;if(!ITEMS[id])continue;let u='';try{delete IURL['item:'+id];delete CWI27[id];u=iconURL('item:'+id)}catch(e){bad.push(id+' error');continue}if(seen.has(u))bad.push(id+' ซ้ำ');seen.add(u)}}return bad.length?bad.slice(0,6).join(', '):null}],
  ['อาวุธอาชีพในมือวาดตามระดับ (fix148)',async()=>{const c=document.createElement('canvas');c.width=c.height=80;const k=c.getContext('2d'),sv=P.tier.sword,out=[];try{for(const cl of ['ninja','paladin','cleric','necro','dragoon','summoner','monk']){const urls=new Set();for(const t of [0,5,10]){k.clearRect(0,0,80,80);k.save();k.translate(40,60);P.tier.sword=t;wpn25(cl,k);k.restore();urls.add(c.toDataURL())}if(urls.size<3)out.push(cl)}}finally{P.tier.sword=sv}return out.length?'ในมือไม่เปลี่ยนตามระดับ: '+out.join(','):null}]);}catch(e){}
 }catch(e){console.warn('fix148',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix149 (v5.06) — 🌳 ต้นไม้ในทุ่งหญ้าตัดแล้วไม่งอกใหม่ (เจ้าของแจ้ง: "ต้นไม้ไม่เกิด ผู้เล่นเยอะตัดจนหมด" — ทั้งทุ่งเหลือแต่ตอ)
+//  ต้นเหตุ: hitTree (ต้นไม้ทุ่งหญ้า) ตั้ง alive=false + เปลี่ยนช่องเป็นตอ (STUMP) แล้วไม่มีโค้ดคืนต้นไม้เลย
+//   (แร่ในทุ่ง/ต้นไม้ในแมพอื่น chop15 มีเวลางอกใหม่อยู่แล้ว · เฉพาะต้นไม้ทุ่งหญ้าที่ตกหล่น)
+//  แก้ (เฉพาะจุด ห่อ updWorld เดิม): ตอแต่ละต้นงอกกลับเป็นต้นไม้เต็มต้นใน ~2 นาที (สุ่ม 100–140 วิ)
+//   · ไม่งอกทับตัวผู้เล่น (ยืนห่าง 48px ขึ้นไปก่อน) · มีใบไม้ฟุ้งตอนงอก · ไม้/แอปเปิลที่ได้เท่าเดิม
+// =====================================================================
+try{
+const RG149=[100,140];
+const rgT149=()=>RG149[0]+Math.random()*(RG149[1]-RG149[0]);
+function regrow149(dt){
+  for(const tr of trees){if(tr.alive||tr.border)continue;
+   if(tr.rg149==null){tr.rg149=rgT149();continue}
+   tr.rg149-=dt;if(tr.rg149>0)continue;
+   if(map[tr.ty][tr.tx]!==STUMP){tr.rg149=null;continue}
+   if(Math.hypot(P.x-tr.px,P.y-(tr.ty*T+16))<48){tr.rg149=3;continue}
+   if(falling.some(f=>f.tr===tr)){tr.rg149=2;continue}
+   map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.hp=tr.max;tr.shake=0;tr.bar=0;tr.fade=0;tr.rg149=null;
+   for(let k=0;k<8;k++)fx.push({x:tr.px+(Math.random()-.5)*36*tr.sc,y:tr.ty*T+20-Math.random()*40*tr.sc,vx:(Math.random()-.5)*40,vy:-20-Math.random()*30,l:.7,c:'90,190,80'})}
+ }
+window.regrow149=regrow149;
+{const _u=updWorld;updWorld=function(dt){_u(dt);try{regrow149(dt)}catch(e){}};window.updWorld=updWorld}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['ต้นไม้ทุ่งหญ้าที่ตัดแล้วงอกใหม่ (fix149)',async()=>{const tr=trees.find(t=>t.alive&&!t.border&&map[t.ty][t.tx]===TREE);if(!tr)return null;
+   const sv={x:P.x,y:P.y,hp:tr.hp,fl:falling.length};let bad=null;
+   try{P.x=tr.px+400;P.y=tr.ty*T+400;tr.alive=false;tr.hp=0;map[tr.ty][tr.tx]=STUMP;tr.rg149=null;
+    for(let i=0;i<200&&!tr.alive;i++)regrow149(1);
+    if(!tr.alive||map[tr.ty][tr.tx]!==TREE||tr.hp!==tr.max)bad='ตอไม่กลับเป็นต้นไม้ภายใน 200 วิ'}
+   catch(e){bad='error '+e.message}finally{map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.hp=sv.hp;tr.rg149=null;P.x=sv.x;P.y=sv.y;falling.length=Math.min(falling.length,sv.fl)}
+   return bad}]);}catch(e){}
+}catch(e){console.warn('fix149',e)}
 </script>
 
 </body>
