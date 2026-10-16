@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v5.08</title>
+<title>ตำนานเอลโดเรีย v5.09</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -20636,6 +20636,41 @@ try{if(window.REG136)REG136.push(
  ['ขวาน/ที่ขุดดรอปเฉพาะเมื่อดีกว่าที่มี (fix153)',async()=>{const a=keep153({axe:3,pick:-1},{axe2:1,axe3:1,pick2:1});if(a.length!==1||a[0]!=='pick2')return 'ยังเก็บขวานระดับเดิม/ต่ำกว่าเข้ากระเป๋า: '+a.join(',');
    const b=keep153({axe:3,pick:5},{axe4:1});if(b.join()!=='axe4')return 'ขวานระดับสูงกว่าไม่ได้เก็บ';return null}]);}catch(e){}
 }catch(e){console.warn('fix153',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix154 (v5.09) — ⭐ ตันเลเวล 200 ได้ใน 2 ชม. (เจ้าของแจ้ง 2026-10-17: "แค่ไปสู้กับมอนตอนมอนเยอะก็ตันแล้ว")
+//  ต้นเหตุ: EXP ต่อมอน 1 ตัว = need(เลเวลมอน)/20 (mobXp) → ตีมอนเลเวลเท่าตัวเองใช้แค่ ~38 ตัว/เลเวล (Lv.100+ ~64 ตัว) ทุกเลเวลเท่ากันหมด
+//   ทั้งเกมใช้แค่ ~10,000 ตัว · ตีมอนเป็นกลุ่มด้วยสกิลวงกว้าง/ออโต้ฟาร์ม + EXP x2 = ตันใน 2 ชม.
+//  แก้ (เจ้าของเลือก "กลาง" ≈ 40,000 ตัวถึง Lv.200): Lv.1–30 เท่าเดิม (~40 ตัว/เลเวล) แล้วเพิ่มขึ้นเรื่อย ๆ จนถึง ~400 ตัว/เลเวลที่ Lv.200
+//   · ลดเฉพาะ EXP จากการฆ่ามอน (รวมส่วนแบ่งปาร์ตี้) · เควส/รางวัลบอสตำนาน/อีเวนต์ EXP x2 ยังคูณเหมือนเดิม
+//   · ไม่ลดเลเวลหรือ EXP ที่ผู้เล่นมีอยู่แล้ว
+//  วิธี: ห่อ mobKill/partyXp33 จดค่า EXP ที่มอนตัวนั้น "ควรให้" → ห่อ gainXp ชั้นนอกสุด เจอค่าที่ตรงกันภายใน 3 วิ = EXP จากมอน → คูณลดตามเลเวล
+// =====================================================================
+try{
+const KT154=L=>L<=30?40:40+(L-30)*360/170;                    /* เป้าหมาย: จำนวนมอนเลเวลเท่าตัวที่ต้องฆ่าต่อ 1 เลเวล */
+const K0154=L=>38/(L>=100?.6:L>=80?.75:1);                     /* ของเดิม (วัดจริง: 38 ตัว · Lv.80+ ลด .75 · Lv.100+ ลด .6) */
+const SC154=L=>L<=30?1:Math.min(1,K0154(L)/KT154(L));
+window.SC154=SC154;
+const Q154=[];
+const push154=v=>{v=+v||0;if(v>0){Q154.push({v,t:performance.now()});if(Q154.length>200)Q154.splice(0,Q154.length-200)}};
+const base154=m=>mobXp(m.L)*(m.elite?3:1)*(m.boss?15:1);
+{const _mk=mobKill;mobKill=function(m){try{if(m&&m.L!=null)push154(base154(m))}catch(e){}return _mk.apply(this,arguments)};window.mobKill=mobKill}
+if(typeof partyXp33==='function'){const _px=partyXp33;partyXp33=function(m){try{if(m&&m.L!=null)push154(Math.round(base154(m)*.5))}catch(e){}return _px.apply(this,arguments)};window.partyXp33=partyXp33}
+{const _g=gainXp;gainXp=function(n){try{if(typeof n==='number'&&n>0&&Q154.length){const now=performance.now();while(Q154.length&&now-Q154[0].t>3000)Q154.shift();
+   const i=Q154.findIndex(q=>q.v===n);if(i>=0){Q154.splice(i,1);const s=SC154(P.lv|0);if(s<1)n=Math.max(1,Math.round(n*s))}}}catch(e){}
+  return _g.apply(this,[n].concat([].slice.call(arguments,1)))};window.gainXp=gainXp}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['EXP จากมอนลดตามเลเวล ~40,000 ตัวถึง Lv.200 (fix154)',async()=>{let tot=0;for(let L=1;L<200;L++)tot+=L<=30?K0154(L):K0154(L)/SC154(L);
+   if(tot<30000||tot>50000)return 'จำนวนมอนถึง Lv.200 = '+Math.round(tot)+' (ควร ~40,000)';
+   const sv={lv:P.lv,xp:P.xp};let bad=null;
+   try{P.lv=150;P.xp=0;const n=mobXp(150);push154(n);const a=P.xp;gainXp(n);const got1=P.xp-a;P.xp=0;gainXp(n);const got2=P.xp;
+    if(!(got1<got2*SC154(150)*1.2&&got1>0))bad='EXP จากมอนไม่ถูกลด ('+got1+' vs ไม่ใช่มอน '+got2+')'}
+   catch(e){bad='error '+e.message}finally{P.lv=sv.lv;P.xp=sv.xp;Q154.length=0}return bad}]);}catch(e){}
+}catch(e){console.warn('fix154',e)}
 </script>
 
 </body>
