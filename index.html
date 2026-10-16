@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v5.06</title>
+<title>ตำนานเอลโดเรีย v5.07</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -20484,6 +20484,82 @@ try{if(window.REG136)REG136.push(
    catch(e){bad='error '+e.message}finally{map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.hp=sv.hp;tr.rg149=null;P.x=sv.x;P.y=sv.y;falling.length=Math.min(falling.length,sv.fl)}
    return bad}]);}catch(e){}
 }catch(e){console.warn('fix149',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix150 (v5.07) — ✨ ใส่ชุดแฟชั่นแล้วเอฟเฟคตีบวกของชุดหลักหาย (เจ้าของแจ้ง 2026-10-16: "แฟชั่นไม่แสดงเอฟเฟคตีบวก")
+//  ต้นเหตุ: ตัวห่อ hero ของแฟชั่น (fix6) ล้าง P.armor (หมวก/เสื้อ/กางเกง/แขน) ชั่วคราวตอนวาดคอสตูม
+//   fix100 แก้ไว้แค่ออร่า 3D (info60) · ยังเหลืออีก 2 เอฟเฟคที่อ่านชุดจาก P.armor ตรง ๆ แล้วเห็นช่องว่าง:
+//   1) eqGlitter — ประกายวิบวับบนชุด (ชิ้นที่ตีบวก +3 ขึ้นไป)
+//   2) armorAura — ลูกแสงลอยรอบตัว (ตีบวกรวม +12) + วงแหวนหมุนใต้เท้า (ตีบวกรวม +40) + สีรูนบนชุด
+//  แก้ (เฉพาะชุด): ตอนวาดคอสตูม ให้ 2 เอฟเฟคนี้อ่านจากชุดหลักจริง (แบบเดียวกับ fix100) · ค่าพลัง/หน้าตาคอสตูมไม่เปลี่ยน
+//   ผู้เล่นคนอื่นเห็นด้วย (drawOther ใช้ hero เส้นทางเดียวกัน)
+// =====================================================================
+try{
+const SL150=['helm','chest','pants','arm'];
+let ARM150=null;
+window.LAST150={g:0,a:-1};
+{const _h=hero;hero=function(){const sv=ARM150;try{ARM150=P.armor?{helm:P.armor.helm,chest:P.armor.chest,pants:P.armor.pants,arm:P.armor.arm}:null}catch(e){ARM150=null}
+  try{return _h.apply(this,arguments)}finally{ARM150=sv}};window.hero=hero}
+function main150(fn,self,args){if(!(window._fashOn&&ARM150&&P.armor))return fn.apply(self,args);
+ const sv={};for(const s of SL150)sv[s]=P.armor[s];Object.assign(P.armor,ARM150);
+ try{return fn.apply(self,args)}finally{Object.assign(P.armor,sv)}}
+{const _g=eqGlitter;eqGlitter=function(){return main150(function(){LAST150.g=SL150.filter(s=>P.armor[s]).length;return _g.apply(this,arguments)},this,arguments)};window.eqGlitter=eqGlitter}
+{const _a=armorAura;armorAura=function(){return main150(function(){const r=_a.apply(this,arguments);try{LAST150.a=r?r.L:-1}catch(e){}return r},this,arguments)};window.armorAura=armorAura}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['ใส่ชุดแฟชั่นยังเห็นเอฟเฟคตีบวกของชุดหลัก (fix150)',async()=>{const body=Object.keys(OUTFIT||{})[0];if(!body)return null;
+   const ids={helm:'helm5',chest:'chest5',pants:'pants5',arm:'arm5'};for(const s in ids)if(!ITEMS[ids[s]])return null;
+   const sv={a:Object.assign({},P.armor),fb:FASH.body,e:{},dead:P.dead},s0=ctx,c=document.createElement('canvas');c.width=c.height=160;let bad=null;
+   try{for(const s in ids){sv.e[ids[s]]=ENH[ids[s]];ENH[ids[s]]=12;P.armor[s]=ids[s]}FASH.body=body;P.dead=false;ctx=c.getContext('2d');LAST150.g=0;LAST150.a=-1;
+    try{hero()}catch(e){}
+    if(LAST150.g<4)bad='ประกายบนชุดไม่เห็นชุดหลักตอนใส่แฟชั่น';else if(LAST150.a<48)bad='ลูกแสง/วงแหวนตีบวกไม่เห็นชุดหลักตอนใส่แฟชั่น';
+    if(!bad&&SL150.some(s=>P.armor[s]!==ids[s]))bad='ชุดหลักหายหลังวาดแฟชั่น'}
+   catch(e){bad='error '+e.message}finally{ctx=s0;Object.assign(P.armor,sv.a);FASH.body=sv.fb;P.dead=sv.dead;for(const k in sv.e){if(sv.e[k]==null)delete ENH[k];else ENH[k]=sv.e[k]}}
+   return bad}]);}catch(e){}
+}catch(e){console.warn('fix150',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix151 (v5.07) — ⚔️ อาวุธตีบวกไม่มีเอฟเฟค (ผู้เล่นแจ้ง 2026-10-16: "เอฟเฟคเดิมของอาวุธ +15 ไม่ติด · ไม่ใส่แฟชั่นก็ไม่มีเอฟเฟค เหมือนอาวุธไม่ได้บวก")
+//  ต้นเหตุ (มีมาตั้งแต่ fix25 ไม่ได้เกิดจาก v5.05–5.06 — วัดแล้วเวอร์ชัน 5.04 บนเว็บก็เป็นเหมือนกัน):
+//   ออร่าตีบวกอาวุธ (แสงตามใบ + ลูกแสงหมุน + ประกาย) ผูกไว้กับตัววาดอาวุธ "ปกติ" (toolSpr)
+//   1) อาวุธอาชีพ 7 สาย (นินจา/พาลาดิน/มังค์/ดรากูน/นักบวช/เนโคร/ซัมมอนเนอร์) วาดด้วยตัววาดของอาชีพเอง (fix25) แล้วจบเลย → ไม่มีออร่า
+//   2) อาวุธแฟชั่นของดาบ/คทา (และอาชีพอื่น) ก็ข้ามตัววาดปกติเหมือนกัน → ใส่แฟชั่นแล้วออร่าตีบวกหาย
+//  แก้ (เฉพาะจุด ห่อ toolSpr ชั้นนอกสุด): ถ้าถืออาวุธที่ตีบวก/มีรูน แล้วรอบนั้นยังไม่มีออร่าถูกวาด → วาดออร่าแบบเดียวกับดาบปกติ (fix เดิมบรรทัด wAura)
+//   ตามความยาวอาวุธแต่ละแบบ · สี/ความแรงตามระดับตีบวกและรูนเหมือนเดิม · ค่าพลังไม่เปลี่ยน
+// =====================================================================
+try{
+let EMIT151=0;
+{const _e=auraEmit;auraEmit=function(){EMIT151++;return _e.apply(this,arguments)};window.auraEmit=auraEmit}
+const LEN151={ninja:32,paladin:34,dragoon:50,cleric:40,necro:40,summoner:40,monk:9};
+function aura151(hx,hy,ang,d,W){const t=performance.now()/1000,tx=hx+Math.sin(ang)*d,ty=hy-Math.cos(ang)*d,bx=hx+Math.sin(ang)*Math.min(8,d*.3),by=hy-Math.cos(ang)*Math.min(8,d*.3);
+ ctx.save();ctx.globalCompositeOperation='lighter';const pul=.75+.25*Math.sin(t*(4+W.L*.3)),a=Math.min(.75,(.16+W.L*.035+(W.r?.12+.06*W.r.g:0))*pul);
+ ctx.lineCap='round';ctx.strokeStyle='rgba('+W.rgb+','+a*.45+')';ctx.lineWidth=7+W.L*.5;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();
+ ctx.strokeStyle='rgba('+W.rgb2+','+a*.7+')';ctx.lineWidth=2.5;ctx.stroke();
+ if(W.L>=7||W.r){const g=ctx.createRadialGradient(tx,ty,0,tx,ty,8+W.L*.6);g.addColorStop(0,'rgba('+W.rgb2+','+a+')');g.addColorStop(1,'rgba('+W.rgb+',0)');ctx.fillStyle=g;ctx.fillRect(tx-20,ty-20,40,40)}
+ if(W.L>=10){const n=W.L>=15?4:2;for(let i=0;i<n;i++){const q=t*3+i*Math.PI*2/n,ox=Math.cos(q)*9,oy=Math.sin(q)*4,mx=(bx+tx)/2+ox,my=(by+ty)/2+oy-Math.sin(q)*6;const g=ctx.createRadialGradient(mx,my,0,mx,my,5);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba('+W.rgb+',0)');ctx.fillStyle=g;ctx.fillRect(mx-5,my-5,10,10)}}
+ ctx.restore();auraEmit(bx,by,tx,ty,W,DT||0,1)}
+window.aura151=aura151;
+{const _ts=toolSpr;toolSpr=function(hx,hy,ang){const n0=EMIT151;const r=_ts.apply(this,arguments);
+  try{if(EMIT151===n0&&P.tool==='sword'&&P.draw&&P.armor&&P.armor.sword){const W=wAura();if(W){const c=P.cls,kd=wKind();
+    const own=window.cwOk25&&cwOk25()&&((STAFF25.has(c)&&kd==='staff')||(MELEE25.has(c)&&kd==='sword'));
+    let d=own?(LEN151[c]||30):kd==='staff'?29.5:kd==='bow'?13:30,a=own&&STAFF25.has(c)?ang*.35:ang;
+    aura151(hx,hy,a,d,W)}}}catch(e){}
+  return r};window.toolSpr=toolSpr}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['อาวุธตีบวกมีออร่าทุกอาชีพ ทั้งปกติและแฟชั่น (fix151)',async()=>{const sv={cls:P.cls,w:P.armor.sword,tool:P.tool,draw:P.draw,at:P.at,fw:FASH.wpn,tier:P.tier.sword},s0=ctx,c=document.createElement('canvas');c.width=c.height=200;const bad=[];
+   try{ctx=c.getContext('2d');for(const cl of Object.keys(CW27)){const id='cw_'+cl+'5';if(!ITEMS[id])continue;const e0=ENH[id];P.cls=cl;P.armor.sword=id;ENH[id]=15;P.tier.sword=5;P.tool='sword';P.draw=1;P.at=-1;
+     for(const fw of [null,Object.keys(FWPN||{}).find(f=>FWPN[f].cls===cl)||null]){FASH.wpn=fw;const n0=EMIT151;try{toolSpr(100,120,.3)}catch(e){}if(EMIT151===n0)bad.push(cl+(fw?'+แฟชั่น':''))}
+     if(e0==null)delete ENH[id];else ENH[id]=e0}}
+   catch(e){bad.push('error '+e.message)}finally{ctx=s0;P.cls=sv.cls;P.armor.sword=sv.w;P.tool=sv.tool;P.draw=sv.draw;P.at=sv.at;FASH.wpn=sv.fw;P.tier.sword=sv.tier}
+   return bad.length?'ไม่มีออร่า: '+bad.join(', '):null}]);}catch(e){}
+}catch(e){console.warn('fix151',e)}
 </script>
 
 </body>
