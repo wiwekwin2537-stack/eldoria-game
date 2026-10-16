@@ -57,7 +57,7 @@ function lbAv(a) { try { if (!a || typeof a !== 'object') return null; const o =
   return JSON.stringify(o).length <= 600 ? o : null; } catch (e) { return null; } }
 // v4.80: หอคอยนิรันดร์ อันดับรายสัปดาห์ (สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย — ตรงกับ wk92 ในเกม)
 const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
-function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); // fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
+function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
 
 // ---------- กิลด์ผู้เล่น (เอกสารเดียว: Upstash key eld:guilds หรือไฟล์ data/guilds.json) ----------
