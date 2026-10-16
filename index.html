@@ -14210,7 +14210,7 @@ function enter62(i){const B=LB62[i];if(!B)return;if(D&&(D.zone||D.shop)&&!in62()
   P.x=Zm.ent.x*T;P.y=(Zm.ent.y-1)*T+16;P.dir='u';P.kx=P.ky=0;MOUNT.on=false;try{mountB.classList.remove('on')}catch(e){}
   const b=mkMob(B.f,B.n,B.c,B.lv+3,Zm.arena.x*T,Zm.arena.y*T+16,{boss:1});b.hp=b.max=Math.round(b.hp*B.hp);b.atk=Math.round(b.atk*B.atk);b.lb62=1;b.boss=1;b.sc*=B.sc/1.4;b.phase=0;b.sk=3;
   D.boss=b;D.bossT=1e9;D.mobs.push(b);setTimeout(()=>{try{banner(B.e+' '+B.n,'เลือด '+b.max.toLocaleString()+' · '+B.tip,'')}catch(e){}},700)})}
-function leave62(){if(!in62())return;AOE62.length=0;LoadingScreenManager.cover({icon:'🏰',title:'ออกจากลานผนึก'},()=>{exitD();enterTown(1)})}
+function leave62(){/* fix147: ฟังก์ชันนี้อยู่ในบล็อก try → ทางออกในลาน (หมดเวลา/ชนะ/ยอมแพ้) เรียกตัวนี้ตรง ๆ ไม่ผ่านตัวที่แก้ภายหลัง (fix81/fix134 กลับหอผนึก) → ส่งต่อให้ตัวล่าสุดก่อน */if(!leave62.__d&&typeof window.leave62==='function'&&window.leave62!==leave62){leave62.__d=1;try{return window.leave62.apply(this,arguments)}finally{leave62.__d=0}}if(!in62())return;AOE62.length=0;LoadingScreenManager.cover({icon:'🏰',title:'ออกจากลานผนึก'},()=>{exitD();enterTown(1)})}
 window.enter62=enter62;window.leave62=leave62;
 // ---------- ท่าไม้ตาย (วงเตือนแดง → ลง) ----------
 function aoe62(x,y,r,l,mult,kind){AOE62.push({x,y,r,l,t:0,mult,kind:kind||'hit'})}
@@ -20101,6 +20101,31 @@ try{if(window.REG136)REG136.push(
    try{if(P.cls==='none'||P.lv<CLASS_LV)return null;const to=Object.keys(CLS).find(c=>c!=='none'&&c!==P.cls);inv.coin=0;const before=P.cls;pickClass(to);pickClass(to);if(P.cls!==before){bad='เงินไม่พอแต่เปลี่ยนอาชีพได้';P.cls=before;try{saveCls()}catch(e){}}}
    catch(e){bad='error '+e.message}finally{inv.coin=sv.coin;try{refreshInv()}catch(e){}}return bad}]);}catch(e){}
 }catch(e){console.warn('fix146',e)}
+</script>
+
+<script>
+// =====================================================================
+// fix147 (v5.04) — 🚪 เข้า-ออกอีเวนต์ต้องกลับที่เดิม (เจ้าของ: "เข้าสู้ในแท่นผนึก ขาออกไปโผล่ในเมือง")
+//  ต้นเหตุ 1: leave62 (fix62) ประกาศอยู่ในบล็อก try → ทางออกในลานผนึก (หมดเวลา · ชนะแล้วกดออก · ยอมแพ้) เรียกตัวเก่าตรง ๆ
+//            ไม่ผ่านตัวที่แก้ทีหลัง (fix81 กลับหน้าประตู / fix134 กลับหอผนึก) → โผล่เมือง · แก้ในที่: ตัวเก่าส่งต่อให้ตัวล่าสุดก่อน
+//  ต้นเหตุ 2: วงเวท "ทางออก" ตรงจุดเกิดของแมพพิเศษ (สนามประลอง · ลานบอสโลก · ตลาดกลาง · ลานผนึก · หอคอย) กด E แล้วใช้ทางออกของเหมือง
+//            → โยนไปทุ่งหญ้าหน้าประตูมิติ (ไม่ใช่ที่ที่เดินเข้ามา) · แก้: วงเวทของแมพพิเศษเรียกปุ่มออกของแมพนั้น (ซึ่งพากลับจุดที่เข้ามา)
+//  ⚠️ บทเรียน: ฟังก์ชันที่ประกาศใน try{…} ห่อจากข้างนอกไม่ได้ผลกับคนเรียกข้างในบล็อก — ต้องทดสอบ "ทางออกจริงที่ผู้เล่นกด" ไม่ใช่เรียก window.xxx ตรง
+// =====================================================================
+try{
+const EXITS147=[['arena8','leaveArena8'],['wb10','leaveWb10'],['mk10','leaveMk10'],['tower10','leaveTower10'],['duel29','leaveDuel29']];
+const exitOf147=()=>{if(!D||!D.zone)return null;if(D.lb62!=null)return 'leave62';for(const [k,f] of EXITS147)if(D[k])return f;return null};
+window.exitOf147=exitOf147;
+{const _it=interact;interact=function(){try{if(D&&D.zone&&!(DLG&&DLG.open)&&typeof zExitNear==='function'&&zExitNear()){const f=exitOf147();if(f&&typeof window[f]==='function'){window[f]();return true}}}catch(e){console.warn('exit147',e)}return _it.apply(this,arguments)};window.interact=interact}
+try{if(window.REG136)REG136.push(
+ ['ออกจากอีเวนต์: วงเวททางออกใช้ปุ่มออกของแมพนั้น (ไม่โยนไปทุ่งหญ้า)',async()=>{const sD=D,sx=P.x,sy=P.y;let bad=null;
+   for(const [k,f] of [['arena8','leaveArena8'],['wb10','leaveWb10'],['mk10','leaveMk10'],['lb62','leave62']]){const sv=window[f];let hit=0;window[f]=function(){hit=1};
+    try{D={zone:{ent:{x:5,y:5},Zd:{id:'t'}},mobs:[]};D[k]=k==='lb62'?0:1;P.x=5*T+16;P.y=7*T+16;try{interact()}catch(e){}}finally{window[f]=sv;D=sD;P.x=sx;P.y=sy}
+    if(!hit){bad='วงเวทใน '+k+' ไม่เรียก '+f;break}}return bad}],
+ ['ลานผนึก: ทางออกในลาน (ยอมแพ้) ผ่านตัวกลับหอผนึก',async()=>{const sD=D;const sv=window.leave62;let hit=0;window.leave62=function(){hit=1};
+   try{D={lb62:0,zone:{},mobs:[]};try{dlgClose(true)}catch(e){}openAltar62();const c=(DLG.ch||[]).find(x=>/ออกจากลาน/.test(x.t||''));try{dlgClose(true)}catch(e){}if(c)c.f()}catch(e){}finally{window.leave62=sv;D=sD}
+   return hit?null:'ยอมแพ้ในลานผนึกยังเรียกตัวเก่า (โผล่เมือง)'}]);}catch(e){}
+}catch(e){console.warn('fix147',e)}
 </script>
 
 </body>
