@@ -5591,7 +5591,7 @@ function giveRw(r){const L=[];if(!r)return L;if(r.coin){inv.coin+=r.coin;L.push(
   if(!QS.slots.some(Boolean)){QS.slots[0]='weapon';QS.slots[1]='axe0';QS.slots[2]='pick0'}L.push('ดาบ/ขวาน/ที่ขุดแร่หิน');if(typeof updQuick==='function')updQuick()}
  refreshInv();return L}
 function kingTalk(){const o=D.owner,c=STCH[STORY.ch];
- if(STORY.st==='report'||STORY.ch===0){const lines=c.done.slice(),rw=(window.kingRw7?kingRw7(c.rw):giveRw(c.rw));const next=()=>{if(c.rw&&c.rw.end){STORY.ch++;STORY.st='active';STORY.done=1;saveStory();updTrack();dlgClose(true);cinePlay(ENDING,()=>{chatAnn((P.name||'ผู้กล้า')+' พิชิตเนื้อเรื่องหลัก — ผู้กล้าแห่งเอลโดเรีย!');P.title='ผู้กล้าแห่งเอลโดเรีย'});return}
+ if(STORY.st==='report'||STORY.ch===0){const lines=c.done.slice(),rw=(window.kingRw7?kingRw7(c.rw):giveRw(c.rw));const next=()=>{if(c.rw&&c.rw.end){STORY.ch++;STORY.st='active';STORY.done=1;saveStory();updTrack();dlgClose(true);cinePlay(ENDING,()=>{chatAnn((P.name||'ผู้กล้า')+' พิชิตเนื้อเรื่องภาค 1 — ผู้กล้าแห่งเอลโดเรีย!');P.title='ผู้กล้าแห่งเอลโดเรีย'});return}
    STORY.ch++;STORY.st='active';STORY_BASE(STORY.ch);saveStory();updTrack();const n=STCH[STORY.ch];sfx('chest');
    talk(o,'📜 '+n.t+' — '+n.intro,[{t:'⚔️ รับภารกิจ',c:'go',f:()=>{sysSay('📜 ภารกิจใหม่: '+n.t+' — '+n.d);say('📜 '+n.t)}},{t:'👋 ลาก่อน',c:'bye'}])};
   let i=0;const step=()=>{if(i<lines.length){const L=lines[i++];talk(o,L+(i===lines.length&&rw.length?'  【รางวัล: '+rw.join(' · ')+'】':''),[{t:i<lines.length?'▶ ต่อ':'▶ รับภารกิจต่อไป',c:'go',stay:true,f:step}])}else next()};step();return}
@@ -17463,7 +17463,7 @@ const N99={
  skill:{n:'หอตำราเวทอัสตรา',o:'ปราชญ์ออร์เวน',g:['ตำราทุกเล่มที่นี่มาจากเมืองเก่าใต้ทะเล','ผู้กล้า อยากเรียนท่าใหม่หรือ?'],l:['ความรู้คือดาบที่คมที่สุด']},
  store:{n:'ร้านค้าท่าเรือมั่งมี',o:'เถ้าแก่ทองคำ',g:['ของครบ ราคาเป็นมิตร มาเลย ๆ!','เรือสินค้าเพิ่งเข้าท่า ของใหม่เพียบ'],l:['ค้าขายดีทุกวัน เพราะผู้กล้าแวะมาไม่ขาด']},
  inn:{n:'โรงเตี๊ยมสมอทองคำ',o:'นายหญิงมาริน่า',g:['ยินดีต้อนรับสู่สมอทองคำ!','เหนื่อยจากดันเจี้ยนมาพักก่อนสิ'],l:['ห้องชั้นบนมองเห็นทะเลทั้งอ่าว']},
- guild:{n:'สมาคมนักผจญภัยนครวารี',o:'หัวหน้าสมาคมไลอ้อส',g:['สมาคมยินดีต้อนรับผู้กล้าระดับสูง','ดันเจี้ยนทางเหนือรอเจ้าอยู่'],l:['ล้มบอสดันเจี้ยนได้ แจ้งข้าด้วย']},
+ guild:{n:'สมาคมนักผจญภัยนครวารี',o:'หัวหน้าสมาคมกาเลน',g:['สมาคมยินดีต้อนรับผู้กล้าระดับสูง','ดันเจี้ยนทางเหนือรอเจ้าอยู่'],l:['ล้มบอสดันเจี้ยนได้ แจ้งข้าด้วย']},
  bank:{n:'ธนาคารพาณิชย์วารี',o:'นายธนาคารเพอร์ซิวาล',g:['ทองของท่านปลอดภัยที่สุดที่นี่','ฝากถอนรวดเร็วทันใจ'],l:['พ่อค้าทั้งอ่าวไว้ใจธนาคารเรา']},
  ware:{n:'คลังสินค้าท่าเรืออัสตรา',o:'ผู้ดูแลคลังดอร์แกน',g:['ของเยอะแค่ไหน คลังเราก็รับไหว','ฝากของไว้ได้เลย ล็อกแน่นหนา'],l:['คลังนี้เก็บสินค้ามาร้อยปีแล้ว']},
  fashion:{n:'ห้องเสื้อมาดามเซเรน่า',o:'มาดามเซเรน่า',g:['แฟชั่นล่าสุดจากเมืองท่า!','ผู้กล้าต้องดูดีด้วยนะ'],l:['ชุดของข้าใส่ลงดันเจี้ยนก็ยังสวย']}};
@@ -18894,6 +18894,10 @@ try{
    const em=shopEl.querySelector('.gempty');if(em&&/ไม่มีเควสบนบอร์ด/.test(em.textContent))em.textContent='รับเควสบนบอร์ดหมดแล้ว — เควสใหม่มาต้นชั่วโมงถัดไป'}catch(e){}return r};window.openGuild=openGuild}
  window.refresh125=()=>{if((inv.coin|0)<20){say('เหรียญไม่พอ');return}if(!qRefresh(1)){say('🔄 รีเฟรชครบ '+RMAX+' ครั้งในชั่วโมงนี้แล้ว — รอบอร์ดใหม่ต้นชั่วโมง');sfx('thud');return}inv.coin-=20;refreshInv();openGuild('board')};
 }catch(e){console.warn('fix125 guild',e)}
+// ---------- 3e) fix126: มือถือแนวนอน — กล่องบทสอน (#tut z26) และแชต (#chatBox z4) ทับหน้าต่างสถานะ (#chp z4) / กระเป๋า / ร้าน (z22) จนอ่านไม่ได้ ----------
+try{const st=document.createElement('style');st.textContent='#tut{z-index:19!important}#chp{z-index:23!important}';document.head.appendChild(st)}catch(e){}
+// ---------- 3f) fix126: เดินจากเมืองไปนครวารี ขึ้นข้อความ "ออกจากเมือง — ทุ่งหญ้าเอลโดเรีย" (ผิดที่) ----------
+try{const _c2=enterCity2;enterCity2=function(){const r=_c2.apply(this,arguments);setTimeout(()=>{try{if(inC2())say('⚓ นครวารีอัสตรา — เมืองท่าแห่งดันเจี้ยน · ประตูมิติดันเจี้ยนอยู่เกาะเหนือ · ผู้บัญชาการไลอ้อสอยู่กลางลาน')}catch(e){}},1600);return r};window.enterCity2=enterCity2}catch(e){}
 // ---------- 4) เนื้อเรื่องที่ไม่ตรงกับเกม ----------
 try{const F=t=>STCH.find(c=>c&&typeof c.t==='string'&&c.t.startsWith(t));
  // บท 13: บอสชั้น 100 ชื่อ "จักรพรรดิเงาแห่งห้วงลึก" ซ้ำกับ "จักรพรรดิเงา" บอสใหญ่ภาค 3 (บท 22–26 บอกว่าจักรพรรดิเงาคือผู้อยู่เบื้องหลัง "เงาแห่งห้วงลึก")

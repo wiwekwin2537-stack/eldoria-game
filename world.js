@@ -29,7 +29,10 @@ async function deliver(acct, item) { if (!acct) return; let m = null; try { m = 
   else H.send(p, { t: 'mail', list: [Object.assign({ ts: Date.now() }, item)] }); }
 function wbState() { const top = Object.values(S.wb.dmg).sort((a, b) => b.d - a.d).slice(0, 5).map(x => [x.n, Math.round(x.d)]);
   return { t: 'wb', on: S.wb.on, hp: Math.max(0, Math.round(S.wb.hp)), max: S.wb.max, end: S.wb.end, top, next: nextSlot(), n: Object.keys(S.wb.dmg).length }; }
-function wbSpawn(slot) { S.wb = { on: true, hp: WB_HP, max: WB_HP, start: Date.now(), end: Date.now() + WB_DUR, slot, dmg: {}, warned: S.wb.warned }; save();
+// fix126: เลือดบอสโลกตามจำนวนคนที่ร่วมตี — เริ่ม WB_PER×3 แล้วเพิ่ม WB_PER ต่อคนใหม่ สูงสุด WB_HP (15 คนขึ้นไป = เท่าเดิม)
+//   เดิมเลือดตายตัว 4.5 ล้าน (ออกแบบไว้ ~15 คน) → ช่วงเปิดเซิร์ฟคนน้อย ปราบไม่ได้ = เนื้อเรื่องบท 24 (ปราบบอสโลก 3 ครั้ง) ติดถาวร
+const WB_PER = Math.round(WB_HP / 15);
+function wbSpawn(slot) { S.wb = { on: true, hp: Math.min(WB_HP, WB_PER * 3), max: Math.min(WB_HP, WB_PER * 3), start: Date.now(), end: Date.now() + WB_DUR, slot, dmg: {}, warned: S.wb.warned }; save();
   H.broadcast({ t: 'sys', txt: '🐉 บอสโลก "มหาอสูรอัคคีเอลโดเรีย" ปรากฏแล้วที่ลานบอสโลก! มีเวลา 30 นาที — ทุกคนช่วยกันปราบ! (เมนู 🐉 บอสโลก)' }); H.broadcast(wbState()); }
 function lotsPublic() { return S.lots.map(l => ({ id: l.id, nm: l.nm, cur: l.cur, by: l.by || '', end: l.end, bids: l.bids || 0, it: l.item ? { k: l.item.k, id: l.item.id, e: l.item.e | 0, n: l.item.n | 0 } : null })); }
 function addLots(n) { const pool = LOOT.slice(); for (let i = 0; i < n && pool.length; i++) { const it = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
@@ -73,7 +76,7 @@ function onMsg(p, d, now) {
     case 'wbhit': { if (!S.wb.on || p.sc !== 'wboss' || !p.st || p.st.dead) return true;
       if (!p.wbw || now - p.wbw > 1000) { p.wbw = now; p.wbu = 0; } const cap = 800 + p.st.lv * 160 - (p.wbu || 0); if (cap <= 0) return true;
       const dmg = num(d.dmg, 0, cap); if (!dmg) return true; p.wbu += dmg;
-      const key = p.acct || ('g:' + p.name); const r = S.wb.dmg[key] || (S.wb.dmg[key] = { n: p.name, d: 0, acct: p.acct || null, id: p.id }); r.d += dmg; r.id = p.id; r.n = p.name;
+      const key = p.acct || ('g:' + p.name); if (!S.wb.dmg[key]) { const n = Object.keys(S.wb.dmg).length + 1; if (n > 3 && S.wb.max < WB_HP) { const add = Math.min(WB_PER, WB_HP - S.wb.max); S.wb.max += add; S.wb.hp += add; } } const r = S.wb.dmg[key] || (S.wb.dmg[key] = { n: p.name, d: 0, acct: p.acct || null, id: p.id }); r.d += dmg; r.id = p.id; r.n = p.name;
       S.wb.hp -= dmg; if (S.wb.hp <= 0) wbKill(); return true; }
     case 'wbgm': if (p.gm && !S.wb.on) wbSpawn('gm@' + now); return true;
     case 'alist': send(p, { t: 'alots', lots: lotsPublic() }); return true;
