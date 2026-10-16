@@ -17,6 +17,7 @@ const ACC = require('./accounts');
 const WORLD = require('./world');
 const PVP = require('./pvp');
 const PARTY = require('./party');
+const MARKET = require('./market'); /* v5.03 ตลาดกลาง + เทรด */
 const originOk = (o, host) => { if (!o || o === 'null' || o === 'file://') return true; if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) return true; try { return new URL(o).host === host; } catch (e) { return false; } };
 const server = http.createServer((req, res) => {
   if ((req.url || '').split('?')[0] === '/api/pvptop') { res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' }); res.end(JSON.stringify({ ok: true, list: PVP.top() })); return; }
@@ -106,9 +107,10 @@ wss.on('connection', (ws, req) => {
     } else if (d.t === 'pvpko') {
       if (PVP.ko(p, d.by)) return; const by = players.get(+d.by); if (by && by.sc === p.sc) broadcast({ t: 'sys', txt: '⚔️ ' + by.name + ' ล้ม ' + p.name + (p.sc === 'arena' ? ' ในสนามประลอง!' : ' ในการดวล PvP!') });
     } else if (PARTY.onMsg(p, d, now)) {
+    } else if (MARKET.onMsg(p, d, now)) {
     } else if (!PVP.onMsg(p, d, now)) WORLD.onMsg(p, d, now);
   });
-  ws.on('close', () => { PARTY.onClose(p); PVP.onClose(p); WORLD.onClose(p); ipCount.set(ip, Math.max(0, (ipCount.get(ip) || 1) - 1)); players.delete(id); broadcast({ t: 'gone', id }); if (p.joined) broadcast({ t: 'sys', txt: p.name + ' ออกจากเกม' }); });
+  ws.on('close', () => { MARKET.onClose(p); PARTY.onClose(p); PVP.onClose(p); WORLD.onClose(p); ipCount.set(ip, Math.max(0, (ipCount.get(ip) || 1) - 1)); players.delete(id); broadcast({ t: 'gone', id }); if (p.joined) broadcast({ t: 'sys', txt: p.name + ' ออกจากเกม' }); });
   ws.on('error', () => {});
 });
 // v4.47: ส่งเฉพาะผู้เล่นใกล้ ๆ (AOI) — แต่ละคนได้รายชื่อคนในรัศมี AOI_R (สูงสุด AOI_MAX คนที่ใกล้สุด) + เพื่อนปาร์ตี้เสมอ
@@ -138,6 +140,7 @@ setInterval(() => { for (const p of players.values()) { if (!p.alive) { p.ws.ter
 WORLD.init({ players, send, broadcast, ACC, clean, num });
 PVP.init({ players, send, broadcast, clean, num });
 PARTY.init({ players, send, clean, num, filt, findByName });
+MARKET.init({ players, send, ACC, clean, num, findByName });
 ACC.setTopHook((n, who, baht) => { for (const p of players.values()) if (p.gm && p.joined) send(p, { t: 'gmtop', n, who, baht }); });
 ACC.setGuildHook((lid, g) => { for (const p of players.values()) if (p.acct === lid) { p.gid = g ? g.id : ''; p.gtag = g ? g.tag : ''; p.gname = g ? g.name : ''; send(p, { t: 'gupd', g }); } });
 // เปิดหน้าเกมที่ Render → ส่งไปเวอร์ชันล่าสุดบน GitHub Pages (ไม่ต้อง Deploy Render ทุกครั้งที่อัปเดตเกม)

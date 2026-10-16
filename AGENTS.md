@@ -36,6 +36,7 @@
 | `accounts.js` | บัญชี / เซฟ / ตารางอันดับ / กิลด์ / เหรียญแฟชั่น |
 | `world.js` | บอสโลก / ประมูล / แผงร้านผู้เล่น |
 | `pvp.js` · `party.js` | PvP · ปาร์ตี้ |
+| `market.js` | 🏪 ตลาดกลาง + 🤝 เทรด (ของฝากเซิร์ฟเวอร์ · ส่งของผ่านจดหมาย) — เพิ่มชนิดของใหม่ที่ `KINDS` + `MKK130` ในเกม |
 
 ## 5. 🔧 กฎการแก้โค้ด
 
@@ -47,7 +48,7 @@
 - ทุกครั้งที่ทำเวอร์ชันใหม่: เปลี่ยนเลขใน `<title>` ของ `index.html` และ `const C='eldoria-vXXX'` ใน `sw.js`
 
 **ตรวจก่อนส่งงานทุกครั้ง:**
-- `node --check server.js accounts.js world.js pvp.js party.js sw.js`
+- `node --check server.js accounts.js world.js pvp.js party.js market.js sw.js`
 - เช็กทุก `<script>` ใน `index.html` ด้วย `new Function(...)` ต้องไม่มี error
 - บอทตรวจในเกม: `SystemValidator.runFullGamePlaytest()` ต้องได้ `bugs: []`
 
