@@ -10641,7 +10641,7 @@ const TREEPAL15={treeE:['#5a3a1e','#3a6a3a','#6ab86a','rgba(200,255,230,.25)'],t
 // ---------- มอนในแมพใหม่: ดรอปไม้ วัตถุดิบหายาก และเครื่องมือ ----------
 {const _mk=mobKill;mobKill=function(m){const r=_mk(m);try{const Zd=D&&D.zone&&D.zone.Zd,nz=Zd&&NZ15.find(q=>q.id===Zd.id);if(!nz||m.wb10)return r;
   if(Math.random()<(m.boss?1:.25))for(let i=0;i<(m.boss?4:1);i++)addDrop(nz.raw,m.x,m.y);if(Math.random()<(m.boss?1:m.elite?.6:.15))for(let i=0;i<(m.boss?5:1);i++)addDrop(nz.ing,m.x,m.y);
-  if(Math.random()<(m.boss?.5:.02)){const t=Math.min(5,2+NZ15.indexOf(nz)+(m.boss?1:0)),id=(Math.random()<.5?'axe':'pick')+t;GEAR[id]=(GEAR[id]|0)+1;try{refreshInv()}catch(_){}say('🎁 '+m.nm+' ทิ้ง '+ITEMS[id].name+'!');sfx('chest')}}catch(e){}return r}}
+  if(Math.random()<(m.boss?.5:.02)){/* fix124: เดิมระดับเครื่องมือ = ลำดับแมพในรายการ (2+index) → แมพที่เพิ่มทีหลัง (ป่าละเมาะ/ลำธาร/ป่าสน Lv.12–32) ดรอปขวาน/ที่ขุด "เพชร" ระดับสูงสุด ทั้งที่ปกติต้อง Lv.80 + ตำราช่าง = ข้ามการคราฟทั้งหมด → คิดจากเลเวลแมพ: ได้ระดับที่ผู้เล่นเลเวลนั้นคราฟได้อยู่แล้ว (ตำราช่าง Lv.5/20/40/60/80) · บอส +1 ระดับ */const zl=((nz.lv&&nz.lv[0])|0),ct=[1,2,3,4,5].filter(n=>SMQ[n]&&zl>=(SMQ[n].lv|0)).length,t=Math.max(1,Math.min(5,ct+(m.boss?1:0))),id=(Math.random()<.5?'axe':'pick')+t;GEAR[id]=(GEAR[id]|0)+1;try{refreshInv()}catch(_){}say('🎁 '+m.nm+' ทิ้ง '+ITEMS[id].name+'!');sfx('chest')}}catch(e){}return r}}
 
 // =====================================================================
 // fix16.js (v4.24) — แยกโซนแบบเดินต่อกัน: เมือง → ทุ่งหญ้า(ป่าแมพแรก) → ซ้าย: ป่าหมอกโบราณ · บนสุด: หุบเขาภูเขาไฟ → ถ้ำเงามืด
