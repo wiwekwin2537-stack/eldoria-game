@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192.png"><meta name="eldoria-server" content="wss://eldoria-online.onrender.com">
-<title>ตำนานเอลโดเรีย v5.07</title>
+<title>ตำนานเอลโดเรีย v5.08</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
@@ -20560,6 +20560,82 @@ try{if(window.REG136)REG136.push(
    catch(e){bad.push('error '+e.message)}finally{ctx=s0;P.cls=sv.cls;P.armor.sword=sv.w;P.tool=sv.tool;P.draw=sv.draw;P.at=sv.at;FASH.wpn=sv.fw;P.tier.sword=sv.tier}
    return bad.length?'ไม่มีออร่า: '+bad.join(', '):null}]);}catch(e){}
 }catch(e){console.warn('fix151',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix152 (v5.08) — 👗 ผู้เล่นคนอื่นไม่เห็นชุดแฟชั่นของเรา (เจ้าของแจ้ง 2026-10-17: "จอผมเห็นเป็นชุดคราฟ จอเขาเป็นแฟชั่น")
+//  ต้นเหตุ: ชุดแฟชั่น (ผ้าคลุม/หมวก/สีเสื้อ/ซ่อนชุดเกราะ — fix6) ห่อไว้ที่ hero() ซึ่งวาดเฉพาะตัวเรา
+//   ผู้เล่นคนอื่นวาดผ่าน drawOther → heroBody() ตรง ๆ เลยข้ามชุดแฟชั่นทั้งหมด (ข้อมูลแฟชั่นส่งมาถึงแล้วใน o.fx.fb แต่ไม่ถูกใช้)
+//   แถม: ถ้าเราใส่แฟชั่นอยู่ ประกาย/ออร่าตีบวกของคนอื่น (fix100/fix150) ไปอ่าน "ชุดของเรา" แทนชุดเขา
+//  แก้ (ฝั่งเกมอย่างเดียว ไม่แตะเซิร์ฟเวอร์): ตอนวาดคนอื่น ถ้าเขาใส่แฟชั่น → วาดแบบเดียวกับตัวเรา (ผ้าคลุม · ซ่อนชุดเกราะ · หมวก · สีชุด)
+//   · เอฟเฟคตีบวกของคนอื่นอ่านจากชุดหลักของเขาเอง
+// =====================================================================
+try{
+const SL152=['helm','chest','pants','arm'];
+let OTH152=null;
+{const _do=drawOther;drawOther=function(o){const sv=OTH152;try{OTH152={o,a:null}}catch(e){}try{return _do.apply(this,arguments)}finally{OTH152=sv}};window.drawOther=drawOther}
+/* ชุดแฟชั่นของคนอื่น */
+{const _hb=heroBody;heroBody=function(){const O=OTH152;
+  if(!(O&&window.__IN_OTHER8)||P.dead)return _hb.apply(this,arguments);
+  if(!O.a)O.a={helm:P.armor.helm,chest:P.armor.chest,pants:P.armor.pants,arm:P.armor.arm};
+  const F=FASH.body&&OUTFIT[FASH.body];if(!F)return _hb.apply(this,arguments);
+  const t=performance.now()/1000,d=P.dir,side=d==='l'||d==='r',f=d==='l'?-1:1,fx=O.o&&O.o.fx,mounted=!!(fx&&fx.mo);
+  try{if(d!=='u')drawCape(F,f,side,d,t)}catch(e){}
+  const sv={},on=window._fashOn;for(const s of SL152){sv[s]=P.armor[s];P.armor[s]=null}window._fashOn=1;
+  let r;try{r=_hb.apply(this,arguments)}finally{Object.assign(P.armor,sv);window._fashOn=on}
+  try{if(d==='u')drawCape(F,f,side,d,t);if(!mounted)drawHat(F,f,side,d,t)}catch(e){}
+  return r};window.heroBody=heroBody}
+/* เอฟเฟคตีบวกของคนอื่น = ชุดหลักของเขา (ไม่ใช่ของเรา) */
+function oth152(fn,self,args){const O=OTH152;if(!(O&&window.__IN_OTHER8&&O.a))return fn.apply(self,args);
+ const sv={},on=window._fashOn;for(const s of SL152)sv[s]=P.armor[s];Object.assign(P.armor,O.a);window._fashOn=0;
+ try{return fn.apply(self,args)}finally{Object.assign(P.armor,sv);window._fashOn=on}}
+for(const nm of ['eqGlitter','armorAura','info60']){try{const f=window[nm];if(typeof f!=='function')continue;const w=function(){return oth152(f,this,arguments)};window[nm]=w;eval(nm+'=w')}catch(e){console.warn('[fix152]',nm,e.message)}}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['ผู้เล่นคนอื่นเห็นชุดแฟชั่นของเรา (fix152)',async()=>{const body=['pirate','night'].find(k=>OUTFIT[k]);if(!body)return null;
+   const mk=fb=>({t:'snap',on:2,h:0,ps:[{id:991152,name:'ทดสอบ',x:P.x+40,y:P.y,dir:'d',at:-1,tool:'sword',armor:{helm:'helm5',chest:'chest5',pants:'pants5',arm:'arm5'},tier:{sword:5},lv:50,cls:'sword',fx:{e:{},rn:null,fw:'',fb,m:'',mo:false},q:0}]});
+   const shot=()=>{const o=NET.others.get(991152);if(!o)return 'no';const c=document.createElement('canvas');c.width=c.height=120;const s0=ctx;ctx=c.getContext('2d');ctx.translate(60-o.x,100-o.y);try{drawOther(o)}finally{ctx=s0}return c.toDataURL()};
+   let bad=null;try{netMsg(mk(''));const a=shot();netMsg(mk(body));const b=shot();if(a===b)bad='ใส่แฟชั่นแล้วคนอื่นยังเห็นชุดคราฟ'}
+   catch(e){bad='error '+e.message}finally{try{NET.others.delete(991152)}catch(e){}}return bad}]);}catch(e){}
+}catch(e){console.warn('fix152',e)}
+</script>
+
+
+<script>
+// =====================================================================
+// fix153 (v5.08) — 🪓 ขวาน/ที่ขุดดรอปจนกระเป๋าล้น (เจ้าของแจ้ง 2026-10-17: ผู้เล่น Lv.200 กระเป๋าเต็ม 56/56 น้ำหนักเกิน 722/632 เกือบทั้งหมดเป็นขวานซ้ำ)
+//  ต้นเหตุ: มอนในแมพป่า/ถ้ำ (fix15 + fix124) ดรอปเครื่องมือ 2% ทุกตัว (บอส 50%) แล้วยัดเข้า GEAR ตรง ๆ
+//   · ไม่ดูว่ามีอยู่แล้ว (ได้ระดับเดิมซ้ำไปเรื่อย ๆ) · ไม่ดูช่องกระเป๋า/น้ำหนัก → ฟาร์มนาน ๆ หรือออโต้ฟาร์มได้ขวานเป็นสิบ ๆ อัน
+//   (fix31 เคยแก้ให้มอนเลิกดรอปแร่/ไม้/แท่งแร่ แต่เครื่องมือยังค้างอยู่)
+//  แก้ (เฉพาะจุด ห่อ mobKill ชั้นนอกสุด): เครื่องมือดรอปได้ "เฉพาะเมื่อดีกว่าที่มีอยู่" (ระดับสูงกว่าขวาน/ที่ขุดที่ดีที่สุดในกระเป๋า)
+//   · ถ้ามีระดับนั้นหรือดีกว่าแล้ว → ไม่ดรอป ไม่ขึ้นข้อความ · อัตราดรอปและของอย่างอื่นเหมือนเดิม
+//   · ขวานที่ผู้เล่นมีอยู่แล้วไม่ถูกลบ (ขายทิ้ง/ทิ้งเองได้ตามเดิม)
+// =====================================================================
+try{
+const best153=k=>{let b=-1;for(const id in GEAR){if((GEAR[id]|0)<=0)continue;const it=ITEMS[id];if(it&&it.kind===k)b=Math.max(b,it.tier|0)}try{if(P.tier&&P.tier[k]!=null&&Object.keys(GEAR).some(i=>ITEMS[i]&&ITEMS[i].kind===k&&(GEAR[i]|0)>0))b=Math.max(b,P.tier[k]|0)}catch(e){}return b};
+const toolIds153=()=>Object.keys(ITEMS).filter(id=>ITEMS[id]&&(ITEMS[id].kind==='axe'||ITEMS[id].kind==='pick'));
+/* ตัดสินว่าเครื่องมือที่เพิ่งได้ ควรเก็บไหม: เก็บเฉพาะระดับที่สูงกว่าของดีสุดที่มีก่อนหน้า (ชนิดละ 1 ชิ้น) */
+function keep153(before,gained){const out={};const best={axe:before.axe,pick:before.pick};
+ for(const id of Object.keys(gained).sort((a,b)=>(ITEMS[b].tier|0)-(ITEMS[a].tier|0))){const it=ITEMS[id],k=it.kind;if((it.tier|0)>best[k]&&!out[k]){out[k]=id;best[k]=it.tier|0}}
+ return Object.values(out)}
+window.keep153=keep153;
+{const _mk=mobKill;mobKill=function(m){
+  const ids=toolIds153(),c0={};for(const id of ids)c0[id]=GEAR[id]|0;const before={axe:best153('axe'),pick:best153('pick')};
+  const mel=document.getElementById('msg'),m0=mel?mel.textContent:'';
+  const r=_mk.apply(this,arguments);
+  try{const gained={};for(const id of ids){const d=(GEAR[id]|0)-c0[id];if(d>0)gained[id]=d}
+   if(Object.keys(gained).length){let keep=[];try{keep=keep153(before,gained)}catch(e){keep=Object.keys(gained)}
+    const drop=Object.keys(gained).filter(id=>!keep.includes(id));
+    for(const id of Object.keys(gained))GEAR[id]=c0[id]+(keep.includes(id)?1:0);
+    if(drop.length){const names=drop.map(id=>ITEMS[id].name);if(mel&&names.some(n=>mel.textContent.includes('ทิ้ง '+n)))mel.textContent=m0;try{refreshInv()}catch(e){}}}}catch(e){}
+  return r};window.mobKill=mobKill}
+/* REG136 */
+try{if(window.REG136)REG136.push(
+ ['ขวาน/ที่ขุดดรอปเฉพาะเมื่อดีกว่าที่มี (fix153)',async()=>{const a=keep153({axe:3,pick:-1},{axe2:1,axe3:1,pick2:1});if(a.length!==1||a[0]!=='pick2')return 'ยังเก็บขวานระดับเดิม/ต่ำกว่าเข้ากระเป๋า: '+a.join(',');
+   const b=keep153({axe:3,pick:5},{axe4:1});if(b.join()!=='axe4')return 'ขวานระดับสูงกว่าไม่ได้เก็บ';return null}]);}catch(e){}
+}catch(e){console.warn('fix153',e)}
 </script>
 
 </body>
