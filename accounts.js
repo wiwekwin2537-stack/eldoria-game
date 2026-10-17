@@ -65,8 +65,8 @@ const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
 /* v5.09: เสกเลเวล 150 ครั้งเดียว ให้ไอดีที่สมัครก่อน 2026-10-19 00:00 (เวลาไทย) — ช่วงเทสหาบัค (เจ้าของสั่ง 2026-10-17) */
 const B150_UNTIL = Date.parse(process.env.B150_UNTIL || '2026-10-26T00:00:00+07:00'); /* ต่อเวลาเป็น 26 ต.ค. — หรือตั้ง env B150_UNTIL เช่น 2026-11-01T00:00:00+07:00 โดยไม่ต้องแก้โค้ด */
 function b150ok(rec) { return !!rec.newbie150 || (rec.created || 0) < B150_UNTIL; }
-/* เสกเมื่อถึงเลเวล 5: มีสิทธิ์ต่อเมื่อเลเวลปัจจุบัน 5–149 และยังไม่เคยรับ · ปรับเลข B150_MIN ได้ด้วย env */
-const B150_MIN = +process.env.B150_MIN || 5;
+/* เสกเมื่อถึงเลเวล 7: มีสิทธิ์ต่อเมื่อเลเวลปัจจุบัน 7–149 และยังไม่เคยรับ · ปรับเลข B150_MIN ได้ด้วย env */
+const B150_MIN = +process.env.B150_MIN || 7;
 const b150can = rec => !rec.b150 && (rec.lv | 0) >= B150_MIN && (rec.lv | 0) < 150 && b150ok(rec);
 function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
