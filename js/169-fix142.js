@@ -1,0 +1,2 @@
+// fix142 (v5.03) — 🤖 ออโต้ฟาร์ม: ใช้สกิล 1-2-3 ก่อนแบบเดิม (ลื่น) แล้วค่อย 4-5-6 · ไม่กดสกิลวาร์ปล้วน · กดฮีล 💚 เยียวยา เมื่อเลือด < 55% (รวมตอนถอยหนี) — แก้ใน skill110 (fix110) + ตัวกดฮีลนี้
+try{setInterval(()=>{try{if(!AUTO.on||P.dead||PAUSED||P.hp>=BAL.hp*.55||!SK.own[2]||P.mp<15||P.cls==='none')return;const hb=gid('sk4');if(hb&&hb.style.display!=='none')hb.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}))}catch(e){}},400)}catch(e){console.warn('fix142',e)}

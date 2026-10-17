@@ -1,0 +1,2 @@
+// fix133 (v5.03) — ไอดีเดียวกันเข้าเล่นจากเครื่องใหม่ → เครื่องเก่าโดนเตะทันที (เดิมรอจนเซฟรอบถัดไป ~15 วิ)
+try{{const _nm=netMsg;netMsg=function(d){try{if(d&&d.t==='dupe'){try{ON10.auth=false}catch(e){}try{ONL32.kick('⚠️ บัญชีนี้ถูกเข้าเล่นจากอีกเครื่อง — เข้าสู่ระบบใหม่เพื่อโหลดข้อมูลล่าสุด')}catch(e){location.reload()}return}}catch(e){}return _nm.apply(this,arguments)};window.netMsg=netMsg}}catch(e){console.warn('fix133',e)}

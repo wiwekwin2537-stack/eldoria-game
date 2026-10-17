@@ -1,0 +1,42 @@
+// =====================================================================
+// fix136 (v5.03) — 🛡️ เช็กกันถอยหลัง (regression) ต่อท้าย SystemValidator.runFullGamePlaytest()
+//  ทุกเรื่องที่เคยแก้ไปแล้ว ต้องมีเช็กอยู่ใน REG136 → แก้อันใหม่แล้วอันเก่าพัง บอทจะฟ้องทันที (module:'regression')
+//  ⚠️ AI ทุกตัว: แก้บัคเสร็จ ให้เพิ่มเช็กของเรื่องนั้นลง REG136 ด้วย (ชื่อ + ฟังก์ชันคืน null = ผ่าน / ข้อความ = พัง)
+// =====================================================================
+try{
+const sl=ms=>new Promise(r=>setTimeout(r,ms));
+const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(f())return true}catch(e){}await sl(120)}return false};
+const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
+const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
+const REG136=[
+ ['เมนูหลักมีตลาด/เทรด/จดหมาย และไม่มีเมนูคุณสมบัติซ้ำ',async()=>{const n=PM7.map(m=>m[1]);if(!n.includes('ตลาดกลาง'))return 'ไม่มีปุ่มตลาดกลาง';if(n.includes('เทรด'))return 'ปุ่มเทรดกลับมาในเมนู (ต้องเทรดแบบเจอตัวเท่านั้น)';if(n.includes('คุณสมบัติ'))return 'เมนูคุณสมบัติกลับมาซ้ำกับหน้าสถานะ';return null}],
+ ['เวลาเซิร์ฟเวอร์ srvNow',async()=>typeof srvNow==='function'&&isFinite(srvNow())?null:'srvNow หาย'],
+ ['หน้าสถานะ: คุณสมบัติ + ช่องถอดชุดอยู่ใต้ตัวละคร',async()=>{openChar();await sl(300);const ok=gid('chst128')&&gid('chpick')&&gid('chpick').parentNode===chp.querySelector('.chr');chSlot('helm');await sl(150);const has=/ถอด|สวมใส่|ว่าง|ยังไม่มี/.test(gid('chpick').textContent);toggleChar();return ok&&has?null:'แผงคุณสมบัติ/ช่องถอดชุดหาย'}],
+ ['ตลาดกลาง/เทรด เปิดหน้าต่างได้',async()=>{try{openMk130('buy');await sl(200);const a=!mkW130.hidden&&/ตลาดกลาง/.test(mkW130.textContent);p6close(mkW130);openTr130();await sl(150);const b=!trW130.hidden&&/เทรด/.test(trW130.textContent);p6close(trW130);return a&&b?null:'หน้าต่างตลาด/เทรดไม่ขึ้น'}catch(e){return 'error '+e.message}}],
+ ['ชนิดของในตลาด (MKK130) ครบ',async()=>window.MKK130&&MKK130.mat&&MKK130.gear&&typeof MKK130.gear.peek==='function'?null:'ทะเบียนชนิดของหาย'],
+ ['ค่าหลบหลีก: Lv สูงหลบมอนเลเวลต่ำ',async()=>{const lv=P.lv;P.lv=150;const d=dodge129({L:1});const b=dodge129({L:1,pvp7:1});P.lv=lv;return d>=.6&&b===0?null:'หลบ='+d+' pvp='+b}],
+ ['อัลติเมทประจำอาชีพ (ไม่ซ้ำท่าดาบ/เวท) + เพดานดาเมจ',async()=>{if(!window.UCAP128)return 'ไม่มีเพดานดาเมจอัลติ';const c0=P.cls,bad=[];try{for(const c of ['ninja','cleric','sniper']){if(!NEWU73[c])continue;P.cls=c;FX73.length=0;ultFire(BASEU28[c]);if(!FX73.length)bad.push(c)}}finally{P.cls=c0;FX73.length=0;try{ULT.fx.length=0}catch(e){}}return bad.length?'อาชีพที่ได้ท่าแม่แบบแทน: '+bad.join(','):null}],
+ ['ปุ่มสกิลที่ยังไม่เรียนโชว์รูป+ล็อก',async()=>{const L=[...document.querySelectorAll('#acts .sk.lock')].filter(b=>b.getAttribute('aria-label')&&b.getAttribute('aria-label')!=='null');if(!L.length)return null;await sl(400);return L.every(b=>b.style.backgroundImage)?null:'สกิลล็อกไม่มีรูป'}],
+ ['หินล็อกออป (ไอเท็มใหม่)',async()=>INVMETA.lock130&&typeof lkTog131==='function'?null:'หินล็อกออปหาย'],
+ ['ผู้นำทางสองพี่น้อง + ไปได้เฉพาะที่เคยไป',async()=>{await toTown();await sl(1200);const g=D&&D.npcs&&D.npcs.find(n=>n.c2warp);if(!g||!/อาร์เทน/.test(g.name))return 'ไม่พบอาร์เทน ผู้นำทาง (เจอ '+(g&&g.name)+')';
+   const sv=Object.assign({},window.VISIT134);for(const k in VISIT134)delete VISIT134[k];guide134(g);await sl(200);const n0=DLG.ch.length;dlgClose(true);Object.assign(VISIT134,sv);guide134(g);await sl(200);const n1=DLG.ch.length;dlgClose(true);
+   return n0<=3&&n1>=n0?null:'จำนวนที่ไปได้ไม่ตรงกับที่เคยไป ('+n0+'/'+n1+')'}],
+ ['ออกจากลานผนึก → กลับหอผนึกอสูร',async()=>{await toTown();enterShop('seal113');await sl(600);const lv=P.lv;P.lv=Math.max(P.lv,120);const c=inv.coin;inv.coin=Math.max(c,1e6);try{enter62(0)}catch(e){}P.lv=lv;const ok=await until(()=>in62(),6000);inv.coin=c;if(!ok)return null;await sl(800);leave62();await until(()=>!in62(),8000);await sl(1500);const w=where();await toTown();return w==='shop:seal113'?null:'ออกมาที่ '+w}],
+ ['ประตูมิติบอสโลกไม่กระพริบตามตัวละคร',async()=>{await toTown();try{exitD()}catch(e){}await sl(400);P.x=WBG64.x+60;P.y=WBG64.y+40;const al=new Set(),pr=CanvasRenderingContext2D.prototype,_ft=pr.fillText;pr.fillText=function(t){if(/ประตูมิติบอสโลก/.test(t)&&this.canvas.isConnected)al.add(this.globalAlpha);return _ft.apply(this,arguments)};
+   try{P.iframe=1.2;await sl(500)}finally{pr.fillText=_ft;P.iframe=0}return [...al].every(a=>a>.99)?null:'alpha='+[...al].join(',')}],
+];
+REG136.push(
+ ['บ้านของคุณ: สร้าง/อัปเกรดได้ในเมือง (ไม่มีทางตันไปที่ดิน)',async()=>{if(typeof houseBuild137!=='function')return 'ไม่มีเมนูสร้างบ้านในเมือง';const t0=DLG.open;try{openLife('house')}catch(e){return 'error '+e.message}await sl(150);const ok=DLG.open&&/บ้านของคุณ|ซ่อมแซม|อัปเกรด|ดีที่สุด/.test(DLG.txt)&&!/ที่ดินผู้กล้าก่อน/.test(DLG.txt);dlgClose(true);return ok?null:'เมนูสร้างบ้านยังพาไปที่ดิน'}],
+ ['บ้านพักชาวเมือง: ครอบครัว A/B นอนบ้านพัก (ไม่ใช่โรงเตี๊ยม)',async()=>{const H=window.HOMES81;return H&&H.A.door==='ware'&&H.B.door==='ware'&&SHOP_DATA.ware.name==='บ้านพักชาวเมือง'?null:'ประตูบ้าน='+(H&&H.A.door)+' ชื่อ='+SHOP_DATA.ware.name}],
+ ['ค่าเดินทางผู้นำทางตามรายได้ (ไม่ถูกเกิน)',async()=>{const F=window.FEE137;if(!F)return 'ไม่มีสูตรค่าเดินทาง';const lv=P.lv;P.lv=150;const a=F.feeNear(),c=F.feeCross();P.lv=lv;return a>=1000&&c>=5000?null:'Lv150 ค่าใกล้='+a+' ข้ามเมือง='+c}],
+ ['เมนูหลักจัด 4 หมวด + มีหน้าแนะนำการพัฒนา',async()=>{try{pmRender7()}catch(e){}const h=[...pm7.querySelectorAll('.gh139')].map(x=>x.textContent);if(h.length<4)return 'หัวข้อหมวด='+h.length;if(!PM7.some(m=>m[1]==='แนะนำ'))return 'ไม่มีปุ่มแนะนำ';if(PM7.some(m=>m[1]==='จอย'))return 'ปุ่มจอยยังซ้ำในเมนูหลัก';try{openAdv140();await sl(150);const ok=!advW140.hidden&&/ตอนนี้ควรทำ/.test(advW140.textContent);p6close(advW140);return ok?null:'หน้าแนะนำไม่ขึ้น'}catch(e){return 'error '+e.message}}],
+ ['ค่าตีบวกตามระดับไอเท็ม',async()=>{const sv=ENHS.sel;try{ENHS.sel='sword1';const a=ENHCFG.cost(5).gold;ENHS.sel='sword10';const b=ENHCFG.cost(5).gold;return b>=a*4?null:'ระดับ1='+a+' ระดับ10='+b}finally{ENHS.sel=sv}}],
+ ['แผงร้านพาไปตลาดกลาง + บทที่ 15 นับตลาดกลาง',async()=>{const c=STCH.find(c=>c&&c.t&&c.t.indexOf('บทที่ 15:')===0);if(c&&!/ตลาดกลาง/.test(c.d))return 'บท 15 ยังไม่พูดถึงตลาดกลาง';try{window.stallGo10();await sl(200);const ok=!mkW130.hidden;p6close(mkW130);return ok?null:'เปิดแผงแล้วไม่พาไปตลาดกลาง'}catch(e){return 'error '+e.message}}],
+ ['ข้อความ/คู่มือไม่พูดถึงที่ดินผู้กล้าแล้ว',async()=>{try{openGuide77()}catch(e){}await sl(300);const g=gid('gb66');const bad=g&&/ที่ดินผู้กล้า/.test(g.innerText);try{p6close(g)}catch(e){}return bad?'คู่มือยังมีที่ดินผู้กล้า':null}]);
+window.REG136=REG136;
+{const _run=SystemValidator.runFullGamePlaytest;SystemValidator.runFullGamePlaytest=async function(opt){const R=await _run.apply(this,arguments);
+  const sv={cls:P.cls,lv:P.lv,coin:inv.coin},god=window.GM7&&GM7.god;try{if(window.GM7)GM7.god=true}catch(e){}const out=[];
+  for(const [name,fn] of REG136){let m=null;try{m=await fn()}catch(e){m='error '+e.message}if(m){const b={module:'regression',type:'regression',scene:where(),detail:name+' — '+m,sev:'major'};out.push(b);try{R.bugs.push(b)}catch(e){}}}
+  try{P.cls=sv.cls;P.lv=sv.lv;inv.coin=sv.coin;recalcStats();refreshInv()}catch(e){}try{if(window.GM7)GM7.god=god}catch(e){}try{await toTown()}catch(e){}
+  try{R.regression={checks:REG136.length,fail:out.length}}catch(e){}return R};window.SystemValidator=SystemValidator}
+}catch(e){console.warn('fix136',e)}
