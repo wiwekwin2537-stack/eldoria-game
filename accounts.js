@@ -34,7 +34,12 @@ const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g,
 const ID_RE = /^[A-Za-z0-9_ก-๙]{3,16}$/;
 const ipHits = new Map();
 const ipOk = ip => { const now = Date.now(), a = (ipHits.get(ip) || []).filter(t => now - t < 60000); a.push(now); ipHits.set(ip, a); if (ipHits.size > 5000) ipHits.clear(); return a.length <= 40; };
-async function authToken(rec, token) { if (!rec || !token) return false; const h = sha(token), now = Date.now(); return (rec.tokens || []).some(t => t.h === h && t.exp > now); }
+/* บังคับล็อกอินใหม่: โทเคนที่ออกก่อนเวลานี้ใช้ไม่ได้ (ผู้เล่นจะถูกเด้งออกแล้วต้องล็อกอินใหม่ 1 ครั้ง) · เปลี่ยนเวลาได้ด้วย env FORCE_RELOGIN_AFTER เช่น 2026-10-18T12:00:00+07:00 */
+const FORCE_RELOGIN = Date.parse(process.env.FORCE_RELOGIN_AFTER || '2026-10-17T20:40:00+07:00') || 0;
+/* FORCE_RELOGIN_NAMES = รายชื่อที่จะถูกเด้ง คั่นด้วยคอมมา (ใส่ไอดีหรือชื่อตัวละครก็ได้ เช่น tiksi,นักรบ01) · เว้นว่าง = เด้งทุกคน */
+const FORCE_NAMES = (process.env.FORCE_RELOGIN_NAMES || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+const forced = rec => !FORCE_NAMES.length || FORCE_NAMES.includes(String(rec.id || '').toLowerCase()) || FORCE_NAMES.includes(String(rec.name || '').toLowerCase());
+async function authToken(rec, token) { if (!rec || !token) return false; const h = sha(token), now = Date.now(), fr = forced(rec); return (rec.tokens || []).some(t => t.h === h && t.exp > now && (!fr || (t.exp - 90 * 864e5) >= FORCE_RELOGIN)); }
 function newToken(rec) { const t = crypto.randomBytes(24).toString('hex'); rec.tokens = (rec.tokens || []).filter(x => x.exp > Date.now()).slice(-7); rec.tokens.push({ h: sha(t), exp: Date.now() + 90 * 864e5 }); return t; }
 // ---------- ตารางอันดับ (เก็บรวมเป็นเอกสารเดียว: Upstash key eld:lb หรือไฟล์ data/lb.json) ----------
 const LB = { map: {}, dirty: false, loaded: null };
@@ -60,6 +65,9 @@ const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
 /* v5.09: เสกเลเวล 150 ครั้งเดียว ให้ไอดีที่สมัครก่อน 2026-10-19 00:00 (เวลาไทย) — ช่วงเทสหาบัค (เจ้าของสั่ง 2026-10-17) */
 const B150_UNTIL = Date.parse(process.env.B150_UNTIL || '2026-10-26T00:00:00+07:00'); /* ต่อเวลาเป็น 26 ต.ค. — หรือตั้ง env B150_UNTIL เช่น 2026-11-01T00:00:00+07:00 โดยไม่ต้องแก้โค้ด */
 function b150ok(rec) { return !!rec.newbie150 || (rec.created || 0) < B150_UNTIL; }
+/* เสกเมื่อถึงเลเวล 5: มีสิทธิ์ต่อเมื่อเลเวลปัจจุบัน 5–149 และยังไม่เคยรับ · ปรับเลข B150_MIN ได้ด้วย env */
+const B150_MIN = +process.env.B150_MIN || 5;
+const b150can = rec => !rec.b150 && (rec.lv | 0) >= B150_MIN && (rec.lv | 0) < 150 && b150ok(rec);
 function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
 
@@ -191,7 +199,7 @@ async function handle(path_, d, ip) {
     const rec = { id, name: clean(d.name, 14), salt, hash: await hashPw(pw, salt), created: Date.now(), rev: 0, lv: 0, upd: 0, save: '', bak: '', tokens: [], gem: 1000, newbie150: 1, gm: GM_IDS.includes(lid) };
     gemLog(rec, 1000, 'signup'); const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
     /* ส่ง b150 กลับตอนสมัครด้วย — เดิมคืนแค่ token ทำให้ไคลเอนต์ไม่รู้ว่ามีสิทธิ์เสก Lv.150 (ได้แต่เหรียญ) จนกว่าจะล็อกอินใหม่ */
-    return { ok: true, token, rev: 0, name: rec.name, lv: 0, gem: rec.gem, b150: true };
+    return { ok: true, token, rev: 0, name: rec.name, lv: 0, gem: rec.gem, b150: false };
   }
   const rec = await dbGet(lid);
   if (path_ === '/api/login') {
@@ -200,7 +208,7 @@ async function handle(path_, d, ip) {
     const h = await hashPw(d.pw || '', rec.salt);
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { lk.n++; if (lk.n >= 8) { lk.t = Date.now() + Math.min(900, 20 * Math.pow(2, lk.n - 8)) * 1000; } lockTbl.set(lid, lk); return { err: 'badpw' }; }
     lockTbl.delete(lid); const token = newToken(rec); await dbSet(lid, rec);
-    return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
+    return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: b150can(rec) };
   }
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
   if (path_ === '/api/save') {
@@ -210,7 +218,7 @@ async function handle(path_, d, ip) {
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
-    const b150 = !rec.b150 && lv0 < 150 && rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
+    const b150 = !rec.b150 && lv0 >= B150_MIN && lv0 < 150 && rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
     if (b150) { } else if (up >= 40) rec.flag = Math.max(2, (rec.flag | 0) + 2); /* v5.08: เลเวลกระโดด 40+ ในเซฟเดียว (เกมเซฟทุก 15 วิ เล่นจริงขึ้นไม่ถึง) = แก้เซฟโกง → ซ่อนจากตารางอันดับทันที · เดิมบัญชีใหม่เซฟแรกเป็น Lv.200 แล้วขึ้นอันดับ 1 ได้เลย (เซฟแรกไม่ถูกตรวจ · โดนจับครั้งเดียวยังไม่ซ่อน) */
     else if (lv0 >= 5 && up >= 25 && fast) rec.flag = (rec.flag | 0) + 1; /* เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ */
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
@@ -219,7 +227,7 @@ async function handle(path_, d, ip) {
       const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; } catch (e) {}
     try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
     if (!await dbSet(lid, rec)) return { err: 'store' };
-    return { ok: true, rev: rec.rev, upd: rec.upd, b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
+    return { ok: true, rev: rec.rev, upd: rec.upd, b150: b150can(rec) };
   }
   if (path_ === '/api/guild') return guildOp(lid, rec, d);
   if (path_ === '/api/gem') return gemOp(lid, rec, d);
@@ -227,7 +235,7 @@ async function handle(path_, d, ip) {
     if (d.op === 'set') { const arr = Array.isArray(d.friends) ? d.friends : []; rec.friends = [...new Set(arr.map(x => clean(String(x), 14)).filter(Boolean))].slice(0, 200); if (!await dbSet(lid, rec)) return { err: 'store' }; }
     return { ok: true, friends: rec.friends || [] };
   }
-  if (path_ === '/api/load') return { ok: true, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
+  if (path_ === '/api/load') return { ok: true, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', b150: b150can(rec) };
   if (path_ === '/api/pw') {
     const h = await hashPw(d.old || '', rec.salt); if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) return { err: 'badpw' };
     const np = String(d.pw || ''); if (np.length < 6 || np.length > 64) return { err: 'badpw' };
