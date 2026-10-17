@@ -57,6 +57,9 @@ function lbAv(a) { try { if (!a || typeof a !== 'object') return null; const o =
   return JSON.stringify(o).length <= 600 ? o : null; } catch (e) { return null; } }
 // v4.80: หอคอยนิรันดร์ อันดับรายสัปดาห์ (สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย — ตรงกับ wk92 ในเกม)
 const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
+/* v5.09: เสกเลเวล 150 ครั้งเดียว ให้ไอดีที่สมัครก่อน 2026-10-19 00:00 (เวลาไทย) — ช่วงเทสหาบัค (เจ้าของสั่ง 2026-10-17) */
+const B150_UNTIL = Date.parse('2026-10-19T00:00:00+07:00');
+function b150ok(rec) { return (rec.created || 0) < B150_UNTIL; }
 function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
 
@@ -196,7 +199,7 @@ async function handle(path_, d, ip) {
     const h = await hashPw(d.pw || '', rec.salt);
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { lk.n++; if (lk.n >= 8) { lk.t = Date.now() + Math.min(900, 20 * Math.pow(2, lk.n - 8)) * 1000; } lockTbl.set(lid, lk); return { err: 'badpw' }; }
     lockTbl.delete(lid); const token = newToken(rec); await dbSet(lid, rec);
-    return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id };
+    return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
   }
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
   if (path_ === '/api/save') {
@@ -206,7 +209,8 @@ async function handle(path_, d, ip) {
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
-    if (up >= 40) rec.flag = Math.max(2, (rec.flag | 0) + 2); /* v5.08: เลเวลกระโดด 40+ ในเซฟเดียว (เกมเซฟทุก 15 วิ เล่นจริงขึ้นไม่ถึง) = แก้เซฟโกง → ซ่อนจากตารางอันดับทันที · เดิมบัญชีใหม่เซฟแรกเป็น Lv.200 แล้วขึ้นอันดับ 1 ได้เลย (เซฟแรกไม่ถูกตรวจ · โดนจับครั้งเดียวยังไม่ซ่อน) */
+    const b150 = !rec.b150 && lv0 < 150 && rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
+    if (b150) { } else if (up >= 40) rec.flag = Math.max(2, (rec.flag | 0) + 2); /* v5.08: เลเวลกระโดด 40+ ในเซฟเดียว (เกมเซฟทุก 15 วิ เล่นจริงขึ้นไม่ถึง) = แก้เซฟโกง → ซ่อนจากตารางอันดับทันที · เดิมบัญชีใหม่เซฟแรกเป็น Lv.200 แล้วขึ้นอันดับ 1 ได้เลย (เซฟแรกไม่ถูกตรวจ · โดนจับครั้งเดียวยังไม่ซ่อน) */
     else if (lv0 >= 5 && up >= 25 && fast) rec.flag = (rec.flag | 0) + 1; /* เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ */
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
@@ -214,7 +218,7 @@ async function handle(path_, d, ip) {
       const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; } catch (e) {}
     try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
     if (!await dbSet(lid, rec)) return { err: 'store' };
-    return { ok: true, rev: rec.rev, upd: rec.upd };
+    return { ok: true, rev: rec.rev, upd: rec.upd, b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
   }
   if (path_ === '/api/guild') return guildOp(lid, rec, d);
   if (path_ === '/api/gem') return gemOp(lid, rec, d);
@@ -222,7 +226,7 @@ async function handle(path_, d, ip) {
     if (d.op === 'set') { const arr = Array.isArray(d.friends) ? d.friends : []; rec.friends = [...new Set(arr.map(x => clean(String(x), 14)).filter(Boolean))].slice(0, 200); if (!await dbSet(lid, rec)) return { err: 'store' }; }
     return { ok: true, friends: rec.friends || [] };
   }
-  if (path_ === '/api/load') return { ok: true, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '' };
+  if (path_ === '/api/load') return { ok: true, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', b150: !rec.b150 && (rec.lv | 0) < 150 && b150ok(rec) };
   if (path_ === '/api/pw') {
     const h = await hashPw(d.old || '', rec.salt); if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) return { err: 'badpw' };
     const np = String(d.pw || ''); if (np.length < 6 || np.length > 64) return { err: 'badpw' };

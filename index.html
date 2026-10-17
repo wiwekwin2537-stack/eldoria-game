@@ -20710,6 +20710,38 @@ try{const st=document.createElement('style');st.textContent='@media (max-height:
  +'#vlt8 .v8g{flex:1 1 auto!important;min-height:76px!important}#vlt8 .v8p>div:not(.v8g):not(.v8t):not(.v19row){font-size:9px!important;line-height:1.25!important;margin:0!important}}';
 document.head.appendChild(st)}catch(e){console.warn('fix155',e)}
 </script>
+<script>
+// fix156 (v5.09) — ⭐ เสกเลเวล 150 ให้ไอดีเทส (เจ้าของสั่ง 2026-10-17: "ผู้เทสจะได้ลองระบบอื่น") · ครั้งเดียวต่อไอดี
+//  เซิร์ฟเวอร์ (accounts.js) ส่ง b150 ตอนล็อกอิน ถ้าไอดีสมัครก่อน 2026-10-19 และยังไม่เคยได้ · เซฟแรกที่ Lv.140–155 = ปิดสิทธิ์ (ไม่ติดธงโกง)
+//  ให้ XP ผ่าน gainXp ตามปกติ (แต้ม/เลือดขึ้นตามทุกชั้นเดิม) จนถึง Lv.150
+try{
+let B156=false,done156=false;window.ST156=()=>({b:B156,d:done156});
+{const _c=CLOUD.call;CLOUD.call=async function(path){const r=await _c.apply(this,arguments);try{if((path==='/api/login'||path==='/api/load'||path==='/api/save')&&r&&r.ok&&r.b150)B156=true}catch(e){}return r}}
+const tick156=setInterval(()=>{try{if(!B156||done156)return;if(!(typeof ONL32!=='undefined'&&ONL32.verified)||!P||!P.name||P.dead)return;
+  const t=gid('title');if(t&&t.hidden===false)return;
+  done156=true;clearInterval(tick156);if(P.lv>=150)return;
+  window.__noXpm64=1;let g=0,st=0,l=P.lv;try{while(P.lv<150&&g++<3000&&st<60){gainXp(Math.max(1,(need(P.lv)-P.xp)*3));if(P.lv>l){l=P.lv;st=0}else st++}}finally{window.__noXpm64=0}
+  try{recalcStats()}catch(e){}try{lvHud();refreshInv()}catch(e){}
+  try{say('⭐ ช่วงทดสอบ: เสกเลเวลเป็น Lv.'+P.lv+' ให้แล้ว — ช่วยลองระบบต่าง ๆ หาบัคด้วยนะ!')}catch(e){}
+  setTimeout(()=>{try{saveGame(true)}catch(e){}},1500)}catch(e){console.warn('fix156',e)}},1000);
+}catch(e){console.warn('fix156',e)}
+</script>
+<script>
+// fix157 (v5.09) — 🗺️ แมพดำ/จางทั้งจอ + เกมหน่วงบนมือถือ (ผู้เล่น "เทพกล้า" แคปจอ 2026-10-17 · เจ้าของ: "เป็นบ่อยมาก")
+//  ต้นเหตุ (วัดจริง): ภาพแมพทุกแมพที่เคยเข้า ถูกเก็บไว้ใน ZCACHE ตลอด ไม่เคยคืนหน่วยความจำ — แมพละ 11–22 MB
+//   เข้าครบ 19 แมพ = ~244 MB (ยังไม่นับเมือง/ทุ่งหญ้า) → มือถือหน่วยความจำไม่พอ เบราว์เซอร์ทิ้งภาพ canvas → แมพดำ/จาง · หน่วง
+//   (เพิ่งเป็นช่วงหลัง เพราะแมพเพิ่มขึ้น: ดันเจี้ยนเมือง 2 · ทุ่งสังหาร · ป่าใหญ่)
+//  แก้: แมพที่ไม่ได้อยู่เกิน 45 วิ → คืนหน่วยความจำภาพ (เก็บข้อมูลแร่/ต้นไม้ไว้) · กลับเข้าแมพนั้นใหม่ → สร้างภาพใหม่ (genZone)
+try{
+const FREE157=45e3,LAST157={};
+const cvs157=z=>{const L=[];if(z)for(const k in z){const v=z[k];if(v&&typeof v==='object'&&v.getContext&&v.width>1)L.push(v)}return L};
+{const _gz=genZone;genZone=function(zi){try{const z=ZCACHE[zi];if(z&&z.__f157)delete ZCACHE[zi]}catch(e){}return _gz.apply(this,arguments)};window.genZone=genZone}
+setInterval(()=>{try{const now=performance.now(),cur=D&&D.zone;for(const k in ZCACHE){const z=ZCACHE[k];if(!z||z.__f157)continue;
+  if(z===cur){LAST157[k]=now;continue}if(LAST157[k]===undefined){LAST157[k]=now;continue}if(now-LAST157[k]<FREE157)continue;
+  for(const c of cvs157(z)){c.width=1;c.height=1}z.__f157=1}}catch(e){console.warn('fix157',e)}},5000);
+window.FREE157=()=>{let a=0,n=0;for(const k in ZCACHE)for(const c of cvs157(ZCACHE[k])){a+=c.width*c.height;n++}return {n,mb:Math.round(a*4/1e6)}};
+}catch(e){console.warn('fix157',e)}
+</script>
 </body>
 
 </html>
