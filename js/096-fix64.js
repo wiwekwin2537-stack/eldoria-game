@@ -5,7 +5,7 @@
 //   (5) เมนูหลัก: เอาวาปหอคอย/บอสโลก/บอสตำนานออก — หอคอยเดินเข้าประตูในเมือง · บอสโลกเดินไปประตูลานบอสโลกในทุ่งหญ้า · แท่นบอสตำนานอยู่ที่ประตูหอคอย
 try{
 // ---------- 1) XP / ดรอป ----------
-const XPM64=.65;window.XPM64=XPM64;
+const XPM64=5; /* ช่วงทดสอบ (2026-10-17): เดิม .65 · ปรับตัวเลขนี้ที่เดียวเพื่อเพิ่ม/ลด XP ทุกแหล่ง */window.XPM64=XPM64;
 {const _g=gainXp;gainXp=function(n){if(typeof n==='number'&&n>0&&!window.__noXpm64)n=Math.max(1,Math.round(n*XPM64));return _g.call(this,n)};window.gainXp=gainXp}
 const RARE64=new Set(['estone','bless','gem','scale','core','phoenix']);
 {const _ad=addDrop;addDrop=function(type,x,y){if(RARE64.has(type)&&Math.random()>.7)return;return _ad.apply(this,arguments)};window.addDrop=addDrop}
