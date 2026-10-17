@@ -58,7 +58,7 @@ function lbAv(a) { try { if (!a || typeof a !== 'object') return null; const o =
 // v4.80: หอคอยนิรันดร์ อันดับรายสัปดาห์ (สัปดาห์เริ่มวันจันทร์ 00:00 เวลาไทย — ตรงกับ wk92 ในเกม)
 const lbWk = () => Math.floor(((Date.now() + 7 * 36e5) / 864e5 + 3) / 7);
 /* v5.09: เสกเลเวล 150 ครั้งเดียว ให้ไอดีที่สมัครก่อน 2026-10-19 00:00 (เวลาไทย) — ช่วงเทสหาบัค (เจ้าของสั่ง 2026-10-17) */
-const B150_UNTIL = Date.parse('2026-10-19T00:00:00+07:00');
+const B150_UNTIL = Date.parse(process.env.B150_UNTIL || '2026-10-26T00:00:00+07:00'); /* ต่อเวลาเป็น 26 ต.ค. — หรือตั้ง env B150_UNTIL เช่น 2026-11-01T00:00:00+07:00 โดยไม่ต้องแก้โค้ด */
 function b150ok(rec) { return !!rec.newbie150 || (rec.created || 0) < B150_UNTIL; }
 function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
@@ -190,7 +190,8 @@ async function handle(path_, d, ip) {
     const salt = crypto.randomBytes(16).toString('hex');
     const rec = { id, name: clean(d.name, 14), salt, hash: await hashPw(pw, salt), created: Date.now(), rev: 0, lv: 0, upd: 0, save: '', bak: '', tokens: [], gem: 1000, newbie150: 1, gm: GM_IDS.includes(lid) };
     gemLog(rec, 1000, 'signup'); const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
-    return { ok: true, token, rev: 0, name: rec.name };
+    /* ส่ง b150 กลับตอนสมัครด้วย — เดิมคืนแค่ token ทำให้ไคลเอนต์ไม่รู้ว่ามีสิทธิ์เสก Lv.150 (ได้แต่เหรียญ) จนกว่าจะล็อกอินใหม่ */
+    return { ok: true, token, rev: 0, name: rec.name, lv: 0, gem: rec.gem, b150: true };
   }
   const rec = await dbGet(lid);
   if (path_ === '/api/login') {
