@@ -3,7 +3,7 @@
 //  ให้ XP ผ่าน gainXp ตามปกติ (แต้ม/เลือดขึ้นตามทุกชั้นเดิม) จนถึง Lv.150
 try{
 let B156=false,done156=false;window.ST156=()=>({b:B156,d:done156});
-{const _c=CLOUD.call;CLOUD.call=async function(path){const r=await _c.apply(this,arguments);try{if((path==='/api/login'||path==='/api/load'||path==='/api/save')&&r&&r.ok&&r.b150)B156=true}catch(e){}return r}}
+{const _c=CLOUD.call;CLOUD.call=async function(path){const r=await _c.apply(this,arguments);try{if((path==='/api/register'||path==='/api/login'||path==='/api/load'||path==='/api/save')&&r&&r.ok&&r.b150)B156=true}catch(e){}return r}}
 const tick156=setInterval(()=>{try{if(!B156||done156)return;if(!(typeof ONL32!=='undefined'&&ONL32.verified)||!P||!P.name||P.dead)return;
   const t=gid('title');if(t&&t.hidden===false)return;
   done156=true;clearInterval(tick156);if(P.lv>=150)return;
