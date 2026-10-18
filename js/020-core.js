@@ -38,7 +38,7 @@ function drawTown(){const t=performance.now()/1000,[cx,cy]=cam(TW*T,TH*T,.55);
  view(cx,cy);ctx.fillStyle='#223';ctx.fillRect(cx,cy,VW/Z,VH/Z);ctx.drawImage(dcv,0,0);
  for(let i=0;i<3;i++){const u=((t*.5+i/3)%1);ctx.strokeStyle='rgba(235,248,255,'+(.7*(1-u))+')';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(22*T,13*T+2,8+u*36,3.5+u*15,0,0,7);ctx.stroke()}
  drawGhosts();drawDrops();const L=D.npcs.map(n=>[n.y,()=>drawNPC(n,t)]).concat(D.carts.map(c=>[c.y,()=>drawCart(c,t)]),D.stalls.map(s=>[(s.y+1)*T,()=>drawStall(s,t)]),doorLayer(t),FORGE.map(f=>[(f.y+1)*T,()=>drawForge(f,t)]));
- L.push([P.y,()=>{ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1}]);
+ L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
  L.sort((p,q)=>p[0]-q[0]);for(const o of L)o[1]();
   drawBubbles();drawDoorPrompt(t);
  for(const p of fx){ctx.fillStyle=`rgba(${p.c||'90,170,255'},${Math.min(1,p.l*2)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}

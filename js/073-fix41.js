@@ -342,7 +342,7 @@ addEventListener('keydown',e=>{if(e.repeat||(typeof DLG!=='undefined'&&DLG.open)
 const pg41=document.createElement('button');pg41.id='skpg41';pg41.textContent='⇄';pg41.setAttribute('aria-label','สลับหน้าสกิล');acts41.appendChild(pg41);
 let page41=0;pg41.onpointerdown=e=>{e.preventDefault();page41^=1;sfx('ui');lay41()};
 const short41=matchMedia('(max-height:379px)');
-function lay41(){const on=six41();acts41.classList.toggle('six',on);wrap41.classList.toggle('six41',on);const pg=on&&short41.matches;acts41.classList.toggle('pg',pg);acts41.classList.toggle('p2',pg&&page41===1)}
+function lay41(){const on=six41();acts41.classList.toggle('six',on);wrap41.classList.toggle('six41',on);const pg=false;/* v5.14: ล็อคผังปุ่ม 6 สกิลเป็นหน้าเดียวโชว์ครบทุกจอ — ไม่มีลูกศรสลับหน้า (เจ้าของสั่ง) */page41=0;acts41.classList.toggle('pg',pg);acts41.classList.toggle('p2',false)}
 try{short41.addEventListener('change',lay41)}catch(e){}
 {const _u=updSkBar;updSkBar=function(){_u();try{const on=six41();if(on!==acts41.classList.contains('six'))lay41();sk6.style.display=sk7.style.display=on?'':'none'}catch(e){}}}
 lay41();

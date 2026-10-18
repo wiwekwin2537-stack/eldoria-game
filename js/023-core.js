@@ -40,7 +40,7 @@ function drawD(){if(D.town)return drawTown();if(D.shop)return drawShop();const t
  ctx.strokeStyle='#2b1808';ctx.lineWidth=1;ctx.strokeRect(hx+3.5,hy+12.5,25,14);
  drawGhosts();drawDrops();
  for(const s of slimes)if(s.y<=P.y)drawSlime(s);
- ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1;
+ ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1;
  for(const s of slimes)if(s.y>P.y)drawSlime(s);
  for(const p of fx){ctx.fillStyle=`rgba(${p.c||'90,170,255'},${Math.min(1,p.l*2)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}
  ui();

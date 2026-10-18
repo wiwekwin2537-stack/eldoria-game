@@ -67,7 +67,7 @@ function drawShop(){const t=performance.now()/1000,S=D.S,o=D.owner,sc=Math.min(V
  ctx.save();ctx.translate(o.x,o.y);ctx.scale(1.3,1.3);ctx.translate(-o.x,-o.y);drawNPC(o,t);ctx.restore();const sx=Math.round(o.x-46);ctx.drawImage(dcv,sx,3*T+2,92,T-1,sx,3*T+2,92,T-1);   // วาดเคาน์เตอร์ทับตัวเจ้าของ = ยืนอยู่หลังเคาน์เตอร์
  SHOP_ANIM[D.shop](t);
  drawGhosts();drawDrops();
- const L=[[P.y,()=>{ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1}]];
+ const L=[[P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]];
  if(D.shop==='gear'){L.push([6*T+30,()=>drawMannequin(14*T+16,6*T+30)],[8*T+30,()=>drawMannequin(1*T+16,8*T+30)])}
  L.sort((p,q)=>p[0]-q[0]);for(const l of L)l[1]();
   drawBubbles();

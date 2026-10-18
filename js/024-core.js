@@ -39,7 +39,7 @@ function draw(){if(D)return drawD();
  for(let y=y0;y<=Math.min(H-1,y1+3);y++)for(let x=Math.max(0,x0-2);x<=Math.min(W-1,x1+2);x++)if(map[y][x]===TREE&&treeAt[y*W+x])L.push([y*T+28,()=>drawTree(x,y,y>pr)]);
  L.push([3*T+30,()=>drawCave(t)],[SP.y+14,()=>drawSign(t)]);
  for(const s of slimes)L.push([s.y,()=>drawSlime(s)]);
- L.push([P.y,()=>{ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1}]);
+ L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
  L.sort((p,q)=>p[0]-q[0]);for(const o of L)o[1]();drawFalling();drawBars();
  if(dbg)for(const t2 of trees)if(t2.alive&&t2.tx>=x0-1&&t2.tx<=x1+1&&t2.ty>=y0&&t2.ty<=y1+3){ctx.strokeStyle='#ff0';ctx.strokeRect(t2.tx*T+.5,t2.ty*T+.5,T-1,T-1)}
  for(const p of fx){ctx.fillStyle=`rgba(${p.c||'90,170,255'},${Math.min(1,p.l*2)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}

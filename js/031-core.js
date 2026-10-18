@@ -299,7 +299,7 @@ function drawShop(){const t=performance.now()/1000,S=D.S,o=D.owner,[cx,cy]=cam(I
  ctx.save();ctx.translate(o.x,o.y);ctx.scale(1.3,1.3);ctx.translate(-o.x,-o.y);drawNPC(o,t);ctx.restore();const sx=Math.round(o.x-46);ctx.drawImage(dcv,sx,3*T+2,92,T-1,sx,3*T+2,92,T-1);
  ctx.save();ctx.translate(OX,0);SHOP_ANIM[D.shop](t);ctx.restore();
  drawGhosts();drawDrops();
- const L=[[P.y,()=>{ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1}]];
+ const L=[[P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]];
  if(D.shop==='gear'){L.push([6*T+30,()=>drawMannequin(OX+14*T+16,6*T+30)],[8*T+30,()=>drawMannequin(OX+1*T+16,8*T+30)])}
  L.sort((p,q)=>p[0]-q[0]);for(const l of L)l[1]();
  drawBubbles();
@@ -1167,7 +1167,7 @@ function drawZone(){const Zm=D.zone,Zd=Zm.Zd,t=performance.now()/1000;let [cx,cy
  const L=[],x0=cx-48,x1=cx+vw+48,y0=cy-48,y1=cy+vh+80,inV=(x,y)=>x>x0&&x<x1&&y>y0&&y<y1;
  for(const o of Zm.ores)if(o.alive&&inV(o.x,o.y))L.push([o.y+10,()=>drawOreZ(o)]);
  for(const m of D.mobs)if(inV(m.x,m.y))L.push([m.y,()=>drawMob(m,t+m.t)]);
- L.push([P.y,()=>{ctx.globalAlpha=(P.iframe>0&&P.dash<=0&&Math.floor(P.iframe*14)%2)?.3:1;hero();ctx.globalAlpha=1}]);
+ L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
  L.sort((p,q)=>p[0]-q[0]);for(const o of L)o[1]();
  ctx.globalCompositeOperation='lighter';for(const p of ZPROJ){const g=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,p.r*2);g.addColorStop(0,'#fff');g.addColorStop(.4,p.c);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(p.x-p.r*2,p.y-p.r*2,p.r*4,p.r*4)}ctx.globalCompositeOperation='source-over';
  for(const p of fx){ctx.fillStyle=`rgba(${p.c||'90,170,255'},${Math.min(1,p.l*2)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}
