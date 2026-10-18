@@ -13,7 +13,7 @@ async function dbGet(lid) {
   if (cache.has(lid)) return cache.get(lid);
   let rec = null;
   try {
-    if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:acct:' + fkey(lid), { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) rec = JSON.parse(j.result); }
+    if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:acct:' + fkey(lid), { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (!r.ok || (j && j.error)) console.log('dbGet upstash', r.status, String(j && j.error).slice(0, 120)); if (j && j.result) rec = JSON.parse(j.result); }
     else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'); if (fs.existsSync(f)) rec = JSON.parse(fs.readFileSync(f, 'utf8')); }
   } catch (e) { console.log('dbGet', e.message); }
   if (rec) { cache.set(lid, rec); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value); }
@@ -23,7 +23,7 @@ async function dbSet(lid, rec) {
   cache.set(lid, rec);
   try {
     const body = JSON.stringify(rec);
-    if (UP_URL) await fetch(UP_URL + '/set/eld:acct:' + fkey(lid), { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+    if (UP_URL) { const r = await fetch(UP_URL + '/set/eld:acct:' + fkey(lid), { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body }); let j = null; try { j = await r.json(); } catch (e) {} if (!r.ok || !j || j.error || j.result !== 'OK') { console.log('dbSet upstash FAIL', r.status, String(j && j.error || JSON.stringify(j)).slice(0, 160)); return false; } } /* v5.15: เดิมไม่เช็กผล Upstash — เขียนไม่ติดก็ตอบว่าสำเร็จ (ข้อมูลอยู่แค่ในหน่วยความจำ แล้วหายตอนเซิร์ฟเวอร์รีสตาร์ต) */
     else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
     return true;
   } catch (e) { console.log('dbSet', e.message); return false; }
@@ -185,6 +185,11 @@ async function gemOp(lid, rec, d) {
 const lockTbl = new Map();
 async function handle(path_, d, ip) {
   if (path_ === '/api/ping') return { ok: true, t: Date.now(), store: UP_URL ? 'upstash' : 'file' };
+  /* v5.15: ทดสอบเขียน/อ่าน Upstash จริง — เปิด /api/dbtest ในเบราว์เซอร์ (ไม่เผยลิงก์/โทเคน) */
+  if (path_ === '/api/dbtest') { const out = { ok: false, store: UP_URL ? 'upstash' : 'file', t: Date.now() }; try { if (!UP_URL) { out.ok = true; return out; }
+    const v = 'test-' + Date.now(); const w = await fetch(UP_URL + '/set/eld:dbtest', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body: v }); let wj = null; try { wj = await w.json(); } catch (e) {} out.set = { status: w.status, result: wj && wj.result, error: wj && wj.error ? String(wj.error).slice(0, 120) : undefined };
+    const g = await fetch(UP_URL + '/get/eld:dbtest', { headers: { authorization: 'Bearer ' + UP_TOK } }); let gj = null; try { gj = await g.json(); } catch (e) {} out.get = { status: g.status, match: !!gj && gj.result === v, error: gj && gj.error ? String(gj.error).slice(0, 120) : undefined };
+    out.ok = !!(wj && wj.result === 'OK' && gj && gj.result === v); } catch (e) { out.error = String(e.message || e).slice(0, 120); } return out; }
   if (!ipOk(ip)) return { err: 'rate' };
   if (path_ === '/api/top') { await lbLoad(); return lbTop(); }
   const id = clean(d.id, 16), lid = id.toLowerCase();
