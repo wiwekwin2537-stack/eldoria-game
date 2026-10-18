@@ -17,8 +17,9 @@ const INVMETA={
  ingAg:['แท่งเงิน','วัสดุคราฟของเงิน'],ingAu:['แท่งทอง','วัสดุคราฟของทอง']};
 const INVORDER=['coin','scroll','hpp','mpp','bread','apple','wood','coal','gel','bottle','stone','iron','copper','silver','gold','ore','ingSt','ingot','ingCu','ingAg','ingAu','ingDm'];
 const MN=k=>(INVMETA[k]||[k])[0];
-const IURL={};
-function iconURL(key){if(IURL[key])return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));return IURL[key]=c.toDataURL()}
+const IURL={},OREKEYS=['stone','iron','copper','silver','gold'];
+function iconURL(key){const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const url=c.toDataURL();if(!liveOre)IURL[key]=url;return url}
+window.OREICON_REFRESH=kind=>{try{delete IURL['mat:'+kind];if(typeof refreshInv==='function')refreshInv();if(typeof drawPicks==='function')drawPicks()}catch(e){}};
 const rareT=key=>key.startsWith('item:')&&ITEMS[key.slice(5)].tier>=3?' rare r'+ITEMS[key.slice(5)].tier:'';
 const imgT=(key,cl)=>'<img class="si'+(cl?' '+cl:'')+rareT(key)+'" src="'+iconURL(key)+'">';
 const gid=id=>document.getElementById(id);
@@ -26,7 +27,7 @@ const isTool=k=>k==='sword'||k==='axe'||k==='pick';
 window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
 
 // ---------- แร่: ภาพในแมพ + ขุดตามชั้นของที่ขุดแร่ ----------
-const OSPR={};for(const k of ['stone','iron','copper','silver','gold']){const c=document.createElement('canvas');c.width=c.height=42;paintOre(c.getContext('2d'),k,42);OSPR[k]=c}
+const OSPR={};for(const k of OREKEYS){const c=document.createElement('canvas');c.width=c.height=42;const q=c.getContext('2d'),im=OREIMGS[k];if(im&&im.complete&&im.naturalWidth)q.drawImage(im,0,0,42,42);else{paintOre(q,k,42);if(im)im.addEventListener('load',()=>{q.clearRect(0,0,42,42);q.drawImage(im,0,0,42,42)},{once:true})}OSPR[k]=c}
 function hitOre(o){const K=OREK[o.kind];
  if(P.tier.pick<K.req){o.shake=.2;o.bar=1.2;sfx('thud');say('ต้องใช้'+ITEMS['pick'+K.req].name+'ขึ้นไป จึงจะขุด'+K.n+'ได้');return}
  const sh=window.FW&&FW.act(),dm=PICKDMG();if(sh)FW.send('o',o,dm,90);o.hp-=dm;o.shake=.3;o.bar=2;sfx('mine');
@@ -42,9 +43,7 @@ function drawDrops(){for(const d of drops){const px=Math.round(d.x),py=Math.roun
   if(t==='coin'){const w=Math.abs(Math.cos(d.t*7+d.x))*5+1;ctx.fillStyle='#ffd23a';ctx.strokeStyle='#a8741a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(px,yy,w,5,0,0,7);ctx.fill();ctx.stroke()}
   else if(t==='gel'){ctx.fillStyle='#5bb4ff';ctx.beginPath();ctx.ellipse(px,yy+1,5,4,0,0,7);ctx.fill();ctx.fillStyle='#d6eeff';ctx.fillRect(px-2,yy-2,2,2)}
   else if(t==='wood'){ctx.save();ctx.translate(px,yy);ctx.rotate(d.x*.3);ctx.fillStyle='#8a5a2e';ctx.fillRect(-7,-3,14,6);ctx.fillStyle='#d9b27a';ctx.fillRect(-7,-3,3,6);ctx.restore()}
-  else if(t==='stone'||t==='copper'||t==='silver'||t==='gold'){const C={stone:['#8d9097','#c4c7ce'],copper:['#d98443','#ffd2a6'],silver:['#cfd7e6','#ffffff'],gold:['#f2c230','#fff6b8']}[t];
-   ctx.save();if(t==='gold'){ctx.shadowColor='#ffd23a';ctx.shadowBlur=6}ctx.fillStyle=C[0];ctx.strokeStyle='#23252b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px-5,yy+3);ctx.lineTo(px-6,yy-1);ctx.lineTo(px-2,yy-5);ctx.lineTo(px+4,yy-4);ctx.lineTo(px+6,yy+1);ctx.lineTo(px+4,yy+4);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=C[1];ctx.fillRect(px-3,yy-3,3,2);ctx.restore()}
-  else if(t==='iron'){ctx.save();ctx.fillStyle='#8a4f2a';ctx.strokeStyle='#23252b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px-5,yy+3);ctx.lineTo(px-6,yy-1);ctx.lineTo(px-2,yy-5);ctx.lineTo(px+4,yy-4);ctx.lineTo(px+6,yy+1);ctx.lineTo(px+4,yy+4);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#c98a5a';ctx.fillRect(px-3,yy-3,3,2);ctx.restore()}
+  else if(OREKEYS.includes(t)){ctx.drawImage(OSPR[t],px-7,yy-7,14,14)}
   else if(t==='apple'){ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(px,yy,4.5,0,7);ctx.fill();ctx.fillStyle='#4fae3a';ctx.fillRect(px,yy-7,3,2)}
   else{ctx.save();ctx.shadowColor='#6cf';ctx.shadowBlur=8;ctx.fillStyle='#5ec8ff';ctx.beginPath();ctx.moveTo(px-5,yy-3);ctx.lineTo(px+5,yy-3);ctx.lineTo(px,yy+6);ctx.closePath();ctx.fill();ctx.fillStyle='#d6f4ff';ctx.fillRect(px-3,yy-3,6,2);ctx.restore()}}}
 

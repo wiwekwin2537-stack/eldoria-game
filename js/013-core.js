@@ -1,6 +1,8 @@
 // ---- 1) สร้างชุดภาพ (tileset) ----
 const ts=document.createElement('canvas');ts.width=T*6;ts.height=T;
 const g=ts.getContext('2d');
+const OREIMGS={};
+for(const k of ['stone','iron','copper','silver','gold']){const im=new Image();im.onload=()=>{try{if(window.OREICON_REFRESH)window.OREICON_REFRESH(k);if(typeof draw==='function')draw()}catch(e){}};im.src='./assets/ores/'+k+'.png';OREIMGS[k]=im}
 function hash(x,y){let h=Math.sin(x*127.1+y*311.7)*43758.5453;return h-Math.floor(h)}
 function base(i,c1,c2){g.fillStyle=c1;g.fillRect(i*T,0,T,T);g.fillStyle=c2;
  for(let k=0;k<14;k++){g.fillRect(i*T+Math.floor(hash(i,k)*30),Math.floor(hash(k,i+9)*30),2,2)}}

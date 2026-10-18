@@ -236,7 +236,7 @@ function canTakeGear(id){if(bagWeight()+gearW(id)>bagCapMax())return 'weight';re
 let _ctMsg=0;function noRoom(why){const n=performance.now();if(n-_ctMsg>1500){_ctMsg=n;say(why==='weight'?'⚖️ แบกหนักเกินไป — ขายหรือทิ้งของก่อน':'🎒 กระเป๋าเต็ม — ขายของหรือซื้อกระเป๋าใหญ่ขึ้น (ร้านชำป้าแดง)');sfx('thud')}}
 let CARRY_SPD=1;setInterval(()=>{const w=bagWeight(),m=bagCapMax();CARRY_SPD=w<=m?1:Math.max(.5,1-(w-m)/m*1.2)},250);
 
-// ---- แร่ในแมพ: หินธรรมดา · ทองแดง · เงิน · ทอง (เพชรใช้ภาพเดิม) ----
+// ---- แร่ในแมพ: หินธรรมดา · ทองแดง · เงิน · ทอง · เพชรใช้สไปรต์ assets/diamond-ore.png ----
 const OREK={
  stone:{n:'หินธรรมดา',req:0,hp:6,drop:'stone',cnt:[1,2],xp:2,fx:'190,195,205'},
  iron:{n:'แร่เหล็ก',req:0,hp:7,drop:'iron',cnt:[1,2],xp:3,fx:'200,150,120'},
@@ -270,7 +270,7 @@ function paintIngot(k,t){const Q=TIERS[t],g=k.createLinearGradient(8,20,40,36);g
  k.fillStyle='rgba(255,255,255,.5)';k.fillRect(16,26,9,2)}
 function matIcon(key){const c=document.createElement('canvas');c.width=c.height=48;const k=c.getContext('2d');k.lineJoin='round';
  const ING={ingSt:0,ingot:1,ingCu:2,ingAg:3,ingAu:4,ingDm:5};
- if(key==='stone'||key==='iron'||key==='copper'||key==='silver'||key==='gold')paintOre(k,key,48);
+ if(key==='stone'||key==='iron'||key==='copper'||key==='silver'||key==='gold'){const im=OREIMGS[key];if(im&&im.complete&&im.naturalWidth)k.drawImage(im,0,0,48,48);else paintOre(k,key,48)}
  else if(key==='ore')k.drawImage(gemIcon(),0,0,48,48);
  else if(key in ING)paintIngot(k,ING[key]);
  else if(key==='wood'){k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(24,38,17,4,0,0,7);k.fill();
