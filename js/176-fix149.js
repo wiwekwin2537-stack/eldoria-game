@@ -9,6 +9,7 @@ try{
 const RG149=[100,140];
 const rgT149=()=>RG149[0]+Math.random()*(RG149[1]-RG149[0]);
 function regrow149(dt){
+  if(window.FW&&FW.act())return; /* v5.12: เชื่อมเซิร์ฟเวอร์ → เซิร์ฟเวอร์คุมการงอกใหม่ */
   for(const tr of trees){if(tr.alive||tr.border)continue;
    if(tr.rg149==null){tr.rg149=rgT149();continue}
    tr.rg149-=dt;if(tr.rg149>0)continue;

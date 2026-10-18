@@ -29,9 +29,10 @@ window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
 const OSPR={};for(const k of ['stone','iron','copper','silver','gold']){const c=document.createElement('canvas');c.width=c.height=42;paintOre(c.getContext('2d'),k,42);OSPR[k]=c}
 function hitOre(o){const K=OREK[o.kind];
  if(P.tier.pick<K.req){o.shake=.2;o.bar=1.2;sfx('thud');say('ต้องใช้'+ITEMS['pick'+K.req].name+'ขึ้นไป จึงจะขุด'+K.n+'ได้');return}
- o.hp-=PICKDMG();o.shake=.3;o.bar=2;sfx('mine');
+ const sh=window.FW&&FW.act(),dm=PICKDMG();if(sh)FW.send('o',o,dm,90);o.hp-=dm;o.shake=.3;o.bar=2;sfx('mine');
  for(let k=0;k<6;k++)fx.push({x:o.tx*T+16+(Math.random()-.5)*20,y:o.ty*T+14,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:K.fx});
- if(o.hp<=0){map[o.ty][o.tx]=RUBBLE;o.regen=90;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));
+ if(o.hp<=0&&sh){o.hp=1;say('รอเซิร์ฟเวอร์ตัดสิน...')}
+ else if(o.hp<=0){map[o.ty][o.tx]=RUBBLE;o.regen=90;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));
   for(let k=0;k<n;k++)addDrop(K.drop,o.tx*T+16,o.ty*T+16);
   say('ขุด'+K.n+'แตก! ได้'+(K.drop==='gem'?'เพชร':MN(K.drop))+' +'+n);gainXp(K.xp)}
  else say('ขุด'+K.n+'... ความคืบหน้า '+Math.round((1-o.hp/o.max)*100)+'%')}
@@ -1051,7 +1052,7 @@ function updZone(dt){if(!D||!D.zone)return;const Zm=D.zone;
  for(let i=ZPROJ.length-1;i>=0;i--){const p=ZPROJ[i];p.l-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
   if(p.l<=0||zHit(p.x,p.y+10)){ZPROJ.splice(i,1);continue}
   if(Math.hypot(P.x-p.x,(P.y-14)-p.y)<p.r+8&&P.iframe<=0){zHurt(p,p.dmg,1,'โดนพลังเวท');ZPROJ.splice(i,1);if(!D||!D.zone)return}}
- for(const o of Zm.ores){if(o.shake>0)o.shake-=dt;if(!o.alive){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-o.x,P.y-o.y)>60){o.alive=true;o.hp=o.max}}}
+ for(const o of Zm.ores){if(o.shake>0)o.shake-=dt;if(!o.alive&&!(window.FW&&FW.act())){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-o.x,P.y-o.y)>60){o.alive=true;o.hp=o.max}}}
  if(D.shake>0)D.shake-=dt;if(D.ban>0)D.ban-=dt}
 {const _w=updWorld;updWorld=function(dt){_w(dt);updGpk(dt);updZone(dt)}}
 
@@ -1060,8 +1061,9 @@ function zOreTarget(){const Zm=D.zone,[x,y]=target();let o=Zm.oreAt[y*ZW+x];if(o
  let best=null,bd=40;for(const q of Zm.ores){if(!q.alive)continue;const d=Math.hypot(q.x-P.x,q.y-P.y);if(d<bd){bd=d;best=q}}return best}
 function zMine(o){const K=OREK[o.kind];
  if(P.tier.pick<K.req){o.shake=.2;sfx('thud');say('ต้องใช้'+ITEMS['pick'+K.req].name+'ขึ้นไป จึงจะขุด'+K.n+'ได้');return}
- o.hp-=PICKDMG();o.shake=.3;sfx('mine');for(let k=0;k<6;k++)fx.push({x:o.x+(Math.random()-.5)*20,y:o.y-4,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:K.fx});
- if(o.hp<=0){o.alive=false;o.regen=60;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));for(let k=0;k<n;k++)addDrop(K.drop,o.x,o.y);
+ const sh=window.FW&&FW.act(),dm=PICKDMG();if(sh)FW.send('o',o,dm,60);o.hp-=dm;o.shake=.3;sfx('mine');for(let k=0;k<6;k++)fx.push({x:o.x+(Math.random()-.5)*20,y:o.y-4,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:K.fx});
+ if(o.hp<=0&&sh){o.hp=1;say('รอเซิร์ฟเวอร์ตัดสิน...')}
+ else if(o.hp<=0){o.alive=false;o.regen=60;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));for(let k=0;k<n;k++)addDrop(K.drop,o.x,o.y);
   say('ขุด'+K.n+'แตก! ได้'+(K.drop==='gem'?'เพชร':MN(K.drop))+' +'+n);gainXp(K.xp*(1+D.zone.zi))}
  else say('ขุด'+K.n+'... ความคืบหน้า '+Math.round((1-o.hp/o.max)*100)+'%')}
 {const _u=useToolHit;useToolHit=function(){if(!(D&&D.zone))return _u();if(P.tool==='sword')return;
@@ -1513,7 +1515,7 @@ function slideAxis(dx,dy){const sp=Math.abs(dx||dy);for(const k of [3,6,9,12])fo
 {const _dh=dhit;dhit=function(x,y){if(D&&D.town){for(const [a,b] of [[-7,-4],[7,-4],[-7,4],[7,4]]){const tx=Math.floor((x+a)/T),ty=Math.floor((y+b)/T);if(!dm[ty]||(dm[ty][tx]!==FL&&dm[ty][tx]!==GATE))return true}return false}return _dh(x,y)}}
 
 // ---------- 9) กลางวัน / กลางคืน (1 วันในเกม = 12 นาทีจริง) ----------
-const DAY={t:8.5,len:720};// t = ชั่วโมงในเกม
+const DAY={t:((srvNow()/1000)%720)/720*24,len:720};/* v5.11: เวลาในเกมอิงนาฬิกาเซิร์ฟเวอร์ — ทุกคนเห็นเวลาเดียวกัน */// t = ชั่วโมงในเกม
 let NLc=null,NLk=null;
 const dayDark=h=>{if(h>=7&&h<17)return 0;if(h>=17&&h<20)return (h-17)/3;if(h>=5&&h<7)return 1-(h-5)/2;return 1};
 function nightLayer(){const h=DAY.t,dk=dayDark(h);if(dk<=.01&&!(h>=16&&h<19))return;
@@ -1535,7 +1537,7 @@ function nightLayer(){const h=DAY.t,dk=dayDark(h);if(dk<=.01&&!(h>=16&&h<19))ret
 // นาฬิกามุมจอ
 const clockEl=document.createElement('div');clockEl.id='clock';gid('wrap').appendChild(clockEl);
 {const st=document.createElement('style');st.textContent='#clock{position:absolute;z-index:3;font:bold 11px system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.55);border:1px solid #e8c14a;border-radius:10px;padding:2px 8px;pointer-events:none;white-space:nowrap}';document.head.appendChild(st)}
-setInterval(()=>{if(!PAUSED&&!document.hidden)DAY.t=(DAY.t+24/DAY.len*.5)%24;const h=Math.floor(DAY.t),m=Math.floor((DAY.t-h)*60/10)*10,ic=dayDark(DAY.t)>.5?'🌙':DAY.t>=17&&DAY.t<20?'🌇':DAY.t>=5&&DAY.t<7?'🌅':'☀️';
+setInterval(()=>{{const _n=((srvNow()/1000)%DAY.len)/DAY.len*24;DAY.t=_n;if(window.__dayPb!==SRV.pb){window.__dayPb=SRV.pb;window._dayPt=_n}}const h=Math.floor(DAY.t),m=Math.floor((DAY.t-h)*60/10)*10,ic=dayDark(DAY.t)>.5?'🌙':DAY.t>=17&&DAY.t<20?'🌇':DAY.t>=5&&DAY.t<7?'🌅':'☀️';
  clockEl.textContent=ic+' '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');const mi=gid('mini'),wr=gid('wrap').getBoundingClientRect();if(mi&&mi.offsetParent){const r=mi.getBoundingClientRect();clockEl.style.left=(r.left-wr.left+r.width/2-clockEl.offsetWidth/2)+'px';clockEl.style.top=(r.bottom-wr.top+3)+'px';clockEl.style.display=''}else clockEl.style.display='none'},500);
 // เสียงกลางคืน: จิ้งหรีดแทนนก
 {const _bt=birdTick;birdTick=function(){if(AU.c&&!SET.mute&&!document.hidden&&dayDark(DAY.t)>.6&&(AU.scene==='field'||AU.scene==='town')){setTimeout(birdTick,1500+Math.random()*2500);for(let i=0;i<3+(Math.random()*4|0);i++)tone(4200+Math.random()*300,0,.04,'sine',.025,i*.07,'am');return}_bt()}}
@@ -1826,7 +1828,7 @@ function saveGame(manual){if(P.dead&&!manual)return;try{const d={v:1,t:Date.now(
 function loadGame(){let d;try{d=JSON.parse(localStorage.getItem(SAVEK)||'null')}catch(e){}if(!d||d.v!==1)return false;
  if(d.name)P.name=d.name;Object.assign(P,{lv:d.lv,xp:d.xp,sp:d.sp,fa:d.fa,hu:d.hu,bagLv:d.bagLv|0,tool:d.tool||'sword',draw:!!d.draw});Object.assign(P.stats,d.stats);P.ab={str:0,vit:0,int:0,agi:0,end:0};
  Object.assign(P.armor,d.armor);Object.assign(P.tier,d.tier);for(const k in inv)if(k!=='coin')inv[k]=0;Object.assign(inv,d.inv);for(const k in GEAR)delete GEAR[k];Object.assign(GEAR,d.gear);window.__PEND7={a:{},g:{}};for(const k in P.armor){const id=P.armor[k];if(id&&!ITEMS[id]){__PEND7.a[k]=id;P.armor[k]=null}}for(const id in GEAR)if(!ITEMS[id]){__PEND7.g[id]=GEAR[id];delete GEAR[id]}Object.assign(ENH,d.enh);
- if(d.sk)for(let i=0;i<d.sk.length;i++)SK.own[i]=d.sk[i];if(d.qs)for(let i=0;i<d.qs.length;i++)QS.slots[i]=d.qs[i];if(d.day!=null)DAY.t=d.day;
+ if(d.sk)for(let i=0;i<d.sk.length;i++)SK.own[i]=d.sk[i];if(d.qs)for(let i=0;i<d.qs.length;i++)QS.slots[i]=d.qs[i];
  for(const b of d.buffs||[])if(FOOD[b.id])BUFFS.push({id:b.id,n:FOOD[b.id].n,ic:FOOD[b.id].e,st:FOOD[b.id].st,t:b.t,dur:FOOD[b.id].dur});
  syncSword();recalcStats();applyBonus();P.hp=Math.min(BAL.hp,d.hp);P.mp=Math.min(BAL.mp,d.mp);return true}
 const _loaded=loadGame();
@@ -4093,7 +4095,7 @@ function animalAct(a){const nm={chicken:'ไก่',cow:'วัว',sheep:'แ�
  if(a.fed!==HOME.day){const f=inv.hay>0?'hay':inv.wheat>0?'wheat':null;if(!f){say(nm+'หิว — ป้อนหญ้าแห้ง/ข้าวสาลี (ซื้อหญ้าแห้งที่ลุงบุญมี)');return}inv[f]--;a.fed=HOME.day;a.heart=Math.min(10,(a.heart||0)+.3);sfx('pop');refreshInv();say('🌿 ป้อนอาหาร'+nm+'แล้ว — พรุ่งนี้จะให้ผลผลิต');saveHome();return}
  a.heart=Math.min(10,(a.heart||0)+.05);say('💗 ลูบหัว'+nm+' (ความผูกพัน '+(a.heart||0).toFixed(1)+'/10)');sfx('ui')}
 function houseMenu(){const can=DAY.t>=18||DAY.t<5;talk({name:'บ้านของคุณ',c:'#8a5a2a'},HOUSE[HOME.house].n+' — '+(can?'ดึกแล้ว พักผ่อนดีไหม?':'ยังไม่ค่ำ (นอนได้ตั้งแต่ 18:00)'),[...(can?[{t:'🛏️ นอนหลับถึงเช้า',c:'go',f:sleepNow}]:[]),{t:'🔨 สร้าง/อัปเกรดบ้าน',f:()=>openLife('house')},BYE],'🏠 '+HOUSE[HOME.house].n)}
-function sleepNow(){fade('#000');PAUSED=true;setTimeout(()=>{if(DAY.t>=12){HOME.day++;newDay()}DAY.t=6;_dayPt=6;P.hp=BAL.hp;P.mp=BAL.mp;P.fa=100;const lv=HOME.house;addBuff('rest',{n:'พักผ่อนเต็มอิ่ม',e:'🛌',st:{str:lv,vit:lv,agi:lv,end:lv,int:lv},dur:600});PAUSED=false;saveGame(true);banner('อรุณสวัสดิ์!','วันที่ '+HOME.day+' · พักผ่อนเต็มอิ่ม ค่าพลังทั้งหมด +'+lv+' (10 นาที)','green')},900)}
+function sleepNow(){fade('#000');PAUSED=true;setTimeout(()=>{P.hp=BAL.hp;P.mp=BAL.mp;P.fa=100;const lv=HOME.house;addBuff('rest',{n:'พักผ่อนเต็มอิ่ม',e:'🛌',st:{str:lv,vit:lv,agi:lv,end:lv,int:lv},dur:600});PAUSED=false;saveGame(true);banner('อรุณสวัสดิ์!','วันที่ '+HOME.day+' · พักผ่อนเต็มอิ่ม ค่าพลังทั้งหมด +'+lv+' (10 นาที)','green')},900)}
 {const _a=act;act=function(){if(D&&D.home&&!DLG.open){if(homeAct())return}return _a()}}
 {const _i=interact;interact=function(){if(D&&D.home&&!DLG.open&&homeAct())return true;return _i()}}
 {const _u=useToolHit;useToolHit=function(){if(D&&D.home){homeUse();return}return _u()}}

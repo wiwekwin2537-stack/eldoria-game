@@ -99,7 +99,7 @@ window.partyXp33=partyXp33;
    if(p.vis33)continue;
    if(Math.hypot(P.x-p.x,(P.y-14)-p.y)<p.r+8&&P.iframe<=0){zHurt(p,p.dmg,1,'โดนพลังเวท');ZPROJ.splice(i,1);if(!D||!D.zone)return;continue}
    if(host){let hit=false;for(const o of NET.others.values()){if(o.dead||(o.ifr33||0)>performance.now())continue;if(Math.hypot(o.x-p.x,(o.y-14)-p.y)<p.r+8){W33.swap=o;try{zHurt(p,p.dmg,1,'โดนพลังเวท')}finally{W33.swap=null}hit=true;break}}if(hit){ZPROJ.splice(i,1);continue}}}
-  for(const o of Zm.ores){if(o.shake>0)o.shake-=dt;if(!o.alive){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-o.x,P.y-o.y)>60){o.alive=true;o.hp=o.max}}}
+  for(const o of Zm.ores){if(o.shake>0)o.shake-=dt;if(!o.alive&&!(window.FW&&FW.act())){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-o.x,P.y-o.y)>60){o.alive=true;o.hp=o.max}}}
   if(D.shake>0)D.shake-=dt;if(D.ban>0)D.ban-=dt;
   if(host)try{hostTick33()}catch(e){}}}
 // คนดู: ไม่เกิดมอน/บอสเอง (รอจากโฮสต์)

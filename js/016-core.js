@@ -52,10 +52,11 @@ function useToolHit(){const tg=D?null:pickTarget();
  if(!tg)return;
  if(P.tool==='axe'){if(tg.kind==='tree')hitTree(tg.o);else say('แร่ต้องใช้ที่ขุดแร่ (กด 3)')}
  else{if(tg.kind==='ore')hitOre(tg.o);else say('ต้นไม้ต้องใช้ขวาน (กด 2)')}}
-function hitTree(tr){tr.hp-=AXEDMG();tr.shake=.35;tr.bar=2;const sc=tr.sc;sfx('chop');
+function hitTree(tr){const sh=window.FW&&FW.act(),dm=AXEDMG();if(sh)FW.send('t',tr,dm,120);tr.hp-=dm;tr.shake=.35;tr.bar=2;const sc=tr.sc;sfx('chop');
  for(let k=0;k<5;k++)fx.push({x:tr.px+(Math.random()-.5)*50*sc,y:tr.ty*T+28-55*sc,vx:(Math.random()-.5)*70,vy:-10-Math.random()*30,l:1,c:'80,170,70'});
  for(let k=0;k<4;k++)fx.push({x:tr.px+(Math.random()-.5)*10,y:tr.ty*T+22,vx:(Math.random()-.5)*110,vy:-60-Math.random()*50,l:.6,c:'170,120,60'});
- if(tr.hp<=0){tr.alive=false;map[tr.ty][tr.tx]=STUMP;falling.push({tr,ft:0,dir:P.x<tr.px?1:-1,landed:false});say('ต้นไม้กำลังล้ม!');sfx('creak')}
+ if(tr.hp<=0&&sh){tr.hp=1;say('รอเซิร์ฟเวอร์ตัดสิน...')}
+ else if(tr.hp<=0){tr.alive=false;map[tr.ty][tr.tx]=STUMP;falling.push({tr,ft:0,dir:P.x<tr.px?1:-1,landed:false});say('ต้นไม้กำลังล้ม!');sfx('creak')}
  else say('ฟัน'+SZN[tr.size]+' เหลืออีก '+tr.hp+' ที')}
 function hitOre(o){o.hp--;o.shake=.3;o.bar=2;sfx('mine');
  for(let k=0;k<6;k++)fx.push({x:o.tx*T+16+(Math.random()-.5)*20,y:o.ty*T+14,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:'170,235,255'});
@@ -67,12 +68,12 @@ function updWorld(dt){
   if(tr.alive){const by=tr.ty*T+28,sc=tr.sc,ov=tr.ty>pr&&Math.abs(P.x-tr.px)<34*sc+8&&(P.y-48)<by-24*sc&&P.y>by-92*sc;
    tr.fade+=((ov?1:0)-tr.fade)*Math.min(1,dt*10)}}
  for(const o of ores){if(o.shake>0)o.shake-=dt;if(o.bar>0)o.bar-=dt;
-  if(map[o.ty][o.tx]===RUBBLE){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-(o.tx*T+16),P.y-(o.ty*T+16))>44){map[o.ty][o.tx]=ORE;o.hp=o.max}}}
+  if(map[o.ty][o.tx]===RUBBLE&&!(window.FW&&FW.act())){o.regen-=dt;if(o.regen<=0&&Math.hypot(P.x-(o.tx*T+16),P.y-(o.ty*T+16))>44){map[o.ty][o.tx]=ORE;o.hp=o.max}}}
  for(let i=falling.length-1;i>=0;i--){const f=falling[i];f.ft+=dt;
   if(!f.landed&&f.ft>=1.1){f.landed=true;const tr=f.tr,ex=tr.tx*T+16+f.dir*62*tr.sc,ey=tr.ty*T+28;
-   for(let k=0;k<tr.wood;k++)addDrop('wood',ex+(Math.random()-.5)*24,ey+(Math.random()-.5)*10);if(Math.random()<.3+tr.wood*.05)addDrop('apple',ex+(Math.random()-.5)*30,ey);
+   if(f.own!==false){for(let k=0;k<tr.wood;k++)addDrop('wood',ex+(Math.random()-.5)*24,ey+(Math.random()-.5)*10);if(Math.random()<.3+tr.wood*.05)addDrop('apple',ex+(Math.random()-.5)*30,ey)}
    for(let k=0;k<14;k++)fx.push({x:ex+(Math.random()-.5)*60*tr.sc,y:ey-8,vx:(Math.random()-.5)*120,vy:-30-Math.random()*60,l:.8,c:'70,150,60'});
-   say('ต้นไม้ล้มแล้ว! ได้ไม้ +'+tr.wood);sfx('thud')}
+   say(f.own===false?('ต้นไม้ล้มแล้ว — ไม้เป็นของ '+(f.bn||'ผู้เล่นอื่น')):'ต้นไม้ล้มแล้ว! ได้ไม้ +'+tr.wood);sfx('thud')}
   if(f.ft>2.3)falling.splice(i,1)}
  for(let i=drops.length-1;i>=0;i--){const d=drops[i];d.t+=dt;
   if(d.z>0||d.vz>0){d.vz-=520*dt;d.z+=d.vz*dt;if(d.z<=0){d.z=0;d.vz=d.vz<-80?-d.vz*.35:0}}

@@ -43,8 +43,9 @@ const gateNear15=()=>{if(!(D&&D.zone&&!D.dg))return null;const g=gateOf15(D.zone
 // ---------- ต้นไม้ประจำแมพ: ตัดด้วยขวาน ----------
 {const _zm=zMine;zMine=function(o){if(OREK[o.kind]&&OREK[o.kind].tree){say('🌳 ต้นไม้ต้องตัดด้วยขวาน (กด 2)');return}return _zm(o)}}
 function chop15(o){const K=OREK[o.kind];if(P.tier.axe<K.req){o.shake=.2;sfx('thud');say('ต้องใช้'+ITEMS['axe'+K.req].name+'ขึ้นไป จึงจะตัด'+K.n+'ได้');return}
- o.hp-=AXEDMG();o.shake=.3;sfx('chop');for(let k=0;k<6;k++)fx.push({x:o.x+(Math.random()-.5)*24,y:o.y-16,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:K.fx});
- if(o.hp<=0){o.alive=false;o.regen=75;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));for(let k=0;k<n;k++)addDrop(K.drop,o.x,o.y);say('🌳 ตัด'+K.n+'ล้ม! ได้'+MN(K.drop)+' +'+n);gainXp(K.xp*3)}
+ const sh=window.FW&&FW.act(),dm=AXEDMG();if(sh)FW.send('o',o,dm,75);o.hp-=dm;o.shake=.3;sfx('chop');for(let k=0;k<6;k++)fx.push({x:o.x+(Math.random()-.5)*24,y:o.y-16,vx:(Math.random()-.5)*160,vy:-50-Math.random()*80,l:.5,c:K.fx});
+ if(o.hp<=0&&sh){o.hp=1;say('รอเซิร์ฟเวอร์ตัดสิน...')}
+ else if(o.hp<=0){o.alive=false;o.regen=75;const n=K.cnt[0]+Math.floor(Math.random()*(K.cnt[1]-K.cnt[0]+1));for(let k=0;k<n;k++)addDrop(K.drop,o.x,o.y);say('🌳 ตัด'+K.n+'ล้ม! ได้'+MN(K.drop)+' +'+n);gainXp(K.xp*3)}
  else say('🪓 ตัด'+K.n+'... '+Math.round((1-o.hp/o.max)*100)+'%')}
 {const _u=useToolHit;useToolHit=function(){if(D&&D.zone&&P.tool==='axe'){if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}
    let best=null,bd=46;for(const q of D.zone.ores){if(!q.alive||!(OREK[q.kind]&&OREK[q.kind].tree))continue;const d=Math.hypot(q.x-P.x,q.y-P.y);if(d<bd){bd=d;best=q}}
