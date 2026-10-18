@@ -1,6 +1,6 @@
 # 🗺️ แผนที่ระบบ (SYSTEMS.md) — แจ้งบัคเรื่องไหน → แก้ที่ไหน
 
-> ไฟล์นี้สร้างอัตโนมัติด้วย `python3 tools/systems_map.py` (อัปเดต 2026-10-17) · **แก้ไฟล์ใน js/ แล้วรันใหม่ทุกครั้ง**
+> ไฟล์นี้สร้างอัตโนมัติด้วย `python3 tools/systems_map.py` (อัปเดต 2026-10-18) · **แก้ไฟล์ใน js/ แล้วรันใหม่ทุกครั้ง**
 > โค้ดเกมอยู่ในโฟลเดอร์ `js/` (โหลดตามลำดับเลขหน้าชื่อไฟล์) · `js/031-core.js` = เกมหลัก · `js/NNN-fixXX.js` = ชุดแก้ · เลขบรรทัดเปลี่ยนได้ → ค้นด้วยชื่อฟังก์ชัน
 > **วิธีใช้:** เจ้าของบอกอาการ → หาหมวดข้างล่าง → อ่านเฉพาะฟังก์ชัน/ชุดแก้ในหมวดนั้น (ไม่ต้องอ่านทั้งไฟล์) → ก่อนแก้ต้องเห็น **ทุกชั้น** ของฟังก์ชันที่จะแตะ
 > ฝั่งเซิร์ฟเวอร์: บัญชี/เซฟ/ตารางอันดับ/กิลด์ = `accounts.js` · บอสโลก/ประมูล/แผงร้าน = `world.js` · ตลาด/เทรด = `market.js` · PvP = `pvp.js` · ปาร์ตี้ = `party.js` · เส้นทาง/ไฟล์ = `server.js`
@@ -8,9 +8,9 @@
 ## ลงดันเจี้ยน / ชั้นดัน / กุญแจ / กล่องในดัน
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `enterDg` | js/031-core.js:2282 | 5 ชั้น | js/031-core.js:3171 · js/031-core.js:6689 · js/032-fix1.js:46 · js/033-fix2.js:7 · js/042-fix11.js:47 |
-| `dgReward` | js/031-core.js:2291 | 4 ชั้น | js/031-core.js:6693 · js/031-core.js:7111 · js/072-fix40.js:5 · js/096-fix64.js:15 |
-| `openDgMenu` | js/031-core.js:2274 | 3 ชั้น | js/031-core.js:6695 · js/042-fix11.js:44 · js/067-fix36.js:5 |
+| `enterDg` | js/031-core.js:2284 | 5 ชั้น | js/031-core.js:3173 · js/031-core.js:6691 · js/032-fix1.js:46 · js/033-fix2.js:7 · js/042-fix11.js:47 |
+| `dgReward` | js/031-core.js:2293 | 4 ชั้น | js/031-core.js:6695 · js/031-core.js:7113 · js/072-fix40.js:5 · js/096-fix64.js:15 |
+| `openDgMenu` | js/031-core.js:2276 | 3 ชั้น | js/031-core.js:6697 · js/042-fix11.js:44 · js/067-fix36.js:5 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix11` `js/042-fix11.js` — (v4.20) — ดันเจี้ยนย้ายเข้าปราสาท (46,47) · กุญแจบอส/ไม่ดรอปแท่ง/ออกต้องใช้ใบวาร์ป (35)
@@ -29,10 +29,10 @@
 ## ดรอปของ / ของตก / เก็บของ / กระเป๋าเต็ม
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `addDrop` | js/016-core.js:43 | 7 ชั้น | js/031-core.js:6334 · js/062-fix31.js:8 · js/072-fix40.js:12 · js/082-fix50.js:3 · js/096-fix64.js:11 · js/096-fix64.js:14 · js/180-fix153.js:37 |
-| `dropLoot` | js/016-core.js:44 | 8 ชั้น | js/030-core.js:12 · js/031-core.js:2237 · js/031-core.js:3585 · js/031-core.js:4598 · js/031-core.js:4841 · js/031-core.js:6660 · js/043-fix12.js:45 · js/151-fix119.js:9 |
-| `drawDrops` | js/016-core.js:94, js/031-core.js:39 | 7 ชั้น | js/031-core.js:1195 · js/031-core.js:1198 · js/031-core.js:1346 · js/031-core.js:2305 · js/068-fix37.js:6 · js/127-fix95.js:214 · js/171-fix144.js:152 |
-| `mobKill` | js/031-core.js:993 | 40 ชั้น | js/031-core.js:1338 · js/031-core.js:1820 · js/031-core.js:2235 · js/031-core.js:2297 · js/031-core.js:2905 · js/031-core.js:3586 · js/031-core.js:4597 · js/031-core.js:4840 · js/031-core.js:6658 · js/032-fix1.js:47 · js/039-fix8.js:52 · js/039-fix8.js:85 · js/040-fix9.js:89 · js/041-fix10.js:48 · js/042-fix11.js:14 · js/043-fix12.js:44 · js/046-fix15.js:62 · js/051-fix20.js:7 · js/062-fix31.js:10 · js/064-fix33.js:78 · js/091-fix59.js:125 · js/094-fix62.js:94 · js/096-fix64.js:13 · js/096-fix64.js:23 · js/101-fix69.js:20 · js/104-fix72.js:139 · js/110-fix78.js:211 · js/114-fix82.js:78 · js/115-fix83.js:32 · js/124-fix92.js:80 · js/125-fix93.js:56 · js/128-fix96.js:48 · js/133-fix101.js:161 · js/135-fix103.js:35 · js/143-fix111.js:80 · js/144-fix112.js:25 · js/147-fix115.js:45 · js/149-fix117.js:35 · js/158-fix131.js:15 · js/180-fix153.js:24 |
+| `addDrop` | js/016-core.js:43 | 7 ชั้น | js/031-core.js:6336 · js/062-fix31.js:8 · js/072-fix40.js:12 · js/082-fix50.js:3 · js/096-fix64.js:11 · js/096-fix64.js:14 · js/180-fix153.js:37 |
+| `dropLoot` | js/016-core.js:44 | 8 ชั้น | js/030-core.js:12 · js/031-core.js:2239 · js/031-core.js:3587 · js/031-core.js:4600 · js/031-core.js:4843 · js/031-core.js:6662 · js/043-fix12.js:45 · js/151-fix119.js:9 |
+| `drawDrops` | js/016-core.js:95, js/031-core.js:40 | 7 ชั้น | js/031-core.js:1197 · js/031-core.js:1200 · js/031-core.js:1348 · js/031-core.js:2307 · js/068-fix37.js:6 · js/127-fix95.js:214 · js/171-fix144.js:152 |
+| `mobKill` | js/031-core.js:994 | 40 ชั้น | js/031-core.js:1340 · js/031-core.js:1822 · js/031-core.js:2237 · js/031-core.js:2299 · js/031-core.js:2907 · js/031-core.js:3588 · js/031-core.js:4599 · js/031-core.js:4842 · js/031-core.js:6660 · js/032-fix1.js:47 · js/039-fix8.js:52 · js/039-fix8.js:85 · js/040-fix9.js:89 · js/041-fix10.js:48 · js/042-fix11.js:14 · js/043-fix12.js:44 · js/046-fix15.js:63 · js/051-fix20.js:7 · js/062-fix31.js:10 · js/064-fix33.js:78 · js/091-fix59.js:125 · js/094-fix62.js:94 · js/096-fix64.js:13 · js/096-fix64.js:23 · js/101-fix69.js:20 · js/104-fix72.js:139 · js/110-fix78.js:211 · js/114-fix82.js:78 · js/115-fix83.js:32 · js/124-fix92.js:80 · js/125-fix93.js:56 · js/128-fix96.js:48 · js/133-fix101.js:161 · js/135-fix103.js:35 · js/143-fix111.js:80 · js/144-fix112.js:25 · js/147-fix115.js:45 · js/149-fix117.js:35 · js/158-fix131.js:15 · js/180-fix153.js:24 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix11` `js/042-fix11.js` — (v4.20) — ดันเจี้ยนย้ายเข้าปราสาท (46,47) · กุญแจบอส/ไม่ดรอปแท่ง/ออกต้องใช้ใบวาร์ป (35)
@@ -52,9 +52,9 @@
 ## XP / เลเวล / เลเวลขึ้นเร็ว-ช้า
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `gainXp` | js/030-core.js:10 | 15 ชั้น | js/031-core.js:319 · js/031-core.js:817 · js/031-core.js:1819 · js/031-core.js:2180 · js/031-core.js:3062 · js/031-core.js:3342 · js/031-core.js:3660 · js/031-core.js:6705 · js/041-fix10.js:47 · js/062-fix31.js:24 · js/096-fix64.js:9 · js/109-fix77.js:10 · js/124-fix92.js:37 · js/125-fix93.js:71 · js/180-fix153.js:43 |
-| `mobKill` | js/031-core.js:993 | 40 ชั้น | js/031-core.js:1338 · js/031-core.js:1820 · js/031-core.js:2235 · js/031-core.js:2297 · js/031-core.js:2905 · js/031-core.js:3586 · js/031-core.js:4597 · js/031-core.js:4840 · js/031-core.js:6658 · js/032-fix1.js:47 · js/039-fix8.js:52 · js/039-fix8.js:85 · js/040-fix9.js:89 · js/041-fix10.js:48 · js/042-fix11.js:14 · js/043-fix12.js:44 · js/046-fix15.js:62 · js/051-fix20.js:7 · js/062-fix31.js:10 · js/064-fix33.js:78 · js/091-fix59.js:125 · js/094-fix62.js:94 · js/096-fix64.js:13 · js/096-fix64.js:23 · js/101-fix69.js:20 · js/104-fix72.js:139 · js/110-fix78.js:211 · js/114-fix82.js:78 · js/115-fix83.js:32 · js/124-fix92.js:80 · js/125-fix93.js:56 · js/128-fix96.js:48 · js/133-fix101.js:161 · js/135-fix103.js:35 · js/143-fix111.js:80 · js/144-fix112.js:25 · js/147-fix115.js:45 · js/149-fix117.js:35 · js/158-fix131.js:15 · js/180-fix153.js:24 |
-| `lvHud` | js/030-core.js:9, js/031-core.js:121 | 2 ชั้น | js/031-core.js:816 · js/124-fix92.js:40 |
+| `gainXp` | js/030-core.js:10 | 15 ชั้น | js/031-core.js:320 · js/031-core.js:818 · js/031-core.js:1821 · js/031-core.js:2182 · js/031-core.js:3064 · js/031-core.js:3344 · js/031-core.js:3662 · js/031-core.js:6707 · js/041-fix10.js:47 · js/062-fix31.js:24 · js/096-fix64.js:9 · js/109-fix77.js:10 · js/124-fix92.js:37 · js/125-fix93.js:71 · js/180-fix153.js:43 |
+| `mobKill` | js/031-core.js:994 | 40 ชั้น | js/031-core.js:1340 · js/031-core.js:1822 · js/031-core.js:2237 · js/031-core.js:2299 · js/031-core.js:2907 · js/031-core.js:3588 · js/031-core.js:4599 · js/031-core.js:4842 · js/031-core.js:6660 · js/032-fix1.js:47 · js/039-fix8.js:52 · js/039-fix8.js:85 · js/040-fix9.js:89 · js/041-fix10.js:48 · js/042-fix11.js:14 · js/043-fix12.js:44 · js/046-fix15.js:63 · js/051-fix20.js:7 · js/062-fix31.js:10 · js/064-fix33.js:78 · js/091-fix59.js:125 · js/094-fix62.js:94 · js/096-fix64.js:13 · js/096-fix64.js:23 · js/101-fix69.js:20 · js/104-fix72.js:139 · js/110-fix78.js:211 · js/114-fix82.js:78 · js/115-fix83.js:32 · js/124-fix92.js:80 · js/125-fix93.js:56 · js/128-fix96.js:48 · js/133-fix101.js:161 · js/135-fix103.js:35 · js/143-fix111.js:80 · js/144-fix112.js:25 · js/147-fix115.js:45 · js/149-fix117.js:35 · js/158-fix131.js:15 · js/180-fix153.js:24 |
+| `lvHud` | js/030-core.js:9, js/031-core.js:122 | 2 ชั้น | js/031-core.js:817 · js/124-fix92.js:40 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix24` `js/055-fix24.js` — (v4.32) — ข้อ 68 ส่วนที่ 1: เลเวลสูงสุด 150 · แมพใหม่ 2 แมพ (Lv.100–150) · เซ็ตใหม่ระดับ 10–11 · วัตถุดิบใหม่
@@ -68,19 +68,19 @@
 - `fix96` `js/128-fix96.js` — (v4.82) — 🌀 ดันเจี้ยนเมืองที่ 2 (5 แห่ง Lv.150–200) + วัตถุดิบใหม่ + ช่างหลอมอัสตรา
 - `fix153` `js/180-fix153.js` — (v5.08) — ⚔️ ทุ่งสังหาร: เลเวลขึ้นเร็วเกินจนผู้เล่นทดสอบตัน Lv.200 · เงินเฟ้อ (เจ้าของแจ้ง 2026-10-17 "แค่เปิด
 - `fix96` `js/180-fix153.js` — เปิดเลเวลถึง 200 แต่ไม่ได้แก้ทุ่งสังหาร → XP ไหลเข้าเลเวลตรง ๆ
-- `fix156` `js/183-fix156.js` — (v5.09) — ⭐ เสกเลเวล 150 ให้ไอดีเทส (เจ้าของสั่ง 2026-10-17: "ผู้เทสจะได้ลองระบบอื่น") · ครั้งเดียวต่อไอดี
+- `fix156` `js/183-fix156.js` — (v5.12) — ⭐ เสกเลเวล 150 เมื่อตัวละครถึง Lv.7 (เจ้าของสั่ง 2026-10-17) · ครั้งเดียวต่อไอดี
 
 ## เข้า-ออกแมพ / วาป / ไปโผล่ผิดที่
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `exitD` | js/023-core.js:18 | 8 ชั้น | js/031-core.js:1091 · js/031-core.js:3204 · js/031-core.js:3669 · js/031-core.js:6427 · js/031-core.js:6741 · js/146-fix114.js:13 · js/161-fix134.js:48 · js/171-fix144.js:111 |
-| `enterZone` | js/031-core.js:1080 | 6 ชั้น | js/032-fix1.js:45 · js/051-fix20.js:13 · js/074-fix42.js:154 · js/104-fix72.js:137 · js/138-fix106.js:21 · js/161-fix134.js:18 |
-| `enterTown` | js/020-core.js:20 | 3 ชั้น | js/031-core.js:197 · js/127-fix95.js:243 · js/161-fix134.js:49 |
-| `enterShop` | js/022-core.js:39 | 8 ชั้น | js/030-core.js:68 · js/031-core.js:4188 · js/031-core.js:4793 · js/031-core.js:5974 · js/031-core.js:6462 · js/042-fix11.js:40 · js/131-fix99.js:21 · js/164-fix137.js:16 |
-| `leaveShop` | js/022-core.js:51 | 4 ชั้น | js/031-core.js:3528 · js/031-core.js:4794 · js/127-fix95.js:192 · js/131-fix99.js:22 |
+| `exitD` | js/023-core.js:18 | 8 ชั้น | js/031-core.js:1093 · js/031-core.js:3206 · js/031-core.js:3671 · js/031-core.js:6429 · js/031-core.js:6743 · js/146-fix114.js:13 · js/161-fix134.js:48 · js/171-fix144.js:111 |
+| `enterZone` | js/031-core.js:1082 | 6 ชั้น | js/032-fix1.js:45 · js/051-fix20.js:13 · js/074-fix42.js:154 · js/104-fix72.js:137 · js/138-fix106.js:21 · js/161-fix134.js:18 |
+| `enterTown` | js/020-core.js:20 | 3 ชั้น | js/031-core.js:198 · js/127-fix95.js:243 · js/161-fix134.js:49 |
+| `enterShop` | js/022-core.js:39 | 8 ชั้น | js/030-core.js:68 · js/031-core.js:4190 · js/031-core.js:4795 · js/031-core.js:5976 · js/031-core.js:6464 · js/042-fix11.js:40 · js/131-fix99.js:21 · js/164-fix137.js:16 |
+| `leaveShop` | js/022-core.js:51 | 4 ชั้น | js/031-core.js:3530 · js/031-core.js:4796 · js/127-fix95.js:192 · js/131-fix99.js:22 |
 | `enter62` | js/094-fix62.js:50 | 4 ชั้น | js/096-fix64.js:22 · js/150-fix118.js:16 · js/152-fix121.js:5 · js/161-fix134.js:12 |
 | `leave62` | js/094-fix62.js:59 | 1 ชั้น | js/161-fix134.js:13 |
-| `interact` | js/023-core.js:23 | 24 ชั้น | js/031-core.js:1087 · js/031-core.js:2103 · js/031-core.js:2289 · js/031-core.js:2814 · js/031-core.js:4098 · js/031-core.js:4102 · js/031-core.js:4152 · js/031-core.js:6776 · js/042-fix11.js:19 · js/046-fix15.js:33 · js/047-fix16.js:36 · js/074-fix42.js:84 · js/074-fix42.js:157 · js/096-fix64.js:31 · js/104-fix72.js:110 · js/106-fix74.js:49 · js/108-fix76.js:63 · js/113-fix81.js:252 · js/127-fix95.js:206 · js/128-fix96.js:44 · js/142-fix110.js:47 · js/156-fix129.js:28 · js/171-fix144.js:125 · js/174-fix147.js:13 |
+| `interact` | js/023-core.js:23 | 24 ชั้น | js/031-core.js:1089 · js/031-core.js:2105 · js/031-core.js:2291 · js/031-core.js:2816 · js/031-core.js:4100 · js/031-core.js:4104 · js/031-core.js:4154 · js/031-core.js:6778 · js/042-fix11.js:19 · js/046-fix15.js:33 · js/047-fix16.js:36 · js/074-fix42.js:84 · js/074-fix42.js:157 · js/096-fix64.js:31 · js/104-fix72.js:110 · js/106-fix74.js:49 · js/108-fix76.js:63 · js/113-fix81.js:252 · js/127-fix95.js:206 · js/128-fix96.js:44 · js/142-fix110.js:47 · js/156-fix129.js:28 · js/171-fix144.js:125 · js/174-fix147.js:13 |
 | `toTown` | js/020-core.js:22 | 2 ชั้น | js/030-core.js:69 · js/042-fix11.js:59 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
@@ -123,7 +123,7 @@
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
 | `wbWin10` | js/040-fix9.js:94 | 3 ชั้น | js/041-fix10.js:82 · js/104-fix72.js:115 · js/110-fix78.js:213 |
-| `spawnBoss` | js/031-core.js:981 | 7 ชั้น | js/031-core.js:3834 · js/064-fix33.js:107 · js/109-fix77.js:9 · js/125-fix93.js:43 · js/127-fix95.js:198 · js/134-fix102.js:76 · js/171-fix144.js:118 |
+| `spawnBoss` | js/031-core.js:982 | 7 ชั้น | js/031-core.js:3836 · js/064-fix33.js:107 · js/109-fix77.js:9 · js/125-fix93.js:43 · js/127-fix95.js:198 · js/134-fix102.js:76 · js/171-fix144.js:118 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix9` `js/040-fix9.js` — (v4.18) — ระบบออนไลน์: 🐉 บอสโลก 12:00/20:00 · 🔨 โรงประมูล · 🏪 ตลาดกลาง + แผงร้านผู้เล่น
@@ -144,11 +144,11 @@
 ## คราฟ / โต๊ะคราฟ / ช่างตีเหล็ก
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `openForge` | js/030-core.js:54, js/031-core.js:278, js/031-core.js:602 | 3 ชั้น | js/031-core.js:706 · js/031-core.js:5730 · js/031-core.js:6482 |
-| `forgeStart7` | js/031-core.js:5747 | 3 ชั้น | js/031-core.js:5986 · js/031-core.js:6310 · js/038-fix7.js:27 |
-| `forgeEnd7` | js/031-core.js:5748 | 3 ชั้น | js/031-core.js:6311 · js/038-fix7.js:28 · js/100-fix68.js:21 |
+| `openForge` | js/030-core.js:54, js/031-core.js:279, js/031-core.js:603 | 3 ชั้น | js/031-core.js:707 · js/031-core.js:5732 · js/031-core.js:6484 |
+| `forgeStart7` | js/031-core.js:5749 | 3 ชั้น | js/031-core.js:5988 · js/031-core.js:6312 · js/038-fix7.js:27 |
+| `forgeEnd7` | js/031-core.js:5750 | 3 ชั้น | js/031-core.js:6313 · js/038-fix7.js:28 · js/100-fix68.js:21 |
 | `recipe12` | js/043-fix12.js:55 | 3 ชั้น | js/045-fix14.js:37 · js/055-fix24.js:53 · js/091-fix59.js:123 |
-| `anvilHTML` | js/031-core.js:153 | 10 ชั้น | js/031-core.js:2242 · js/031-core.js:2859 · js/031-core.js:4747 · js/043-fix12.js:72 · js/074-fix42.js:15 · js/085-fix53.js:51 · js/119-fix87.js:35 · js/120-fix88.js:10 · js/122-fix90.js:44 · js/173-fix146.js:47 |
+| `anvilHTML` | js/031-core.js:154 | 10 ชั้น | js/031-core.js:2244 · js/031-core.js:2861 · js/031-core.js:4749 · js/043-fix12.js:72 · js/074-fix42.js:15 · js/085-fix53.js:51 · js/119-fix87.js:35 · js/120-fix88.js:10 · js/122-fix90.js:44 · js/173-fix146.js:47 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix12` `js/043-fix12.js` — (v4.21) — ระบบคราฟใหม่ (33,34,36–39)
@@ -161,11 +161,11 @@
 ## ตีบวก / ชุดแตก / ซ่อม / หินตีบวก
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `enhItem` | js/031-core.js:173 | 6 ชั้น | js/031-core.js:2239 · js/031-core.js:2849 · js/031-core.js:5729 · js/031-core.js:5966 · js/031-core.js:5996 · js/140-fix108.js:41 |
-| `enhStart7` | js/031-core.js:5733 | 3 ชั้น | js/031-core.js:5918 · js/100-fix68.js:16 · js/140-fix108.js:43 |
-| `enhRender7` | js/031-core.js:5693 | 4 ชั้น | js/031-core.js:5940 · js/031-core.js:6062 · js/031-core.js:6065 · js/100-fix68.js:26 |
-| `enhCheck7` | js/031-core.js:5659 | 2 ชั้น | js/031-core.js:5917 · js/100-fix68.js:14 |
-| `openEnh7` | js/031-core.js:5720 | 2 ชั้น | js/031-core.js:5965 · js/031-core.js:5991 |
+| `enhItem` | js/031-core.js:174 | 6 ชั้น | js/031-core.js:2241 · js/031-core.js:2851 · js/031-core.js:5731 · js/031-core.js:5968 · js/031-core.js:5998 · js/140-fix108.js:41 |
+| `enhStart7` | js/031-core.js:5735 | 3 ชั้น | js/031-core.js:5920 · js/100-fix68.js:16 · js/140-fix108.js:43 |
+| `enhRender7` | js/031-core.js:5695 | 4 ชั้น | js/031-core.js:5942 · js/031-core.js:6064 · js/031-core.js:6067 · js/100-fix68.js:26 |
+| `enhCheck7` | js/031-core.js:5661 | 2 ชั้น | js/031-core.js:5919 · js/100-fix68.js:14 |
+| `openEnh7` | js/031-core.js:5722 | 2 ชั้น | js/031-core.js:5967 · js/031-core.js:5993 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix7` `js/038-fix7.js` — (v4.16) — ออร่าอาวุธไกล/ตีบวก, แยกสายสเตตัส, สมดุลสัตว์ขี่ + สัตว์ขี่บิน, ว่ายน้ำ + จระเข้, เพื่อนบนเซิร์ฟเวอร
@@ -181,7 +181,7 @@
 ## ออปชั่น / หินสุ่มออป / หินล็อก / เจาะรู-อัญมณี
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `calcBonus` | js/031-core.js:1670 | 8 ชั้น | js/031-core.js:1887 · js/031-core.js:2188 · js/031-core.js:2567 · js/031-core.js:3008 · js/031-core.js:6414 · js/056-fix25.js:51 · js/124-fix92.js:120 · js/143-fix111.js:44 |
+| `calcBonus` | js/031-core.js:1672 | 8 ชั้น | js/031-core.js:1889 · js/031-core.js:2190 · js/031-core.js:2569 · js/031-core.js:3010 · js/031-core.js:6416 · js/056-fix25.js:51 · js/124-fix92.js:120 · js/143-fix111.js:44 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix5` `js/036-fix5.js` — ชุดแก้ #5 (v4.14)  สายตามอนสเตอร์ (LOS): มองไม่เห็นผู้เล่นผ่านกำแพง/แร่ → ไม่ล็อกเป้า · เสียเป้านานแล้วเลิกไล่
@@ -193,10 +193,10 @@
 ## ใส่-ถอดชุด / ค่าสเตตัส
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `equipItem` | js/031-core.js:61 | 8 ชั้น | js/031-core.js:2149 · js/031-core.js:6150 · js/031-core.js:6707 · js/055-fix24.js:57 · js/058-fix27.js:28 · js/091-fix59.js:112 · js/133-fix101.js:149 · js/153-fix123.js:50 |
-| `unequip` | js/031-core.js:65 | 2 ชั้น | js/031-core.js:6709 · js/058-fix27.js:29 |
-| `recalcStats` | js/031-core.js:316 | 2 ชั้น | js/031-core.js:3012 · js/059-fix28.js:13 |
-| `calcBonus` | js/031-core.js:1670 | 8 ชั้น | js/031-core.js:1887 · js/031-core.js:2188 · js/031-core.js:2567 · js/031-core.js:3008 · js/031-core.js:6414 · js/056-fix25.js:51 · js/124-fix92.js:120 · js/143-fix111.js:44 |
+| `equipItem` | js/031-core.js:62 | 8 ชั้น | js/031-core.js:2151 · js/031-core.js:6152 · js/031-core.js:6709 · js/055-fix24.js:57 · js/058-fix27.js:28 · js/091-fix59.js:112 · js/133-fix101.js:149 · js/153-fix123.js:50 |
+| `unequip` | js/031-core.js:66 | 2 ชั้น | js/031-core.js:6711 · js/058-fix27.js:29 |
+| `recalcStats` | js/031-core.js:317 | 2 ชั้น | js/031-core.js:3014 · js/059-fix28.js:13 |
+| `calcBonus` | js/031-core.js:1672 | 8 ชั้น | js/031-core.js:1889 · js/031-core.js:2190 · js/031-core.js:2569 · js/031-core.js:3010 · js/031-core.js:6416 · js/056-fix25.js:51 · js/124-fix92.js:120 · js/143-fix111.js:44 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix7` `js/038-fix7.js` — (v4.16) — ออร่าอาวุธไกล/ตีบวก, แยกสายสเตตัส, สมดุลสัตว์ขี่ + สัตว์ขี่บิน, ว่ายน้ำ + จระเข้, เพื่อนบนเซิร์ฟเวอร
@@ -207,12 +207,12 @@
 ## ร้านค้า / ซื้อ-ขาย
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `buyItem` | js/022-core.js:88 | 12 ชั้น | js/029-core.js:42 · js/030-core.js:37 · js/031-core.js:122 · js/031-core.js:435 · js/031-core.js:2072 · js/031-core.js:2175 · js/031-core.js:2349 · js/031-core.js:2909 · js/031-core.js:6175 · js/031-core.js:6788 · js/032-fix1.js:30 · js/173-fix146.js:56 |
-| `openShop` | js/022-core.js:82 | 3 ชั้น | js/030-core.js:42 · js/031-core.js:250 · js/031-core.js:6431 |
-| `renderShop` | js/031-core.js:251 | 4 ชั้น | js/031-core.js:367 · js/031-core.js:609 · js/031-core.js:651 · js/122-fix90.js:62 |
-| `shopAct` | js/022-core.js:59 | 12 ชั้น | js/030-core.js:66 · js/031-core.js:287 · js/031-core.js:2346 · js/031-core.js:2827 · js/031-core.js:3530 · js/031-core.js:4940 · js/031-core.js:5726 · js/031-core.js:6296 · js/031-core.js:6469 · js/042-fix11.js:41 · js/067-fix36.js:7 · js/145-fix113.js:28 |
-| `sellBar` | js/031-core.js:655 | 2 ชั้น | js/031-core.js:5910 · js/031-core.js:6060 |
-| `buyList` | js/031-core.js:371 | 3 ชั้น | js/031-core.js:5898 · js/031-core.js:6057 · js/031-core.js:6261 |
+| `buyItem` | js/022-core.js:88 | 12 ชั้น | js/029-core.js:42 · js/030-core.js:37 · js/031-core.js:123 · js/031-core.js:436 · js/031-core.js:2074 · js/031-core.js:2177 · js/031-core.js:2351 · js/031-core.js:2911 · js/031-core.js:6177 · js/031-core.js:6790 · js/032-fix1.js:30 · js/173-fix146.js:56 |
+| `openShop` | js/022-core.js:82 | 3 ชั้น | js/030-core.js:42 · js/031-core.js:251 · js/031-core.js:6433 |
+| `renderShop` | js/031-core.js:252 | 4 ชั้น | js/031-core.js:368 · js/031-core.js:610 · js/031-core.js:652 · js/122-fix90.js:62 |
+| `shopAct` | js/022-core.js:59 | 12 ชั้น | js/030-core.js:66 · js/031-core.js:288 · js/031-core.js:2348 · js/031-core.js:2829 · js/031-core.js:3532 · js/031-core.js:4942 · js/031-core.js:5728 · js/031-core.js:6298 · js/031-core.js:6471 · js/042-fix11.js:41 · js/067-fix36.js:7 · js/145-fix113.js:28 |
+| `sellBar` | js/031-core.js:656 | 2 ชั้น | js/031-core.js:5912 · js/031-core.js:6062 |
+| `buyList` | js/031-core.js:372 | 3 ชั้น | js/031-core.js:5900 · js/031-core.js:6059 · js/031-core.js:6263 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix9` `js/040-fix9.js` — (v4.18) — ระบบออนไลน์: 🐉 บอสโลก 12:00/20:00 · 🔨 โรงประมูล · 🏪 ตลาดกลาง + แผงร้านผู้เล่น
@@ -225,7 +225,7 @@
 ## ตลาดกลาง / เทรด / ประมูล / แผงร้าน / จดหมาย
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `drawStall` | js/020-core.js:83 | 5 ชั้น | js/031-core.js:1633 · js/031-core.js:1765 · js/086-fix54.js:14 · js/146-fix114.js:16 · js/171-fix144.js:155 |
+| `drawStall` | js/020-core.js:83 | 5 ชั้น | js/031-core.js:1635 · js/031-core.js:1767 · js/086-fix54.js:14 · js/146-fix114.js:16 · js/171-fix144.js:155 |
 | `stallGot10` | js/040-fix9.js:204 | 2 ชั้น | js/041-fix10.js:80 · js/153-fix123.js:28 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
@@ -239,9 +239,9 @@
 ## ปาร์ตี้ / กิลด์ / เล่นออนไลน์ด้วยกัน
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `netMsg` | js/031-core.js:2647 | 15 ชั้น | js/031-core.js:7273 · js/040-fix9.js:19 · js/051-fix20.js:83 · js/052-fix21.js:61 · js/060-fix29.js:47 · js/060-fix29.js:91 · js/064-fix33.js:28 · js/066-fix35.js:29 · js/104-fix72.js:28 · js/113-fix81.js:86 · js/114-fix82.js:51 · js/153-fix123.js:41 · js/157-fix130.js:87 · js/160-fix133.js:2 · js/166-fix139.js:31 |
-| `drawOther` | js/031-core.js:2661 | 11 ชั้น | js/031-core.js:3798 · js/031-core.js:6999 · js/031-core.js:7313 · js/040-fix9.js:227 · js/051-fix20.js:84 · js/052-fix21.js:67 · js/056-fix25.js:211 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:69 · js/103-fix71.js:13 |
-| `openGuild` | js/031-core.js:2335 | 2 ชั้น | js/031-core.js:2534 · js/153-fix123.js:67 |
+| `netMsg` | js/031-core.js:2649 | 16 ชั้น | js/031-core.js:7275 · js/040-fix9.js:19 · js/051-fix20.js:83 · js/052-fix21.js:61 · js/060-fix29.js:47 · js/060-fix29.js:91 · js/064-fix33.js:28 · js/066-fix35.js:29 · js/104-fix72.js:28 · js/113-fix81.js:86 · js/114-fix82.js:51 · js/153-fix123.js:41 · js/157-fix130.js:87 · js/160-fix133.js:2 · js/166-fix139.js:31 · js/185-shared-world.js:67 |
+| `drawOther` | js/031-core.js:2663 | 11 ชั้น | js/031-core.js:3800 · js/031-core.js:7001 · js/031-core.js:7315 · js/040-fix9.js:227 · js/051-fix20.js:84 · js/052-fix21.js:67 · js/056-fix25.js:211 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:69 · js/103-fix71.js:13 |
+| `openGuild` | js/031-core.js:2337 | 2 ชั้น | js/031-core.js:2536 · js/153-fix123.js:67 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix9` `js/040-fix9.js` — (v4.18) — ระบบออนไลน์: 🐉 บอสโลก 12:00/20:00 · 🔨 โรงประมูล · 🏪 ตลาดกลาง + แผงร้านผู้เล่น
@@ -266,11 +266,11 @@
 ## สกิล / อาชีพ / พาสซีฟ
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `useSkill` | js/029-core.js:10 | 17 ชั้น | js/031-core.js:1928 · js/031-core.js:2159 · js/031-core.js:3314 · js/031-core.js:4187 · js/031-core.js:6003 · js/031-core.js:6718 · js/032-fix1.js:67 · js/073-fix41.js:304 · js/078-fix46.js:147 · js/084-fix52.js:18 · js/084-fix52.js:19 · js/087-fix55.js:13 · js/088-fix56.js:6 · js/105-fix73.js:13 · js/123-fix91.js:16 · js/126-fix94.js:38 · js/170-fix143.js:36 |
-| `skTick` | js/029-core.js:24 | 10 ชั้น | js/031-core.js:1963 · js/031-core.js:2202 · js/031-core.js:2482 · js/031-core.js:3336 · js/056-fix25.js:127 · js/056-fix25.js:190 · js/060-fix29.js:44 · js/073-fix41.js:288 · js/075-fix43.js:10 · js/078-fix46.js:81 |
-| `castUlt` | js/031-core.js:4849 | 5 ชั้น | js/031-core.js:6235 · js/031-core.js:6721 · js/105-fix73.js:29 · js/155-fix128.js:14 · js/170-fix143.js:38 |
-| `pickClass` | js/031-core.js:2063 | 4 ชั้น | js/031-core.js:2178 · js/034-fix3.js:7 · js/035-fix4.js:7 · js/173-fix146.js:21 |
-| `openClassMenu` | js/031-core.js:2059 | 8 ชั้น | js/031-core.js:2192 · js/031-core.js:6161 · js/056-fix25.js:242 · js/058-fix27.js:41 · js/074-fix42.js:28 · js/085-fix53.js:5 · js/122-fix90.js:63 · js/173-fix146.js:26 |
+| `useSkill` | js/029-core.js:10 | 17 ชั้น | js/031-core.js:1930 · js/031-core.js:2161 · js/031-core.js:3316 · js/031-core.js:4189 · js/031-core.js:6005 · js/031-core.js:6720 · js/032-fix1.js:67 · js/073-fix41.js:304 · js/078-fix46.js:147 · js/084-fix52.js:18 · js/084-fix52.js:19 · js/087-fix55.js:13 · js/088-fix56.js:6 · js/105-fix73.js:13 · js/123-fix91.js:16 · js/126-fix94.js:38 · js/170-fix143.js:36 |
+| `skTick` | js/029-core.js:24 | 10 ชั้น | js/031-core.js:1965 · js/031-core.js:2204 · js/031-core.js:2484 · js/031-core.js:3338 · js/056-fix25.js:127 · js/056-fix25.js:190 · js/060-fix29.js:44 · js/073-fix41.js:288 · js/075-fix43.js:10 · js/078-fix46.js:81 |
+| `castUlt` | js/031-core.js:4851 | 5 ชั้น | js/031-core.js:6237 · js/031-core.js:6723 · js/105-fix73.js:29 · js/155-fix128.js:14 · js/170-fix143.js:38 |
+| `pickClass` | js/031-core.js:2065 | 4 ชั้น | js/031-core.js:2180 · js/034-fix3.js:7 · js/035-fix4.js:7 · js/173-fix146.js:21 |
+| `openClassMenu` | js/031-core.js:2061 | 8 ชั้น | js/031-core.js:2194 · js/031-core.js:6163 · js/056-fix25.js:242 · js/058-fix27.js:41 · js/074-fix42.js:28 · js/085-fix53.js:5 · js/122-fix90.js:63 · js/173-fix146.js:26 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix25` `js/056-fix25.js` — (v4.33) — ข้อ 68 ส่วนที่ 2: 8 คลาสใหม่ (นินจา สไนเปอร์ พาลาดิน นักบวช เนโครแมนเซอร์ มังค์ อัศวินมังกร ผู้อัญเช
@@ -306,13 +306,13 @@
 ## ต่อสู้ / ดาเมจ / มอนตี / ตาย-ฟื้น
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `attack` | js/026-core.js:1 | 14 ชั้น | js/031-core.js:785 · js/031-core.js:1645 · js/031-core.js:1961 · js/031-core.js:2586 · js/031-core.js:2813 · js/031-core.js:3676 · js/031-core.js:3687 · js/031-core.js:4103 · js/031-core.js:4151 · js/031-core.js:4186 · js/031-core.js:4434 · js/031-core.js:5431 · js/031-core.js:5752 · js/156-fix129.js:27 |
-| `hurtE` | js/031-core.js:1895 | 21 ชั้น | js/031-core.js:2481 · js/031-core.js:2935 · js/031-core.js:4604 · js/031-core.js:4839 · js/031-core.js:6009 · js/031-core.js:6236 · js/031-core.js:6656 · js/031-core.js:6733 · js/031-core.js:7306 · js/056-fix25.js:145 · js/056-fix25.js:189 · js/060-fix29.js:32 · js/062-fix31.js:27 · js/064-fix33.js:76 · js/073-fix41.js:301 · js/076-fix44.js:8 · js/078-fix46.js:122 · js/105-fix73.js:16 · js/109-fix77.js:7 · js/126-fix94.js:45 · js/155-fix128.js:15 |
-| `zHurt` | js/031-core.js:988 | 10 ชั้น | js/031-core.js:1345 · js/031-core.js:3013 · js/031-core.js:4605 · js/031-core.js:4842 · js/031-core.js:7107 · js/037-fix6.js:7 · js/064-fix33.js:72 · js/105-fix73.js:31 · js/109-fix77.js:8 · js/156-fix129.js:18 |
-| `hurtPlayer` | js/014-core.js:11 | 5 ชั้น | js/031-core.js:1344 · js/031-core.js:5607 · js/037-fix6.js:8 · js/105-fix73.js:32 · js/156-fix129.js:20 |
-| `updMob` | js/031-core.js:1008 | 10 ชั้น | js/031-core.js:1465 · js/031-core.js:2000 · js/031-core.js:3174 · js/031-core.js:3779 · js/031-core.js:3838 · js/036-fix5.js:6 · js/064-fix33.js:64 · js/082-fix50.js:6 · js/083-fix51.js:5 · js/115-fix83.js:22 |
-| `startDeath` | js/031-core.js:1365 | 3 ชั้น | js/031-core.js:1863 · js/037-fix6.js:10 · js/078-fix46.js:175 |
-| `die` | js/014-core.js:22 | 2 ชั้น | js/031-core.js:101 · js/031-core.js:1379 |
+| `attack` | js/026-core.js:1 | 14 ชั้น | js/031-core.js:786 · js/031-core.js:1647 · js/031-core.js:1963 · js/031-core.js:2588 · js/031-core.js:2815 · js/031-core.js:3678 · js/031-core.js:3689 · js/031-core.js:4105 · js/031-core.js:4153 · js/031-core.js:4188 · js/031-core.js:4436 · js/031-core.js:5433 · js/031-core.js:5754 · js/156-fix129.js:27 |
+| `hurtE` | js/031-core.js:1897 | 21 ชั้น | js/031-core.js:2483 · js/031-core.js:2937 · js/031-core.js:4606 · js/031-core.js:4841 · js/031-core.js:6011 · js/031-core.js:6238 · js/031-core.js:6658 · js/031-core.js:6735 · js/031-core.js:7308 · js/056-fix25.js:145 · js/056-fix25.js:189 · js/060-fix29.js:32 · js/062-fix31.js:27 · js/064-fix33.js:76 · js/073-fix41.js:301 · js/076-fix44.js:8 · js/078-fix46.js:122 · js/105-fix73.js:16 · js/109-fix77.js:7 · js/126-fix94.js:45 · js/155-fix128.js:15 |
+| `zHurt` | js/031-core.js:989 | 10 ชั้น | js/031-core.js:1347 · js/031-core.js:3015 · js/031-core.js:4607 · js/031-core.js:4844 · js/031-core.js:7109 · js/037-fix6.js:7 · js/064-fix33.js:72 · js/105-fix73.js:31 · js/109-fix77.js:8 · js/156-fix129.js:18 |
+| `hurtPlayer` | js/014-core.js:11 | 5 ชั้น | js/031-core.js:1346 · js/031-core.js:5609 · js/037-fix6.js:8 · js/105-fix73.js:32 · js/156-fix129.js:20 |
+| `updMob` | js/031-core.js:1009 | 10 ชั้น | js/031-core.js:1467 · js/031-core.js:2002 · js/031-core.js:3176 · js/031-core.js:3781 · js/031-core.js:3840 · js/036-fix5.js:6 · js/064-fix33.js:64 · js/082-fix50.js:6 · js/083-fix51.js:5 · js/115-fix83.js:22 |
+| `startDeath` | js/031-core.js:1367 | 3 ชั้น | js/031-core.js:1865 · js/037-fix6.js:10 · js/078-fix46.js:175 |
+| `die` | js/014-core.js:22 | 2 ชั้น | js/031-core.js:102 · js/031-core.js:1381 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix6` `js/037-fix6.js` — ชุดแก้ #6 (v4.15)  101 ห้ามใช้ยาในสนามประลอง · 98 แตะผู้เล่น→เมนู · 95 สาเหตุการตาย · 93 ออโต้ฟาร์ม
@@ -333,11 +333,11 @@
 ## ขุดแร่ / ตัดไม้ / เครื่องมือ (ขวาน-ที่ขุด)
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `useToolHit` | js/016-core.js:50 | 6 ชั้น | js/031-core.js:38 · js/031-core.js:1067 · js/031-core.js:2575 · js/031-core.js:3685 · js/031-core.js:4099 · js/046-fix15.js:49 |
-| `hitOre` | js/016-core.js:60, js/031-core.js:30 | 3 ชั้น | js/031-core.js:1427 · js/031-core.js:2334 · js/051-fix20.js:8 |
-| `hitTree` | js/016-core.js:55 | 2 ชั้น | js/031-core.js:1426 · js/051-fix20.js:10 |
-| `toolSpr` | js/016-core.js:28 | 16 ชั้น | js/031-core.js:1396 · js/031-core.js:2045 · js/031-core.js:2397 · js/031-core.js:2591 · js/031-core.js:2962 · js/031-core.js:4107 · js/031-core.js:4465 · js/031-core.js:4679 · js/031-core.js:5192 · js/031-core.js:5457 · js/038-fix7.js:4 · js/056-fix25.js:203 · js/058-fix27.js:72 · js/090-fix58.js:77 · js/136-fix104.js:87 · js/178-fix151.js:22 |
-| `zMine` | js/031-core.js:1061 | 4 ชั้น | js/031-core.js:1428 · js/031-core.js:2333 · js/046-fix15.js:44 · js/051-fix20.js:9 |
+| `useToolHit` | js/016-core.js:50 | 6 ชั้น | js/031-core.js:39 · js/031-core.js:1069 · js/031-core.js:2577 · js/031-core.js:3687 · js/031-core.js:4101 · js/046-fix15.js:50 |
+| `hitOre` | js/016-core.js:61, js/031-core.js:30 | 3 ชั้น | js/031-core.js:1429 · js/031-core.js:2336 · js/051-fix20.js:8 |
+| `hitTree` | js/016-core.js:55 | 2 ชั้น | js/031-core.js:1428 · js/051-fix20.js:10 |
+| `toolSpr` | js/016-core.js:28 | 16 ชั้น | js/031-core.js:1398 · js/031-core.js:2047 · js/031-core.js:2399 · js/031-core.js:2593 · js/031-core.js:2964 · js/031-core.js:4109 · js/031-core.js:4467 · js/031-core.js:4681 · js/031-core.js:5194 · js/031-core.js:5459 · js/038-fix7.js:4 · js/056-fix25.js:203 · js/058-fix27.js:72 · js/090-fix58.js:77 · js/136-fix104.js:87 · js/178-fix151.js:22 |
+| `zMine` | js/031-core.js:1062 | 4 ชั้น | js/031-core.js:1430 · js/031-core.js:2335 · js/046-fix15.js:44 · js/051-fix20.js:9 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix5` `js/036-fix5.js` — ชุดแก้ #5 (v4.14)  สายตามอนสเตอร์ (LOS): มองไม่เห็นผู้เล่นผ่านกำแพง/แร่ → ไม่ล็อกเป้า · เสียเป้านานแล้วเลิกไล่
@@ -355,9 +355,9 @@
 ## เนื้อเรื่อง / เควส / เควสรายวัน
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `qTake` | js/031-core.js:2342 | 2 ชั้น | js/031-core.js:2544 · js/153-fix123.js:64 |
-| `qClaim` | js/031-core.js:2344 | 2 ชั้น | js/031-core.js:6360 · js/153-fix123.js:65 |
-| `talk` | js/031-core.js:2785 | 3 ชั้น | js/096-fix64.js:19 · js/161-fix134.js:45 · js/164-fix137.js:37 |
+| `qTake` | js/031-core.js:2344 | 2 ชั้น | js/031-core.js:2546 · js/153-fix123.js:64 |
+| `qClaim` | js/031-core.js:2346 | 2 ชั้น | js/031-core.js:6362 · js/153-fix123.js:65 |
+| `talk` | js/031-core.js:2787 | 3 ชั้น | js/096-fix64.js:19 · js/161-fix134.js:45 · js/164-fix137.js:37 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix10` `js/041-fix10.js` — (v4.19) — 🌿 ฟาร์มธรรมชาติ · 🎉 อีเวนต์ประจำวัน · 📜 เนื้อเรื่องภาคใหม่ (หอคอย/ตลาด/บอสโลก)
@@ -370,10 +370,10 @@
 ## NPC / คุยกับ NPC
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `npcTalk` | js/031-core.js:2832 | 9 ชั้น | js/031-core.js:4193 · js/031-core.js:4224 · js/031-core.js:4244 · js/080-fix48.js:43 · js/113-fix81.js:249 · js/127-fix95.js:245 · js/128-fix96.js:73 · js/135-fix103.js:43 · js/161-fix134.js:46 |
-| `ownerTalk` | js/031-core.js:2818 | 12 ชั้น | js/031-core.js:4195 · js/031-core.js:4197 · js/031-core.js:4225 · js/031-core.js:4705 · js/031-core.js:4745 · js/031-core.js:4913 · js/050-fix19.js:14 · js/052-fix21.js:59 · js/100-fix68.js:42 · js/101-fix69.js:83 · js/103-fix71.js:16 · js/106-fix74.js:36 |
+| `npcTalk` | js/031-core.js:2834 | 9 ชั้น | js/031-core.js:4195 · js/031-core.js:4226 · js/031-core.js:4246 · js/080-fix48.js:43 · js/113-fix81.js:249 · js/127-fix95.js:245 · js/128-fix96.js:73 · js/135-fix103.js:43 · js/161-fix134.js:46 |
+| `ownerTalk` | js/031-core.js:2820 | 12 ชั้น | js/031-core.js:4197 · js/031-core.js:4199 · js/031-core.js:4227 · js/031-core.js:4707 · js/031-core.js:4747 · js/031-core.js:4915 · js/050-fix19.js:14 · js/052-fix21.js:59 · js/100-fix68.js:42 · js/101-fix69.js:83 · js/103-fix71.js:16 · js/106-fix74.js:36 |
 | `updNPCs` | js/020-core.js:63 | 3 ชั้น | js/032-fix1.js:6 · js/080-fix48.js:24 · js/113-fix81.js:244 |
-| `drawNPC` | js/020-core.js:70, js/031-core.js:462 | 5 ชั้น | js/031-core.js:3487 · js/031-core.js:4246 · js/080-fix48.js:33 · js/106-fix74.js:57 · js/113-fix81.js:247 |
+| `drawNPC` | js/020-core.js:70, js/031-core.js:463 | 5 ชั้น | js/031-core.js:3489 · js/031-core.js:4248 · js/080-fix48.js:33 · js/106-fix74.js:57 · js/113-fix81.js:247 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix48` `js/080-fix48.js` — (v4.54) — NPC มีตารางชีวิต: ไม่เดินเตร่ไปมาแล้ว · กลางวัน (05:30–21:00) ยืนประจำจุดทำงาน หันหน้าหาผู้เล่น
@@ -381,9 +381,9 @@
 ## สัตว์ขี่ / สัตว์เลี้ยง
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `toggleMount` | js/031-core.js:4182 | 2 ชั้น | js/031-core.js:4431 · js/031-core.js:6409 |
-| `drawSteed` | js/031-core.js:4388 | 2 ชั้น | js/038-fix7.js:52 · js/107-fix75.js:54 |
-| `drawPet` | js/031-core.js:4167 | 4 ชั้น | js/031-core.js:4607 · js/031-core.js:6412 · js/107-fix75.js:88 · js/124-fix92.js:122 |
+| `toggleMount` | js/031-core.js:4184 | 2 ชั้น | js/031-core.js:4433 · js/031-core.js:6411 |
+| `drawSteed` | js/031-core.js:4390 | 2 ชั้น | js/038-fix7.js:52 · js/107-fix75.js:54 |
+| `drawPet` | js/031-core.js:4169 | 4 ชั้น | js/031-core.js:4609 · js/031-core.js:6414 · js/107-fix75.js:88 · js/124-fix92.js:122 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix7` `js/038-fix7.js` — (v4.16) — ออร่าอาวุธไกล/ตีบวก, แยกสายสเตตัส, สมดุลสัตว์ขี่ + สัตว์ขี่บิน, ว่ายน้ำ + จระเข้, เพื่อนบนเซิร์ฟเวอร
@@ -394,7 +394,7 @@
 ## แฟชั่น / คอสตูม / เหรียญแฟชั่น
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `fashPreview` | js/031-core.js:4708 | 5 ชั้น | js/031-core.js:6244 · js/049-fix18.js:90 · js/090-fix58.js:91 · js/106-fix74.js:52 · js/136-fix104.js:109 |
+| `fashPreview` | js/031-core.js:4710 | 5 ชั้น | js/031-core.js:6246 · js/049-fix18.js:90 · js/090-fix58.js:91 · js/106-fix74.js:52 · js/136-fix104.js:109 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix18` `js/049-fix18.js` — (v4.26) — ข้อ 44: ชุดแฟชั่นไทยโบราณ 9 ชุด (สไบ · ผ้าซิ่น · โจงกระเบน · ชฎา · มงกุฎโขน · ลอมพอก · งอบ ฯลฯ)
@@ -411,11 +411,11 @@
 ## หน้าตาตัวละคร / อาวุธในมือ / ออร่า
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `hero` | js/018-core.js:50 | 53 ชั้น | js/031-core.js:740 · js/031-core.js:1383 · js/031-core.js:1544 · js/031-core.js:1640 · js/031-core.js:1862 · js/031-core.js:2032 · js/031-core.js:2577 · js/031-core.js:2666 · js/031-core.js:2972 · js/031-core.js:3302 · js/031-core.js:3609 · js/031-core.js:3815 · js/031-core.js:4148 · js/031-core.js:4180 · js/031-core.js:4190 · js/031-core.js:4419 · js/031-core.js:4695 · js/031-core.js:4886 · js/031-core.js:5195 · js/031-core.js:5984 · js/031-core.js:6237 · js/031-core.js:6306 · js/031-core.js:6461 · js/031-core.js:6472 · js/038-fix7.js:56 · js/038-fix7.js:83 · js/040-fix9.js:222 · js/041-fix10.js:27 · js/041-fix10.js:54 · js/042-fix11.js:37 · js/042-fix11.js:60 · js/046-fix15.js:36 · js/047-fix16.js:42 · js/073-fix41.js:335 · js/074-fix42.js:162 · js/078-fix46.js:207 · js/087-fix55.js:73 · js/090-fix58.js:38 · js/094-fix62.js:80 · js/096-fix64.js:32 · js/102-fix70.js:9 · js/104-fix72.js:107 · js/105-fix73.js:93 · js/106-fix74.js:48 · js/108-fix76.js:59 · js/113-fix81.js:170 · js/113-fix81.js:194 · js/113-fix81.js:257 · js/118-fix86.js:8 · js/132-fix100.js:6 · js/136-fix104.js:33 · js/170-fix143.js:57 · js/177-fix150.js:14 |
-| `heroBody` | js/018-core.js:11 | 12 ชั้น | js/031-core.js:3797 · js/031-core.js:5307 · js/031-core.js:5382 · js/031-core.js:5413 · js/031-core.js:5555 · js/031-core.js:5786 · js/032-fix1.js:63 · js/040-fix9.js:234 · js/089-fix57.js:71 · js/092-fix60.js:31 · js/102-fix70.js:5 · js/170-fix143.js:31 |
-| `renderChar` | js/031-core.js:331 | 6 ชั้น | js/031-core.js:1684 · js/031-core.js:2194 · js/031-core.js:3064 · js/031-core.js:6416 · js/143-fix111.js:62 · js/155-fix128.js:53 |
-| `backSword` | js/015-core.js:218 | 9 ชั้น | js/031-core.js:2047 · js/031-core.js:2407 · js/031-core.js:2553 · js/031-core.js:2970 · js/031-core.js:5305 · js/031-core.js:5449 · js/031-core.js:6253 · js/038-fix7.js:23 · js/058-fix27.js:73 |
-| `drawArmorAura` | js/031-core.js:3785 | 2 ชั้น | js/031-core.js:6438 · js/092-fix60.js:5 |
+| `hero` | js/018-core.js:50 | 53 ชั้น | js/031-core.js:741 · js/031-core.js:1385 · js/031-core.js:1546 · js/031-core.js:1642 · js/031-core.js:1864 · js/031-core.js:2034 · js/031-core.js:2579 · js/031-core.js:2668 · js/031-core.js:2974 · js/031-core.js:3304 · js/031-core.js:3611 · js/031-core.js:3817 · js/031-core.js:4150 · js/031-core.js:4182 · js/031-core.js:4192 · js/031-core.js:4421 · js/031-core.js:4697 · js/031-core.js:4888 · js/031-core.js:5197 · js/031-core.js:5986 · js/031-core.js:6239 · js/031-core.js:6308 · js/031-core.js:6463 · js/031-core.js:6474 · js/038-fix7.js:56 · js/038-fix7.js:83 · js/040-fix9.js:222 · js/041-fix10.js:27 · js/041-fix10.js:54 · js/042-fix11.js:37 · js/042-fix11.js:60 · js/046-fix15.js:36 · js/047-fix16.js:42 · js/073-fix41.js:335 · js/074-fix42.js:162 · js/078-fix46.js:207 · js/087-fix55.js:73 · js/090-fix58.js:38 · js/094-fix62.js:80 · js/096-fix64.js:32 · js/102-fix70.js:9 · js/104-fix72.js:107 · js/105-fix73.js:93 · js/106-fix74.js:48 · js/108-fix76.js:59 · js/113-fix81.js:170 · js/113-fix81.js:194 · js/113-fix81.js:257 · js/118-fix86.js:8 · js/132-fix100.js:6 · js/136-fix104.js:33 · js/170-fix143.js:57 · js/177-fix150.js:14 |
+| `heroBody` | js/018-core.js:11 | 12 ชั้น | js/031-core.js:3799 · js/031-core.js:5309 · js/031-core.js:5384 · js/031-core.js:5415 · js/031-core.js:5557 · js/031-core.js:5788 · js/032-fix1.js:63 · js/040-fix9.js:234 · js/089-fix57.js:71 · js/092-fix60.js:31 · js/102-fix70.js:5 · js/170-fix143.js:31 |
+| `renderChar` | js/031-core.js:332 | 6 ชั้น | js/031-core.js:1686 · js/031-core.js:2196 · js/031-core.js:3066 · js/031-core.js:6418 · js/143-fix111.js:62 · js/155-fix128.js:53 |
+| `backSword` | js/015-core.js:218 | 9 ชั้น | js/031-core.js:2049 · js/031-core.js:2409 · js/031-core.js:2555 · js/031-core.js:2972 · js/031-core.js:5307 · js/031-core.js:5451 · js/031-core.js:6255 · js/038-fix7.js:23 · js/058-fix27.js:73 |
+| `drawArmorAura` | js/031-core.js:3787 | 2 ชั้น | js/031-core.js:6440 · js/092-fix60.js:5 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix7` `js/038-fix7.js` — (v4.16) — ออร่าอาวุธไกล/ตีบวก, แยกสายสเตตัส, สมดุลสัตว์ขี่ + สัตว์ขี่บิน, ว่ายน้ำ + จระเข้, เพื่อนบนเซิร์ฟเวอร
@@ -435,8 +435,8 @@
 ## เซฟ / ล็อกอิน / บัญชี / ตารางอันดับ (ฝั่งเกม)
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `saveGame` | js/031-core.js:1824 | 2 ชั้น | js/031-core.js:1839 · js/031-core.js:2356 |
-| `netConnect` | js/031-core.js:2639 | 2 ชั้น | js/031-core.js:3747 · js/064-fix33.js:116 |
+| `saveGame` | js/031-core.js:1826 | 2 ชั้น | js/031-core.js:1841 · js/031-core.js:2358 |
+| `netConnect` | js/031-core.js:2641 | 2 ชั้น | js/031-core.js:3749 · js/064-fix33.js:116 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix20` `js/051-fix20.js` — (v4.28) — ฉายา (Titles) + ตารางอันดับ (Leaderboard) + ผู้เล่นอื่นเห็นชุดแฟชั่น/ฉายาของเรา
@@ -450,7 +450,7 @@
 ## ฟาร์มออโต้
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `autoToggle` | js/031-core.js:1845 | 2 ชั้น | js/031-core.js:4052 · js/142-fix110.js:100 |
+| `autoToggle` | js/031-core.js:1847 | 2 ชั้น | js/031-core.js:4054 · js/142-fix110.js:100 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix6` `js/037-fix6.js` — ชุดแก้ #6 (v4.15)  101 ห้ามใช้ยาในสนามประลอง · 98 แตะผู้เล่น→เมนู · 95 สาเหตุการตาย · 93 ออโต้ฟาร์ม
@@ -460,8 +460,8 @@
 ## ปุ่มบนจอ / เมนู / หน้าต่าง
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `toggleMenu` | js/025-core.js:25 | 3 ชั้น | js/031-core.js:5125 · js/032-fix1.js:56 · js/123-fix91.js:9 |
-| `toggleBag` | js/026-core.js:21 | 3 ชั้น | js/031-core.js:715 · js/031-core.js:1386 · js/031-core.js:3107 |
+| `toggleMenu` | js/025-core.js:25 | 3 ชั้น | js/031-core.js:5127 · js/032-fix1.js:56 · js/123-fix91.js:9 |
+| `toggleBag` | js/026-core.js:21 | 3 ชั้น | js/031-core.js:716 · js/031-core.js:1388 · js/031-core.js:3109 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix6` `js/037-fix6.js` — ชุดแก้ #6 (v4.15)  101 ห้ามใช้ยาในสนามประลอง · 98 แตะผู้เล่น→เมนู · 95 สาเหตุการตาย · 93 ออโต้ฟาร์ม
@@ -637,5 +637,5 @@
 - `fix96` `js/180-fix153.js` — เปิดเลเวลถึง 200 แต่ไม่ได้แก้ทุ่งสังหาร → XP ไหลเข้าเลเวลตรง ๆ
 - `fix154` `js/181-fix154.js` — (v5.08) — 🤖 บอทตรวจ QA ทำเซฟจริงเพี้ยน (เจอระหว่างตรวจเล่นจริง 2026-10-17)
 - `fix155` `js/182-fix155.js` — (v5.09) — 📦 คลังเก็บของบนมือถือ: ปุ่มถอน/ฝากใหญ่บังช่องของ เห็นแค่แถวเดียว กดถอนไม่ได้ (ผู้เล่นแจ้ง 2026-10-17
-- `fix156` `js/183-fix156.js` — (v5.09) — ⭐ เสกเลเวล 150 ให้ไอดีเทส (เจ้าของสั่ง 2026-10-17: "ผู้เทสจะได้ลองระบบอื่น") · ครั้งเดียวต่อไอดี
+- `fix156` `js/183-fix156.js` — (v5.12) — ⭐ เสกเลเวล 150 เมื่อตัวละครถึง Lv.7 (เจ้าของสั่ง 2026-10-17) · ครั้งเดียวต่อไอดี
 - `fix157` `js/184-fix157.js` — (v5.09) — 🗺️ แมพดำ/จางทั้งจอ + เกมหน่วงบนมือถือ (ผู้เล่น "เทพกล้า" แคปจอ 2026-10-17 · เจ้าของ: "เป็นบ่อยมาก")
