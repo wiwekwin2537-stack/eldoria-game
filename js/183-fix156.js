@@ -20,3 +20,20 @@ const tick156=setInterval(()=>{try{if(done156)return;if(typeof P==='undefined'||
   try{say('⭐ ช่วงทดสอบ: เสกเลเวลเป็น Lv.'+P.lv+' ให้แล้ว — ช่วยลองระบบต่าง ๆ หาบัคด้วยนะ!')}catch(e){}
   setTimeout(()=>{try{saveGame(true)}catch(e){}try{CLOUD.sync(true)}catch(e){}},1500)}catch(e){console.warn('fix156',e)}},1000);
 }catch(e){console.warn('fix156',e)}
+
+// ---- รายงานสถานะครั้งเดียวเมื่อถึง Lv.7 (ชั่วคราว — ใช้หาสาเหตุ ลบทิ้งได้เมื่อเสกติดแล้ว) ----
+try{
+window.FIX156_VER='5.14';
+let rep156=false;
+const iv156=setInterval(()=>{try{
+  if(rep156||typeof P==='undefined'||!P||!P.name||(P.lv|0)<7)return;rep156=true;clearInterval(iv156);
+  const st=window.ST156?ST156():{};
+  const base={ver:'5.14',lv:P.lv,acct:(typeof FM_ACCT!=='undefined'&&FM_ACCT)?'มี':'ไม่มี',tok:(typeof FM_ACCT!=='undefined'&&FM_ACCT&&CLOUD.tok(FM_ACCT))?'มี':'ไม่มี',
+    title:(()=>{try{const t=gid('title');return t?String(t.hidden):'ไม่พบ'}catch(e){return '?'}})(),dead:!!P.dead,
+    verified:(typeof ONL32!=='undefined')?String(ONL32.verified):'ไม่มี ONL32',B156:st.b,deny:st.deny,done:st.d};
+  const show=x=>{try{alert('fix156 รายงาน\n'+Object.entries(Object.assign({},base,x)).map(([k,v])=>k+' = '+v).join('\n'))}catch(e){}};
+  let sent=false;const t=setTimeout(()=>{if(!sent){sent=true;show({server:'ไม่ตอบใน 10 วิ'})}},10000);
+  try{CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)},9000).then(r=>{if(sent)return;sent=true;clearTimeout(t);show({'server.ok':r&&r.ok,'server.lv':r&&r.lv,'server.b150':r&&r.b150,'server.err':r&&r.err})}).catch(e=>{if(sent)return;sent=true;clearTimeout(t);show({server:'error '+(e&&e.message||e)})})}
+  catch(e){sent=true;clearTimeout(t);show({server:'เรียกไม่ได้ '+(e&&e.message||e)})}
+}catch(e){}},1500);
+}catch(e){}
