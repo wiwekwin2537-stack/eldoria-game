@@ -6,6 +6,8 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const UP_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, ''), UP_TOK = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 const MAX_SAVE = 1200 * 1024;
 const GM_IDS = (process.env.GM_IDS || 'tiksi,wiwekwin2537').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+/* v5.15: ไอดีที่เจ้าของยืนยันว่าไม่ได้โกง — ล้างธง "ผิดปกติ" ให้ ขึ้นตารางอันดับตามเลเวลจริง (เพิ่มได้ที่ env UNFLAG_IDS คั่นด้วยจุลภาค) */
+const UNFLAG_IDS = (process.env.UNFLAG_IDS || 'armwasin,kakaboy2537,kittapas,chatchai1').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 try { fs.mkdirSync(path.join(DATA_DIR, 'acct'), { recursive: true }); } catch (e) {}
 const fkey = lid => crypto.createHash('sha256').update(lid).digest('hex').slice(0, 40);
 const cache = new Map(), dirty = new Set(); const CACHE_MAX = 300;
@@ -68,7 +70,7 @@ function b150ok(rec) { return !!rec.newbie150 || (rec.created || 0) < B150_UNTIL
 /* เสกเมื่อถึงเลเวล 7: มีสิทธิ์ต่อเมื่อเลเวลปัจจุบัน 7–149 และยังไม่เคยรับ · ปรับเลข B150_MIN ได้ด้วย env */
 const B150_MIN = +process.env.B150_MIN || 7;
 const b150can = rec => !rec.b150 && (rec.lv | 0) >= B150_MIN && (rec.lv | 0) < 150 && b150ok(rec);
-function lbTop() { const arr = Object.values(LB.map).filter(x => !x.flag && !x.gm); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
+function lbTop() { const arr = Object.keys(LB.map).filter(k => (!LB.map[k].flag || UNFLAG_IDS.includes(k)) && !LB.map[k].gm).map(k => LB.map[k]); /* fix123: ไอดี GM (ใช้ทดสอบ เสกของได้) ไม่ขึ้นตารางอันดับ */ const top = k => arr.filter(x => x[k] > 0).sort((a, b) => b[k] - a[k] || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x[k], lv: x.lv, cls: x.cls, t: x.t, av: x.av || null }));
   return { ok: true, lv: top('lv'), k: top('k'), b: top('b'), w: top('w'), fl: top('fl'), rf: arr.filter(x => x.rw === lbWk() && x.rf > 0).sort((a, b) => b.rf - a.rf || b.lv - a.lv).slice(0, 20).map(x => ({ n: x.n, v: x.rf, lv: x.lv, cls: x.cls, t: x.t, av: x.av || null })), n: arr.length }; }
 
 // ---------- กิลด์ผู้เล่น (เอกสารเดียว: Upstash key eld:guilds หรือไฟล์ data/guilds.json) ----------
@@ -212,7 +214,7 @@ async function handle(path_, d, ip) {
     const lk = lockTbl.get(lid) || { n: 0, t: 0 }; if (lk.t > Date.now()) return { err: 'locked', wait: Math.ceil((lk.t - Date.now()) / 1000) };
     const h = await hashPw(d.pw || '', rec.salt);
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { lk.n++; if (lk.n >= 8) { lk.t = Date.now() + Math.min(900, 20 * Math.pow(2, lk.n - 8)) * 1000; } lockTbl.set(lid, lk); return { err: 'badpw' }; }
-    lockTbl.delete(lid); const token = newToken(rec); await dbSet(lid, rec);
+    lockTbl.delete(lid); if (UNFLAG_IDS.includes(lid) && rec.flag) rec.flag = 0; const token = newToken(rec); await dbSet(lid, rec);
     return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: b150can(rec) };
   }
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
@@ -223,7 +225,8 @@ async function handle(path_, d, ip) {
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
-    const b150 = !rec.b150 && lv0 >= B150_MIN && lv0 < 150 && rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
+    const b150 = !rec.b150 && lv0 < 150 && /* v5.15: ไม่บังคับ lv0>=7 แล้ว — เซิร์ฟเวอร์เห็นเลเวลต่ำเพราะซิงค์ไม่ทัน แล้วเซฟเสก 150 มาทีเดียวต้องไม่ติดธงโกง */ rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
+    if (UNFLAG_IDS.includes(lid)) rec.flag = 0;
     if (b150) { } else if (up >= 40) rec.flag = Math.max(2, (rec.flag | 0) + 2); /* v5.08: เลเวลกระโดด 40+ ในเซฟเดียว (เกมเซฟทุก 15 วิ เล่นจริงขึ้นไม่ถึง) = แก้เซฟโกง → ซ่อนจากตารางอันดับทันที · เดิมบัญชีใหม่เซฟแรกเป็น Lv.200 แล้วขึ้นอันดับ 1 ได้เลย (เซฟแรกไม่ถูกตรวจ · โดนจับครั้งเดียวยังไม่ซ่อน) */
     else if (lv0 >= 5 && up >= 25 && fast) rec.flag = (rec.flag | 0) + 1; /* เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ */
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
