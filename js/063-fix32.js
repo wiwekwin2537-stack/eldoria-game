@@ -68,19 +68,20 @@ accChangePw=async function(o,n,n2){if(!FM_ACCT)return 'ยังไม่ได�
 // ---------- ซิงค์เซฟ: เซิร์ฟเวอร์ชนะเสมอเมื่อชนกัน ----------
 ONL32.pull=async function(msg){const l=await CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)},40000);
  if(l.ok&&l.save){try{sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1')}catch(e){}FM_RAW.set(CLOUD.revKey(),String(l.rev|0));if(msg)try{say(msg)}catch(e){}CLOUD.reloading=true;setTimeout(()=>location.reload(),700);return true}return l};
-CLOUD.sync=async function(force,ka){if(!FM_ACCT||CLOUD.busy||CLOUD.reloading||!CLOUD.base()||!CLOUD.tok(FM_ACCT))return false;if(typeof P==='undefined'||!P||P.dead&&!force)return false;
- if(!ONL32.verified)return false; // ยังไม่ได้ตรวจกับเซิร์ฟเวอร์ — ห้ามเอาแคชเก่าทับ
- if(CLOUD.inflight)return false;CLOUD.inflight=true;
+CLOUD.sync=async function(force,ka){if(!FM_ACCT){CLOUD.lastError='no-account';return false}if(CLOUD.busy||CLOUD.reloading){CLOUD.lastError='busy';return false}if(!CLOUD.base()){CLOUD.lastError='no-server';return false}if(!CLOUD.tok(FM_ACCT)){CLOUD.lastError='auth';return false}if(typeof P==='undefined'||!P||P.dead&&!force){CLOUD.lastError='player-state';return false}
+ if(!ONL32.verified){CLOUD.lastError='unverified';return false} // ยังไม่ได้ตรวจกับเซิร์ฟเวอร์ — ห้ามเอาแคชเก่าทับ
+ if(CLOUD.inflight){CLOUD.lastError='inflight';return false}CLOUD.inflight=true;
  try{try{saveGame()}catch(e){}
-  const save=JSON.stringify(saveKeys8());if(!force&&save===CLOUD.last){CLOUD.fails=0;return true}
+  const save=JSON.stringify(saveKeys8());if(!force&&save===CLOUD.last){CLOUD.fails=0;CLOUD.lastError='';return true}
   const body={id:FM_ACCT,token:CLOUD.tok(FM_ACCT),save,lv:P.lv|0,cls:P.cls||'',name:P.name||'',base:+FM_RAW.get(CLOUD.revKey())||0,ka:!!ka,stat:{floor:(window.__MAXFLOOR8|0),mine:0,kills:0}};
   const r=await CLOUD.call('/api/save',body,40000);
-  if(r.ok){CLOUD.last=save;CLOUD.fails=0;FM_RAW.set(CLOUD.revKey(),String(r.rev|0));FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(save));CLOUD.t=Date.now();return true}
-  else if(r.err==='conflict'){ONL32.kick('⚠️ บัญชีนี้ถูกเข้าเล่นจากอีกเครื่อง — เข้าสู่ระบบใหม่เพื่อโหลดข้อมูลล่าสุด')}
+  if(r.ok){CLOUD.last=save;CLOUD.fails=0;CLOUD.lastError='';FM_RAW.set(CLOUD.revKey(),String(r.rev|0));FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(save));CLOUD.t=Date.now();return true}
+  CLOUD.lastError=(r&&r.err)||'unknown';
+  if(r.err==='conflict'){ONL32.kick('⚠️ บัญชีนี้ถูกเข้าเล่นจากอีกเครื่อง — เข้าสู่ระบบใหม่เพื่อโหลดข้อมูลล่าสุด')}
   else if(r.err==='auth'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}ONL32.kick('🔑 เซสชันหมดอายุ — เข้าสู่ระบบใหม่')}
   else CLOUD.fails++;
   return false
- }catch(e){CLOUD.fails++;return false}finally{CLOUD.inflight=false}};
+ }catch(e){CLOUD.fails++;CLOUD.lastError='network';return false}finally{CLOUD.inflight=false}};
 setInterval(()=>{if(ONL32.verified&&!document.hidden)CLOUD.sync(false)},15000);
 ONL32.kick=function(msg){ONL32.verified=false;try{sessionStorage.removeItem('fm_acct');FM_RAW.set('fm_remember','0')}catch(e){}
  try{sessionStorage.setItem('fm_kick32',msg||'')}catch(e){}CLOUD.reloading=true;location.reload()};
