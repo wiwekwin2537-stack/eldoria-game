@@ -21,7 +21,7 @@ const IURL={},OREKEYS=['stone','iron','copper','silver','gold'];
 function iconURL(key){const painted=key.startsWith('mat:')&&ITEMART.url(key.slice(4));if(painted)return painted;const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const url=c.toDataURL();if(!liveOre)IURL[key]=url;return url}
 window.OREICON_REFRESH=kind=>{try{delete IURL['mat:'+kind];if(typeof refreshInv==='function')refreshInv();if(typeof drawPicks==='function')drawPicks()}catch(e){}};
 const rareT=key=>key.startsWith('item:')&&ITEMS[key.slice(5)].tier>=3?' rare r'+ITEMS[key.slice(5)].tier:'';
-const imgT=(key,cl)=>'<img class="si'+(cl?' '+cl:'')+rareT(key)+'" src="'+iconURL(key)+'">';
+const imgT=(key,cl)=>'<img class="si'+(key.startsWith('mat:')&&ITEMART.has(key.slice(4))?' painted-item':'')+(cl?' '+cl:'')+rareT(key)+'" src="'+iconURL(key)+'">';
 const gid=id=>document.getElementById(id);
 const isTool=k=>k==='sword'||k==='axe'||k==='pick';
 window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
@@ -1255,9 +1255,8 @@ function twTower(k,cx,cy,r,flag){k.fillStyle='rgba(0,0,0,.3)';k.beginPath();k.el
  const g=k.createRadialGradient(cx-r*.3,cy-r*.3,2,cx,cy,r);g.addColorStop(0,'#aaa395');g.addColorStop(1,'#6a6458');k.fillStyle=g;k.beginPath();k.arc(cx,cy,r,0,7);k.fill();
  k.strokeStyle='#3e3a33';k.lineWidth=2;k.stroke();k.fillStyle='#5a554a';for(let i=0;i<10;i++){const a=i/10*6.283;k.fillRect(cx+Math.cos(a)*(r-5)-3,cy+Math.sin(a)*(r-5)-3,6,6)}
  k.fillStyle='#4a2c1a';k.beginPath();k.arc(cx,cy,r*.45,0,7);k.fill();const g2=k.createRadialGradient(cx-4,cy-4,1,cx,cy,r*.45);g2.addColorStop(0,'#d0563a');g2.addColorStop(1,'#7a2418');k.fillStyle=g2;k.beginPath();k.arc(cx,cy,r*.42,0,7);k.fill();
- if(flag){k.fillStyle='#3a2a1a';k.fillRect(cx-1,cy-34,2,34);k.fillStyle='#c0392b';k.beginPath();k.moveTo(cx+1,cy-34);k.lineTo(cx+20,cy-29);k.lineTo(cx+1,cy-23);k.fill();k.fillStyle='#ffd23a';k.fillRect(cx+5,cy-30,4,3)}}
-function twBanner(k,x,y){k.fillStyle='#3a2a1a';k.fillRect(x-1,y-2,16,2);const g=k.createLinearGradient(x,0,x+14,0);g.addColorStop(0,'#9a1f1f');g.addColorStop(1,'#c0392b');k.fillStyle=g;
- k.beginPath();k.moveTo(x,y);k.lineTo(x+14,y);k.lineTo(x+14,y+26);k.lineTo(x+7,y+21);k.lineTo(x,y+26);k.closePath();k.fill();k.fillStyle='#ffd23a';k.beginPath();k.arc(x+7,y+9,3.5,0,7);k.fill();k.fillRect(x+6,y+13,2,5)}
+ if(flag){k.fillStyle='#3a2a1a';k.fillRect(cx-1,cy-34,2,34);TOWNLIFE.nativeFlags.push({x:cx+1,y:cy-34,w:19,h:11,vertical:false})}}
+function twBanner(k,x,y){k.fillStyle='#3a2a1a';k.fillRect(x-1,y-2,16,2);TOWNLIFE.nativeFlags.push({x,y,w:14,h:26,vertical:true})}
 function twPillar(k,x,y){const px=x*T+16,py=y*T+28;if(TOWNART.paint(k,'templePillar',px-16,py-76,32,76))return;k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(px+6,py,15,5,0,0,7);k.fill();
  k.fillStyle='#cfc9bc';k.fillRect(px-13,py-8,26,8);k.fillStyle='#e9e4d8';k.fillRect(px-13,py-8,26,2);
  const g=k.createLinearGradient(px-9,0,px+9,0);g.addColorStop(0,'#bdb6a6');g.addColorStop(.4,'#f6f2e8');g.addColorStop(1,'#a8a090');k.fillStyle=g;k.fillRect(px-9,py-62,18,54);
@@ -1286,7 +1285,7 @@ function twFlowers(k,x,y,w,h){k.fillStyle='#5a3a22';k.fillRect(x*T+2,y*T+2,w*T-4
 
 // ---------- สร้างเมืองใหม่ ----------
 buildTown=function(){
- dm=[];for(let y=0;y<TH;y++)dm[y]=Array(TW).fill(0);
+ TOWNLIFE.reset();dm=[];for(let y=0;y<TH;y++)dm[y]=Array(TW).fill(0);
  dcv=document.createElement('canvas');dcv.width=TW*T;dcv.height=TH*T;const k=dcv.getContext('2d');
  const rd=new Set(),road=(x,y,w,h)=>{for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)rd.add(j*TW+i)};
  road(0,16,TW,2);road(15,10,14,14);road(21,9,2,1);road(21,24,2,4);road(2,28,40,2);
@@ -1315,7 +1314,7 @@ buildTown=function(){
  for(let x=0;x<TW;x++){twWall(k,x,0,'n');twWall(k,x,TH-1,'s');box(x,0,1,1,1);box(x,TH-1,1,1,1)}
  for(let y=1;y<TH-1;y++){if(y===16||y===17)continue;twWall(k,0,y,'w');twWall(k,TW-1,y,'e');box(0,y,1,1,1);box(TW-1,y,1,1,1)}
  // ร้านค้า / บ้าน / ปราสาท
- const put=(n,x,y,w,h,role,S)=>{box(x,y,w,h,1);TOWNART.bind(k,role||'house',x*T,y*T,w*T,h*T,()=>k.drawImage(ART[n],x*T,y*T,w*T,h*T),S?used=>{if(!used)shopSign(k,S);shopName(k,S)}:null,S)};
+ const put=(n,x,y,w,h,role,S)=>{box(x,y,w,h,1);TOWNART.bind(k,role||'house',x*T,y*T,w*T,h*T,()=>k.drawImage(ART[n],x*T,y*T,w*T,h*T),S?used=>{if(!used)shopSign(k,S)}:null,S)};
  for(const [n,x,y] of [['house1',3,3],['house2',9,4],['house2',30,3],['house1',36,4],['house1',30,24]]){const replaced=SHOP_ORDER.some(id=>{const b=SHOP_DATA[id].b;return b[0]===x&&b[1]===y})||(x===36&&y===4);if(replaced)box(x,y,5,4,1);else put(n,x,y,5,4,'house')}
  for(const id of SHOP_ORDER){const S=SHOP_DATA[id];if(!S.b[2])continue;put(S.img,...S.b,id,S)}
  TOWNART.bind(k,'castle',15*T,1*T,14*T,8*T,()=>k.drawImage(ART.castle,15*T,1*T,14*T,8*T));box(15,1,14,8,1);box(21,8,2,1,4);
@@ -1546,7 +1545,7 @@ function nightLayer(){const h=DAY.t,dk=dayDark(h);if(dk<=.01&&!(h>=16&&h<19))ret
  k.fillStyle='rgba('+Math.round(10+60*sunset)+','+Math.round(16+20*sunset)+','+Math.round(48-20*sunset)+','+(.58*dk+.12*sunset)+')';k.fillRect(0,0,w,hh);
  if(dk>.05){k.globalCompositeOperation='destination-out';const cm=window.LASTCAM||[0,0],L=(wx,wy,r,a)=>{const sx=(wx-cm[0])*Z/2,sy=(wy-cm[1])*Z/2,rr=r*Z/2;if(sx<-rr||sy<-rr||sx>w+rr||sy>hh+rr)return;const g=k.createRadialGradient(sx,sy,0,sx,sy,rr);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(sx-rr,sy-rr,rr*2,rr*2)};
   L(P.x,P.y-20,150,.85*dk);
-  if(D&&D.town){for(const [lx,ly] of LAMP_DATA)L(lx*T+16,ly*T-22,110,.9);L(PAD.x,PAD.y,120,.8);L(22*T,13*T,90,.5)}
+  if(D&&D.town){for(const [lx,ly] of LAMP_DATA)L(lx*T+16,ly*T-22,110,.9);if(!D.city2)for(const p of TOWNLIFE.lightSources())L(p.x,p.y,p.r*4,.85);L(PAD.x,PAD.y,120,.8);L(22*T,13*T,90,.5)}
   else if(!D){L(ZG.x,ZG.y,130,.9);L(WC.x,WC.y,120,.7)}
   else if(D&&D.zone){for(const m of D.mobs)if(m.f==='wisp')L(m.x,m.y-18,80,.7)}
   k.globalCompositeOperation='source-over'}
@@ -1655,7 +1654,7 @@ function prop(fn,base,x0,y0,w,h,treeArt,townArt){const c=document.createElement(
  if(townArt)TOWNART.watch(()=>{k.clearRect(x0,y0,w,h);fn(k)});
  if(treeArt&&!TREEART.ready&&!TREEART.failed)TREEART.pending.push(()=>{k.clearRect(x0,y0,w,h);fn(k)})}
 {const _bt=buildTown;buildTown=function(){TOWNPROPS.length=0;_bt();D.stalls=STALL_DATA.concat(TOWNPROPS)}}
-{const _ds=drawStall;drawStall=function(s,t){if(!s.prop)return _ds(s,t);const behind=P.y<s.base&&P.y>s.y0+20&&P.x>s.x0+8&&P.x<s.x0+s.w-8;if(behind)ctx.globalAlpha=.55;ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1}}
+{const _ds=drawStall;drawStall=function(s,t){if(!s.prop)return _ds(s,t);const behind=P.y<s.base&&P.y>s.y0+20&&P.x>s.x0+8&&P.x<s.x0+s.w-8;if(behind)ctx.globalAlpha=.55;if(!window.TOWNLIFE||!TOWNLIFE.drawProp(ctx,s))ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1}}
 
 // ---------- 2) สไลม์: ป้ายชื่อ + หลอดเลือดแบบเดียวกับมอนอื่น ----------
 drawSlime=function(s){if(!s.max)s.max=s.hp;const k=1+((s.lv||1)-1)*.07;ctx.save();ctx.translate(s.x,s.y);ctx.scale(k,k);ctx.translate(-s.x,-s.y);_dsl({...s,hp:99});ctx.restore();
@@ -1792,7 +1791,7 @@ function drawStallFront(s,t){const x=s.x*T,y=s.y*T,w=2*T;ctx.fillStyle='rgba(0,0
 setInterval(()=>{if(SHOPK&&String(SHOPK).startsWith('st_')&&!stallNear()&&!shopEl.hidden){closeShop()}},300);
 
 // ---------- D) ป้ายชื่อร้านแบบใหม่: ป้ายไม้แขวนโซ่ ขอบทอง มีไอคอน ----------
-shopName=function(k,S){const [bx,by,bw]=S.b,cx=bx*T+bw*T/2,y=by*T-6;k.save();k.font='bold 12px system-ui,"Noto Sans Thai",sans-serif';const tw=k.measureText(S.name).width,w=tw+44,h=22,x=cx-w/2;
+shopName=function(k,S){if(window.TOWNLIFE&&SHOP_ORDER.some(id=>SHOP_DATA[id]===S))return;const [bx,by,bw]=S.b,cx=bx*T+bw*T/2,y=by*T-6;k.save();k.font='bold 12px system-ui,"Noto Sans Thai",sans-serif';const tw=k.measureText(S.name).width,w=tw+44,h=22,x=cx-w/2;
  k.strokeStyle='#3a3a40';k.lineWidth=1.5;for(const sx of [x+12,x+w-12]){k.beginPath();k.moveTo(sx,y-h-8);k.lineTo(sx,y-h);k.stroke();for(let i=0;i<3;i++){k.beginPath();k.ellipse(sx,y-h-7+i*3,1.4,1.8,0,0,7);k.stroke()}}
  k.fillStyle='rgba(0,0,0,.35)';rr(k,x+2,y-h+3,w,h,6);k.fill();
  const g=k.createLinearGradient(0,y-h,0,y);g.addColorStop(0,'#7a4a24');g.addColorStop(.5,'#5a3418');g.addColorStop(1,'#3e220e');k.fillStyle=g;rr(k,x,y-h,w,h,6);k.fill();

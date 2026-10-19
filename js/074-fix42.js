@@ -77,7 +77,7 @@ function twrPlace42(){if(!(D&&D.town&&dcv)||D.twr42)return;D.twr42=1;try{const k
   for(let y=by-1;y<by+bh+1;y++)for(let x=bx-1;x<bx+bw+1;x++){if(D.road&&D.road.has(y*TW+x))continue;if(x<0||y<0||x>=TW||y>=TH)continue;k.drawImage(grassV[gv(x,y)],x*T,y*T)}
   for(let y=by;y<by+bh;y++)for(let x=bx;x<bx+bw;x++)if(dm[y])dm[y][x]=1;
   if(!TWR42.art)TWR42.art=twrArt42();const A=TWR42.art,x0=TWR42.dx-A.width/2,y0=TWR42.dy+8-A.height;
-  if(window.prop){prop(kk=>kk.drawImage(A,x0,y0),TWR42.dy+6,x0,y0,A.width,A.height,false,true);const pr=TOWNPROPS[TOWNPROPS.length-1];if(D.stalls&&pr&&!D.stalls.includes(pr))D.stalls.push(pr)}else k.drawImage(A,x0,y0);
+  if(window.prop){prop(kk=>kk.drawImage(A,x0,y0),TWR42.dy+6,x0,y0,A.width,A.height,false,true);const pr=TOWNPROPS[TOWNPROPS.length-1];if(pr&&window.TOWNLIFE){pr.townVisual={role:'tower',x:x0,y:y0,w:A.width,h:A.height};TOWNLIFE.register('tower',x0,y0,A.width,A.height)}if(D.stalls&&pr&&!D.stalls.includes(pr))D.stalls.push(pr)}else k.drawImage(A,x0,y0);
   try{mkMini(dcv,TW,TH,2.6)}catch(e){}}catch(e){console.warn('[twr42]',e)}}
 // v4.51: เมืองที่สร้างก่อนแพตช์นี้โหลด (เข้าเกมครั้งแรก) ไม่มีหอคอย → วางซ้ำได้ทุกเมื่อแบบไม่ซ้อน (D.twr42)
 {const _bt=buildTown;buildTown=function(){_bt();twrPlace42()}}setInterval(()=>{try{twrPlace42()}catch(e){}},1000);

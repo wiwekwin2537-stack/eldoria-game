@@ -13,7 +13,7 @@ function town54(){if(!(D&&D.town))return;try{const L=TOWNPROPS;
 // หอคอย: จางนุ่ม ๆ เฉพาะตอนผู้เล่นอยู่หลังตัวหอจริง
 {const _ds=drawStall;drawStall=function(s,t){if(!isTwr54(s))return _ds(s,t);
  const behind=P.y<s.base-3*T&&P.y>s.y0+20&&P.x>s.x0+30&&P.x<s.x0+s.w-30,tg=behind?.55:1;s.al54=s.al54==null?1:s.al54+(tg-s.al54)*.15;
- ctx.globalAlpha=s.al54;ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1};window.drawStall=drawStall}
+ ctx.globalAlpha=s.al54;if(!window.TOWNLIFE||!TOWNLIFE.drawProp(ctx,s))ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1};window.drawStall=drawStall}
 // เมืองที่สร้างไปแล้วก่อนแพตช์นี้ (เข้าเกมครั้งแรก) → สร้างใหม่ให้ชื่อป้าย/ต้นไม้ถูกต้อง
 try{if(D&&D.town&&!D.shop){buildTown();mkMini(dcv,TW,TH,2.6)}}catch(e){console.warn('fix54 rebuild',e)}
 }catch(e){console.warn('fix54',e)}

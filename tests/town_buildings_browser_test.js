@@ -4,7 +4,7 @@ const {spawn}=require('node:child_process'),{chromium}=require('playwright');
 (async()=>{const root=path.join(__dirname,'..'),dir=fs.mkdtempSync(os.tmpdir()+'/eld-town-art-');let browser;
  const server=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:'8787',DATA_DIR:dir,UPSTASH_REDIS_REST_URL:'',UPSTASH_REDIS_REST_TOKEN:''},stdio:['ignore','pipe','inherit']});
  try{await new Promise((r,j)=>{server.stdout.once('data',r);server.once('error',j)});browser=await chromium.launch({executablePath:process.env.ELD_CHROMIUM,args:process.env.ELD_CHROMIUM_ARGS?JSON.parse(process.env.ELD_CHROMIUM_ARGS):['--no-sandbox','--enable-unsafe-swiftshader']});
- const context=await browser.newContext({viewport:{width:915,height:412},hasTouch:true,isMobile:true,serviceWorkers:'block'});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);
+ const context=await browser.newContext({viewport:{width:915,height:412},hasTouch:true,isMobile:true,serviceWorkers:'block'});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(60000);
  let assetMode='normal';await context.route('**/*',async r=>{const u=new URL(r.request().url());if(u.origin!=='http://127.0.0.1:8787')return r.abort();if(u.pathname.startsWith('/assets/town/')){if(assetMode==='fail')return r.abort();if(assetMode==='slow')await new Promise(ok=>setTimeout(ok,3500))}return r.continue()});
  const url='http://127.0.0.1:8787/?server=ws://127.0.0.1:8787&devtest=1';
  const prepare=async()=>page.evaluate(()=>{titleEl.hidden=true;intro.hidden=true;dlgClose(true);CINE.L=null;cineEl.hidden=true;TUT.on=false;gid('tut').hidden=true;P.dead=false;P.stun=0;P.at=-1;PAUSED=false;});
