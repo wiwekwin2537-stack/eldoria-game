@@ -1,0 +1,20 @@
+// ทดสอบภาพแร่เมื่อ PNG ยังโหลดไม่เสร็จ/โหลดสำเร็จ: node tests/ore_sprite_test.js
+const fs = require('fs');
+const vm = require('vm');
+const source = fs.readFileSync(require('path').join(__dirname, '..', 'js/031-core.js'), 'utf8');
+const fieldSource = fs.readFileSync(require('path').join(__dirname, '..', 'js/016-core.js'), 'utf8');
+const match = source.match(/function oreSpriteFor\(kind,img,sprites\)\{[^}]*\}/);
+if (!match) throw new Error('ไม่พบ oreSpriteFor');
+const box = {};
+vm.createContext(box);
+vm.runInContext(match[0], box);
+let fail = 0;
+const ok = (condition, message) => { if (condition) console.log('ok  ', message); else { console.log('FAIL', message); fail++; } };
+const fallback = {};
+ok(box.oreSpriteFor('diamond', { complete: false, naturalWidth: 0 }, { diamond: fallback }) === fallback, 'PNG เพชรยังโหลดไม่เสร็จ → วาดภาพสำรองแทน');
+ok(box.oreSpriteFor('diamond', { complete: true, naturalWidth: 42 }, { diamond: fallback }).naturalWidth === 42, 'PNG เพชรโหลดแล้ว → ใช้ภาพใหม่');
+ok(box.oreSpriteFor('stone', { complete: false, naturalWidth: 0 }, { stone: fallback }) === fallback, 'แร่อื่นยังใช้ภาพสำรองตามชนิดเดิม');
+ok(box.oreSpriteFor('diamond', { complete: false, naturalWidth: 0 }, {}) === null, 'ไม่มีภาพสำรอง → คืน null เพื่อไม่ให้ drawImage พัง');
+ok(fieldSource.includes("const spr=oreSprite(o.kind);if(spr)ctx.drawImage(spr,x*T-5+sh,y*T-9,42,42)") && source.includes("const spr=oreSprite(o.kind);if(spr)ctx.drawImage(spr,x-5+sh,y-9,42,42)"), 'ทั้งทุ่งหญ้าและแมพเหมืองเรียกภาพผ่านตัวเลือกสำรอง');
+console.log(fail ? `FAILED ${fail}` : 'ALL PASS');
+process.exit(fail ? 1 : 0);
