@@ -5,6 +5,9 @@ const crypto = require('crypto'), fs = require('fs'), path = require('path');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const UP_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, ''), UP_TOK = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 const MAX_SAVE = 1200 * 1024;
+// /api/save wraps an already JSON-encoded save in another JSON object.
+// Quotes, backslashes and UTF-8 can multiply the wire size of a valid save.
+const MAX_REQUEST = MAX_SAVE * 8 + 8192;
 const GM_IDS = (process.env.GM_IDS || 'tiksi,wiwekwin2537').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 /* v5.15: ไอดีที่เจ้าของยืนยันว่าไม่ได้โกง — ล้างธง "ผิดปกติ" ให้ ขึ้นตารางอันดับตามเลเวลจริง (เพิ่มได้ที่ env UNFLAG_IDS คั่นด้วยจุลภาค) */
 const UNFLAG_IDS = (process.env.UNFLAG_IDS || 'armwasin,kakaboy2537,kittapas,chatchai1').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
@@ -293,8 +296,10 @@ function middleware(req, res, allowOrigin) {
   if (!ok) { res.writeHead(403, hd); res.end('{"err":"origin"}'); return true; }
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
   if (req.method === 'GET') { handle(u, {}, ip).then(r => { res.writeHead(200, hd); res.end(JSON.stringify(r)); }); return true; }
-  let body = '', big = false;
-  req.on('data', c => { body += c; if (body.length > MAX_SAVE + 4096) { big = true; req.destroy(); } });
+  let body = '', bytes = 0, big = false;
+  req.on('data', c => { if (big) return; bytes += c.length; if (bytes > MAX_REQUEST) {
+    big = true; body = ''; res.writeHead(413, hd); res.end('{"err":"size"}'); return;
+  } body += c; });
   req.on('end', async () => {
     if (big) return; let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) { res.writeHead(400, hd); res.end('{"err":"json"}'); return; }
     let r; try { r = await handle(u, d && typeof d === 'object' ? d : {}, ip); } catch (e) { console.log('api', e.message); r = { err: 'server' }; }

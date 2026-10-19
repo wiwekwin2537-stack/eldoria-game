@@ -239,8 +239,8 @@
 ## ปาร์ตี้ / กิลด์ / เล่นออนไลน์ด้วยกัน
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `netMsg` | js/031-core.js:2651 | 16 ชั้น | js/031-core.js:7282 · js/040-fix9.js:19 · js/051-fix20.js:103 · js/052-fix21.js:61 · js/060-fix29.js:47 · js/060-fix29.js:91 · js/064-fix33.js:28 · js/066-fix35.js:29 · js/104-fix72.js:28 · js/113-fix81.js:86 · js/114-fix82.js:51 · js/153-fix123.js:41 · js/157-fix130.js:87 · js/160-fix133.js:2 · js/166-fix139.js:31 · js/185-shared-world.js:67 |
-| `drawOther` | js/031-core.js:2665 | 11 ชั้น | js/031-core.js:3802 · js/031-core.js:7003 · js/031-core.js:7322 · js/040-fix9.js:227 · js/051-fix20.js:104 · js/052-fix21.js:67 · js/056-fix25.js:211 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:69 · js/103-fix71.js:13 |
+| `netMsg` | js/031-core.js:2651 | 16 ชั้น | js/031-core.js:7282 · js/040-fix9.js:19 · js/051-fix20.js:104 · js/052-fix21.js:61 · js/060-fix29.js:47 · js/060-fix29.js:91 · js/064-fix33.js:28 · js/066-fix35.js:29 · js/104-fix72.js:28 · js/113-fix81.js:86 · js/114-fix82.js:51 · js/153-fix123.js:41 · js/157-fix130.js:87 · js/160-fix133.js:2 · js/166-fix139.js:31 · js/185-shared-world.js:67 |
+| `drawOther` | js/031-core.js:2665 | 11 ชั้น | js/031-core.js:3802 · js/031-core.js:7003 · js/031-core.js:7322 · js/040-fix9.js:227 · js/051-fix20.js:105 · js/052-fix21.js:67 · js/056-fix25.js:211 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:69 · js/103-fix71.js:13 |
 | `openGuild` | js/031-core.js:2339 | 2 ชั้น | js/031-core.js:2538 · js/153-fix123.js:67 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
