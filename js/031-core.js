@@ -7081,7 +7081,11 @@ window.drawSteedUD7=drawSteedUD7;
 const VAULT8=(()=>{let V={mats:{},gear:{},lv:0};try{Object.assign(V,JSON.parse(localStorage.getItem('fm_vault8')||'{}')||{})}catch(e){}V.mats=V.mats||{};V.gear=V.gear||{};return V})();
 const VCAP8=[30,45,60,80,100],VCOST8=[800,2500,6000,15000];
 const vCap8=()=>VCAP8[Math.min(VAULT8.lv|0,VCAP8.length-1)],vUsed8=()=>Object.keys(VAULT8.mats).filter(k=>VAULT8.mats[k]>0).length+Object.keys(VAULT8.gear).filter(k=>VAULT8.gear[k]>0).length;
-const vSave8=()=>{try{localStorage.setItem('fm_vault8',JSON.stringify(VAULT8))}catch(e){}try{saveGame(true)}catch(e){}};
+const vSave8=()=>{let ok=true;try{localStorage.setItem('fm_vault8',JSON.stringify(VAULT8))}catch(e){ok=false}try{saveGame(true)}catch(e){ok=false}
+ // Vault transfers are high value. Start a cloud write immediately after the
+ // local snapshot, instead of waiting for the normal 15-second background tick.
+ try{if(ok&&window.CLOUD&&window.ONL32&&ONL32.verified){setTimeout(()=>Promise.resolve(CLOUD.sync(true,true)).then(saved=>{if(!saved&&!CLOUD.reloading)say('⚠️ ของอยู่ในเครื่องแล้ว แต่ยังซิงค์ไม่สำเร็จ — อย่าเพิ่งปิดเกม กรุณารอแล้วลองอีกครั้ง')}).catch(()=>say('⚠️ ของอยู่ในเครื่องแล้ว แต่ยังซิงค์ไม่สำเร็จ — อย่าเพิ่งปิดเกม กรุณารอแล้วลองอีกครั้ง')),250)}}catch(e){}
+ return ok};
 const vOk8=()=>!!(D&&(D.town||D.shop||D.home));
 const vW8=mk6('vlt8');const VQ8={q:1};
 function vIcon8(t,k){try{return iconURL((t==='g'?'item:':'mat:')+k)}catch(e){return ''}}
