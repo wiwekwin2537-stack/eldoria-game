@@ -10,6 +10,7 @@ ONL32.url=(()=>{try{const q=new URLSearchParams(location.search).get('server');i
 if(ONL32.url){SET.server=ONL32.url;try{saveSet()}catch(e){}}
 const onlErr32=r=>r&&r.err==='offline'?'🔌 เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — เช็คอินเทอร์เน็ตแล้วลองใหม่ (เซิร์ฟเวอร์อาจกำลังตื่น รอสักครู่)':(CLOUD_ERR[r&&r.err]||('เซิร์ฟเวอร์ตอบกลับผิดพลาด ('+(r&&r.err)+')'));
 const CL_REG32=accRegister,CL_LOGIN32=accLogin; // (เวอร์ชันคลาวด์ — ใช้ตอน CLOUD.busy เพื่อสร้างแคชบัญชีในเครื่อง)
+function sameCloudSave32(remote,local){try{const a=typeof remote==='string'?JSON.parse(remote):remote,b=typeof local==='string'?JSON.parse(local):local,ka=Object.keys(a||{}).sort(),kb=Object.keys(b||{}).sort();return ka.length===kb.length&&ka.every((k,i)=>k===kb[i]&&a[k]===b[k])}catch(e){return false}}
 // สร้าง/อัปเดต "แคช" บัญชีในเครื่อง หลังเซิร์ฟเวอร์ยืนยันแล้ว แล้วเข้าเกม
 ONL32.finish=async function(id,pw,rem,name){const A=ACC.all;let key=Object.keys(A).find(k=>k.toLowerCase()===id.toLowerCase());
  if(!key||!(await accVerify(key,pw))){ // ยังไม่มีแคชในเครื่อง / รหัสเปลี่ยนจากเครื่องอื่น → สร้างแคชใหม่ (เซฟเดิมยังอยู่)
@@ -44,8 +45,9 @@ accLogin=async function(id,pw,rem){if(CLOUD.busy)return CL_LOGIN32(id,pw,rem);
   return ONL32.finish(key,pw,rem,A[key].n)}
  if(!r.ok)return onlErr32(r);
  const cid=key||r.id||id;
- try{FM_RAW.set(CLOUD.tokKey(cid),r.token);FM_RAW.set('cloud_rev_'+cid.toLowerCase(),String(r.rev|0))}catch(e){}
- if(r.save){try{sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:cid,save:r.save}))}catch(e){}}
+ // Keep the last revision known by this device. tPlay compares it with the server
+ // and decides whether to download a newer cloud save or upload local unsynced data.
+ try{FM_RAW.set(CLOUD.tokKey(cid),r.token)}catch(e){}
  return ONL32.finish(cid,pw,rem,r.name)};
 // ---------- เปลี่ยนรหัส: เปลี่ยนบนเซิร์ฟเวอร์ก่อน ----------
 accChangePw=async function(o,n,n2){if(!FM_ACCT)return 'ยังไม่ได้เข้าสู่ระบบ';if(typeof pwStrong==='function'&&!pwStrong(n))return 'รหัสใหม่อย่างน้อย 6 ตัว มีทั้งตัวเลขและตัวอักษร';if(n!==n2)return 'รหัสใหม่ไม่ตรงกัน';if(n===o)return 'รหัสใหม่ต้องไม่ซ้ำรหัสเดิม';
@@ -91,9 +93,12 @@ ONL32.ping=async function(){const s=document.querySelector('#srv32 span');if(!s)
   let l;try{l=await CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)},60000)}finally{ONL32.verifying=false}
   if(l.err==='auth'||l.err==='badid'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}tLoginForm();setTimeout(()=>tErr('🔑 เซสชันหมดอายุ — เข้าสู่ระบบใหม่'),30);return}
   if(!l.ok){pan.innerHTML='<h3>🔌 เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</h3><div class="tip">เกมนี้ต้องเล่นออนไลน์ — เช็คอินเทอร์เน็ตแล้วลองใหม่</div><button class="tb" id="tRetry32">🔄 ลองใหม่</button><button class="tb ghost" onclick="accLogout()">ออกจากระบบ</button>';gid('tRetry32').onclick=()=>tPlay();return}
-  const lr=+FM_RAW.get(CLOUD.revKey())||0;
-  if((l.rev|0)>lr&&l.save){sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1');FM_RAW.set(CLOUD.revKey(),String(l.rev|0));CLOUD.reloading=true;pan.innerHTML='<h3>☁️ โหลดเซฟล่าสุดจากเซิร์ฟเวอร์…</h3>';location.reload();return}
-  ONL32.verified=true;try{if((l.rev|0)===lr&&l.save)CLOUD.last=JSON.stringify(saveKeys8())}catch(e){}if(!NET.ws)netConnect();_tp();setTimeout(()=>CLOUD.sync(false),1500)}}
+  const lr=+FM_RAW.get(CLOUD.revKey())||0,sr=l.rev|0,local=saveKeys8(),same=!!l.save&&sameCloudSave32(l.save,local);
+  if(sr>lr&&l.save&&!same){try{const rk='eldoria_cloud_recovery_'+String(FM_ACCT).toLowerCase();if(!FM_RAW.get(rk))FM_RAW.set(rk,JSON.stringify(local))}catch(e){}
+   sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1');FM_RAW.set(CLOUD.revKey(),String(sr));CLOUD.reloading=true;pan.innerHTML='<h3>☁️ โหลดเซฟล่าสุดจากเซิร์ฟเวอร์…</h3>';location.reload();return}
+  if(sr<lr){/* The local revision was previously confirmed, but the server is behind. Preserve and re-upload that local save. */FM_RAW.set(CLOUD.revKey(),String(sr));try{say('☁️ พบเซฟในเครื่องที่ใหม่กว่าเซิร์ฟเวอร์ · กำลังกู้ขึ้นคลาวด์')}catch(e){}}
+  else if(sr>lr)FM_RAW.set(CLOUD.revKey(),String(sr));
+  ONL32.verified=true;CLOUD.last=same?JSON.stringify(local):'';if(!NET.ws)netConnect();_tp();setTimeout(()=>CLOUD.sync(!same),1500)}}
 // ---------- ต้องออนไลน์ตลอด: หลุดแล้วหยุดเกม + ต่อใหม่ให้อัตโนมัติ ----------
 {const st=document.createElement('style');st.textContent='#off32{position:fixed;inset:0;z-index:99999;background:rgba(6,8,20,.86);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;font:600 16px system-ui,"Noto Sans Thai",sans-serif;text-align:center;padding:20px}#off32[hidden]{display:none}#off32 .sp{width:46px;height:46px;border:5px solid rgba(255,255,255,.2);border-top-color:#ffd84a;border-radius:50%;animation:off32 1s linear infinite;margin-bottom:14px}@keyframes off32{to{transform:rotate(360deg)}}#off32 small{display:block;opacity:.75;margin-top:6px;font-weight:400}#off32 button{margin-top:14px;height:42px;padding:0 18px;font-size:15px;border-radius:10px;border:2px solid #e8c14a;background:#2a2340;color:#fff}';document.head.appendChild(st)}
 {const o=document.createElement('div');o.id='off32';o.hidden=true;o.innerHTML='<div class="sp"></div><div id="off32t">🔌 การเชื่อมต่อหลุด</div><small id="off32s">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เกมหยุดชั่วคราว)</small><button onclick="saveGame(true);accLogout()">ออกจากระบบ</button>';document.body.appendChild(o)}
@@ -113,6 +118,12 @@ try{const inp=gid('netUrl');if(inp){const sec=inp.closest('div');for(const id of
 // เชื่อมต่อใหม่เร็วขึ้น (ไม่หน่วงนานแบบเดิม)
 setInterval(()=>{if(!ONL32.dev&&FM_ACCT&&!NET.ws&&SET.server&&!document.hidden)try{netConnect()}catch(e){}},3000);
 window.ONL32=ONL32;
+// Preserve a local snapshot before replacing it with a newer cloud revision.
+// The recovery entry is device-local and is excluded from saveKeys8().
+window.restoreCloudRecovery32=function(){try{const id=FM_ACCT,rk='eldoria_cloud_recovery_'+String(id||'').toLowerCase(),raw=FM_RAW.get(rk);if(!id||!raw){say('ไม่มีเซฟสำรองในเครื่องนี้');return}
+ const d=JSON.parse(raw);talk({name:'กู้เซฟสำรอง',c:'#c0503a'},'กู้เซฟก่อนโหลดคลาวด์กลับมาใช้หรือไม่? เซฟปัจจุบันบนคลาวด์จะถูกแทนที่หลังซิงค์',[{t:'🛟 กู้เซฟจากเครื่องนี้',c:'go',f:()=>{for(const k in d)if(/^fm_/.test(k)&&!/^fm_(set|accts|acct|last_acct|remember|chatfold|dev|lock|gmkey8)$/.test(k))localStorage.setItem(k,d[k]);CLOUD.last='';location.reload()}},BYE],'⚠️ ตรวจสอบก่อนกู้')
+ }catch(e){say('กู้เซฟสำรองไม่สำเร็จ')}};
+try{if(FM_ACCT&&FM_RAW.get('eldoria_cloud_recovery_'+String(FM_ACCT).toLowerCase())&&Array.isArray(PM7)&&!PM7.some(m=>m[1]==='กู้เซฟสำรอง')){PM7.push(['🛟','กู้เซฟสำรอง',()=>window.restoreCloudRecovery32()]);try{pmRender7()}catch(e){}}}catch(e){}
 // กันสถานะค้าง: on=true แต่ซ็อกเก็ตถูกปิดไปแล้ว (ตอนต่อใหม่/รีโหลด)
 {const _nt=netTick;netTick=function(dt){if(NET.on&&(!NET.ws||NET.ws.readyState!==1)){if(!NET.ws)NET.on=false;return}return _nt(dt)}}
 try{const v=titleEl.querySelector('.ver');if(v)v.textContent='v4.37 · ออนไลน์'}catch(e){}

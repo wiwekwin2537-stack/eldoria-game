@@ -59,14 +59,31 @@ function ttRender20(){const cur=myTtl20();let h='<div class="w"><div class="hd">
 window.ttSet20=id=>{ST20.title=id||'';st20Save();sfx('ui');try{localStorage.setItem('fm_stat20',JSON.stringify(ST20))}catch(e){}ttRender20()};
 {const st=document.createElement('style');st.textContent='#ttl20 .tt20{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:8px;overflow-y:auto}#ttl20 .tt20 .it:first-child{grid-column:1/-1}#lb20 .lb20{padding:8px;overflow-y:auto}#lb20 .lbt{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}#lb20 .lbt button{padding:5px 10px;border-radius:8px;border:1px solid #5a4a7a;background:#2a2238;color:#fff;font:700 12px system-ui;cursor:pointer}#lb20 .lbt button.on{background:#ffe9a0;color:#3a2408}#lb20 .lbr{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.25);margin-bottom:4px;font:700 13px system-ui}#lb20 .lbr.me{outline:2px solid #7aff9a}#lb20 .lbr i{font-style:normal;width:30px;text-align:center;font-weight:900}#lb20 .lbr b{flex:1}#lb20 .lbr small{opacity:.75}#lb20 .lbr em{font-style:normal;color:#ffe27a;font-weight:900}';document.head.appendChild(st)}
 // ---------- ตารางอันดับ ----------
-const lbW20=mk6('lb20');const LB20={tab:'lv',data:null,err:'',t:0,busy:false};
+const lbW20=mk6('lb20');const LB20={tab:'lv',data:null,err:'',t:0,busy:false,again:false};
 const LBT20=[['lv','⭐ เลเวล','Lv.'],['k','⚔️ ล่ามอน','ตัว'],['b','👑 ล้มบอส','ตัว'],['w','💰 ร่ำรวย','เหรียญ'],['fl','🏰 ดันเจี้ยน','ชั้น']];
-async function openLb20(force){p6open(lbW20);lbRender20();if(LB20.busy||(!force&&LB20.data&&performance.now()-LB20.t<30000))return;LB20.err='';LB20.busy=true;
- try{if(!(window.CLOUD&&CLOUD.base()))throw 'off';try{await CLOUD.sync(!force)}catch(e){}const r=await CLOUD.call('/api/top',{});if(r&&r.ok){LB20.data=r;LB20.t=performance.now()}else LB20.err=r&&r.err==='unknown'?'old':'fail'}catch(e){LB20.err=e==='off'?'off':'fail'}finally{LB20.busy=false;lbRender20()}}
+async function syncLb20(force){const until=Date.now()+45000;while(CLOUD.inflight&&Date.now()<until)await new Promise(r=>setTimeout(r,100));if(CLOUD.inflight)throw 'sync';const t=CLOUD.t||0;await CLOUD.sync(force);while(CLOUD.inflight&&Date.now()<until)await new Promise(r=>setTimeout(r,100));if(CLOUD.inflight||(force&&(!(CLOUD.t>t)||CLOUD.fails)))throw 'sync'}
+async function openLb20(force,pushSave){p6open(lbW20);lbRender20();if(LB20.busy){if(pushSave)LB20.again=true;return}if(!force&&LB20.data&&performance.now()-LB20.t<30000)return;LB20.err='';LB20.busy=true;
+ try{if(!(window.CLOUD&&CLOUD.base()))throw 'off';await syncLb20(pushSave!==false);const r=await CLOUD.call('/api/top',{});if(r&&r.ok){LB20.data=r;LB20.t=performance.now()}else LB20.err=r&&r.err==='unknown'?'old':'fail'}catch(e){LB20.err=e==='off'?'off':'fail'}finally{LB20.busy=false;lbRender20();if(LB20.again){LB20.again=false;openLb20(true,true)}}}
 window.openLb20=openLb20;
-window.lbRefresh20=()=>openLb20(true);
-setInterval(()=>{if(!lbW20.hidden)openLb20(true)},30000);
+window.lbRefresh20=()=>openLb20(true,true);
+setInterval(()=>{if(!lbW20.hidden)openLb20(true,false)},30000);
 window.lbTab20=t=>{LB20.tab=t;lbRender20()};
+// Online exit must wait for the cloud write; the base game's 250 ms reload can abort it.
+window.exitGame7=function(){talk({name:'ออกจากเกม',c:'#c0503a'},'บันทึกเกมแล้วกลับไปหน้าแรกไหม?',[{t:'🚪 บันทึกและออก',c:'go',f:()=>{
+ try{saveGame(true)}catch(e){}
+ if(!(typeof FM_ACCT!=='undefined'&&FM_ACCT&&window.CLOUD&&CLOUD.base()&&CLOUD.tok(FM_ACCT))){setTimeout(()=>location.reload(),250);return}
+ if(!(window.ONL32&&ONL32.verified)){say('☁️ ยังยืนยันการเชื่อมต่อคลาวด์ไม่ได้ · กรุณาลองใหม่ก่อนออก');return false}
+ say('☁️ กำลังบันทึกเซฟขึ้นคลาวด์…');
+ (async()=>{const end=Date.now()+45000;try{
+   while(CLOUD.inflight&&Date.now()<end)await new Promise(r=>setTimeout(r,100));
+   if(CLOUD.inflight)throw Error('timeout');
+   const prev=CLOUD.t||0;await CLOUD.sync(true);
+   while(CLOUD.inflight&&Date.now()<end)await new Promise(r=>setTimeout(r,100));
+   if(CLOUD.inflight||!(CLOUD.t>prev)||CLOUD.fails)throw Error('save');
+   dlgClose(true);location.reload()
+  }catch(e){say('⚠️ เซฟขึ้นคลาวด์ไม่สำเร็จ · ยังไม่ออกจากเกม กรุณากดบันทึกและออกอีกครั้ง')}})();
+ return false
+}},BYE],'🚪 ออกเกม')};
 function lbRender20(){let h='<div class="w"><div class="hd"><b>🏆 ตารางอันดับผู้กล้า</b><button onclick="p6close(lbW20)">✕</button></div><div class="bd lb20"><div class="lbt">'+LBT20.map(([k,n])=>'<button class="'+(LB20.tab===k?'on':'')+'" onclick="lbTab20(\''+k+'\')">'+n+'</button>').join('')+'</div>';
  if(LB20.err==='off')h+='<small>ต้องเล่นแบบออนไลน์ (ล็อกอินบัญชี) จึงจะดูอันดับได้</small>';
  else if(LB20.err==='old')h+='<small>เซิร์ฟเวอร์ยังเป็นเวอร์ชันเก่า — ผู้ดูแลต้องกด Manual Deploy บน Render ก่อน</small>';

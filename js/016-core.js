@@ -84,7 +84,7 @@ function updWorld(dt){
 function drawOres(x0,x1,y0,y1){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(map[y][x]===ORE){const o=oreAt[y*W+x];if(!o)continue;
  const sh=o.shake>0?Math.sin(o.shake*60)*2.5*(o.shake/.3):0;
  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x*T+16,y*T+28,15,5,0,0,7);ctx.fill();
- ctx.drawImage(o.kind==='diamond'?oreImg:OSPR[o.kind],x*T-5+sh,y*T-9,42,42);
+ const spr=oreSprite(o.kind);if(spr)ctx.drawImage(spr,x*T-5+sh,y*T-9,42,42);
  const n=Math.floor((1-o.hp/o.max)*6);ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;
  for(let i=0;i<n;i++){const cx=x*T+7+(i*5)%20,cy=y*T+4+(i*7)%14;ctx.beginPath();ctx.moveTo(cx+sh,cy);ctx.lineTo(cx+4+sh,cy+5);ctx.lineTo(cx+1+sh,cy+10);ctx.stroke()}}}
 function drawFalling(){for(const f of falling){const tr=f.tr,sc=tr.sc,u=f.ft/1.1;let ang=Math.pow(Math.min(1,u),2.4)*1.5;if(u>1)ang+=Math.sin((u-1)*14)*.05*Math.exp(-(u-1)*5);

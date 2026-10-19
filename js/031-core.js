@@ -28,6 +28,9 @@ window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
 
 // ---------- แร่: ภาพในแมพ + ขุดตามชั้นของที่ขุดแร่ ----------
 const OSPR={};for(const k of OREKEYS){const c=document.createElement('canvas');c.width=c.height=42;const q=c.getContext('2d'),im=OREIMGS[k];if(im&&im.complete&&im.naturalWidth)q.drawImage(im,0,0,42,42);else{paintOre(q,k,42);if(im)im.addEventListener('load',()=>{q.clearRect(0,0,42,42);q.drawImage(im,0,0,42,42)},{once:true})}OSPR[k]=c}
+/* ใช้ภาพเพชรเมื่อโหลดสำเร็จเท่านั้น; ถ้าเน็ต/แคชโหลดช้า ให้ใช้ภาพวาดสำรองแทนภาพว่าง */
+function oreSpriteFor(kind,img,sprites){return kind==='diamond'&&img&&img.complete&&img.naturalWidth>0?img:(sprites&&sprites[kind]||null)}
+function oreSprite(kind){return oreSpriteFor(kind,oreImg,typeof OSPR==='undefined'?null:OSPR)}
 function hitOre(o){const K=OREK[o.kind];
  if(P.tier.pick<K.req){o.shake=.2;o.bar=1.2;sfx('thud');say('ต้องใช้'+ITEMS['pick'+K.req].name+'ขึ้นไป จึงจะขุด'+K.n+'ได้');return}
  const sh=window.FW&&FW.act(),dm=PICKDMG();if(sh)FW.send('o',o,dm,90);o.hp-=dm;o.shake=.3;o.bar=2;sfx('mine');
@@ -1145,7 +1148,7 @@ function drawMob(m,t){const c=mobCols(m),s=m.sc;
   const d=P.lv-m.L,col=m.elite?'#ffd84a':d>=5?'#9f9':d>=-2?'#fff':d>=-8?'#fb7':'#f66',tx=(m.elite?'★ ':'')+'Lv.'+m.L+' '+m.nm;ctx.strokeText(tx,m.x,top);ctx.fillStyle=col;ctx.fillText(tx,m.x,top);
   if(m.hp<m.max){ctx.fillStyle='#000a';ctx.fillRect(m.x-16,top+3,32,4);ctx.fillStyle=m.elite?'#ffb43a':'#e04a3a';ctx.fillRect(m.x-16,top+3,32*Math.max(0,m.hp/m.max),4)}}ctx.textAlign='left'}
 function drawOreZ(o){const sh=o.shake>0?Math.sin(o.shake*60)*2.5*(o.shake/.3):0,x=o.tx*T,y=o.ty*T;ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+16,y+28,15,5,0,0,7);ctx.fill();
- ctx.drawImage(o.kind==='diamond'?oreImg:OSPR[o.kind],x-5+sh,y-9,42,42);const n=Math.floor((1-o.hp/o.max)*6);ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;
+ const spr=oreSprite(o.kind);if(spr)ctx.drawImage(spr,x-5+sh,y-9,42,42);const n=Math.floor((1-o.hp/o.max)*6);ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;
  for(let i=0;i<n;i++){const cx=x+7+(i*5)%20,cy=y+4+(i*7)%14;ctx.beginPath();ctx.moveTo(cx+sh,cy);ctx.lineTo(cx+4+sh,cy+5);ctx.lineTo(cx+1+sh,cy+10);ctx.stroke()}}
 
 // ============ 8) วาดฉากในโซน ============
@@ -7139,14 +7142,15 @@ function saveUI8(title,msg){saveW8.innerHTML='<div class="w" style="width:min(44
 window.exportSave8=exportSave8;window.importSave8=importSave8;window.openSave8=()=>saveUI8('','');
 // ---------- PWA: ติดตั้งบนหน้าจอหลัก + เปิดเต็มจอ ----------
 const PWA8={evt:null,can:false};
+function forcedUpdate8(save,sync,reload,delay=8000,limit=10000){let timer,promise=null;const run=()=>{if(promise)return promise;if(timer)clearTimeout(timer);promise=(async()=>{try{await save()}catch(e){}if(sync)try{await Promise.race([Promise.resolve().then(sync),new Promise(r=>setTimeout(r,limit))])}catch(e){}reload()})();return promise};timer=setTimeout(run,delay);return{run}}
 (function(){const web=location.protocol==='https:'&&!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname);
  if(!document.querySelector('link[rel=manifest]')&&web){const l=document.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';document.head.appendChild(l)}
  if(web&&'serviceWorker' in navigator){window.addEventListener('load',()=>{
   // ---- อัปเดตอัตโนมัติ: เช็กเวอร์ชันใหม่ทุก 3 นาที / ตอนกลับมาที่แท็บ แล้วเด้งแถบ "อัปเดตเลย" ----
   let shown=false;const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');
    b.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:#2a1d44;color:#fff;border:1px solid #c9a227;border-radius:10px;padding:10px 14px;font:14px sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 4px 18px #0008';
-   b.innerHTML='<span>✨ มีเวอร์ชันใหม่ของเกม</span><button style="background:#c9a227;border:0;border-radius:6px;padding:6px 10px;font-weight:bold;cursor:pointer">อัปเดตเลย</button>';
-   b.querySelector('button').onclick=()=>location.reload();document.body.appendChild(b)};
+   b.innerHTML='<span>✨ มีอัปเดต · กำลังบันทึกและเข้าเกมใหม่ใน 8 วินาที</span><button style="background:#c9a227;border:0;border-radius:6px;padding:6px 10px;font-weight:bold;cursor:pointer">เข้าใหม่เลย</button>';
+   const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true)}catch(e){}},()=>location.reload());b.querySelector('button').onclick=()=>go.run();document.body.appendChild(b)};
   const sig=r=>r.headers.get('etag')||r.headers.get('last-modified')||r.headers.get('content-length')||'';
   let base=null;const verCheck=()=>fetch('index.html',{method:'HEAD',cache:'no-store'}).then(r=>{const s=sig(r);if(!s)return;if(base===null)base=s;else if(s!==base)banner()}).catch(()=>{});
   verCheck();
