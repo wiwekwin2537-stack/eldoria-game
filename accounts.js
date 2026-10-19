@@ -4,6 +4,8 @@
 const crypto = require('crypto'), fs = require('fs'), path = require('path');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const UP_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, ''), UP_TOK = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+if(!!UP_URL!==!!UP_TOK)throw Error('Configure both Upstash URL and token; refusing unsafe file fallback');
+if(process.env.RENDER==='true'&&!UP_URL&&process.env.ALLOW_FILE_STORE!=='1')throw Error('Render needs persistent account storage; file mode requires explicit ALLOW_FILE_STORE=1 with a persistent disk');
 const MAX_SAVE = 1200 * 1024;
 // /api/save wraps an already JSON-encoded save in another JSON object.
 // Quotes, backslashes and UTF-8 can multiply the wire size of a valid save.
@@ -13,26 +15,61 @@ const GM_IDS = (process.env.GM_IDS || 'tiksi,wiwekwin2537').toLowerCase().split(
 const UNFLAG_IDS = (process.env.UNFLAG_IDS || 'armwasin,kakaboy2537,kittapas,chatchai1').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 try { fs.mkdirSync(path.join(DATA_DIR, 'acct'), { recursive: true }); } catch (e) {}
 const fkey = lid => crypto.createHash('sha256').update(lid).digest('hex').slice(0, 40);
-const cache = new Map(), dirty = new Set(); const CACHE_MAX = 300;
-const cloneRec = rec => rec ? JSON.parse(JSON.stringify(rec)) : null;
-async function dbGet(lid) {
-  if (cache.has(lid)) return cloneRec(cache.get(lid));
-  let rec = null;
-  try {
-    if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:acct:' + fkey(lid), { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (!r.ok || !j || j.error) throw new Error('HTTP ' + r.status + ' ' + String(j && j.error || 'bad response')); if (j.result) rec = JSON.parse(j.result); }
-    else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'); if (fs.existsSync(f)) rec = JSON.parse(fs.readFileSync(f, 'utf8')); }
-  } catch (e) { console.log('dbGet', e.message); throw e; }
-  if (rec) { cache.set(lid, cloneRec(rec)); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value); }
-  return cloneRec(rec);
+/* v5.35: compare the complete document at storage, not a process-local cached revision. */
+const recordBase = new WeakMap();
+const ACCOUNT_CAS = `local old = redis.call('GET', KEYS[1])
+if (old or '') ~= ARGV[1] then return 0 end
+if ARGV[3] ~= '' then
+ redis.call('LPUSH', KEYS[2], ARGV[3])
+ redis.call('LTRIM', KEYS[2], 0, 19)
+end
+redis.call('SET', KEYS[1], ARGV[2])
+return 1`;
+async function accountRequest(url, options = {}) {
+ const ac = new AbortController(); let timer;
+ try { return await Promise.race([
+  (async()=>{const r=await fetch(url,{...options,signal:ac.signal});const j=await r.json();if(!r.ok||!j||j.error)throw Error('account storage response');return j;})(),
+  new Promise((_,reject)=>{timer=setTimeout(()=>{ac.abort();reject(Error('account storage timeout'));},10000);})
+ ]); } finally { clearTimeout(timer); }
 }
-async function dbSet(lid, rec) {
-  try {
-    const body = JSON.stringify(rec);
-    if (UP_URL) { const r = await fetch(UP_URL + '/set/eld:acct:' + fkey(lid), { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body }); let j = null; try { j = await r.json(); } catch (e) {} if (!r.ok || !j || j.error || j.result !== 'OK') { console.log('dbSet upstash FAIL', r.status, String(j && j.error || JSON.stringify(j)).slice(0, 160)); return false; } } /* v5.15: เดิมไม่เช็กผล Upstash — เขียนไม่ติดก็ตอบว่าสำเร็จ (ข้อมูลอยู่แค่ในหน่วยความจำ แล้วหายตอนเซิร์ฟเวอร์รีสตาร์ต) */
-    else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
-    cache.set(lid, cloneRec(rec)); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
-    return true;
-  } catch (e) { console.log('dbSet', e.message); return false; }
+const accountKey = lid => 'eld:acct:' + fkey(lid);
+const historyKey = lid => 'eld:history:' + fkey(lid);
+const accountFile = lid => path.join(DATA_DIR,'acct',fkey(lid)+'.json');
+const historyFile = lid => path.join(DATA_DIR,'acct',fkey(lid)+'.history.json');
+async function dbGet(lid) {
+ let raw=null;
+ if(UP_URL){const j=await accountRequest(UP_URL+'/get/'+accountKey(lid),{headers:{authorization:'Bearer '+UP_TOK}});raw=j.result;}
+ else {const f=accountFile(lid);if(fs.existsSync(f))raw=fs.readFileSync(f,'utf8');}
+ if(!raw)return null;
+ const rec=JSON.parse(raw);recordBase.set(rec,raw);return rec;
+}
+function saveSnapshot(rec) {
+ if(!rec||!rec.save)return '';
+ return JSON.stringify({rev:rec.rev,upd:rec.upd,lv:rec.lv,save:rec.save,hash:sha(rec.save)});
+}
+function durableFile(file, body) {
+ const temp=file+'.'+crypto.randomBytes(6).toString('hex')+'.tmp';let fd;
+ try{fd=fs.openSync(temp,'wx');fs.writeFileSync(fd,body);fs.fsyncSync(fd);fs.closeSync(fd);fd=null;fs.renameSync(temp,file);
+  const dir=fs.openSync(path.dirname(file),'r');try{fs.fsyncSync(dir)}finally{fs.closeSync(dir)}
+ }finally{if(fd!=null)fs.closeSync(fd);if(fs.existsSync(temp))fs.unlinkSync(temp);}
+}
+async function dbSet(lid, rec, operationId=crypto.randomBytes(16).toString('hex')) {
+ let body;try {
+  const expected=recordBase.get(rec)||'',old=expected?JSON.parse(expected):null;
+  rec.writes=[...(rec.writes||[]).filter(x=>x!==operationId),operationId].slice(-128);body=JSON.stringify(rec);
+  const snapshot=old&&old.save&&old.save!==rec.save?saveSnapshot(old):'';
+  if(UP_URL){const j=await accountRequest(UP_URL,{method:'POST',headers:{authorization:'Bearer '+UP_TOK,'content-type':'application/json'},body:JSON.stringify(['EVAL',ACCOUNT_CAS,2,accountKey(lid),historyKey(lid),expected,body,snapshot])});if(j.result!==1)return false;}
+  else {
+   const f=accountFile(lid),actual=fs.existsSync(f)?fs.readFileSync(f,'utf8'):'';if(actual!==expected)return false;
+   if(snapshot){const h=historyFile(lid),list=fs.existsSync(h)?JSON.parse(fs.readFileSync(h,'utf8')):[];list.unshift(JSON.parse(snapshot));durableFile(h,JSON.stringify(list.slice(0,20)));}
+   durableFile(f,body);
+  }
+  recordBase.set(rec,body);return true;
+ }catch(e){console.log('dbSet',e.message);try{const confirmed=await dbGet(lid);if(confirmed&&(confirmed.writes||[]).includes(operationId)){recordBase.set(rec,body);return true;}}catch(readError){}return false;}
+}
+async function saveHistory(lid) {
+ if(UP_URL){const j=await accountRequest(UP_URL,{method:'POST',headers:{authorization:'Bearer '+UP_TOK,'content-type':'application/json'},body:JSON.stringify(['LRANGE',historyKey(lid),0,19])});return (j.result||[]).map(x=>JSON.parse(x));}
+ const f=historyFile(lid);return fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):[];
 }
 const hashPw = (pw, salt) => new Promise((ok, no) => crypto.scrypt(String(pw), salt, 32, { N: 16384, r: 8, p: 1 }, (e, k) => e ? no(e) : ok(k.toString('hex'))));
 const sha = s => crypto.createHash('sha256').update(String(s)).digest('hex');
@@ -196,7 +233,7 @@ function gemDay(rec) { const d = bkkDay(); if (rec.gday !== d) { rec.gday = d; r
 const gemPub = rec => ({ ok: true, gem: rec.gem | 0, fown: rec.fown || [], earn: rec.gearn | 0, cap: GEM_CAP, xchg: rec.gx | 0, xmax: GEM_EARN.xchg.max, pkg: GEM_PKG, top: topupInfo(), gm: !!rec.gm || GM_IDS.includes(String(rec.id || '').toLowerCase()) });
 async function gemOp(lid, rec, d) {
   const op = String(d.op || ''); const isGM = !!rec.gm || GM_IDS.includes(lid);
-  if (gemDay(rec)) await dbSet(lid, rec);
+  if (gemDay(rec)&&!await dbSet(lid,rec))return {err:'store'};
   if (op === 'bal') { await tqLoad(); const r = gemPub(rec); r.pend = Object.entries(TQ.map).filter(([, q]) => q.lid === lid && q.st === 'p').map(([ref, q]) => ({ ref, baht: q.baht, gem: q.gem, t: q.t })); return r; }
   if (op === 'earn') { const src = String(d.src || ''), E = GEM_EARN[src]; if (!E || src === 'login' || src === 'wboss') return { err: 'src' }; // v4.64: บอสโลกแจกจากเซิร์ฟเวอร์ (world.js) แทน
     rec.gt = rec.gt || {}; const now = Date.now(); if (E.cd && now - (rec.gt[src] || 0) < E.cd) return { err: 'cd' };
@@ -261,8 +298,14 @@ async function handle(path_, d, ip) {
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
   if (path_ === '/api/save') {
     const save = String(d.save || ''); if (!save || save.length > MAX_SAVE) return { err: 'size' };
+    try{const next=JSON.parse(save);if(!next||Array.isArray(next)||typeof next!=='object'||Object.entries(next).some(([k,v])=>!/^fm_/.test(k)||typeof v!=='string'))return {err:'invalid-save'};
+     const main=next.fm_save_v1?JSON.parse(next.fm_save_v1):null;if(next.fm_save_v1&&(!main||typeof main!=='object'||Array.isArray(main)))return {err:'invalid-save'};
+     const previous=rec.save?JSON.parse(rec.save):null,prior=previous&&previous.fm_save_v1?JSON.parse(previous.fm_save_v1):null;
+     if(prior&&prior.v===1&&(!main||main.v!==1||['armor','inv','gear','enh'].some(k=>prior[k]&&(!main[k]||typeof main[k]!=='object'||Array.isArray(main[k])))))return {err:'invalid-save'};
+    }catch(e){return {err:'invalid-save'};}
     /* v5.03: ไม่ยอมให้เซฟทับแบบ force แล้ว — เครื่องเก่า (เวอร์ชันเก่าที่ค้างแคช) เซฟทับเซฟใหม่กว่าได้ = ช่องปั๊มของเมื่อเล่น 2 เครื่อง */
-    if ((d.base | 0) !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
+    if (Number.isSafeInteger(d.base) && d.base < rec.rev && rec.save === save) return {ok:true,rev:rec.rev,upd:rec.upd,b150:b150can(rec),replayed:true};
+    if (!Number.isSafeInteger(d.base) || d.base !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
     if (rec.save && rec.save !== save) rec.bak = rec.save;
     const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
@@ -273,12 +316,28 @@ async function handle(path_, d, ip) {
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
     const S = rec.stat || {}, X = d.stat || {}, rankEntry = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
-    if (!await dbSet(lid, rec)) return { err: 'store' };
+    if (!await dbSet(lid, rec)) {const latest=await dbGet(lid);if(latest&&latest.save===save&&latest.rev>d.base)return {ok:true,rev:latest.rev,upd:latest.upd,replayed:true,b150:b150can(latest)};return latest&&latest.rev!==d.base?{err:'conflict',rev:latest.rev,lv:latest.lv,upd:latest.upd}:{err:'store'};}
     try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
     if (await lbLoad()) { lbMergePending(); LB.map[lid] = rankEntry; const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; }
     else LB.pending[lid] = rankEntry;
     const rankSaved = LB.pending[lid] ? false : await lbFlush();
     return { ok: true, rev: rec.rev, upd: rec.upd, b150: b150can(rec), rankSaved };
+  }
+  /* Recovery is GM-only: rolling back client inventories is never a player action. */
+  if(path_==='/api/save-history'){
+   if(!rec.gm&&!GM_IDS.includes(lid))return {err:'perm'};
+   const target=clean(d.to,16).toLowerCase();if(!ID_RE.test(target))return {err:'badid'};
+   const tr=await dbGet(target);if(!tr)return {err:'nouser'};
+   const history=await saveHistory(target);
+   if(!d.op||d.op==='list')return {ok:true,rev:tr.rev,entries:history.map(({save,...meta})=>meta)};
+   const chosen=history.find(x=>x.rev===d.rev);if(!chosen||sha(chosen.save)!==chosen.hash)return {err:'snapshot'};
+   if(d.op==='get')return {ok:true,...chosen};
+   if(d.op!=='restore')return {err:'unknown'};
+   if(d.base!==tr.rev)return {err:'conflict',rev:tr.rev};
+   tr.bak=tr.save;tr.save=chosen.save;tr.rev++;tr.upd=Date.now();tr.lv=chosen.lv;
+   tr.recovery={by:lid,from:chosen.rev,at:tr.upd,rev:tr.rev};
+   if(!await dbSet(target,tr))return {err:'store'};
+   return {ok:true,rev:tr.rev,upd:tr.upd};
   }
   if (path_ === '/api/guild') return guildOp(lid, rec, d);
   if (path_ === '/api/gem') return gemOp(lid, rec, d);
@@ -290,7 +349,7 @@ async function handle(path_, d, ip) {
   if (path_ === '/api/pw') {
     const h = await hashPw(d.old || '', rec.salt); if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) return { err: 'badpw' };
     const np = String(d.pw || ''); if (np.length < 6 || np.length > 64) return { err: 'badpw' };
-    rec.salt = crypto.randomBytes(16).toString('hex'); rec.hash = await hashPw(np, rec.salt); rec.tokens = []; const token = newToken(rec); await dbSet(lid, rec); return { ok: true, token };
+    rec.salt = crypto.randomBytes(16).toString('hex'); rec.hash = await hashPw(np, rec.salt); rec.tokens = []; const token = newToken(rec); if(!await dbSet(lid, rec))return {err:'store'}; return { ok: true, token };
   }
   return { err: 'unknown' };
 }
@@ -321,8 +380,8 @@ async function verify(id, token) { try { const lid = clean(id, 16).toLowerCase()
 // v4.71 📬 กล่องจดหมายถาวร: ของอยู่ในกล่องจนกว่าผู้เล่นกด "รับ" (ไม่หายแม้หลุด/โหลดเซฟทับ/เซิร์ฟเวอร์รีสตาร์ต)
 const mid71 = () => Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
 const mailFix = rec => { let ch = false; for (const m of rec.mail || []) if (!m.id) { m.id = mid71(); ch = true; } return ch; };
-async function mailAdd(lid, item) { for (let i = 0; i < 3; i++) { const rec = await dbGet(lid); if (!rec) return false; rec.mail = (rec.mail || []).slice(-99); const m = Object.assign({ ts: Date.now() }, item); m.id = mid71(); rec.mail.push(m); if (await dbSet(lid, rec)) return m; await new Promise(r => setTimeout(r, 400)); } return false; }
-async function mailList(lid) { const rec = await dbGet(lid); if (!rec || !rec.mail) return []; if (mailFix(rec)) await dbSet(lid, rec); return rec.mail; }
+async function mailAdd(lid, item) { const m=Object.assign({ts:Date.now()},item,{id:mid71()});for(let i=0;i<3;i++){const rec=await dbGet(lid);if(!rec)return false;if((rec.mail||[]).some(x=>x.id===m.id))return m;rec.mail=(rec.mail||[]).slice(-99);rec.mail.push(m);if(await dbSet(lid,rec))return m;await new Promise(r=>setTimeout(r,400));}return false; }
+async function mailList(lid) { const rec = await dbGet(lid); if (!rec || !rec.mail) return []; if(mailFix(rec)&&!await dbSet(lid,rec))throw Error('mail migration not committed'); return rec.mail; }
 async function mailClaim(lid, ids) { const rec = await dbGet(lid); if (!rec || !rec.mail || !rec.mail.length) return []; mailFix(rec);
   const all = ids === 'all', set = new Set(Array.isArray(ids) ? ids.map(String) : []), got = [], keep = [];
   for (const m of rec.mail) (all || set.has(m.id) ? got : keep).push(m); if (!got.length) return [];
@@ -335,5 +394,6 @@ async function kvSet(key, val) { try { const body = JSON.stringify(val); if (UP_
   const f = path.join(DATA_DIR, key.replace(/[^a-z0-9_]/gi, '_') + '.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); return true; } catch (e) { console.log('kvSet', e.message); return false; } }
 async function topPend() { await tqLoad(); return Object.values(TQ.map).filter(q => q.st === 'p').length; }
 // v4.64: เพิ่มเหรียญแฟชั่นจากระบบเซิร์ฟเวอร์ (บอสโลก)
-async function gemAdd(lid, n, why) { try { const rec = await dbGet(String(lid || '').toLowerCase()); if (!rec) return false; n = Math.max(0, Math.min(1000, n | 0)); if (!n) return false; rec.gem = (rec.gem | 0) + n; gemLog(rec, n, why || 'sys'); return dbSet(String(lid).toLowerCase(), rec); } catch (e) { return false; } }
+async function gemAdd(lid, n, why) {const key=String(lid||'').toLowerCase(),operation=crypto.randomBytes(16).toString('hex');n=Math.max(0,Math.min(1000,n|0));if(!n)return false;
+ for(let i=0;i<5;i++){try{const rec=await dbGet(key);if(!rec)return false;if((rec.writes||[]).includes(operation))return true;rec.gem=(rec.gem|0)+n;gemLog(rec,n,why||'sys');if(await dbSet(key,rec,operation))return true;}catch(e){}await new Promise(r=>setTimeout(r,100*(i+1)));}return false;}
 module.exports = { gemAdd, middleware, handle, GM_IDS, verify, mailAdd, mailTake, mailList, mailClaim, kvGet, kvSet, topPend, setTopHook: fn => { TOPH.fn = fn; }, guildOf, guildOfSync, setGuildHook: fn => { GD.hook = fn; } };

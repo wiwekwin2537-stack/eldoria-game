@@ -9,6 +9,8 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['ปฏิเสธเซฟคลาวด์ผิดรูปก่อนแก้ข้อมูลในเครื่อง',()=>{const before=localStorage.getItem('fm_save_v1');let rejected=false;try{CLOUD.applyBlob('{"fm_save_v1":"null"}')}catch(e){rejected=true}return rejected&&localStorage.getItem('fm_save_v1')===before?null:'นำเข้าเซฟผิดรูปหรือเขียนข้อมูลก่อนตรวจ'}],
+ ['ไอเท็มที่โหลดครบแล้วไม่ค้างในรายการพักคืนของ',()=>{const q=window.__PEND8;return !q||(!Object.values(q.a||{}).some(id=>ITEMS[id])&&!Object.keys(q.g||{}).some(id=>ITEMS[id]))?null:'พักไอเท็มที่คืนแล้ว อาจทำให้ของขายแล้วกลับมา'}],
  ['เซฟนำเข้าเปลี่ยนค่าเริ่มต้นซิงค์ได้แต่ไม่ทับ revision ใหม่',()=>{const s={sr:5,lr:5,hasRemote:true,same:false,localHash:'normalized',lastHash:'confirmed-import'};return cloudBootDecision32(s)==='upload'&&cloudBootDecision32({...s,sr:6})==='pull'?null:'การตัดสินเซฟหลัง import ผิด'}],
  ['คลังของทดสอบรวมของในทะเบียนครบ',()=>{const c=testSupplyCatalog(),keys=new Set(c.map(x=>x.key));return c.length===Object.keys(ITEMS).length+Object.keys(INVMETA).length&&keys.size===c.length?null:'รายการคลังทดสอบไม่ครบหรือซ้ำ'}],
  ['คลังทดสอบอยู่ใกล้จุดเกิดและยืนประจำ',()=>{const n=NPC_DATA.find(x=>x.name==='คลังของทดสอบ');return n&&n.fixed&&Math.hypot(n.x-TOWN_SPAWN.x,n.y-TOWN_SPAWN.y)<6?null:'NPC คลังทดสอบหายหรืออยู่ไกลจุดเกิด'}],

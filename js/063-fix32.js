@@ -68,19 +68,24 @@ accChangePw=async function(o,n,n2){if(!FM_ACCT)return 'ยังไม่ได�
 // ---------- ซิงค์เซฟ: เซิร์ฟเวอร์ชนะเสมอเมื่อชนกัน ----------
 ONL32.pull=async function(msg){const l=await CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)},40000);
  if(l.ok&&l.save){try{sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1')}catch(e){}FM_RAW.set(CLOUD.revKey(),String(l.rev|0));if(msg)try{say(msg)}catch(e){}CLOUD.reloading=true;setTimeout(()=>location.reload(),700);return true}return l};
+function pendingSaveKey32(){return 'cloud_pending_'+String(FM_ACCT||'').toLowerCase()}
+function readPendingSave32(){try{const p=JSON.parse(FM_RAW.get(pendingSaveKey32())||'null');return p&&typeof p.save==='string'&&Number.isSafeInteger(p.base)?p:null}catch(e){return null}}
 CLOUD.sync=async function(force,ka){if(!FM_ACCT){CLOUD.lastError='no-account';return false}if(CLOUD.busy||CLOUD.reloading){CLOUD.lastError='busy';return false}if(!CLOUD.base()){CLOUD.lastError='no-server';return false}if(!CLOUD.tok(FM_ACCT)){CLOUD.lastError='auth';return false}if(typeof P==='undefined'||!P||P.dead&&!force){CLOUD.lastError='player-state';return false}
- if(!ONL32.verified){CLOUD.lastError='unverified';return false} // ยังไม่ได้ตรวจกับเซิร์ฟเวอร์ — ห้ามเอาแคชเก่าทับ
+ if(!ONL32.verified){CLOUD.lastError='unverified';return false}
  if(CLOUD.inflight){CLOUD.lastError='inflight';return false}CLOUD.inflight=true;
- try{try{saveGame()}catch(e){}
-  const save=JSON.stringify(saveKeys8());if(!force&&save===CLOUD.last){CLOUD.fails=0;CLOUD.lastError='';return true}
-  const body={id:FM_ACCT,token:CLOUD.tok(FM_ACCT),save,lv:P.lv|0,cls:P.cls||'',name:P.name||'',base:+FM_RAW.get(CLOUD.revKey())||0,ka:!!ka,stat:{floor:(window.__MAXFLOOR8|0),mine:0,kills:0}};
-  const r=await CLOUD.call('/api/save',body,40000);
-  if(r.ok){CLOUD.last=save;CLOUD.fails=0;CLOUD.lastError='';FM_RAW.set(CLOUD.revKey(),String(r.rev|0));FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(save));CLOUD.t=Date.now();return true}
-  CLOUD.lastError=(r&&r.err)||'unknown';
-  if(r.err==='conflict'){ONL32.kick('⚠️ บัญชีนี้ถูกเข้าเล่นจากอีกเครื่อง — เข้าสู่ระบบใหม่เพื่อโหลดข้อมูลล่าสุด')}
-  else if(r.err==='auth'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}ONL32.kick('🔑 เซสชันหมดอายุ — เข้าสู่ระบบใหม่')}
-  else CLOUD.fails++;
-  return false
+ try{try{saveGame();if(window.SAVE_STATE&&SAVE_STATE.localError){CLOUD.lastError='local-storage';CLOUD.fails++;return false}}catch(e){CLOUD.lastError='local-storage';CLOUD.fails++;return false}
+  const save=JSON.stringify(saveKeys8());let pending=readPendingSave32();if(!pending&&!force&&save===CLOUD.last){CLOUD.fails=0;CLOUD.lastError='';return true}
+  for(let attempt=0;attempt<2;attempt++){
+   if(!pending){pending={save,lv:P.lv|0,cls:P.cls||'',name:P.name||'',base:+FM_RAW.get(CLOUD.revKey())||0,stat:{floor:(window.__MAXFLOOR8|0),mine:0,kills:0}};FM_RAW.set(pendingSaveKey32(),JSON.stringify(pending));}
+   const body={...pending,id:FM_ACCT,token:CLOUD.tok(FM_ACCT),ka:!!ka};
+   const r=await CLOUD.call('/api/save',body,40000);
+   if(r.ok){CLOUD.last=pending.save;CLOUD.fails=0;CLOUD.lastError='';FM_RAW.set(CLOUD.revKey(),String(r.rev|0));FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(pending.save));FM_RAW.del(pendingSaveKey32());CLOUD.t=srvNow();if(pending.save===save)return true;pending=null;continue}
+   CLOUD.lastError=(r&&r.err)||'unknown';
+   if(r.err==='conflict')ONL32.kick('⚠️ เซฟเปลี่ยนจากอีกเครื่อง — เก็บเซฟในเครื่องไว้แล้ว กรุณาเข้าสู่ระบบใหม่');
+   else if(r.err==='auth'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}ONL32.kick('🔑 เซสชันหมดอายุ — เข้าสู่ระบบใหม่')}
+   else CLOUD.fails++;
+   return false;
+  }return false;
  }catch(e){CLOUD.fails++;CLOUD.lastError='network';return false}finally{CLOUD.inflight=false}};
 setInterval(()=>{if(ONL32.verified&&!document.hidden)CLOUD.sync(false)},15000);
 ONL32.kick=function(msg){ONL32.verified=false;try{sessionStorage.removeItem('fm_acct');FM_RAW.set('fm_remember','0')}catch(e){}
@@ -98,6 +103,7 @@ ONL32.ping=async function(){const s=document.querySelector('#srv32 span');if(!s)
 {const _sh=showTitle;showTitle=function(){_sh();try{const k=sessionStorage.getItem('fm_kick32');if(k){sessionStorage.removeItem('fm_kick32');tLoginForm();setTimeout(()=>tErr(k),60)}}catch(e){}}}
 // ---------- เข้าเกม: ตรวจบัญชี+เซฟกับเซิร์ฟเวอร์ก่อนเสมอ ----------
 {const _tp=tPlay;tPlay=async function(){
+  if(CLOUD.importFailed){titleEl.hidden=false;PAUSED=true;gid('tpan').innerHTML='<h3>โหลดเซฟลงเครื่องไม่สำเร็จ</h3><div class="tip">เซฟบนเซิร์ฟเวอร์ยังอยู่ กรุณาเพิ่มพื้นที่ว่างของเบราว์เซอร์แล้วลองใหม่</div><button class="tb" onclick="location.reload()">ลองโหลดเซฟอีกครั้ง</button>';return}
   if(ONL32.dev||ONL32.verified)return _tp();
   if(!FM_ACCT||!CLOUD.tok(FM_ACCT)){showTitle();return}
   if(ONL32.verifying)return;ONL32.verifying=true;
@@ -106,9 +112,10 @@ ONL32.ping=async function(){const s=document.querySelector('#srv32 span');if(!s)
   let l;try{l=await CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)},60000)}finally{ONL32.verifying=false}
   if(l.err==='auth'||l.err==='badid'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}tLoginForm();setTimeout(()=>tErr('🔑 เซสชันหมดอายุ — เข้าสู่ระบบใหม่'),30);return}
   if(!l.ok){pan.innerHTML='<h3>🔌 เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</h3><div class="tip">เกมนี้ต้องเล่นออนไลน์ — เช็คอินเทอร์เน็ตแล้วลองใหม่</div><button class="tb" id="tRetry32">🔄 ลองใหม่</button><button class="tb ghost" onclick="accLogout()">ออกจากระบบ</button>';gid('tRetry32').onclick=()=>tPlay();return}
+  const pending=readPendingSave32();if(pending&&l.save===pending.save&&(l.rev|0)>pending.base){FM_RAW.set(CLOUD.revKey(),String(l.rev|0));FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(pending.save));FM_RAW.del(pendingSaveKey32());}
   const lr=+FM_RAW.get(CLOUD.revKey())||0,sr=l.rev|0,local=saveKeys8(),localBlob=JSON.stringify(local),same=!!l.save&&sameCloudSave32(l.save,local),localHash=sha256hex8(localBlob),lastHash=FM_RAW.get('cloud_hash_'+String(FM_ACCT).toLowerCase())||'',decision=cloudBootDecision32({sr,lr,hasRemote:!!l.save,same,localHash,lastHash});
   if(decision==='pull'&&l.save&&!same){try{const rk='eldoria_cloud_recovery_'+String(FM_ACCT).toLowerCase();if(!FM_RAW.get(rk))FM_RAW.set(rk,localBlob)}catch(e){}
-   sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1');FM_RAW.set(CLOUD.revKey(),String(sr));CLOUD.reloading=true;pan.innerHTML='<h3>☁️ โหลดเซฟล่าสุดจากเซิร์ฟเวอร์…</h3>';location.reload();return}
+   FM_RAW.del(pendingSaveKey32());sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));sessionStorage.setItem('fm_go','1');FM_RAW.set(CLOUD.revKey(),String(sr));CLOUD.reloading=true;pan.innerHTML='<h3>☁️ โหลดเซฟล่าสุดจากเซิร์ฟเวอร์…</h3>';location.reload();return}
   if(decision==='upload'&&sr<lr){/* Previously confirmed local revision is ahead; server CAS still decides whether it is accepted. */FM_RAW.set(CLOUD.revKey(),String(sr));try{say('☁️ พบเซฟในเครื่องที่ใหม่กว่าเซิร์ฟเวอร์ · กำลังกู้ขึ้นคลาวด์')}catch(e){}}
   else FM_RAW.set(CLOUD.revKey(),String(sr));
   ONL32.verified=true;CLOUD.last=same?localBlob:'';if(!NET.ws)netConnect();_tp();setTimeout(()=>CLOUD.sync(decision==='upload'&&!same),1500)}}

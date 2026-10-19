@@ -14,8 +14,8 @@ const ping123=async()=>{try{if(!CLOUD.base()){SRV.ok=true;return}await CLOUD.cal
 ping123();setInterval(()=>{if(!SRV.ok||Math.random()<.02)ping123()},5000);
 // ---------- 2) sync-before-send for player trades ----------
 const sl123=ms=>new Promise(r=>setTimeout(r,ms));
-async function safeSync123(){for(let i=0;i<80&&CLOUD.inflight;i++)await sl123(100);const t0=CLOUD.t||0;try{saveGame(true)}catch(e){}
- try{await CLOUD.sync(true)}catch(e){}return (CLOUD.t||0)>t0}
+async function safeSync123(){for(let i=0;i<80&&CLOUD.inflight;i++)await sl123(100);try{saveGame(true)}catch(e){}
+ try{return await CLOUD.sync(true)===true}catch(e){return false}}
 window.safeSync123=safeSync123;
 const HOLD123=/^\{"t":"(stall|sbuy|abid)"/;let q123=Promise.resolve();
 {const _send=WebSocket.prototype.send;WebSocket.prototype.send=function(m){const ws=this;

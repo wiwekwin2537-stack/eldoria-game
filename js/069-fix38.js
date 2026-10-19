@@ -120,8 +120,13 @@ try{const p=JSON.parse(sessionStorage.getItem('cc41_pend')||'null');if(p&&FM_ACC
 try{const v=titleEl.querySelector('.ver');if(v)v.textContent='v4.42 · ออนไลน์'}catch(e){}
 
 // fixz.js — ท้ายสุด: คืนไอเท็มที่ถูกพักไว้ตอนโหลด (ไอเท็มที่สร้างในสคริปต์ท้าย ๆ เช่น Lv.105+ / อาวุธประจำอาชีพ)
-try{const Q=window.__PEND8;if(Q){window.__PEND8=null;let ch=0;for(const k in Q.a)if(ITEMS[Q.a[k]]){P.armor[k]=Q.a[k];ch=1}for(const id in Q.g)if(ITEMS[id]){GEAR[id]=Q.g[id];ch=1}
- if(ch){try{syncSword()}catch(e){}try{recalcStats()}catch(e){}try{applyBonus()}catch(e){}try{ptDirty()}catch(e){}try{refreshInv()}catch(e){}}}}catch(e){console.warn('[pend]',e)}
+function restorePendingItems38(){try{const Q=window.__PEND8;if(!Q)return;let ch=0;
+ for(const k in Q.a)if(ITEMS[Q.a[k]]){P.armor[k]=Q.a[k];delete Q.a[k];ch=1}
+ for(const id in Q.g)if(ITEMS[id]){GEAR[id]=Q.g[id];delete Q.g[id];ch=1}
+ if(ch){try{syncSword();recalcStats();applyBonus();ptDirty();refreshInv()}catch(e){}}
+}catch(e){console.warn('[pending items]',e)}}
+restorePendingItems38();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restorePendingItems38,{once:true});
 
 // ---------- สรุป ----------
 {const sm=menuEl.querySelector('small');if(sm)sm.insertAdjacentHTML('beforeend',' · H/N ดื่มยา · B กินอาหาร')}

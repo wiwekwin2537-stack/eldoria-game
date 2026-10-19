@@ -166,3 +166,18 @@
 - ไม่ยืนยันว่านี่คือสาเหตุของชุดผู้เล่นที่หายในภาพ: v5.32–33ไม่ได้เปลี่ยนsave/load; ไม่มีการเปิดข้อมูลบัญชีหรือenvเซิร์ฟเวอร์จริง ไม่มีการทับ/กู้เซฟเก่าของผู้เล่นเอง. ผู้เทสใช้NPCรับทดแทนได้
 - เพิ่ม REG136 3ข้อ, อัปเดตสเปก/เนื้อเรื่อง/แผนที่ระบบ; หน้าv5.34/cachev136. ผลตรวจผ่าน: Node 16 ชุด, Chromium 4 ชุด, syntax 213 ไฟล์, diff whitespace และ review อิสระโดย AI ตัวที่สองผ่าน
 - จุดที่หยุดไว้ v5.34: รับของ/สวมชุดบอส+14 เครื่องประดับ+13 อาวุธอาชีพ+12 แล้วเซฟ รีโหลด และล็อกอินเครื่องใหม่ผ่าน; ส่งรวมครั้งเดียวขึ้นmainตามคำสั่งเจ้าของ. QAทั้งเกมเดิมเคยค้างช่วงแผนที่; ไม่อ้างว่าbugsทั้งเกมเป็นศูนย์
+
+
+### งานเจ้าของ 2026-10-19 — v5.36 ลดปัญหาเซฟผู้เล่นสูญหาย
+- คำสั่งล่าสุด: อยากจบปัญหาเซฟ100%เพราะแก้หลายรอบไม่จบ; รับงานแก้เส้นทางเซฟ ไม่อนุมานสิทธิ์deployงานใหม่จากคำสั่งอัปNPCที่ทำเสร็จแล้ว. ฐานโค้ด5375b155 v5.34
+- สมุดบัค: จำลองผู้เล่นสวมchest21+14/neck16+13/cw_paladin0+12 แล้วรีโหลดโดยถ่วง13326วินาที → autosave20วินาทีเขียนarmor.chest=null ก่อนคืนlateitems. tests/test_supplies_browser_test.js ก่อนแก้ล้มหลังแก้ผ่าน. 031ห้ามบันทึกขณะloading/ยังไม่verified,069คืนpendingตอนDOMContentLoadedและล้างknownentries เพื่อไม่ให้ของที่ขายแล้วกลับมา. unknownentriesไม่ถูกทิ้งเงียบ
+- สมุดบัค: dbGetแคช+dbSetblindSET ทำให้saveจากสองprocessอ่านrev0แล้วต่างตอบokทับกัน. tests/save_resilience_test.js ก่อนแก้ล้ม2!=1 หลังแก้ผ่าน. accountsใช้freshread+RedisEVALcompareเอกสารทั้งก้อน; localfilefsync/atomicrenameแต่ไม่ใช่distributedCASข้ามprocess
+- สมุดบัค: commitสำเร็จแต่คำตอบหายทำให้retryถูกconflict,mailAddซ้ำ/mailClaimหาย. accountsเก็บwrite receipt128รายการ+readback,mailAddstablemid,gemAddstableoperationและfreshretry,gemDay/mailFixตรวจpersist. 063เก็บcloud_pending journalเฉพาะเครื่อง ไม่เก็บtoken แล้วretryimmutablebodyก่อนsnapshotใหม่;153ใช้ผลsyncbooleanแทนtimestamp
+- สมุดบัค: importเขียนได้ครึ่งเดียวหรือlocalStorageล้มเหลวอาจเปิดทางอัปblobเก่าทับcloud. 031ตรวจรูปแบบ/rollback/คงpendingเมื่อimportfailและ063blockเข้าเกม/อัปโหลด. tests/cloud_boot_policy_test.js ตรวจquota/rollbackและtests/cloud_retry_test.js ตรวจjournalfail/oldack+newdata
+- เพิ่มประวัติ20revisionก่อนเปลี่ยนsave พร้อมSHA-256ในUpstashแยกkey/filehistory. /api/save-historyให้GMlist/get/restoreเท่านั้น,baseตรงปัจจุบันก่อนrestore,สร้างrevใหม่และคงaccountmetadata. เทสปฏิเสธผู้เล่นทั่วไป/restoreชน/restoreหลังrestart/เก็บmail
+- บัญชีจริง: อ่านเฉพาะ/api/pingยืนยันstore=upstash. ไม่อ่านenv/token/เซฟผู้เล่นจริง ไม่เรียกdbtestหรือเขียนข้อมูลจริง; ไม่สรุปว่าเป็นสาเหตุย้อนหลังของบัญชีที่แจ้งหายแน่นอน
+- ตรวจอิสระAIตัวที่สองแล้ว แก้ข้อที่พบเรื่องreceipt/maildup/rewardretry/pendingresurrectionครบในขอบเขตนี้; รอบสุดท้ายไม่พบblockerใหม่. Redisใช้mockfault/concurrencyร่วมกันสองmoduleinstances; ไม่อ้างว่าทดสอบEVALบนUpstashจริงแล้ว
+- ผลตรวจ: Node18ชุดผ่าน, browser NPCผ่าน(โหลดช้า/abortหลังcommit/รับของใหม่/reload/เครื่องใหม่/ขายแล้วไม่คืน), syntax215ไฟล์ผ่าน; browserถดถอยอีก3ชุดผ่าน (ฮีล/บทบาทสกิล26กรณี/หน้าอันดับ) รวม22ชุดทดสอบผ่าน. เพิ่มREG136ตรวจimportผิดรูปไม่แตะข้อมูลและpendingknownต้องไม่ค้าง
+- จุดที่หยุดไว้ v5.36: เจ้าของอนุมัติอัปv5.36ในข้อความ "เอาขึ้นใหหน่อย"; ส่งชุดที่ผ่าน22เทสรวมครั้งเดียวไปmainและตรวจไฟล์เว็บจริง. ข้อที่ยังขวางการอ้าง100%: backup20revisionอยู่storeเดียวไม่ใช่offsite; receiptย้อนหลัง128operation; filemodeCASsinglewriter; จดหมายDBclaim→WS→inventoryยังไม่มีdurableclientdeliveryack หากWSผลรับหายยังต้องแก้transactionครบวงจร. QAทั้งเกมเดิมค้างช่วงแผนที่ ไม่อ้างbugsทั้งเกมเป็นศูนย์
+
+- รวมก่อนเผยแพร่: mainขยับเป็น64296a24ระหว่างรอ มีการกดค้างเพิ่มสเตตัสและcachev137; รวม031แบบ3ทางโดยไม่มีconflict คงการเปลี่ยนแปลงเจ้าของครบ แล้วขยับชุดแก้เซฟเป็นv5.36/cachev138 เพื่อไม่ซ้ำชื่อรุ่นเดิม. ตรวจเทสหลังรวมก่อนส่งครั้งเดียว

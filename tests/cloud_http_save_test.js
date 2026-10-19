@@ -25,7 +25,7 @@ async function post(port, endpoint, data) {
   const register = await post(port, '/api/register', { id: 'httpaudit', pw: 'pass1234', name: 'นักทดสอบ' });
   assert.equal(register.ok, true);
   // About 1 MB decoded, but the outer JSON must escape thousands of quotes.
-  const save = JSON.stringify({ fm_save_v1: 'a"'.repeat(330000) });
+  const save = JSON.stringify({ fm_save_v1: JSON.stringify({v:1,lv:8,gear:{chest21:1},armor:{},enh:{chest21:14},inv:{coin:100}}), fm_padding: 'a"'.repeat(330000) });
   assert.ok(save.length < 1200 * 1024);
   assert.ok(JSON.stringify({ save }).length > 1200 * 1024 + 4096);
   const body = { id: 'httpaudit', token: register.token, base: 0, save, lv: 8,

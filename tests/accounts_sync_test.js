@@ -8,6 +8,14 @@ let failLbRead = 1, failAccountWrite = 0, failLbWrite = 1;
 const reply = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
 global.fetch = async (url, options = {}) => {
   const u = new URL(url), key = decodeURIComponent(u.pathname.replace(/^\/(get|set)\//, ''));
+  if (u.pathname === '/') {
+    const [command,script,n,k,h,expected,next,snapshot]=JSON.parse(options.body);
+    assert.equal(command,'EVAL');assert.equal(n,2);
+    if(failAccountWrite-- > 0)return reply(503,{error:'temporary account write failure'});
+    if((stored.get(k)||'')!==expected)return reply(200,{result:0});
+    stored.set(k,next);return reply(200,{result:1});
+  }
+
   if (u.pathname.startsWith('/get/')) {
     if (key === 'eld:lb' && failLbRead-- > 0) return reply(503, { error: 'temporary read failure' });
     return reply(200, { result: stored.get(key) ?? null });

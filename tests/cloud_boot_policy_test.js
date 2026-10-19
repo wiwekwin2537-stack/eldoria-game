@@ -14,7 +14,7 @@ assert.equal(decide({ ...base, sr: 4, lr: 4, lastHash: 'old-hash' }), 'upload', 
 assert.equal(decide({ ...base, sr: 4, lr: 4, same: true, lastHash: 'old-hash' }), 'same', 'identical snapshots do not need a restore');
 assert.equal(decide({ ...base, sr: 3, lr: 4, lastHash: 'old-hash' }), 'upload', 'confirmed local revision can recover a server behind it');
 assert.equal(decide({ ...base, hasRemote: false, sr: 0, lr: 0 }), 'upload', 'legacy local-only account can seed an empty cloud save');
-assert(source.includes("FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(save))"), 'successful cloud save records the local snapshot fingerprint');
+assert(source.includes("FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(pending.save))"), 'successful cloud save records the local snapshot fingerprint');
 
 const core = fs.readFileSync('js/031-core.js', 'utf8');
 assert(core.includes('CLOUD.sync(true,true)'), 'vault save starts an immediate keepalive cloud sync');
@@ -47,3 +47,16 @@ assert(importBoot,'cloud import boot exists');
  assert.equal(decide({...base,sr:6,lr:5,localHash:'normalized-after-import',lastHash:raw.get('cloud_hash_tester')}),'pull','a newer server revision still wins');
 }
 console.log('CLOUD IMPORT BASELINE PASS');
+
+/* การนำเข้าเซฟที่เขียนได้ครึ่งเดียวต้องหยุดเล่นและคง pending ไว้ ไม่ซิงค์ทับคลาวด์ */
+const apply=core.match(/CLOUD\.applyBlob=function\(blob\)\{[\s\S]*?return entries.length\};/);assert(apply);
+{
+ const local=new Map([['fm_save_v1','old'],['fm_x','oldx']]);let fail=true;
+ const context={CLOUD:{},localStorage:{getItem:k=>local.get(k)||null,setItem:(k,v)=>{if(fail&&k==='fm_x'){fail=false;throw Error('quota')}local.set(k,v)},removeItem:k=>local.delete(k)}};
+ vm.createContext(context);vm.runInContext(apply[0],context);
+ assert.throws(()=>context.CLOUD.applyBlob(JSON.stringify({fm_save_v1:'{"v":1}',fm_x:'newx'})),/quota/);
+ assert.equal(local.get('fm_save_v1'),'old');assert.equal(local.get('fm_x'),'oldx');
+ assert.throws(()=>context.CLOUD.applyBlob('{"fm_save_v1":"null"}'),/invalid/);assert.equal(local.get('fm_save_v1'),'old');
+ assert.equal(context.CLOUD.applyBlob(JSON.stringify({fm_save_v1:'{"v":1}',fm_x:'newx'})),2);
+}
+console.log('CLOUD IMPORT TRANSACTION PASS');

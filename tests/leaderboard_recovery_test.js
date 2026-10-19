@@ -11,6 +11,13 @@ async function stalledStore(mode = 'fetch') {
     setTimeout: (fn, ms) => setTimeout(fn, ms === 5000 ? 10 : ms),
     fetch: async (url, options) => {
       const key = url.split('/').pop();
+      if (url === 'https://redis.test') {
+        const [command,script,n,k,h,expected,next]=JSON.parse(options.body);
+        assert.equal(command,'EVAL');assert.equal(n,2);
+        if((values.get(k)||'')!==expected)return {ok:true,json:async()=>({result:0})};
+        values.set(k,next);return {ok:true,json:async()=>({result:1})};
+      }
+
       if (url.includes('/set/eld:lb')) return mode === 'body' ? { ok: true, json: () => new Promise(() => {}) } : new Promise(() => {});
       if (url.includes('/set/')) { values.set(key, options.body); return { ok: true, json: async () => ({ result: 'OK' }) }; }
       return { ok: true, json: async () => ({ result: values.get(key) || null }) };
