@@ -16,7 +16,7 @@ function bubble(txt,x,y,a){ctx.save();ctx.globalAlpha=a==null?1:a;ctx.font='bold
  ctx.fillStyle='#2a1a0a';ctx.textAlign='center';lines.forEach((l,i)=>ctx.fillText(l,x,y0+14+i*14));ctx.textAlign='left';ctx.restore()}
 
 // ---------- ประตูร้านในเมือง ----------
-function doorGeom(id){const S=SHOP_DATA[id]||{b:LOCKED_HOUSE.b,door:LOCKED_HOUSE.door},[bx,by]=S.b,w=S.door.w;return{x:bx*T+S.door.x,w,top:by*T+S.door.t,bot:by*T+S.door.bt}}
+function doorGeom(id){const art=SHOP_DATA[id]&&TOWNART.door(id,SHOP_DATA[id],T);if(art)return art;const S=SHOP_DATA[id]||{b:LOCKED_HOUSE.b,door:LOCKED_HOUSE.door},[bx,by]=S.b,w=S.door.w;return{x:bx*T+S.door.x,w,top:by*T+S.door.t,bot:by*T+S.door.bt}}
 function startDoor(id){if(DOORA.k)return;DOORA.k=id;DOORA.t=0;P.dir='u';P.kx=P.ky=0;if(shopEl)shopEl.hidden=true;DF.id=id;DF.open=0;DF.target=1;sfx('door');say(SHOP_DATA[id].emoji+' เปิดประตู'+SHOP_DATA[id].name+'…')}
 function doorTick(dt){const d=D.doors.find(q=>q.id===DOORA.k);if(!d||!D.town){DOORA.k=null;DF.id=null;return}DOORA.t+=dt;
  if(DOORA.t>.38){P.mv=true;P.dir='u';P.t+=dt*8;P.x+=(d.cx-P.x)*Math.min(1,dt*9);P.y-=64*dt}
@@ -49,7 +49,7 @@ function enterShop(id){const S=SHOP_DATA[id];TOWNSAVE={D,dm,dcv,MI,id};
  o.wave=1.6;o.bub={txt:S.owner.greet[(Math.random()*S.owner.greet.length)|0],t:3.4};
  say(S.emoji+' '+S.name+' — เดินไปหน้าเคาน์เตอร์แล้วกด E/⚔️ คุยกับ'+S.owner.name+' · เดินชนทางออกด้านล่างเพื่อออก')}
 function leaveShop(silent){if(!D||!D.shop||!TOWNSAVE)return;const id=D.shop,sv=TOWNSAVE;TOWNSAVE=null;
- D=sv.D;dm=sv.dm;dcv=sv.dcv;setMini(sv.MI);shopEl.hidden=true;SHOPK=null;setScene('town');document.getElementById('bar').style.visibility='';
+ D=sv.D;dm=sv.dm;dcv=sv.dcv;setMini(sv.MI);if(TOWNART.dirtyMini===dcv){mkMini(dcv,TW,TH,2.6);TOWNART.dirtyMini=null}shopEl.hidden=true;SHOPK=null;setScene('town');document.getElementById('bar').style.visibility='';
  if(silent)return;
  const d=D.doors.find(q=>q.id===id);P.x=d.cx;P.y=d.cy+24;P.dir='d';P.kx=P.ky=0;P.dash=0;
  DF.id=id;DF.open=1;DF.target=0;fade('#000');sfx('door');say('ออกจาก'+SHOP_DATA[id].name+'แล้ว')}

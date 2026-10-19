@@ -1256,7 +1256,7 @@ function twTower(k,cx,cy,r,flag){k.fillStyle='rgba(0,0,0,.3)';k.beginPath();k.el
  if(flag){k.fillStyle='#3a2a1a';k.fillRect(cx-1,cy-34,2,34);k.fillStyle='#c0392b';k.beginPath();k.moveTo(cx+1,cy-34);k.lineTo(cx+20,cy-29);k.lineTo(cx+1,cy-23);k.fill();k.fillStyle='#ffd23a';k.fillRect(cx+5,cy-30,4,3)}}
 function twBanner(k,x,y){k.fillStyle='#3a2a1a';k.fillRect(x-1,y-2,16,2);const g=k.createLinearGradient(x,0,x+14,0);g.addColorStop(0,'#9a1f1f');g.addColorStop(1,'#c0392b');k.fillStyle=g;
  k.beginPath();k.moveTo(x,y);k.lineTo(x+14,y);k.lineTo(x+14,y+26);k.lineTo(x+7,y+21);k.lineTo(x,y+26);k.closePath();k.fill();k.fillStyle='#ffd23a';k.beginPath();k.arc(x+7,y+9,3.5,0,7);k.fill();k.fillRect(x+6,y+13,2,5)}
-function twPillar(k,x,y){const px=x*T+16,py=y*T+28;k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(px+6,py,15,5,0,0,7);k.fill();
+function twPillar(k,x,y){const px=x*T+16,py=y*T+28;if(TOWNART.paint(k,'templePillar',px-16,py-76,32,76))return;k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(px+6,py,15,5,0,0,7);k.fill();
  k.fillStyle='#cfc9bc';k.fillRect(px-13,py-8,26,8);k.fillStyle='#e9e4d8';k.fillRect(px-13,py-8,26,2);
  const g=k.createLinearGradient(px-9,0,px+9,0);g.addColorStop(0,'#bdb6a6');g.addColorStop(.4,'#f6f2e8');g.addColorStop(1,'#a8a090');k.fillStyle=g;k.fillRect(px-9,py-62,18,54);
  k.strokeStyle='rgba(0,0,0,.12)';k.lineWidth=1;for(const o of [-4,0,4]){k.beginPath();k.moveTo(px+o,py-60);k.lineTo(px+o,py-9);k.stroke()}
@@ -1307,17 +1307,19 @@ buildTown=function(){
   for(let i=0;i<3;i++){k.fillStyle=i%2?'#cfc8b8':'#e2dccf';k.fillRect(x0*T,y0*T+i*5,w*T,5)}
   k.fillStyle='rgba(120,90,200,.18)';k.fillRect(6*T,19*T,2*T,7*T);
   k.font='bold 12px system-ui,sans-serif';k.textAlign='center';k.lineWidth=3;k.strokeStyle='#3a2a1a';k.textAlign='left'}
+ TOWNART.bind(k,'templeFloor',4.2*T,20*T,6.5*T,4.8*T,null,()=>paintPad(k));
+ TOWNART.bind(k,'templeRear',5*T,18*T,4*T,2.25*T);
  // กำแพงเมือง + ป้อม + ประตู
  for(let x=0;x<TW;x++){twWall(k,x,0,'n');twWall(k,x,TH-1,'s');box(x,0,1,1,1);box(x,TH-1,1,1,1)}
  for(let y=1;y<TH-1;y++){if(y===16||y===17)continue;twWall(k,0,y,'w');twWall(k,TW-1,y,'e');box(0,y,1,1,1);box(TW-1,y,1,1,1)}
  // ร้านค้า / บ้าน / ปราสาท
- const put=(n,x,y,w,h)=>{box(x,y,w,h,1);k.drawImage(ART[n],x*T,y*T,w*T,h*T)};
- for(const [n,x,y] of [['house1',3,3],['house2',9,4],['house2',30,3],['house1',36,4],['house1',30,24]])put(n,x,y,5,4);
- for(const id of SHOP_ORDER){const S=SHOP_DATA[id];if(!S.b[2])continue;put(S.img,...S.b);shopSign(k,S);shopName(k,S)}
- k.drawImage(ART.castle,15*T,1*T,14*T,8*T);box(15,1,14,8,1);box(21,8,2,1,4);
+ const put=(n,x,y,w,h,role,S)=>{box(x,y,w,h,1);TOWNART.bind(k,role||'house',x*T,y*T,w*T,h*T,()=>k.drawImage(ART[n],x*T,y*T,w*T,h*T),S?used=>{if(!used)shopSign(k,S);shopName(k,S)}:null,S)};
+ for(const [n,x,y] of [['house1',3,3],['house2',9,4],['house2',30,3],['house1',36,4],['house1',30,24]]){const replaced=SHOP_ORDER.some(id=>{const b=SHOP_DATA[id].b;return b[0]===x&&b[1]===y})||(x===36&&y===4);if(replaced)box(x,y,5,4,1);else put(n,x,y,5,4,'house')}
+ for(const id of SHOP_ORDER){const S=SHOP_DATA[id];if(!S.b[2])continue;put(S.img,...S.b,id,S)}
+ TOWNART.bind(k,'castle',15*T,1*T,14*T,8*T,()=>k.drawImage(ART.castle,15*T,1*T,14*T,8*T));box(15,1,14,8,1);box(21,8,2,1,4);
  k.drawImage(ART.fountain,22*T-48,13*T-62,96,96);box(21,12,2,2,1);
  // วิหาร: เสา + รูปปั้น
- for(const [x,y] of [[3,19],[11,19],[3,24],[11,24]]){const px=x*T+16,py=y*T+28;prop(kk=>twPillar(kk,x,y),py,px-20,py-76,46,84);box(x,y,1,1,1)}
+ for(const [x,y] of [[3,19],[11,19],[3,24],[11,24]]){const px=x*T+16,py=y*T+28;prop(kk=>twPillar(kk,x,y),py,px-20,py-76,46,84,false,true);box(x,y,1,1,1)}
  prop(kk=>twStatue(kk,7*T,27*T-6),27*T-6,7*T-92,27*T-180,184,190);box(6,25,2,2,1);
  // ลานฝึก
  for(const x of [32,35,38]){const px=x*T+16,py=21*T+28;prop(kk=>twDummy(kk,x,21),py,px-20,py-52,40,58);box(x,21,1,1,1)}
@@ -1647,7 +1649,8 @@ twStatue=function(k,cx,by){
 // =====================================================================
 // ---------- 1) ของในเมืองเรียงลำดับความลึก ----------
 const TOWNPROPS=[];
-function prop(fn,base,x0,y0,w,h,treeArt){const c=document.createElement('canvas');c.width=w;c.height=h;const k=c.getContext('2d');k.translate(-x0,-y0);fn(k);TOWNPROPS.push({prop:1,cv:c,x0,y0,w,h,base,y:base/T-1});
+function prop(fn,base,x0,y0,w,h,treeArt,townArt){const c=document.createElement('canvas');c.width=w;c.height=h;const k=c.getContext('2d');k.translate(-x0,-y0);fn(k);TOWNPROPS.push({prop:1,cv:c,x0,y0,w,h,base,y:base/T-1});
+ if(townArt)TOWNART.watch(()=>{k.clearRect(x0,y0,w,h);fn(k)});
  if(treeArt&&!TREEART.ready&&!TREEART.failed)TREEART.pending.push(()=>{k.clearRect(x0,y0,w,h);fn(k)})}
 {const _bt=buildTown;buildTown=function(){TOWNPROPS.length=0;_bt();D.stalls=STALL_DATA.concat(TOWNPROPS)}}
 {const _ds=drawStall;drawStall=function(s,t){if(!s.prop)return _ds(s,t);const behind=P.y<s.base&&P.y>s.y0+20&&P.x>s.x0+8&&P.x<s.x0+s.w-8;if(behind)ctx.globalAlpha=.55;ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1}}
