@@ -39,9 +39,11 @@ const ok = (c, m) => { if (c) console.log('ok  ', m); else { console.log('FAIL',
     await waited;
     return { navigated, removed, delay };
   };
-  const upgrade = await activateTest(['eldoria-v129', 'eldoria-v130']);
-  ok(upgrade.navigated.length === 1 && upgrade.delay === 20000 && upgrade.removed.includes('eldoria-v129'), 'อัปเดตจากแคชรุ่นเก่า → Service Worker รีโหลดแท็บเดิมหลัง 20 วินาที');
-  const firstInstall = await activateTest(['eldoria-v130']);
+  const currentCache = swSource.match(/const C='([^']+)'/)[1];
+  const oldCache = 'eldoria-v' + (Number(currentCache.replace('eldoria-v', '')) - 1);
+  const upgrade = await activateTest([oldCache, currentCache]);
+  ok(upgrade.navigated.length === 1 && upgrade.delay === 20000 && upgrade.removed.includes(oldCache) && !upgrade.removed.includes(currentCache), 'อัปเดตจากแคชรุ่นเก่า → Service Worker รีโหลดแท็บเดิมหลัง 20 วินาที');
+  const firstInstall = await activateTest([currentCache]);
   ok(firstInstall.navigated.length === 0, 'ติดตั้งครั้งแรก → ไม่รีโหลดหน้าทันที');
   console.log(fail ? `FAILED ${fail}` : 'ALL PASS');
   process.exit(fail ? 1 : 0);

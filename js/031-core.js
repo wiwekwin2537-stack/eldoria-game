@@ -1310,7 +1310,7 @@ buildTown=function(){
  // บ่อน้ำ ม้านั่ง
  prop(kk=>twWell(kk,21,31),31*T+30,21*T-12,31*T-34,90,74);box(21,31,2,1,1);for(const x of [17,26]){twBench(k,x,30);box(x,30,1,1,1)}
  // ต้นไม้
- for(const [x,y,i] of [[2,9,0],[14,3,1],[29,9,2],[42,9,0],[2,14,1],[2,27,0],[3,31,1],[8,31,2],[12,31,0],[31,31,1],[38,31,2],[29,3,0],[13,8,1]]){box(x,y,1,1,1);if(window.prop)prop(kk=>kk.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90),y*T+28,x*T-24,y*T-58,80,92);else k.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90)}
+ for(const [x,y,i] of [[2,9,0],[14,3,1],[29,9,2],[42,9,0],[2,14,1],[2,27,0],[3,31,1],[8,31,2],[12,31,0],[31,31,1],[38,31,2],[29,3,0],[13,8,1]]){box(x,y,1,1,1);if(window.prop)prop(kk=>kk.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90),y*T+28,x*T-24,y*T-58,80,92,true);else k.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90)}
  // โคมไฟ
  for(const [lx,ly] of LAMP_DATA){box(lx,ly,1,1,1);const px=lx*T+16,py=ly*T+30;prop(k=>{k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(px+4,py,9,3,0,0,7);k.fill();k.fillStyle='#2b2b32';k.fillRect(px-2,py-46,4,46);k.fillRect(px-6,py-4,12,4);k.fillStyle='#ffcf5a';k.fillRect(px-5,py-58,10,12);k.fillStyle='#2b2b32';k.fillRect(px-7,py-60,14,3)},py,px-12,py-62,28,68)}
  // ป้อมมุมเมือง + ป้อมประตู (วาดทับกำแพง)
@@ -1632,7 +1632,8 @@ twStatue=function(k,cx,by){
 // =====================================================================
 // ---------- 1) ของในเมืองเรียงลำดับความลึก ----------
 const TOWNPROPS=[];
-function prop(fn,base,x0,y0,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const k=c.getContext('2d');k.translate(-x0,-y0);fn(k);TOWNPROPS.push({prop:1,cv:c,x0,y0,w,h,base,y:base/T-1})}
+function prop(fn,base,x0,y0,w,h,treeArt){const c=document.createElement('canvas');c.width=w;c.height=h;const k=c.getContext('2d');k.translate(-x0,-y0);fn(k);TOWNPROPS.push({prop:1,cv:c,x0,y0,w,h,base,y:base/T-1});
+ if(treeArt&&!TREEART.ready&&!TREEART.failed)TREEART.pending.push(()=>{k.clearRect(x0,y0,w,h);fn(k)})}
 {const _bt=buildTown;buildTown=function(){TOWNPROPS.length=0;_bt();D.stalls=STALL_DATA.concat(TOWNPROPS)}}
 {const _ds=drawStall;drawStall=function(s,t){if(!s.prop)return _ds(s,t);const behind=P.y<s.base&&P.y>s.y0+20&&P.x>s.x0+8&&P.x<s.x0+s.w-8;if(behind)ctx.globalAlpha=.55;ctx.drawImage(s.cv,s.x0,s.y0);ctx.globalAlpha=1}}
 

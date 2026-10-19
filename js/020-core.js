@@ -13,7 +13,7 @@ function buildTown(){
     // บ้านชาวบ้าน (ประตูล็อก)
  k.drawImage(ART.castle,13*T,1*T,14*T,8*T);box(13,1,14,8,1);box(19,8,2,1,4);
  k.drawImage(ART.fountain,20*T-48,17*T-62,96,96);box(19,16,2,2,1);
- for(const [x,y,i] of [[2,12,0],[2,17,1],[37,12,2],[37,17,0],[11,24,1],[28,24,2],[10,9,0],[29,9,1],[2,26,2],[37,27,1]]){box(x,y,1,1,1);if(window.prop)prop(kk=>kk.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90),y*T+28,x*T-24,y*T-58,80,92);else k.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90)}
+ for(const [x,y,i] of [[2,12,0],[2,17,1],[37,12,2],[37,17,0],[11,24,1],[28,24,2],[10,9,0],[29,9,1],[2,26,2],[37,27,1]]){box(x,y,1,1,1);if(window.prop)prop(kk=>kk.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90),y*T+28,x*T-24,y*T-58,80,92,true);else k.drawImage(treeSpr[i],x*T+16-36,y*T+28-85,72,90)}
  k.fillStyle='rgba(110,190,255,.5)';k.fillRect(0,19*T,T,2*T);k.fillStyle='#fff';k.font='bold 10px system-ui,sans-serif';k.fillText('ทางออก',0,19*T-4);box(0,19,1,2,GATE);
 for(const f of FORGE)box(f.x,f.y,1,1,1);D={town:true,ret:[(W-3)*T+16,WC.y],road:rd,npcs:NPC_DATA.map(mkNPC),carts:CART_DATA.map(mkCart),stalls:STALL_DATA,doors:townDoors()};for(const s of STALL_DATA)box(s.x,s.y,2,1,1);for(const [lx,ly] of LAMP_DATA){box(lx,ly,1,1,1);const px=lx*T+16,py=ly*T+30;prop(k=>{k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(px+4,py,9,3,0,0,7);k.fill();k.fillStyle='#2b2b32';k.fillRect(px-2,py-46,4,46);k.fillRect(px-6,py-4,12,4);k.fillStyle='#ffcf5a';k.fillRect(px-5,py-58,10,12);k.fillStyle='#2b2b32';k.fillRect(px-7,py-60,14,3)},py,px-12,py-62,28,68)}}
 function placeAtSpawn(){P.x=TOWN_SPAWN.x*T;P.y=TOWN_SPAWN.y*T;P.dir='d';P.kx=P.ky=0;P.dash=0;unstick()}
