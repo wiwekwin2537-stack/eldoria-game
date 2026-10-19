@@ -11,7 +11,7 @@ const st20Add=(k,n)=>{ST20[k]=(ST20[k]|0)+(n||1);st20Save();try{ttlCheck20()}cat
 {const _c=chop15;chop15=function(o){const a=o&&o.alive;const r=_c(o);try{if(a&&!o.alive)st20Add('tree')}catch(e){}return r}}
 {const _f=fishCatch;fishCatch=function(){const k=FISH.fish,n0=inv[k]|0;const r=_f();try{if((inv[k]|0)>n0)st20Add('fish')}catch(e){}return r}}
 {const _ez=enterZone;enterZone=function(i){const r=_ez(i);try{const z=ZONES[i];if(z&&['mist','volcano','shadow'].includes(z.id)&&!ST20.maps[z.id]){ST20.maps[z.id]=1;st20Save();ttlCheck20()}}catch(e){}return r}}
-const wealth20=()=>(inv.coin|0)+((typeof BANK19!=='undefined'&&BANK19.coin)|0);
+const wealth20=()=>{const amount=v=>Number.isFinite(+v)?Math.max(0,Math.floor(+v)):0;return amount(inv.coin)+amount(typeof BANK19!=='undefined'?BANK19.coin:0)};
 const fashN20=()=>(FASH.own||[]).length,thaiN20=()=>(FASH.own||[]).filter(k=>/^b:th_/.test(k)).length;
 const isGM20=()=>{try{return !!(window.gmAllowed&&gmAllowed())||!!(typeof ON10!=='undefined'&&ON10.gm)}catch(e){return false}};
 // ---------- ฉายา ----------

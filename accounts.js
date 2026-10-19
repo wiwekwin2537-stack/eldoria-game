@@ -49,19 +49,27 @@ async function authToken(rec, token) { if (!rec || !token) return false; const h
 function newToken(rec) { const t = crypto.randomBytes(24).toString('hex'); rec.tokens = (rec.tokens || []).filter(x => x.exp > Date.now()).slice(-7); rec.tokens.push({ h: sha(t), exp: Date.now() + 90 * 864e5 }); return t; }
 // ---------- ตารางอันดับ (เก็บรวมเป็นเอกสารเดียว: Upstash key eld:lb หรือไฟล์ data/lb.json) ----------
 const LB = { map: {}, pending: {}, dirty: false, loaded: null, flushing: null };
+/* จำกัดเวลารอทั้ง response และ JSON เฉพาะตารางอันดับ: เซฟบัญชีที่ยืนยันแล้วต้องได้รับคำตอบ */
+async function lbRequest(url, options = {}) {
+  const controller = new AbortController(); let timer;
+  try {
+    return await Promise.race([
+      (async () => { const r = await fetch(url, { ...options, signal: controller.signal }); const j = await r.json(); if (!r.ok || !j || j.error) throw new Error('leaderboard storage response'); return j; })(),
+      new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error('leaderboard storage timeout')); }, 5000); })
+    ]);
+  } finally { clearTimeout(timer); }
+}
 function lbLoad() {
   if (LB.loaded) return LB.loaded;
-  const run = (async () => {
+  const run = Promise.resolve().then(async () => {
     try {
       if (UP_URL) {
-        const r = await fetch(UP_URL + '/get/eld:lb', { headers: { authorization: 'Bearer ' + UP_TOK } });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const j = await r.json(); if (!j || j.error) throw new Error(String(j && j.error || 'bad response'));
+        const j = await lbRequest(UP_URL + '/get/eld:lb', { headers: { authorization: 'Bearer ' + UP_TOK } });
         LB.map = j.result ? JSON.parse(j.result) || {} : {};
       } else { const f = path.join(DATA_DIR, 'lb.json'); LB.map = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) || {} : {}; }
       return true;
     } catch (e) { console.log('lbLoad', e.message); LB.loaded = null; return false; }
-  })();
+  });
   LB.loaded = run; return run;
 }
 async function lbFlush() {
@@ -71,8 +79,8 @@ async function lbFlush() {
       const body = JSON.stringify(LB.map);
       try {
         if (UP_URL) {
-          const r = await fetch(UP_URL + '/set/eld:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
-          const j = await r.json(); if (!r.ok || !j || j.error || j.result !== 'OK') throw new Error('HTTP ' + r.status + ' ' + String(j && j.error || j && j.result || 'bad response'));
+          const j = await lbRequest(UP_URL + '/set/eld:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+          if (j.result !== 'OK') throw new Error('leaderboard storage write rejected');
         } else { const f = path.join(DATA_DIR, 'lb.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
         if (JSON.stringify(LB.map) === body) LB.dirty = false;
       } catch (e) { console.log('lbFlush', e.message); LB.dirty = true; return false; }

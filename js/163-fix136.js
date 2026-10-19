@@ -9,6 +9,9 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['อันดับร่ำรวยไม่ล้นเมื่อเงินเกิน int32',()=>{const c=inv.coin,b=BANK19.coin;try{inv.coin=2147483648;BANK19.coin=100;return wealth20()===2147483748?null:'ยอดอันดับกลายเป็นค่าติดลบ'}finally{inv.coin=c;BANK19.coin=b}}],
+ ['ตารางอันดับว่างต้องแสดงเหตุผลซิงค์ล้มเหลว',()=>{const sv={data:LB20.data,tab:LB20.tab,err:LB20.err,syncErr:LB20.syncErr,syncPending:LB20.syncPending};try{Object.assign(LB20,{data:{lv:[],n:0},tab:'lv',err:'',syncErr:'store',syncPending:false});lbRender20();return lbW20.textContent.includes('ฐานข้อมูลปฏิเสธการบันทึก')?null:'ซ่อนเหตุผลเมื่อไม่มีรายชื่อ'}finally{Object.assign(LB20,sv);lbRender20()}}],
+
  ['เมนูหลักมีตลาด/เทรด/จดหมาย และไม่มีเมนูคุณสมบัติซ้ำ',async()=>{const n=PM7.map(m=>m[1]);if(!n.includes('ตลาดกลาง'))return 'ไม่มีปุ่มตลาดกลาง';if(n.includes('เทรด'))return 'ปุ่มเทรดกลับมาในเมนู (ต้องเทรดแบบเจอตัวเท่านั้น)';if(n.includes('คุณสมบัติ'))return 'เมนูคุณสมบัติกลับมาซ้ำกับหน้าสถานะ';return null}],
  ['เวลาเซิร์ฟเวอร์ srvNow',async()=>typeof srvNow==='function'&&isFinite(srvNow())?null:'srvNow หาย'],
  ['หน้าสถานะ: คุณสมบัติ + ช่องถอดชุดอยู่ใต้ตัวละคร',async()=>{openChar();await sl(300);const ok=gid('chst128')&&gid('chpick')&&gid('chpick').parentNode===chp.querySelector('.chr');chSlot('helm');await sl(150);const has=/ถอด|สวมใส่|ว่าง|ยังไม่มี/.test(gid('chpick').textContent);toggleChar();return ok&&has?null:'แผงคุณสมบัติ/ช่องถอดชุดหาย'}],
