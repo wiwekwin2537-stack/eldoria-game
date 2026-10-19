@@ -30,7 +30,7 @@ function dragonUD76(k,x,y,dir,A,ph){const K=MPAL[k],t=performance.now()/1000,g=t
    sc(K.s,9);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(0,-18);ctx.bezierCurveTo(4,-8,-10+sw*4,-2,-16+sw*6,6);ctx.stroke();sc(K.b,6);ctx.stroke();ctx.fillStyle=K.m;ctx.beginPath();ctx.moveTo(-16+sw*6,6);ctx.lineTo(-24+sw*6,4);ctx.lineTo(-18+sw*6,12);ctx.fill()}}
  ctx.restore()}
 window.dragonUD76=dragonUD76;
-{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){const M=window.NM75&&NM75[k];
+{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){if(MOUNTART.paint(k,x,y,dir,A,ph))return;const M=window.NM75&&NM75[k];
   if(M&&M.dragon){if(ph===0)try{aura75(k,x,y,false)}catch(e){}try{dragonUD76(k,x,y,dir,A,ph)}catch(e){}if(ph!==0)try{aura75(k,x,y,true)}catch(e){}return}
   const r=_du.apply(this,arguments);
   if(k==='kirin'&&ph!==0&&dir==='d')try{ctx.save();ctx.translate(x,y);ctx.fillStyle='#ffd23a';ctx.strokeStyle='#8a5a10';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(-1.6,-53);ctx.lineTo(0,-66);ctx.lineTo(1.6,-53);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}catch(e){}
@@ -40,7 +40,7 @@ window.dragonUD76=dragonUD76;
 try{MKG74.x=-1e7;MKG74.y=-1e7}catch(e){}
 const SG76={x0:32,x1:33,y:33};window.SG76=SG76;
 function paintSouthGate76(){if(!(D&&D.town)||typeof dcv==='undefined')return;const k=dcv.getContext('2d'),X=SG76.x0*T,W=(SG76.x1-SG76.x0+1)*T,Y=SG76.y*T;
- for(let y=30;y<=32;y++)for(let x=SG76.x0;x<=SG76.x1;x++){k.drawImage(ART.cobble,(x%4)*64,(y%4)*64,64,64,x*T,y*T,T,T)}
+ for(let y=30;y<=32;y++)for(let x=SG76.x0;x<=SG76.x1;x++){TOWNFLOOR.state==='ready'?(k.fillStyle=k.createPattern(TOWNFLOOR.tile('stone'),'repeat'),k.fillRect(x*T,y*T,T,T)):k.drawImage(ART.cobble,(x%4)*64,(y%4)*64,64,64,x*T,y*T,T,T)}
  k.fillStyle='rgba(40,32,22,.45)';k.fillRect(X-3,30*T,3,3*T);k.fillRect(X+W,30*T,3,3*T);
  // ช่องประตูในกำแพง
  const og=k.createLinearGradient(0,Y,0,Y+T);og.addColorStop(0,'#2a1a10');og.addColorStop(1,'#0e0806');k.fillStyle=og;k.fillRect(X,Y,W,T);

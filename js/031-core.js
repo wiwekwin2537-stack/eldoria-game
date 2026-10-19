@@ -1290,7 +1290,7 @@ buildTown=function(){
  road(0,16,TW,2);road(15,10,14,14);road(21,9,2,1);road(21,24,2,4);road(2,28,40,2);
  const box=(x,y,w,h,c)=>{for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)if(dm[j]&&dm[j][i]!==undefined)dm[j][i]=c};
  // พื้น
- for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const px=x*T,py=y*T;
+ if(!TOWNFLOOR.paint(k,rd))for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const px=x*T,py=y*T;
   if(rd.has(y*TW+x)){k.drawImage(ART.cobble,(x%4)*64,(y%4)*64,64,64,px,py,T,T);for(const [ax,ay] of [[0,-1],[0,1],[-1,0],[1,0]])if(x+ax>=0&&y+ay>=0&&x+ax<TW&&y+ay<TH&&!rd.has((y+ay)*TW+x+ax)){k.fillStyle='rgba(40,32,22,.5)';const qx=ax>0?px+T-3:px,qy=ay>0?py+T-3:py;ax?k.fillRect(qx,py,3,T):k.fillRect(px,qy,T,3)}}
   else k.drawImage(grassV[gv(x,y)],px,py)}
  // ลวดลายจัตุรัส
@@ -1302,7 +1302,7 @@ buildTown=function(){
  for(let x=30;x<=40;x++){k.fillStyle='#6a4a2a';k.fillRect(x*T+14,19*T-6,4,12);k.fillRect(x*T+14,24*T-10,4,12)}k.fillStyle='#8a6a3a';k.fillRect(30*T,19*T-2,11*T,3);k.fillRect(30*T,24*T-6,11*T,3);
  twFlowers(k,16,11,2,1);twFlowers(k,26,11,2,1);twFlowers(k,4,30,3,2);twFlowers(k,35,30,2,2);twFlowers(k,30,9,4,1);twFlowers(k,10,9,4,1);
  // วิหารแห่งแสง (จุดเกิด)
- {const x0=3,y0=18,w=9,h=9;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){k.fillStyle=(x+y)%2?'#e9e4d8':'#d8d1c2';k.fillRect(x*T,y*T,T,T);k.fillStyle='rgba(255,255,255,.25)';k.fillRect(x*T,y*T,T,2)}
+ {const x0=3,y0=18,w=9,h=9;for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){k.fillStyle=TOWNFLOOR.state==='ready'?k.createPattern(TOWNFLOOR.tile('marble'),'repeat'):((x+y)%2?'#e9e4d8':'#d8d1c2');k.fillRect(x*T,y*T,T,T);k.fillStyle='rgba(255,255,255,.25)';k.fillRect(x*T,y*T,T,2)}
   k.strokeStyle='#d8b84a';k.lineWidth=3;k.strokeRect(x0*T+3,y0*T+3,w*T-6,h*T-6);k.lineWidth=1;k.strokeStyle='#8a7a4a';k.strokeRect(x0*T+8,y0*T+8,w*T-16,h*T-16);
   for(let i=0;i<3;i++){k.fillStyle=i%2?'#cfc8b8':'#e2dccf';k.fillRect(x0*T,y0*T+i*5,w*T,5)}
   k.fillStyle='rgba(120,90,200,.18)';k.fillRect(6*T,19*T,2*T,7*T);
