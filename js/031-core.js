@@ -18,10 +18,10 @@ const INVMETA={
 const INVORDER=['coin','scroll','hpp','mpp','bread','apple','wood','coal','gel','bottle','stone','iron','copper','silver','gold','ore','ingSt','ingot','ingCu','ingAg','ingAu','ingDm'];
 const MN=k=>(INVMETA[k]||[k])[0];
 const IURL={},OREKEYS=['stone','iron','copper','silver','gold'];
-function iconURL(key){const painted=key.startsWith('mat:')&&ITEMART.url(key.slice(4));if(painted)return painted;const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const url=c.toDataURL();if(!liveOre)IURL[key]=url;return url}
+function iconURL(key){const painted=ITEMART.url(key.startsWith('mat:')?key.slice(4):key);if(painted)return painted;const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const raw=c.toDataURL(),url=ITEMART.has(key)&&key!=='mat:ore'?raw+'#eldoria-art='+encodeURIComponent(key):raw;if(!liveOre)IURL[key]=url;return url}
 window.OREICON_REFRESH=kind=>{try{delete IURL['mat:'+kind];if(typeof refreshInv==='function')refreshInv();if(typeof drawPicks==='function')drawPicks()}catch(e){}};
 const rareT=key=>key.startsWith('item:')&&ITEMS[key.slice(5)].tier>=3?' rare r'+ITEMS[key.slice(5)].tier:'';
-const imgT=(key,cl)=>'<img class="si'+(key.startsWith('mat:')&&ITEMART.has(key.slice(4))?' painted-item':'')+(cl?' '+cl:'')+rareT(key)+'" src="'+iconURL(key)+'">';
+const imgT=(key,cl)=>'<img class="si'+(ITEMART.has(key)?' painted-item':'')+(cl?' '+cl:'')+rareT(key)+'" data-item-art="'+key+'" src="'+iconURL(key)+'">';
 const gid=id=>document.getElementById(id);
 const isTool=k=>k==='sword'||k==='axe'||k==='pick';
 window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
@@ -3437,7 +3437,7 @@ function accLogout(){try{sessionStorage.removeItem('fm_acct')}catch(e){}FM_RAW.s
 
 // ---------------- 2) หน้าเริ่มเกม ----------------
 const titleEl=document.createElement('div');titleEl.id='title';document.body.appendChild(titleEl);
-titleEl.innerHTML='<canvas class="bg"></canvas><div class="tw"><div class="logo"><h1>ตำนานเอลโดเรีย</h1><p>ELDORIA CHRONICLES</p></div><div class="panel" id="tpan"></div></div><div class="ver">v4.6</div>';
+titleEl.innerHTML='<canvas class="bg"></canvas><div class="tw"><div class="logo"><img src="icon-192-v541.png" alt=""><h1>ตำนานเอลโดเรีย</h1><p>ELDORIA CHRONICLES</p></div><div class="panel" id="tpan"></div></div><div class="ver">v4.6</div>';
 const tCv=titleEl.querySelector('canvas'),tK=tCv.getContext('2d');
 const TST=Array.from({length:110},()=>({x:Math.random(),y:Math.random()*.65,s:Math.random()*1.6+.3,p:Math.random()*6})),TMOTE=Array.from({length:40},()=>({x:Math.random(),y:Math.random(),v:.02+Math.random()*.05,s:Math.random()*2+1,p:Math.random()*6}));
 function titleDraw(now){if(titleEl.hidden)return;requestAnimationFrame(titleDraw);const W=tCv.width=tCv.clientWidth,H=tCv.height=tCv.clientHeight,t=now/1000,k=tK;

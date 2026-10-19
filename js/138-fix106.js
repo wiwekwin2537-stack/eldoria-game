@@ -14,11 +14,11 @@ ZL106.innerHTML='<style>#zl106{position:fixed;inset:0;z-index:9990;background:ra
  +'#zl106 .nm106{font-size:clamp(20px,4vw,34px);color:#ffe08a;text-shadow:0 0 14px rgba(255,190,90,.5),0 3px 6px #000}#zl106 .bar106{width:min(520px,80vw);height:14px;border-radius:9px;background:rgba(10,8,26,.8);border:2px solid #e8c14a;overflow:hidden;position:relative}'
  +'#zl106 .fill106{position:absolute;inset:0;transform-origin:left;background:linear-gradient(90deg,#c8862a,#ffd86a,#fff2c8);transform:scaleX(.04);will-change:transform}#zl106.run .fill106{animation:zf106 7s cubic-bezier(.15,.8,.3,1) forwards}#zl106.ok .fill106{transform:scaleX(1);animation:none}'
  +'#zl106 .shine106{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:sh106 1.1s linear infinite;will-change:transform}@keyframes zf106{from{transform:scaleX(.04)}to{transform:scaleX(.92)}}@keyframes sh106{from{transform:translateX(-100%)}to{transform:translateX(100%)}}'
- +'#zl106 small{opacity:.75}</style><div class="nm106"></div><div class="bar106"><div class="fill106"></div><div class="shine106"></div></div><small>กำลังโหลดแมพ… (ครั้งแรกจะนานหน่อย)</small>';
+ +'#zl106{background-position:center;background-size:cover;background-repeat:no-repeat;justify-content:flex-end;padding:0 5vw 9vh;box-sizing:border-box}#zl106 .nm106{text-shadow:0 2px 8px #000}#zl106 small{opacity:.85;text-shadow:0 2px 5px #000}</style><div class="nm106"></div><div class="bar106"><div class="fill106"></div><div class="shine106"></div></div><small>กำลังเตรียมฉาก…</small>';
 document.body.appendChild(ZL106);
 let busy106=false;
 const heavy106=i=>{const Zd=ZONES[i];return !!(Zd&&!ZCACHE[i]&&(Zd.big42||(typeof NAT16!=='undefined'&&NAT16[Zd.id])))};
 {const _ez=enterZone;enterZone=function(i){if(window.__noDefer106||busy106||!heavy106(i))return _ez.apply(this,arguments);
-  const Zd=ZONES[i],self=this,args=arguments;busy106=true;ZL106.querySelector('.nm106').textContent=(Zd.e||'🗺️')+' '+(Zd.n||'');ZL106.className='';ZL106.hidden=false;void ZL106.offsetWidth;ZL106.className='run';
+  const Zd=ZONES[i],self=this,args=arguments;busy106=true;SCENEART.present(ZL106,Zd);ZL106.querySelector('.nm106').textContent=(Zd.e||'🗺️')+' '+(Zd.n||'');ZL106.className='';ZL106.hidden=false;void ZL106.offsetWidth;ZL106.className='run';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{setTimeout(()=>{try{_ez.apply(self,args)}catch(e){console.warn('enterZone',e)}finally{busy106=false;ZL106.className='ok';setTimeout(()=>{ZL106.hidden=true;ZL106.className=''},280)}},30)}))};window.enterZone=enterZone}
 }catch(e){console.warn('fix106',e)}

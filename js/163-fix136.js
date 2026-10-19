@@ -9,8 +9,9 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['ภาพรอฉากตรงกับพื้นที่',()=>SCENEART.pick({id:'volcano'})==='fire'&&SCENEART.pick({id:'frost'})==='ice'&&SCENEART.pick({id:'harbor'})==='sea'?null:'ภาพรอฉากเลือกธีมไม่ตรง'],
  ['ภาพไอเท็มคมชัดและไฟเมืองพร้อม',()=>ITEMART.size>=192&&typeof TOWNLIFE.drawFlags==='function'&&typeof TOWNLIFE.drawLights==='function'?null:'ภาพไอเท็มหรือระบบธงไฟหาย'],
- ['ภาพเพชรดรอปและกระเป๋าใช้รายการเดียวกัน',()=>ITEMART.key('gem')==='ore'&&ITEMART.key('diamond')==='ore'&&ITEMART.keys.length===48?null:'เพชรแยกทางเลือกภาพหรือทะเบียนไอเท็มไม่ครบ'],
+ ['ภาพเพชรดรอปและกระเป๋าใช้รายการเดียวกัน',()=>ITEMART.key('gem')==='ore'&&ITEMART.key('diamond')==='ore'&&Object.keys(INVMETA).every(k=>ITEMART.has(k))&&Object.keys(ITEMS).every(k=>ITEMART.has('item:'+k))?null:'เพชรแยกทางเลือกภาพหรือทะเบียนไอเท็มไม่ครบ'],
  ['สัดส่วนบ้านและพื้นเมืองแยกจากเมืองอื่น',()=>TOWNART.buildingScale>=1.4&&typeof TOWNFLOOR.paint==='function'?null:'สัดส่วนบ้านหรือพื้นเมืองหาย'],
  ['ภาพเมืองแยกจากเมืองอื่นและประตูตรงจุดเดิม',()=>{if(!window.TOWNART)return 'ทะเบียนภาพเมืองหาย';for(const id of SHOP_ORDER){const s=SHOP_DATA[id],g=TOWNART.door(id,s,T);if(g&&Math.abs(g.x+g.w/2-(s.b[0]*T+s.door.x+s.door.w/2))>.01)return 'ประตูภาพไม่ตรง '+id}return TOWNART.frames.templeFloor&&TOWNART.frames.templeRear?null:'ภาพวิหารไม่ครบ'}],
  ['ปฏิเสธเซฟคลาวด์ผิดรูปก่อนแก้ข้อมูลในเครื่อง',()=>{const before=localStorage.getItem('fm_save_v1');let rejected=false;try{CLOUD.applyBlob('{"fm_save_v1":"null"}')}catch(e){rejected=true}return rejected&&localStorage.getItem('fm_save_v1')===before?null:'นำเข้าเซฟผิดรูปหรือเขียนข้อมูลก่อนตรวจ'}],

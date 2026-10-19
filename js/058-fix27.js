@@ -65,7 +65,7 @@ function knuckle27(k,Q){k.save();k.globalCompositeOperation='lighter';const g=k.
  for(let i=0;i<4;i++){const x=-13.5+i*9;k.fillStyle='#16121f';k.beginPath();k.arc(x,-3,3.6,0,7);k.fill();k.strokeStyle=Q.hi;k.lineWidth=2;k.stroke()}
  k.fillStyle=Q.hi;k.globalAlpha=.6;k.fillRect(-14,6,28,2.5);k.globalAlpha=1;k.fillStyle='#ffb46a';k.beginPath();k.arc(0,12,2.6,0,7);k.fill()}
 const _tiBase27=(t,tier)=>toolIcon(t,tier,64);
-{const _iu=iconURL;iconURL=function(key){if(typeof key==='string'&&key.startsWith('item:')){const it=ITEMS[key.slice(5)];if(it&&it.cls){if(IURL[key])return IURL[key];try{return IURL[key]=cwIcon27(it).toDataURL()}catch(e){}}}return _iu(key)};window.iconURL=iconURL}
+{const _iu=iconURL;iconURL=function(key){const art=typeof key==='string'&&ITEMART.url(key);if(art){IREV[art]=key;return art}if(typeof key==='string'&&key.startsWith('item:')){const it=ITEMS[key.slice(5)];if(it&&it.cls){if(IURL[key])return IURL[key];try{return IURL[key]=cwIcon27(it).toDataURL()+'#eldoria-art='+encodeURIComponent(key)}catch(e){}}}return _iu(key)};window.iconURL=iconURL}
 // คลาสเดิม (ดาบ/คทา/ธนู): ใช้ภาพเดิมแต่ย้อมสีประจำอาวุธ + เรืองแสง
 const cwOld27=()=>{const it=cwOf27();return it&&it.cls===P.cls&&FLT27[it.cls]?it:null};
 function withFlt27(fn,self,args){const it=cwOld27();if(!it)return fn.apply(self,args);ctx.save();ctx.filter=FLT27[it.cls];try{return fn.apply(self,args)}finally{ctx.restore()}}
