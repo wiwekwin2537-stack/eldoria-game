@@ -11,22 +11,23 @@ const UNFLAG_IDS = (process.env.UNFLAG_IDS || 'armwasin,kakaboy2537,kittapas,cha
 try { fs.mkdirSync(path.join(DATA_DIR, 'acct'), { recursive: true }); } catch (e) {}
 const fkey = lid => crypto.createHash('sha256').update(lid).digest('hex').slice(0, 40);
 const cache = new Map(), dirty = new Set(); const CACHE_MAX = 300;
+const cloneRec = rec => rec ? JSON.parse(JSON.stringify(rec)) : null;
 async function dbGet(lid) {
-  if (cache.has(lid)) return cache.get(lid);
+  if (cache.has(lid)) return cloneRec(cache.get(lid));
   let rec = null;
   try {
-    if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:acct:' + fkey(lid), { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (!r.ok || (j && j.error)) console.log('dbGet upstash', r.status, String(j && j.error).slice(0, 120)); if (j && j.result) rec = JSON.parse(j.result); }
+    if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:acct:' + fkey(lid), { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (!r.ok || !j || j.error) throw new Error('HTTP ' + r.status + ' ' + String(j && j.error || 'bad response')); if (j.result) rec = JSON.parse(j.result); }
     else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'); if (fs.existsSync(f)) rec = JSON.parse(fs.readFileSync(f, 'utf8')); }
-  } catch (e) { console.log('dbGet', e.message); }
-  if (rec) { cache.set(lid, rec); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value); }
-  return rec;
+  } catch (e) { console.log('dbGet', e.message); throw e; }
+  if (rec) { cache.set(lid, cloneRec(rec)); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value); }
+  return cloneRec(rec);
 }
 async function dbSet(lid, rec) {
-  cache.set(lid, rec);
   try {
     const body = JSON.stringify(rec);
     if (UP_URL) { const r = await fetch(UP_URL + '/set/eld:acct:' + fkey(lid), { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body }); let j = null; try { j = await r.json(); } catch (e) {} if (!r.ok || !j || j.error || j.result !== 'OK') { console.log('dbSet upstash FAIL', r.status, String(j && j.error || JSON.stringify(j)).slice(0, 160)); return false; } } /* v5.15: เดิมไม่เช็กผล Upstash — เขียนไม่ติดก็ตอบว่าสำเร็จ (ข้อมูลอยู่แค่ในหน่วยความจำ แล้วหายตอนเซิร์ฟเวอร์รีสตาร์ต) */
     else { const f = path.join(DATA_DIR, 'acct', fkey(lid) + '.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
+    cache.set(lid, cloneRec(rec)); if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
     return true;
   } catch (e) { console.log('dbSet', e.message); return false; }
 }
@@ -44,15 +45,44 @@ const forced = rec => !FORCE_NAMES.length || FORCE_NAMES.includes(String(rec.id 
 async function authToken(rec, token) { if (!rec || !token) return false; const h = sha(token), now = Date.now(), fr = forced(rec); return (rec.tokens || []).some(t => t.h === h && t.exp > now && (!fr || (t.exp - 90 * 864e5) >= FORCE_RELOGIN)); }
 function newToken(rec) { const t = crypto.randomBytes(24).toString('hex'); rec.tokens = (rec.tokens || []).filter(x => x.exp > Date.now()).slice(-7); rec.tokens.push({ h: sha(t), exp: Date.now() + 90 * 864e5 }); return t; }
 // ---------- ตารางอันดับ (เก็บรวมเป็นเอกสารเดียว: Upstash key eld:lb หรือไฟล์ data/lb.json) ----------
-const LB = { map: {}, dirty: false, loaded: null };
-function lbLoad() { if (LB.loaded) return LB.loaded; LB.loaded = (async () => { try {
-  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:lb', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) LB.map = JSON.parse(j.result) || {}; }
-  else { const f = path.join(DATA_DIR, 'lb.json'); if (fs.existsSync(f)) LB.map = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; }
-} catch (e) { console.log('lbLoad', e.message); } })(); return LB.loaded; }
-async function lbFlush() { if (!LB.dirty) return; LB.dirty = false; const body = JSON.stringify(LB.map); try {
-  if (UP_URL) await fetch(UP_URL + '/set/eld:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
-  else { const f = path.join(DATA_DIR, 'lb.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
-} catch (e) { console.log('lbFlush', e.message); LB.dirty = true; } }
+const LB = { map: {}, pending: {}, dirty: false, loaded: null, flushing: null };
+function lbLoad() {
+  if (LB.loaded) return LB.loaded;
+  const run = (async () => {
+    try {
+      if (UP_URL) {
+        const r = await fetch(UP_URL + '/get/eld:lb', { headers: { authorization: 'Bearer ' + UP_TOK } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json(); if (!j || j.error) throw new Error(String(j && j.error || 'bad response'));
+        LB.map = j.result ? JSON.parse(j.result) || {} : {};
+      } else { const f = path.join(DATA_DIR, 'lb.json'); LB.map = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) || {} : {}; }
+      return true;
+    } catch (e) { console.log('lbLoad', e.message); LB.loaded = null; return false; }
+  })();
+  LB.loaded = run; return run;
+}
+async function lbFlush() {
+  if (LB.flushing) return LB.flushing;
+  LB.flushing = (async () => {
+    while (LB.dirty) {
+      const body = JSON.stringify(LB.map);
+      try {
+        if (UP_URL) {
+          const r = await fetch(UP_URL + '/set/eld:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+          const j = await r.json(); if (!r.ok || !j || j.error || j.result !== 'OK') throw new Error('HTTP ' + r.status + ' ' + String(j && j.error || j && j.result || 'bad response'));
+        } else { const f = path.join(DATA_DIR, 'lb.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
+        if (JSON.stringify(LB.map) === body) LB.dirty = false;
+      } catch (e) { console.log('lbFlush', e.message); LB.dirty = true; return false; }
+    }
+    return true;
+  })();
+  try { return await LB.flushing; } finally { LB.flushing = null; }
+}
+function lbMergePending() {
+  const keys = Object.keys(LB.pending); if (!keys.length) return;
+  for (const k of keys) LB.map[k] = LB.pending[k];
+  LB.pending = {}; LB.dirty = true;
+}
 { const iv = setInterval(lbFlush, 30000); if (iv.unref) iv.unref(); }
 const lbN = (v, mx) => Math.max(0, Math.min(mx, Math.floor(+v || 0)));
 // v4.60: รูปตัวละครในตารางอันดับ (av) + กันโกง: บัญชีที่เลเวลกระโดดผิดปกติ (flag) ไม่ขึ้นอันดับ
@@ -193,7 +223,7 @@ async function handle(path_, d, ip) {
     const g = await fetch(UP_URL + '/get/eld:dbtest', { headers: { authorization: 'Bearer ' + UP_TOK } }); let gj = null; try { gj = await g.json(); } catch (e) {} out.get = { status: g.status, match: !!gj && gj.result === v, error: gj && gj.error ? String(gj.error).slice(0, 120) : undefined };
     out.ok = !!(wj && wj.result === 'OK' && gj && gj.result === v); } catch (e) { out.error = String(e.message || e).slice(0, 120); } return out; }
   if (!ipOk(ip)) return { err: 'rate' };
-  if (path_ === '/api/top') { await lbLoad(); return lbTop(); }
+  if (path_ === '/api/top') { if (!await lbLoad()) return { err: 'store' }; lbMergePending(); const saved = await lbFlush(); return Object.assign(lbTop(), { pending: !saved }); }
   const id = clean(d.id, 16), lid = id.toLowerCase();
   if (!ID_RE.test(id)) return { err: 'badid' };
   if (path_ === '/api/register') {
@@ -214,7 +244,7 @@ async function handle(path_, d, ip) {
     const lk = lockTbl.get(lid) || { n: 0, t: 0 }; if (lk.t > Date.now()) return { err: 'locked', wait: Math.ceil((lk.t - Date.now()) / 1000) };
     const h = await hashPw(d.pw || '', rec.salt);
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { lk.n++; if (lk.n >= 8) { lk.t = Date.now() + Math.min(900, 20 * Math.pow(2, lk.n - 8)) * 1000; } lockTbl.set(lid, lk); return { err: 'badpw' }; }
-    lockTbl.delete(lid); if (UNFLAG_IDS.includes(lid) && rec.flag) rec.flag = 0; const token = newToken(rec); await dbSet(lid, rec);
+    lockTbl.delete(lid); if (UNFLAG_IDS.includes(lid) && rec.flag) rec.flag = 0; const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
     return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: b150can(rec) };
   }
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
@@ -231,11 +261,13 @@ async function handle(path_, d, ip) {
     else if (lv0 >= 5 && up >= 25 && fast) rec.flag = (rec.flag | 0) + 1; /* เลเวลขึ้น 25+ ใน 30 นาที = ผิดปกติ */
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
-    try { await lbLoad(); const S = rec.stat || {}, X = d.stat || {}; LB.map[lid] = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
-      const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; } catch (e) {}
-    try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
+    const S = rec.stat || {}, X = d.stat || {}, rankEntry = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
     if (!await dbSet(lid, rec)) return { err: 'store' };
-    return { ok: true, rev: rec.rev, upd: rec.upd, b150: b150can(rec) };
+    try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
+    if (await lbLoad()) { lbMergePending(); LB.map[lid] = rankEntry; const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; }
+    else LB.pending[lid] = rankEntry;
+    const rankSaved = LB.pending[lid] ? false : await lbFlush();
+    return { ok: true, rev: rec.rev, upd: rec.upd, b150: b150can(rec), rankSaved };
   }
   if (path_ === '/api/guild') return guildOp(lid, rec, d);
   if (path_ === '/api/gem') return gemOp(lid, rec, d);
@@ -272,7 +304,7 @@ function middleware(req, res, allowOrigin) {
 }
 
 // ---- ใช้กับเซิร์ฟเวอร์เกม: ยืนยันตัวตน + กล่องจดหมาย (ของจากประมูล/บอสโลก ส่งถึงแม้ออฟไลน์) ----
-async function verify(id, token) { const lid = clean(id, 16).toLowerCase(); if (!ID_RE.test(lid)) return null; const rec = await dbGet(lid); if (!await authToken(rec, token)) return null; return { lid, name: rec.name || id, gm: !!rec.gm || GM_IDS.includes(lid) }; }
+async function verify(id, token) { try { const lid = clean(id, 16).toLowerCase(); if (!ID_RE.test(lid)) return null; const rec = await dbGet(lid); if (!await authToken(rec, token)) return null; return { lid, name: rec.name || id, gm: !!rec.gm || GM_IDS.includes(lid) }; } catch (e) { return null; } }
 // v4.71 📬 กล่องจดหมายถาวร: ของอยู่ในกล่องจนกว่าผู้เล่นกด "รับ" (ไม่หายแม้หลุด/โหลดเซฟทับ/เซิร์ฟเวอร์รีสตาร์ต)
 const mid71 = () => Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
 const mailFix = rec => { let ch = false; for (const m of rec.mail || []) if (!m.id) { m.id = mid71(); ch = true; } return ch; };
