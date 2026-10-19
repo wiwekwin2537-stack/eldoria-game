@@ -18,7 +18,7 @@ const INVMETA={
 const INVORDER=['coin','scroll','hpp','mpp','bread','apple','wood','coal','gel','bottle','stone','iron','copper','silver','gold','ore','ingSt','ingot','ingCu','ingAg','ingAu','ingDm'];
 const MN=k=>(INVMETA[k]||[k])[0];
 const IURL={},OREKEYS=['stone','iron','copper','silver','gold'];
-function iconURL(key){const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const url=c.toDataURL();if(!liveOre)IURL[key]=url;return url}
+function iconURL(key){const painted=key.startsWith('mat:')&&ITEMART.url(key.slice(4));if(painted)return painted;const liveOre=key.startsWith('mat:')&&OREKEYS.includes(key.slice(4));if(IURL[key]&&!liveOre)return IURL[key];let c;if(key.startsWith('item:')){const it=ITEMS[key.slice(5)];c=toolIcon(it.kind,it.tier,64)}else c=matIcon(key.slice(4));const url=c.toDataURL();if(!liveOre)IURL[key]=url;return url}
 window.OREICON_REFRESH=kind=>{try{delete IURL['mat:'+kind];if(typeof refreshInv==='function')refreshInv();if(typeof drawPicks==='function')drawPicks()}catch(e){}};
 const rareT=key=>key.startsWith('item:')&&ITEMS[key.slice(5)].tier>=3?' rare r'+ITEMS[key.slice(5)].tier:'';
 const imgT=(key,cl)=>'<img class="si'+(cl?' '+cl:'')+rareT(key)+'" src="'+iconURL(key)+'">';
@@ -27,7 +27,7 @@ const isTool=k=>k==='sword'||k==='axe'||k==='pick';
 window.GAME&&Object.assign(window.GAME,{inv,GEAR,ENH,ITEMS,TIERS,OREK});
 
 // ---------- แร่: ภาพในแมพ + ขุดตามชั้นของที่ขุดแร่ ----------
-const OSPR={};for(const k of OREKEYS){const c=document.createElement('canvas');c.width=c.height=42;const q=c.getContext('2d'),im=OREIMGS[k];if(im&&im.complete&&im.naturalWidth)q.drawImage(im,0,0,42,42);else{paintOre(q,k,42);if(im)im.addEventListener('load',()=>{q.clearRect(0,0,42,42);q.drawImage(im,0,0,42,42)},{once:true})}OSPR[k]=c}
+const OSPR={};for(const k of [...OREKEYS,'diamond']){const c=document.createElement('canvas');c.width=c.height=42;const q=c.getContext('2d'),im=k==='diamond'?oreImg:OREIMGS[k];if(im&&im.complete&&im.naturalWidth)q.drawImage(im,0,0,42,42);else{paintOre(q,k,42);if(im)im.addEventListener('load',()=>{q.clearRect(0,0,42,42);q.drawImage(im,0,0,42,42)},{once:true})}OSPR[k]=c}
 /* ใช้ภาพเพชรเมื่อโหลดสำเร็จเท่านั้น; ถ้าเน็ต/แคชโหลดช้า ให้ใช้ภาพวาดสำรองแทนภาพว่าง */
 function oreSpriteFor(kind,img,sprites){return kind==='diamond'&&img&&img.complete&&img.naturalWidth>0?img:(sprites&&sprites[kind]||null)}
 function oreSprite(kind){return oreSpriteFor(kind,oreImg,typeof OSPR==='undefined'?null:OSPR)}
@@ -41,8 +41,10 @@ function hitOre(o){const K=OREK[o.kind];
   say('ขุด'+K.n+'แตก! ได้'+(K.drop==='gem'?'เพชร':MN(K.drop))+' +'+n);gainXp(K.xp)}
  else say('ขุด'+K.n+'... ความคืบหน้า '+Math.round((1-o.hp/o.max)*100)+'%')}
 {const _u=useToolHit;useToolHit=function(){if(P.tool!=='sword'){if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}P.fa=Math.max(0,P.fa-2)}_u()}}
+function itemDropIcon(type){const key=ITEMART.key(type);return ITEMART.icon(key)||(key==='ore'?matIcon('ore'):OREKEYS.includes(key)?OSPR[key]:null)}
 function drawDrops(){for(const d of drops){const px=Math.round(d.x),py=Math.round(d.y),yy=py-6-d.z,t=d.type;
   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(px,py+2,5,2,0,0,7);ctx.fill();
+  const art=itemDropIcon(t);if(art){ctx.drawImage(art,px-9,yy-9,18,18);continue}
   if(t==='coin'){const w=Math.abs(Math.cos(d.t*7+d.x))*5+1;ctx.fillStyle='#ffd23a';ctx.strokeStyle='#a8741a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(px,yy,w,5,0,0,7);ctx.fill();ctx.stroke()}
   else if(t==='gel'){ctx.fillStyle='#5bb4ff';ctx.beginPath();ctx.ellipse(px,yy+1,5,4,0,0,7);ctx.fill();ctx.fillStyle='#d6eeff';ctx.fillRect(px-2,yy-2,2,2)}
   else if(t==='wood'){ctx.save();ctx.translate(px,yy);ctx.rotate(d.x*.3);ctx.fillStyle='#8a5a2e';ctx.fillRect(-7,-3,14,6);ctx.fillStyle='#d9b27a';ctx.fillRect(-7,-3,3,6);ctx.restore()}

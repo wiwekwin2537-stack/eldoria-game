@@ -656,3 +656,8 @@
 - js/011-mount-art.js: MOUNTART lazy-load/prepare/geometry/paint; เรียกจากชั้นสุดท้ายdrawSteedใน107และdrawSteedUD7ใน108
 - js/012-town-floor.js: TOWNFLOOR tile/paint เฉพาะbuildTown; fallbackพื้นเดิมหากยังโหลดไม่เสร็จ
 - js/012-core.js: TOWNART.buildingScale และdoorปรับตามความสูงภาพ; dm/D.doorsไม่เปลี่ยน
+
+## ภาพไอเท็ม v5.39
+- js/011-item-art.js: ITEMART key/icon/url/refresh; 24วัสดุและของใช้จากassets/items/materials-v539.png
+- js/031-core.js: iconURLเลือกatlasก่อนfallback; itemDropIconใช้aliasเพชรเดียวกัน; DROPIMGแท่งrefreshเมื่อatlasพร้อม
+- ยกเลิกjs/011-mount-art.jsและจุดเรียกใน107/108; ใช้ภาพสัตว์ขี่เดิม

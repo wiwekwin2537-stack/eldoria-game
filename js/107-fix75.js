@@ -51,7 +51,7 @@ function steed75(k,x,y,f,A){const M=NM75[k],K=MPAL[k],t=performance.now()/1000,g
  ctx.save();ctx.translate(x,y);ctx.scale(f*MSC,MSC);ctx.translate(-34,0);ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(34,1,42,6,0,0,7);ctx.fill();dragon75(K,A,t,g);ctx.restore()}
 // วาดด้วยท่าเดิมแต่สีของตัวเอง
 function withBase75(k,fn){const M=NM75[k];if(!M)return fn(k);const b=M.base,sp=MPAL[b],sm=MOUNTS[b];MPAL[b]=MPAL[k];MOUNTS[b]=Object.assign({},sm,{wing:M.wing||sm&&sm.wing,wing2:M.wing2||sm&&sm.wing2});try{return fn(b)}finally{MPAL[b]=sp;MOUNTS[b]=sm}}
-{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){if(MOUNTART.paint(k,x,y,f<0?'l':'r',A,0))return;if(!NM75[k])return _ds.apply(this,arguments);try{aura75(k,x,y,false)}catch(e){}
+{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){if(!NM75[k])return _ds.apply(this,arguments);try{aura75(k,x,y,false)}catch(e){}
   if(NM75[k].dragon){try{wings10(x,y,f,false,k)}catch(e){}steed75(k,x,y,f,A)}else withBase75(k,b=>_ds.call(this,b,x,y,f,A));
   if(k==='kirin')try{ctx.save();ctx.translate(x,y);ctx.scale(f*MSC,MSC);ctx.translate(-34,0);ctx.fillStyle='#ffd23a';ctx.beginPath();ctx.moveTo(64,-68);ctx.lineTo(70,-84);ctx.lineTo(67,-67);ctx.fill();ctx.restore()}catch(e){}
   try{aura75(k,x,y,true)}catch(e){}};window.drawSteed=drawSteed}

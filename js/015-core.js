@@ -236,7 +236,7 @@ function canTakeGear(id){if(bagWeight()+gearW(id)>bagCapMax())return 'weight';re
 let _ctMsg=0;function noRoom(why){const n=performance.now();if(n-_ctMsg>1500){_ctMsg=n;say(why==='weight'?'⚖️ แบกหนักเกินไป — ขายหรือทิ้งของก่อน':'🎒 กระเป๋าเต็ม — ขายของหรือซื้อกระเป๋าใหญ่ขึ้น (ร้านชำป้าแดง)');sfx('thud')}}
 let CARRY_SPD=1;setInterval(()=>{const w=bagWeight(),m=bagCapMax();CARRY_SPD=w<=m?1:Math.max(.5,1-(w-m)/m*1.2)},250);
 
-// ---- แร่ในแมพ: หินธรรมดา · ทองแดง · เงิน · ทอง · เพชรใช้สไปรต์ assets/diamond-ore.png ----
+// ---- แร่ในแมพ: หินธรรมดา · ทองแดง · เงิน · ทอง · เพชรใช้สไปรต์ assets/ores/diamond.png ----
 const OREK={
  stone:{n:'หินธรรมดา',req:0,hp:6,drop:'stone',cnt:[1,2],xp:2,fx:'190,195,205'},
  iron:{n:'แร่เหล็ก',req:0,hp:7,drop:'iron',cnt:[1,2],xp:3,fx:'200,150,120'},
@@ -244,7 +244,7 @@ const OREK={
  silver:{n:'แร่เงิน',req:2,hp:10,drop:'silver',cnt:[1,2],xp:7,fx:'225,235,255'},
  gold:{n:'แร่ทอง',req:3,hp:12,drop:'gold',cnt:[1,2],xp:12,fx:'255,215,80'},
  diamond:{n:'แร่เพชร',req:4,hp:14,drop:'gem',cnt:[2,3],xp:20,fx:'170,235,255'}};
-function paintOre(k,kind,size){const Q={copper:TIERS[2],silver:TIERS[3],gold:TIERS[4]}[kind];k.save();k.scale(size/42,size/42);k.lineJoin='round';
+function paintOre(k,kind,size){const Q={copper:TIERS[2],silver:TIERS[3],gold:TIERS[4],diamond:TIERS[5]}[kind];k.save();k.scale(size/42,size/42);k.lineJoin='round';
  k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(21,36,15,4,0,0,7);k.fill();
  const g=k.createLinearGradient(0,8,0,38);g.addColorStop(0,'#9a9da6');g.addColorStop(.55,'#6b6e77');g.addColorStop(1,'#43454c');
  k.fillStyle=g;k.strokeStyle='#1f2025';k.lineWidth=1.4;

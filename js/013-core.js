@@ -10,7 +10,7 @@ base(GRASS,'#5fae4a','#4a9238');
 base(WATER,'#3a7bd5','#6aa5ee');
 base(SAND,'#e3d28f','#cdb96e');
 const oreImg=new Image();oreImg.onload=()=>{g.drawImage(oreImg,ORE*T-1,-1,T+2,T+2);if(typeof Z!=='undefined')try{draw()}catch(e){}};
-oreImg.src=ASSETS.ore;
+oreImg.src='./assets/ores/diamond.png';OREIMGS.diamond=oreImg;
 base(DOOR,'#44404a','#38343e');
 g.fillStyle='#16131a';g.beginPath();g.arc(DOOR*T+16,22,10,Math.PI,0);g.fillRect(DOOR*T+6,22,20,8);g.fill();
 g.strokeStyle='#8a8594';g.lineWidth=2;g.strokeRect(DOOR*T+3,5,26,25);
