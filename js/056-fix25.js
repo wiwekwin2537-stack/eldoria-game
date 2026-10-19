@@ -128,7 +128,7 @@ for(const k in SKN25)SKFN[k]=SKN25[k];
  if(B25.lastHp!==null&&P.hp<B25.lastHp&&!P.dead){const loss=B25.lastHp-P.hp,red=(B25.shieldT>0?.6:0)+(P.cls==='paladin'?.15:0);if(red>0)P.hp=Math.min(BAL.hp,P.hp+loss*Math.min(.75,red))}
  if(B25.shieldT>0){B25.shieldT-=dt;P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.03*dt);if((B25.st25=(B25.st25||0)-dt)<=0){B25.st25=.5;eachIn(P.x,P.y-8,70,e=>hurtE(e,.5,{kb:40,col:'#ffe9a0'}))}}
  if(B25.blessT>0){B25.blessT-=dt;P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.04*dt);P.mp=Math.min(BAL.mp,P.mp+BAL.mp*.03*dt);if(B25.blessT<=0)B25.atk=0}
- if(P.cls==='paladin'&&!P.dead)P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.005*dt);
+ if(P.cls==='paladin'&&!P.dead&&!passiveRegenBlocked())P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.005*dt);
  if(P.cls==='cleric'&&!P.dead)P.mp=Math.min(BAL.mp,P.mp+BAL.mpRegen*dt);
  if(B25.spd>0)B25.spd-=dt;
  const S=B25.shadow;if(S){S.t+=dt;S.tick-=dt;if(S.tick<=0){S.tick=.22;const e=near25(220);if(e){blink25(e);hurtE(e,1.3,{kb:60});ef25({k:'slashX',x:e.x,y:e.y-14,l:.3})}}if(S.t>=S.l)B25.shadow=null}

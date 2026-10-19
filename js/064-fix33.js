@@ -33,15 +33,15 @@ function reqFull33(){const now=performance.now();if(now-W33.reqT<2500||!W33.host
   return _nm(d)}}
 function onSx33(d){if(!D||!D.zone||d.sc!==netScene())return;const k=d.k;
  if(k==='mreq'&&W33.mode==='host'){sendFull33(d.from);return}
- if(k==='md'&&W33.mode==='host'){const m=mobByUid33(d.uid);if(!m||m.dead)return;const dmg=Math.max(0,Math.min(5e7,+d.dmg||0));m.hp-=dmg;m.hurt=.2;m.aggro=1;m.tgt33=d.from;if(m.st==='idle')m.st='chase';
+ if(k==='md'&&W33.mode==='host'){const m=mobByUid33(d.uid);if(!m||m.dead)return;const dmg=Math.max(0,Math.min(5e7,+d.dmg||0));m.hp-=dmg;if(dmg>0)noteBossFight(m);m.hurt=.2;m.aggro=1;m.tgt33=d.from;if(m.st==='idle')m.st='chase';
    try{dmgTxt(m.x+(Math.random()-.5)*10,m.y-(m.F?26*m.sc:24),(d.cr?'💥':'')+Math.round(dmg),d.cr?'#ffd84a':'#cfe8ff',!!d.cr)}catch(e){}
    if(d.stun>0&&m.F&&!m.boss){m.st='strike';m.stt=Math.min(2,d.stun)}
    if(m.hp<=0)mobKill(m);return}
  if(W33.mode!=='mirror'||d.from!==W33.host)return; // ข้อมูลมอนรับจากโฮสต์เท่านั้น
- if(k==='mn'||k==='mf'){for(const o of d.list||[]){if(!o||!o.uid)continue;let m=mobByUid33(o.uid);if(m){Object.assign(m,{hp:o.hp,max:o.max});continue}
+ if(k==='mn'||k==='mf'){for(const o of d.list||[]){if(!o||!o.uid)continue;let m=mobByUid33(o.uid);if(m){if(o.hp<m.hp)noteBossFight(m);Object.assign(m,{hp:o.hp,max:o.max});continue}
    m=Object.assign({},o,{tx:o.x,ty:o.y});if(!m.F||!m.F.sz&&FAM[m.f])m.F=Object.assign({},FAM[m.f]||{},m.F||{});D.mobs.push(m);if(m.boss)D.boss=m}return}
  if(k==='ms'){for(const r of d.v||[]){const m=mobByUid33(r[0]);if(!m){reqFull33();continue}
-   m.tx=r[1];m.ty=r[2];if(Math.hypot(m.x-r[1],m.y-r[2])>220){m.x=r[1];m.y=r[2]}if(!m.pend33)m.hp=Math.min(m.max,r[3]);m.st=r[4]||m.st;m.fx=r[5]||m.fx;m.mv33=!!r[6];if(r[7])m.aggro=1;m.tg=r[8]?{x:r[8][0],y:r[8][1],r:r[8][2]}:null;m.stt=r[9]||0;if(r[10])m.dv=r[10];else if(!m.dv)m.dv=[1,0];if(m.pend33&&performance.now()-m.pend33>3000)m.pend33=0}return}
+   m.tx=r[1];m.ty=r[2];if(Math.hypot(m.x-r[1],m.y-r[2])>220){m.x=r[1];m.y=r[2]}if(!m.pend33){if(r[3]<m.hp)noteBossFight(m);m.hp=Math.min(m.max,r[3])}m.st=r[4]||m.st;m.fx=r[5]||m.fx;m.mv33=!!r[6];m.aggro=r[7]?1:0;m.tg=r[8]?{x:r[8][0],y:r[8][1],r:r[8][2]}:null;m.stt=r[9]||0;if(r[10])m.dv=r[10];else if(!m.dv)m.dv=[1,0];if(m.pend33&&performance.now()-m.pend33>3000)m.pend33=0}return}
  if(k==='mall'){const S=new Set(d.v||[]);for(const m of D.mobs)if(m.uid&&!S.has(m.uid)&&!m.pend33){m.dead=true;if(D.boss===m)D.boss=null}for(const u of S)if(!mobByUid33(u)){reqFull33();break}return}
  if(k==='mk'){const m=mobByUid33(d.uid);if(!m||m.dead)return;m.ok33=1;m.pend33=0;if(m.my33>0){m.hp=0;mobKill(m)}else{m.dead=true;if(D.boss===m)D.boss=null;partyXp33(m)}return}
  if(k==='zp'){for(const p of d.v||[])ZPROJ.push({x:p[0],y:p[1],vx:p[2],vy:p[3],l:p[4],r:p[5],c:p[6]||'#ff6a2a',dmg:0,vis33:1});return}}

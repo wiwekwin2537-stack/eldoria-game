@@ -9,6 +9,9 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['หยุดรีเจนอัตโนมัติแต่ใช้สกิลฮีลใน PvP/บอสได้',()=>{const sv={D,on:PVP8.on,hp:P.hp};try{D=null;PVP8.on=true;const a=passiveRegenBlocked();P.hp=Math.max(1,Math.floor(BAL.hp*.25));const hp=P.hp;heal25(.3);const h=P.hp>hp;PVP8.on=false;const b={boss:1,hp:1000,max:1000,aggro:1,dead:false};D={boss:b,mobs:[b]};const c=passiveRegenBlocked();b.dead=true;const d=!passiveRegenBlocked();return a&&h&&c&&d?null:'กติการีเจนหรือสกิลฮีลใน PvP/บอสผิด'}finally{D=sv.D;PVP8.on=sv.on;P.hp=sv.hp}}],
+ ['ยิงบอสไกลแล้วยังนับว่าต่อสู้อยู่',()=>{const sv={D,on:PVP8.on};try{PVP8.on=false;const b={boss:1,hp:900,max:1000,aggro:0,dead:false};D={boss:b,mobs:[b]};noteBossFight(b);return passiveRegenBlocked()?null:'ยิงนอกระยะไล่แล้วรีเจนอัตโนมัติได้'}finally{D=sv.D;PVP8.on=sv.on}}],
+
  ['อันดับร่ำรวยไม่ล้นเมื่อเงินเกิน int32',()=>{const c=inv.coin,b=BANK19.coin;try{inv.coin=2147483648;BANK19.coin=100;return wealth20()===2147483748?null:'ยอดอันดับกลายเป็นค่าติดลบ'}finally{inv.coin=c;BANK19.coin=b}}],
  ['ตารางอันดับว่างต้องแสดงเหตุผลซิงค์ล้มเหลว',()=>{const sv={data:LB20.data,tab:LB20.tab,err:LB20.err,syncErr:LB20.syncErr,syncPending:LB20.syncPending};try{Object.assign(LB20,{data:{lv:[],n:0},tab:'lv',err:'',syncErr:'store',syncPending:false});lbRender20();return lbW20.textContent.includes('ฐานข้อมูลปฏิเสธการบันทึก')?null:'ซ่อนเหตุผลเมื่อไม่มีรายชื่อ'}finally{Object.assign(LB20,sv);lbRender20()}}],
 

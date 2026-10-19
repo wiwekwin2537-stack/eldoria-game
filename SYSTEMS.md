@@ -309,10 +309,10 @@
 | `attack` | js/026-core.js:1 | 14 ชั้น | js/031-core.js:788 · js/031-core.js:1650 · js/031-core.js:1966 · js/031-core.js:2591 · js/031-core.js:2818 · js/031-core.js:3681 · js/031-core.js:3692 · js/031-core.js:4108 · js/031-core.js:4156 · js/031-core.js:4191 · js/031-core.js:4439 · js/031-core.js:5436 · js/031-core.js:5757 · js/156-fix129.js:27 |
 | `hurtE` | js/031-core.js:1900 | 21 ชั้น | js/031-core.js:2486 · js/031-core.js:2940 · js/031-core.js:4609 · js/031-core.js:4844 · js/031-core.js:6014 · js/031-core.js:6241 · js/031-core.js:6661 · js/031-core.js:6738 · js/031-core.js:7316 · js/056-fix25.js:145 · js/056-fix25.js:189 · js/060-fix29.js:32 · js/062-fix31.js:27 · js/064-fix33.js:76 · js/073-fix41.js:301 · js/076-fix44.js:8 · js/078-fix46.js:122 · js/105-fix73.js:16 · js/109-fix77.js:7 · js/126-fix94.js:45 · js/155-fix128.js:15 |
 | `zHurt` | js/031-core.js:991 | 10 ชั้น | js/031-core.js:1349 · js/031-core.js:3018 · js/031-core.js:4610 · js/031-core.js:4847 · js/031-core.js:7116 · js/037-fix6.js:7 · js/064-fix33.js:72 · js/105-fix73.js:31 · js/109-fix77.js:8 · js/156-fix129.js:18 |
-| `hurtPlayer` | js/014-core.js:11 | 5 ชั้น | js/031-core.js:1348 · js/031-core.js:5612 · js/037-fix6.js:8 · js/105-fix73.js:32 · js/156-fix129.js:20 |
+| `hurtPlayer` | js/014-core.js:24 | 5 ชั้น | js/031-core.js:1348 · js/031-core.js:5612 · js/037-fix6.js:8 · js/105-fix73.js:32 · js/156-fix129.js:20 |
 | `updMob` | js/031-core.js:1011 | 10 ชั้น | js/031-core.js:1469 · js/031-core.js:2005 · js/031-core.js:3179 · js/031-core.js:3784 · js/031-core.js:3843 · js/036-fix5.js:6 · js/064-fix33.js:64 · js/082-fix50.js:6 · js/083-fix51.js:5 · js/115-fix83.js:22 |
 | `startDeath` | js/031-core.js:1369 | 3 ชั้น | js/031-core.js:1868 · js/037-fix6.js:10 · js/078-fix46.js:175 |
-| `die` | js/014-core.js:22 | 2 ชั้น | js/031-core.js:104 · js/031-core.js:1383 |
+| `die` | js/014-core.js:35 | 2 ชั้น | js/031-core.js:104 · js/031-core.js:1383 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix6` `js/037-fix6.js` — ชุดแก้ #6 (v4.15)  101 ห้ามใช้ยาในสนามประลอง · 98 แตะผู้เล่น→เมนู · 95 สาเหตุการตาย · 93 ออโต้ฟาร์ม
