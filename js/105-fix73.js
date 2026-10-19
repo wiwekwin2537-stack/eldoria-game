@@ -3,7 +3,7 @@
 //     ขั้น I ดาเมจสกิล +15% · ขั้น II คูลดาวน์ −15% · ขั้น III ดาเมจ +15% (รวม +30%) และมานา −20% · สมุนที่เรียกจากสกิลนั้นเลือดเพิ่มตามดาเมจ
 //  B) ⚖️ สมดุล PvP (วัดด้วย tools/scenarios/pvpdps.js แยกทีละอาชีพ): สายประชิดเป้า ~520 · สายไกล/เวท ~450 · นักบวช ~430 (มีฮีล) — คูณเพิ่มใน PVPCB29
 //  C) 🌟 อัลติเมทไม่ซ้ำกันทุกอาชีพ: 8 อาชีพที่เคยยืมท่าดาบ/ธนู/เวท (fix28) ได้ท่าใหม่ของตัวเอง + ไอคอนใหม่
-//  D) 🛡️ ระหว่างร่ายอัลติจนท่าจบ (~3.6 วิ) ไม่โดนดาเมจจากมอน/บอส/ผู้เล่น
+/* D) อัลติทั่วไปมีอมตะ ~3.6 วิ; v5.33 อัลติฮีลพระ/พาลาดินไม่มีอมตะแถม ทุกโหมด */
 try{
 // ---------- A) พาสซีฟเสริมสกิลใหม่ ----------
 const SSP73=[{d:5,n:'I',t:'ดาเมจสกิล +15%'},{d:15,n:'II',t:'คูลดาวน์ −15%'},{d:30,n:'III',t:'ดาเมจ +15% · มานา −20%'}];window.SSP73=SSP73;
@@ -24,9 +24,9 @@ window.sspTier73=sspTier73;window.SKM73=1;
 // ---------- B) สมดุล PvP ----------
 const PVPB73={sword:.82,monk:.71,ninja:1.08,dragoon:1.13,paladin:1.26,mage:.77,archer:1.48,sniper:1.05,cleric:.59,necro:.87,summoner:1.24}; // วัด 3 รอบ/อาชีพ หลังพาสซีฟเสริมสกิล → ปรับครึ่งทางเข้าหาเป้าwindow.PVPB73=PVPB73;
 try{for(const c in PVPB73)if(PVPCB29[c]!=null)PVPCB29[c]=Math.round(PVPCB29[c]*PVPB73[c]*100)/100}catch(e){}
-// ---------- D) อมตะระหว่างอัลติ ----------
+/* อมตะระหว่างอัลติ ยกเว้นพาลาดิน/นักบวชซึ่งมีฮีลในอัลติ (v5.33 ทุกโหมด) */
 window.INV73=0;
-{const _cu=castUlt;castUlt=function(){const was=!!ULT.cast;const r=_cu.apply(this,arguments);try{if(!was&&ULT.cast)window.INV73=performance.now()+3600}catch(e){}return r};window.castUlt=castUlt}
+{const _cu=castUlt;castUlt=function(){const was=!!ULT.cast;const r=_cu.apply(this,arguments);try{if(!was&&ULT.cast&&P.cls!=='paladin'&&P.cls!=='cleric')window.INV73=performance.now()+3600}catch(e){}return r};window.castUlt=castUlt}
 const inv73=()=>performance.now()<window.INV73&&!P.dead;
 {const _z=zHurt;zHurt=function(src,dmg,kbm,msg){try{if(inv73()&&!(typeof W33!=='undefined'&&W33.swap)){if(Math.random()<.25)dmgTxt(P.x,P.y-46,'ไม่ระคาย','#ffe9a0');return}}catch(e){}return _z.apply(this,arguments)};window.zHurt=zHurt}
 {const _hp=hurtPlayer;hurtPlayer=function(){if(inv73())return;return _hp.apply(this,arguments)};window.hurtPlayer=hurtPlayer}

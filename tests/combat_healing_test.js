@@ -30,7 +30,7 @@ vm.runInContext(fs.readFileSync('js/084-fix52.js','utf8'),box);
 function support(c){box.onSx33({k:'fx',sc:'test',from:7,sup:[{c,x:0,y:0,nm:'เพื่อน'}]})}
 box.pvp=true;box.D=null;box.P.hp=100;box.P.stun=2;support('cleric:0');assert.ok(box.P.hp>100,'party instant healing works in PvP');assert.equal(box.P.stun,0,'cleanse still works');
 support('paladin:4');assert.equal(box.PB52.dr,.15,'party damage reduction is retained');
-box.P.hp=100;box.PB52.last=null;partyTimers.forEach(fn=>fn());assert.ok(box.P.hp>100,'active party HoT works in PvP');
+box.P.hp=100;box.PB52.last=null;partyTimers.forEach(fn=>fn());assert.equal(box.P.hp,100,'paladin party defense must not heal');support('cleric:2');partyTimers.forEach(fn=>fn());assert.ok(box.P.hp>100,'cleric party HoT works in PvP');
 box.pvp=false;box.D={boss,mobs:[boss]};box.P.hp=100;box.PB52.last=null;partyTimers.forEach(fn=>fn());assert.ok(box.P.hp>100,'active party HoT works in boss combat');
 box.D=null;partyTimers.forEach(fn=>fn());assert.ok(box.P.hp>100,'party HoT resumes outside combat');
 box.pvp=true;box.PB52.regU=0;box.P.hp=90;box.PB52.last=100;partyTimers.forEach(fn=>fn());assert.equal(box.P.hp,91.5,'damage reduction refunds remain active during combat');

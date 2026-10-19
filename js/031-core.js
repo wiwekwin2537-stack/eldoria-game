@@ -4853,7 +4853,7 @@ function chant(k){const C=AU.c;if(!C||SET.mute)return;const base={sword:55,mage:
 function boom(v){nz(.9,.5*(v||1),900,40,1,'lowpass');tone(80,30,.9,'sine',.4*(v||1));tone(140,40,.5,'square',.08*(v||1))}
 function castUlt(){if(ULT.v<100||ULT.cast||P.dead||PAUSED)return;if(D&&(D.town||D.shop||D.home)){say('ใช้อัลติเมทในเมือง/ที่ดินไม่ได้');return}
  if(typeof MOUNT!=='undefined'&&MOUNT.on){MOUNT.on=false;try{mountB.classList.remove('on')}catch(e){}}
- const k=ultK(),d=ULTD[k];ULT.v=0;ULT.cast={k,t:0,ph:0,dir:P.dir};P.iframe=Math.max(P.iframe,2.6);P.stun=Math.max(P.stun,1.15);P.draw=true;
+ const k=ultK(),d=ULTD[k];ULT.v=0;ULT.cast={k,t:0,ph:0,dir:P.dir};if(P.cls!=='paladin'&&P.cls!=='cleric')P.iframe=Math.max(P.iframe,2.6);P.stun=Math.max(P.stun,1.15);P.draw=true;
  ultOv.style.setProperty('--uc',d.c);ultOv.querySelector('.nm').innerHTML='<small>ULTIMATE · '+d.en+'</small>'+d.n;ultOv.classList.add('on');chant(k);shake(1.5,1.1)}
 window.castUlt=castUlt;
 function foeNear(r){let best=null,bd=r;for(const e of enemies()){const dd=Math.hypot(e.x-P.x,e.y-P.y);if(dd<bd){bd=dd;best=e}}return best}

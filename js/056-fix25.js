@@ -20,7 +20,7 @@ const NSK25={
   {n:'ห่ากระสุนพิฆาต',e:'💥',lv:30,price:2000,mp:45,cd:24,d:'ยิงกระหน่ำพื้นที่ด้านหน้า 3 วิ ครั้งละ ×0.9 ถี่มาก'}],
  paladin:[{n:'ค้อนศักดิ์สิทธิ์',e:'🔨',lv:5,price:150,mp:16,cd:7,d:'ฟาดค้อนแสงรอบตัว ×1.7 มึนงง + ฮีลตัวเอง 10%'},
   {n:'ดาบแห่งแสง',e:'⚜️',lv:15,price:600,mp:[10,12,20],cd:9,steps:3,d:'① พุ่งชาร์จ ×1.5 → ② โล่กระแทกมึน 1.2 วิ ×1.6 → ③ เสาแสงถล่ม ×2.8'},
-  {n:'ปราการเทพ',e:'🛡️',lv:30,price:2000,mp:40,cd:28,d:'โล่แสง 6 วิ: ลดดาเมจ 60% · ฮีล 3%/วิ · แสงเผาศัตรูรอบตัว'}],
+  {n:'ปราการเทพ',e:'🛡️',lv:30,price:2000,mp:40,cd:28,d:'โล่แสง 6 วิ: ลดดาเมจ 60% · แสงเผาศัตรูรอบตัว · ไม่ฟื้นเลือด'}],
  cleric:[{n:'แสงรักษา',e:'💚',lv:5,price:150,mp:20,cd:9,d:'ฮีลตัวเอง 30% + ระเบิดแสง ×1.2 รอบตัว'},
   {n:'พิพากษาสวรรค์',e:'☀️',lv:15,price:600,mp:[10,14,22],cd:10,steps:3,d:'① ลูกแสงติดตาม 3 ลูก ×1.4 → ② วงแหวนแสง ×1.5 ผลัก → ③ ลำแสงสวรรค์ ×3.2'},
   {n:'อวยพรเทวา',e:'👼',lv:30,price:2000,mp:50,cd:30,d:'8 วิ: โจมตี +35% · ฮีล 4%/วิ · มานาฟื้นเร็ว'}],
@@ -126,7 +126,7 @@ for(const k in SKN25)SKFN[k]=SKN25[k];
 // ---------- อัปเดตทุกเฟรม ----------
 {const _st=skTick;skTick=function(dt){_st(dt);try{
  if(B25.lastHp!==null&&P.hp<B25.lastHp&&!P.dead){const loss=B25.lastHp-P.hp,red=(B25.shieldT>0?.6:0)+(P.cls==='paladin'?.15:0);if(red>0)P.hp=Math.min(BAL.hp,P.hp+loss*Math.min(.75,red))}
- if(B25.shieldT>0){B25.shieldT-=dt;P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.03*dt);if((B25.st25=(B25.st25||0)-dt)<=0){B25.st25=.5;eachIn(P.x,P.y-8,70,e=>hurtE(e,.5,{kb:40,col:'#ffe9a0'}))}}
+ if(B25.shieldT>0){B25.shieldT-=dt;if((B25.st25=(B25.st25||0)-dt)<=0){B25.st25=.5;eachIn(P.x,P.y-8,70,e=>hurtE(e,.5,{kb:40,col:'#ffe9a0'}))}}
  if(B25.blessT>0){B25.blessT-=dt;P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.04*dt);P.mp=Math.min(BAL.mp,P.mp+BAL.mp*.03*dt);if(B25.blessT<=0)B25.atk=0}
  if(P.cls==='paladin'&&!P.dead&&!passiveRegenBlocked())P.hp=Math.min(BAL.hp,P.hp+BAL.hp*.005*dt);
  if(P.cls==='cleric'&&!P.dead)P.mp=Math.min(BAL.mp,P.mp+BAL.mpRegen*dt);
