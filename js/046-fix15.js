@@ -53,6 +53,7 @@ function chop15(o){const K=OREK[o.kind];if(P.tier.axe<K.req){o.shake=.2;sfx('thu
 const TREEPAL15={treeE:['#5a3a1e','#3a6a3a','#6ab86a','rgba(200,255,230,.25)'],treeF:['#1a1010','#8a2a10','#ff7a2a','rgba(255,120,40,.35)'],treeS:['#3a3050','#5a4a8a','#c8a8ff','rgba(200,170,255,.35)']};
 {const _do=drawOreZ;drawOreZ=function(o){const P15=TREEPAL15[o.kind];if(!P15)return _do(o);const sh=o.shake>0?Math.sin(o.shake*60)*2.5*(o.shake/.3):0,x=o.tx*T+16+sh,y=o.ty*T+26,t=performance.now()/1000;ctx.save();
   ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(x,y+2,16,5,0,0,7);ctx.fill();
+  if(typeof cutSpr16==='function'){ctx.drawImage(cutSpr16(o.kind),x-34,y-80,68,85);ctx.restore();return}
   ctx.fillStyle=P15[0];ctx.strokeStyle='#0a0604';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x-3,y-26);ctx.lineTo(x+3,y-26);ctx.lineTo(x+6,y);ctx.closePath();ctx.fill();ctx.stroke();
   if(o.kind==='treeF'){ctx.strokeStyle='rgba(255,120,30,.9)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-1,y-4);ctx.lineTo(x+1,y-14);ctx.lineTo(x-1,y-22);ctx.stroke()}
   for(const [dx,dy,r,c] of [[0,-38,15,1],[-10,-30,10,2],[10,-31,10,1],[0,-48,9,2]]){ctx.fillStyle=P15[c];ctx.beginPath();ctx.arc(x+dx,y+dy+Math.sin(t*1.5+dx)*.6,r,0,7);ctx.fill()}

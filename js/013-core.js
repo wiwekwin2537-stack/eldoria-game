@@ -31,9 +31,21 @@ const TREEART={image:new Image(),ready:false,failed:false,pending:[]};
 TREEART.image.onerror=()=>{TREEART.failed=true;TREEART.pending.length=0};
 TREEART.image.onload=()=>{if(!TREEART.image.naturalWidth||!TREEART.image.naturalHeight){TREEART.image.onerror();return}TREEART.ready=true;const jobs=TREEART.pending.splice(0);for(const paint of jobs)try{paint()}catch(e){console.warn('tree art',e)}};
 TREEART.image.src='./assets/trees/oak.png';
-function paintTreeArt(c,seed,hue){const k=c.getContext('2d');k.save();k.globalCompositeOperation='source-over';k.clearRect(0,0,80,100);
+/* v5.30 ทุกธีมใช้ภาพ PNG; canvas เดิมและผู้ใช้ภาพต่อได้รับการวาดใหม่เมื่อโหลดเสร็จ */
+const TREEKINDS={};
+for(const kind of ['ancient','fire','spirit']){const art={image:new Image(),ready:false,failed:false,pending:[]};TREEKINDS[kind]=art;
+ art.image.onerror=()=>{art.failed=true;art.pending.length=0};
+ art.image.onload=()=>{if(!art.image.naturalWidth||!art.image.naturalHeight){art.image.onerror();return}art.ready=true;for(const paint of art.pending.splice(0))paint()};
+ art.image.src='./assets/trees/'+kind+'.png'}
+function treeTheme(seed,hue){if(seed===51||(seed>=21&&seed<=24))return ['ancient',138];if(seed===52||(seed>=31&&seed<=34))return ['fire',24];if(seed===53||(seed>=41&&seed<=43))return ['spirit',270];return ['oak',105]}
+function attachTreeArt(c,seed,hue,kind){const theme=treeTheme(seed,hue),art=kind?TREEKINDS[kind]:theme[0]==='oak'?TREEART:TREEKINDS[theme[0]];
+ const paint=()=>{paintTreeArt(c,seed,hue,art.image,kind?hue:theme[1]);if(c.treeWatch)for(const fn of c.treeWatch)fn()};
+ if(art.ready)paint();else if(!art.failed)art.pending.push(paint);return c}
+function watchTreeArt(src,paint){(src.treeWatch||(src.treeWatch=[])).push(paint)}
+
+function paintTreeArt(c,seed,hue,image=TREEART.image,baseHue=105){const k=c.getContext('2d');k.save();k.globalCompositeOperation='source-over';k.clearRect(0,0,80,100);
  k.fillStyle='rgba(0,0,0,.28)';k.beginPath();k.ellipse(40,92,24,6,0,0,7);k.fill();
- k.filter='hue-rotate('+(hue-105)+'deg)';if(seed===2){k.translate(80,0);k.scale(-1,1)}k.drawImage(TREEART.image,2,0,76,94);k.restore()}
+ k.filter='hue-rotate('+(hue-baseHue)+'deg)';if(seed===2){k.translate(80,0);k.scale(-1,1)}k.drawImage(image,2,0,76,94);k.restore()}
 function makeTree(seed,hue){const c=document.createElement('canvas');c.width=80;c.height=100;const k=c.getContext('2d');
  const r=i=>hash(seed*3.1+i,seed*1.7+i*.37);
  k.fillStyle='rgba(0,0,0,.28)';k.beginPath();k.ellipse(40,92,24,6,0,0,7);k.fill();
@@ -49,7 +61,7 @@ function makeTree(seed,hue){const c=document.createElement('canvas');c.width=80;
   k.fillStyle=g2;k.beginPath();k.arc(bx,by,br,0,7);k.fill()}
  k.globalCompositeOperation='source-atop';
  for(let i=0;i<150;i++){k.fillStyle=r(i+500)>.5?`hsla(${hue+14},60%,58%,.55)`:`hsla(${hue-8},50%,14%,.5)`;k.fillRect(10+r(i+100)*60,8+r(i+300)*56,2,2)}
- if((seed>=1&&seed<=3)||(seed===70&&hue===104)){const paint=()=>paintTreeArt(c,seed,hue);if(TREEART.ready)paint();else if(!TREEART.failed)TREEART.pending.push(paint)}
+ attachTreeArt(c,seed,hue);
  return c}
 const treeSpr=[makeTree(1,105),makeTree(2,98),makeTree(3,112)];
 // ---- 2) สร้างแมพขนาดใหญ่ ----

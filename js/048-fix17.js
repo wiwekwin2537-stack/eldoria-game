@@ -9,10 +9,10 @@ function makeDead16(seed){const c=document.createElement('canvas');c.width=80;c.
  const g=k.createLinearGradient(32,0,48,0);g.addColorStop(0,'#140c0a');g.addColorStop(.5,'#3a2620');g.addColorStop(1,'#120a08');k.fillStyle=g;k.beginPath();k.moveTo(31,93);k.quadraticCurveTo(37,80,37,58);k.lineTo(43,58);k.quadraticCurveTo(43,80,49,93);k.closePath();k.fill();
  br(40,60,-Math.PI/2+(r(1)-.5)*.3,26,6,0);
  k.strokeStyle='rgba(255,120,40,.7)';k.lineWidth=1;k.beginPath();k.moveTo(39,90);k.lineTo(41,78);k.lineTo(39,66);k.stroke();
- for(let i=0;i<10;i++){k.fillStyle=r(i+40)>.5?'rgba(255,150,50,.8)':'rgba(255,90,30,.7)';k.fillRect(14+r(i+60)*52,10+r(i+80)*40,2,2)}return c}
-function dark16(src,col){const c=document.createElement('canvas');c.width=80;c.height=100;const k=c.getContext('2d');k.drawImage(src,0,0);k.globalCompositeOperation='source-atop';k.fillStyle=col;k.fillRect(0,0,80,100);return c}
-function glowTree16(src,col,n,seed){const c=document.createElement('canvas');c.width=80;c.height=100;const k=c.getContext('2d');k.drawImage(src,0,0);k.globalCompositeOperation='source-atop';
- for(let i=0;i<n;i++){const x=12+hash(seed+i,3)*56,y=10+hash(i,seed+7)*50,g=k.createRadialGradient(x,y,0,x,y,4);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(x-4,y-4,8,8)}return c}
+ for(let i=0;i<10;i++){k.fillStyle=r(i+40)>.5?'rgba(255,150,50,.8)':'rgba(255,90,30,.7)';k.fillRect(14+r(i+60)*52,10+r(i+80)*40,2,2)}attachTreeArt(c,seed,24,'fire');return c}
+function dark16(src,col){const c=document.createElement('canvas');c.width=80;c.height=100;const k=c.getContext('2d');const paint=()=>{k.globalCompositeOperation='source-over';k.clearRect(0,0,80,100);k.drawImage(src,0,0);k.globalCompositeOperation='source-atop';k.fillStyle=col;k.fillRect(0,0,80,100);if(c.treeWatch)for(const fn of c.treeWatch)fn()};paint();watchTreeArt(src,paint);return c}
+function glowTree16(src,col,n,seed){const c=document.createElement('canvas');c.width=80;c.height=100;const k=c.getContext('2d');const paint=()=>{k.globalCompositeOperation='source-over';k.clearRect(0,0,80,100);k.drawImage(src,0,0);k.globalCompositeOperation='source-atop';
+ for(let i=0;i<n;i++){const x=12+hash(seed+i,3)*56,y=10+hash(i,seed+7)*50,g=k.createRadialGradient(x,y,0,x,y,4);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(x-4,y-4,8,8)}if(c.treeWatch)for(const fn of c.treeWatch)fn()};paint();watchTreeArt(src,paint);return c}
 const NAT16={
  mist:{g:[[52,92,60],[62,104,66],[44,80,54],[72,112,70]],path:'#7a6a4c',pathD:'#5a4a34',liq:['#3a7a8a','#2a5a6a','#9ad8e0'],shore:'#5a6a4a',forest:.56,rockMix:.08,river:1,ponds:2,lava:0,
   spr:()=>[makeTree(21,138),makeTree(22,128),makeTree(23,150),makeTree(24,142)],dec:'mist'},
