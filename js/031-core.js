@@ -317,8 +317,20 @@ function drawShop(){const t=performance.now()/1000,S=D.S,o=D.owner,[cx,cy]=cam(I
 const CHS={sel:null,dir:'d'};
 const STATS=[['str','💪','พลัง (STR)','โจมตี +1 ต่อแต้ม'],['vit','❤️','ความอึด (VIT)','เลือดสูงสุด +12 · ป้องกัน +1 ทุก 2 แต้ม'],['int','🔮','ปัญญา (INT)','มานาสูงสุด +6 ต่อแต้ม'],['agi','👟','ว่องไว (AGI)','เดิน/วิ่งเร็วขึ้น +1.2% ต่อแต้ม'],['end','🫀','อดทน (END)','แรงลดช้าลง ~6% ต่อแต้ม']];
 function recalcStats(){BAL.hp=100+(P.lv-1)*15+P.stats.vit*12+neckHp();BAL.mp=50+(P.lv-1)*5+P.stats.int*6}
-function statAdd(k){if(P.sp<=0){say('ไม่มีแต้มสเตตัส — เก็บเลเวลเพิ่ม');sfx('thud');return}
- P.sp--;P.stats[k]++;recalcStats();if(k==='vit')P.hp=Math.min(BAL.hp,P.hp+12);if(k==='int')P.mp=Math.min(BAL.mp,P.mp+6);sfx('heal');updBadge();renderChar()}
+function statAdd(k,n,quiet){n=Math.max(1,n|0||1);if(P.sp<=0){say('ไม่มีแต้มสเตตัส — เก็บเลเวลเพิ่ม');sfx('thud');return 0}
+ n=Math.min(n,P.sp);P.sp-=n;P.stats[k]+=n;recalcStats();if(k==='vit')P.hp=Math.min(BAL.hp,P.hp+12*n);if(k==='int')P.mp=Math.min(BAL.mp,P.mp+6*n);if(!quiet)sfx('heal');updBadge();renderChar();return n}
+/* กดแช่ปุ่ม ＋ = เพิ่มรัว ๆ (ยิ่งแช่ยิ่งเร็ว) · แถบเลือก ×1/×5/×10/สูงสุด = ต่อการกด 1 ครั้ง */
+window.STEPMUL=window.STEPMUL||1;
+function statStep(){return window.STEPMUL==='max'?Math.max(1,P.sp):window.STEPMUL}
+function statMul(m){window.STEPMUL=m;sfx('ui');renderChar()}
+{const st=document.createElement('style');st.textContent='#chl .stadd{touch-action:none;user-select:none;-webkit-user-select:none;min-width:44px;min-height:34px}#chl .mulb{display:flex;gap:4px;margin:4px 0}#chl .mulb button{flex:1;min-height:30px}#chl .mulb button.on{outline:2px solid #ffd86a;background:#5a4a1e;color:#ffd86a}';document.head.appendChild(st)}
+{let tm=0,iv=0,cnt=0,held=null;
+ const stop=()=>{clearTimeout(tm);clearInterval(iv);tm=iv=0;held=null};
+ const tick=()=>{if(!held||P.sp<=0){if(held&&P.sp<=0)say('แต้มสเตตัสหมดแล้ว');stop();return}cnt++;const n=cnt<12?1:cnt<30?2:5;statAdd(held,n,cnt%4!==0)};
+ document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('#chl .stadd');if(!b||b.disabled)return;e.preventDefault();stop();held=b.dataset.k;cnt=0;
+  statAdd(held,statStep());tm=setTimeout(()=>{iv=setInterval(tick,70)},380)});
+ for(const ev of['pointerup','pointercancel','blur'])addEventListener(ev,stop);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('#chl .stadd'))e.preventDefault()})}
 {const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){const g=3*(P.lv-l0);P.sp+=g;recalcStats();P.hp=BAL.hp;P.mp=BAL.mp;say('⭐ เลเวลอัป! Lv.'+P.lv+' ได้แต้มสเตตัส +'+g+' (กดรูปโปรไฟล์เพื่ออัพ)');updBadge();lvHud()}}}
 const chp=document.createElement('div');chp.id='chp';chp.hidden=true;
 chp.innerHTML='<div class="bh"><b>👤 สถานะตัวละคร</b><button class="mini x" onclick="toggleChar()">✕</button></div><div class="chbody"><div class="chl" id="chl"></div><div class="chr"><div class="doll"><canvas id="figc" width="180" height="232" title="แตะเพื่อหมุนตัวละคร"></canvas><div id="che"></div></div></div></div><div id="chpick"></div>';
@@ -335,8 +347,9 @@ function renderChar(){if(chp.hidden)return;
  const x=(a,b)=>'<div class="cs"><span>'+a+'</span><b>'+b+'</b></div>';
  let h='<div class="chn"><span class="nm" onclick="renameChar()" title="แตะเพื่อเปลี่ยนชื่อ">'+(P.name||'ผู้กล้า')+' ✎</span><br><small>⭐ Lv.'+P.lv+' · XP '+P.xp+'/'+need(P.lv)+'</small></div>'
   +x('❤️ เลือด',Math.round(P.hp)+'/'+BAL.hp)+x('💧 มานา',Math.round(P.mp)+'/'+BAL.mp)+x('🗡️ โจมตี',ATK())+x('🛡️ ป้องกัน',DEF())+x('🍖 อิ่ม',Math.round(P.hu))+x('💪 แรง',Math.round(P.fa))+x('⚖️ น้ำหนักแบก',bagWeight()+'/'+bagCapMax())
-  +'<div class="sp'+(P.sp>0?' on':'')+'">✨ แต้มสเตตัสคงเหลือ <b>'+P.sp+'</b></div>';
- for(const [k,ic,nm,ds] of STATS)h+='<div class="st"><div><span>'+ic+' '+nm+'</span><small>'+ds+'</small></div><b>'+P.stats[k]+'</b><button class="mini x" '+(P.sp>0?'':'disabled')+' onclick="statAdd(\''+k+'\')">＋</button></div>';
+  +'<div class="sp'+(P.sp>0?' on':'')+'">✨ แต้มสเตตัสคงเหลือ <b>'+P.sp+'</b></div>'
+  +'<div class="mulb">'+[[1,'×1'],[5,'×5'],[10,'×10'],['max','สูงสุด']].map(m=>'<button class="mini x'+(window.STEPMUL===m[0]?' on':'')+'" onclick="statMul('+(m[0]==='max'?"\'max\'":m[0])+')">'+m[1]+'</button>').join('')+'</div>';
+ for(const [k,ic,nm,ds] of STATS)h+='<div class="st"><div><span>'+ic+' '+nm+'</span><small>'+ds+'</small></div><b>'+P.stats[k]+'</b><button class="mini x stadd" data-k="'+k+'" '+(P.sp>0?'':'disabled')+'>＋</button></div>';
  gid('chl').innerHTML=h;
  let e='';for(const k of ['sword','helm','chest','pants','arm','neck','ring']){const id=curId(k),has=!!id,en=has?ENH[id]||0:0;
   e+='<div class="slot eq s-'+k+(CHS.sel===k?' on':'')+(has&&ITEMS[id].tier>=3?' rare r'+ITEMS[id].tier:'')+'" onclick="chSlot(\''+k+'\')" title="'+(has?ITEMS[id].name+' — '+ITEMS[id].stat:'ว่าง')+'"><img src="'+iconURL('item:'+(has?id:k+'1'))+'"'+(has?'':' style="opacity:.22;filter:grayscale(1)"')+'><small>'+SLOTL[k]+'</small>'+(en?'<em>+'+en+'</em>':'')+'</div>'}
