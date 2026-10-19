@@ -1226,6 +1226,8 @@ LAMP_DATA.length=0;LAMP_DATA.push([14,15],[34,15],[13,18],[29,18],[15,10],[28,10
  .forEach(([x,y],i)=>{if(NPC_DATA[i]){NPC_DATA[i].x=x;NPC_DATA[i].y=y}});
 NPC_DATA.push({name:'นักบวชแห่งแสง',c:'#ece6f4',h:'#c9c4d6',x:9.5,y:22.6,fixed:1,g:'m',age:'elder',beard:1,
  lines:['เทพธิดาแห่งแสงคุ้มครองเจ้าเสมอ ผู้กล้า','ยามล้มลง วิญญาณเจ้าจะกลับมาที่วิหารนี้','ขนนกฟีนิกซ์ช่วยให้ฟื้นได้ทันทีโดยไม่เสียประสบการณ์','หมอยาในเมืองมีขนนกฟีนิกซ์ขายนะ']});
+/* v5.34: เพิ่มหลังจัดตำแหน่ง NPC เดิม เพื่อไม่ให้ลำดับร้าน/ชาวเมืองเลื่อน */
+NPC_DATA.push({name:'คลังของทดสอบ',c:'#397e78',h:'#d5c09c',x:11.5,y:21.5,fixed:1,apron:1,lines:['รับอุปกรณ์ วัตถุดิบ และของใช้สำหรับช่วงทดสอบได้ที่นี่']});
 
 // ---------- ชิ้นส่วนที่ใช้วาดเมือง ----------
 function twWall(k,x,y,side){const px=x*T,py=y*T;k.fillStyle='#7f796d';k.fillRect(px,py,T,T);k.fillStyle='#958f82';k.fillRect(px,py,T,4);
@@ -2834,7 +2836,7 @@ function ownerTalk(id){const S=SD2[id],o=D.owner;if(!S||!o)return false;const gr
   if(typeof stnNear==='function'&&stnNear()&&!P.sit)return _sa();
   if(shopNear()){D.owner.wave=1.2;D.owner.dir='d';return ownerTalk(D.shop)}return _sa()}}
 // คนในเมือง / แม่ค้าแผงตลาด / ปรมาจารย์อาชีพ
-function npcTalk(n){const L=n.lines&&n.lines.length?n.lines:['สวัสดีจ้า'];n.i=n.i||0;const say1=()=>{talk(n,L[n.i++%L.length],[{t:'💬 คุยต่อ',stay:true,f:say1},BYE])};say1()}
+function npcTalk(n){if(n.name==='คลังของทดสอบ'){openTestSupplies();return}const L=n.lines&&n.lines.length?n.lines:['สวัสดีจ้า'];n.i=n.i||0;const say1=()=>{talk(n,L[n.i++%L.length],[{t:'💬 คุยต่อ',stay:true,f:say1},BYE])};say1()}
 {const _ta=townAct;townAct=function(){if(!D||!D.town)return _ta();
   if(Math.hypot(P.x-(23*T+16),P.y-(28*T+10))<40)return _ta();
   const cm=D.npcs.find(q=>q.name==='ปรมาจารย์อาชีพ');if(cm&&Math.hypot(cm.x-P.x,cm.y-8-P.y)<48){talk(cm,P.lv<CLASS_LV?'เจ้ายังอ่อนประสบการณ์นัก… กลับมาเมื่อถึง Lv.'+CLASS_LV+' แล้วข้าจะชี้ทางให้':'มีถึง 11 เส้นทาง ตั้งแต่นักรบ จอมเวท นักธนู ไปจนถึงนินจา อัศวิน และนักอัญเชิญ… เจ้าพร้อมจะเลือกแล้วหรือยัง?',[{t:'⚔️ เลือกอาชีพ',c:'go',f:()=>openClassMenu()},{t:'🌟 ดูสกิล/พาสซีฟ',f:()=>openSkw('pas')},{t:'💬 คุยเล่น',stay:true,f:()=>npcTalk(cm)},BYE]);return true}
@@ -3439,7 +3441,7 @@ function tErr(m){const e=titleEl.querySelector('.err');if(e)e.textContent=m||''}
 function tMain(){const A=ACC.all,me=FM_ACCT,pan=gid('tpan');sfx('ui');
  if(me){const info=A[me]||{};pan.innerHTML='<div class="who">ยินดีต้อนรับกลับ<br><b>'+esc(me)+'</b> · '+esc(P.name||info.n||'')+' Lv.'+P.lv+'</div><button class="tb" id="tPlay">▶ เข้าสู่เกม</button><button class="tb alt" onclick="tLoginForm()">🔁 สลับไอดี</button><button class="tb ghost" onclick="accLogout()">ออกจากระบบ</button><div class="tip">เซฟของแต่ละไอดีแยกกัน · เกมบันทึกอัตโนมัติ</div>'}
  else pan.innerHTML='<h3>⚔️ เริ่มการผจญภัย</h3><button class="tb" onclick="tRegForm()">✨ สมัครไอดีใหม่</button><button class="tb alt" onclick="tLoginForm()">🔑 เข้าสู่ระบบ</button>'+(Object.keys(A).length?'<div class="tip">มี '+Object.keys(A).length+' ไอดีในเครื่องนี้</div>':'<div class="tip">ครั้งแรก? สมัครไอดีเพื่อเริ่มเนื้อเรื่องและบทสอน</div>');
- const pb=gid('tPlay');if(pb)pb.onclick=tPlay}
+ const pb=gid('tPlay');if(pb)pb.onclick=()=>tPlay()}
 function tRegForm(){const old=legacyKeys().includes('fm_save_v1')&&!FM_ACCT;gid('tpan').innerHTML='<h3>✨ สมัครไอดี</h3><label>ไอดี</label><input id="rId" maxlength="16" autocomplete="username"><label>รหัสผ่าน</label><input id="rPw" type="password" autocomplete="new-password"><label>ยืนยันรหัสผ่าน</label><input id="rPw2" type="password" autocomplete="new-password"><label>ชื่อตัวละคร</label><input id="rNm" maxlength="14">'
  +(old?'<div class="chk"><input type="checkbox" id="rMig"><span>นำเซฟเดิมในเครื่องนี้มาใช้กับไอดีนี้</span></div>':'')+'<div class="err"></div><button class="tb" id="rGo">สร้างตัวละคร</button><button class="tb ghost" onclick="tMain()">← กลับ</button>';
  tInputs();gid('rGo').onclick=async()=>{const r=await accRegister(gid('rId').value,gid('rPw').value,gid('rPw2').value,gid('rNm').value,gid('rMig')&&gid('rMig').checked);if(r){tErr(r);sfx('thud')}};setTimeout(()=>gid('rId').focus(),100)}
@@ -3451,7 +3453,9 @@ function tPlay(){auInit&&auInit();titleEl.hidden=true;PAUSED=false;sfx('warp');t
  if(!STORY.intro){STORY.intro=1;saveStory();if(D&&D.town)placeAtSpawn&&placeAtSpawn();cinePlay(PROLOGUE,()=>{TUT.on=STORY.tut<TUTS.length;tutShow();sysSay('📜 เนื้อเรื่อง: '+STCH[STORY.ch].t)})}
  else{TUT.on=STORY.tut<TUTS.length;tutShow()}}
 // เปิดเกม: แสดงหน้าเริ่ม (ถ้าเพิ่งเข้าสู่ระบบ ให้เข้าเกมเลย)
-setTimeout(()=>{let go=false;try{go=sessionStorage.getItem('fm_go')==='1'}catch(e){}if(FM_ACCT&&go){titleEl.hidden=true;intro.hidden=true;tPlay()}else showTitle()},50);
+/* v5.34: รอไฟล์เกมทุกระบบก่อนเริ่ม เพื่อไม่ข้ามการยืนยันเซฟคลาวด์ที่ติดตั้งภายหลัง */
+function startAccountGame(){let go=false;try{go=sessionStorage.getItem('fm_go')==='1'}catch(e){}if(FM_ACCT&&go){intro.hidden=true;tPlay()}else showTitle()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startAccountGame,{once:true});else startAccountGame();
 intro.hidden=true;
 // ปุ่มเมนู: กลับหน้าเริ่ม
 gid('resume').insertAdjacentHTML('beforebegin','<b class="sec">👤 บัญชี'+(FM_ACCT?' : '+esc(FM_ACCT):'')+'</b><button class="mini" onclick="saveGame(true);toggleMenu();showTitle()">🏰 กลับหน้าเริ่มเกม</button><button class="mini" onclick="openJournal()">📜 บันทึกเนื้อเรื่อง</button><button class="mini" onclick="toggleMenu();TUT.on=true;STORY.tut=0;saveStory();tutShow()">🎓 เล่นบทสอนอีกครั้ง</button>');
@@ -7239,7 +7243,7 @@ CLOUD.pendKey='fm_cloudpend';
 // ---------- นำเข้าเซฟจากเซิร์ฟเวอร์ตอนเริ่มเกม (ก่อนเกมโหลดเซฟ) ----------
 CLOUD.applyBlob=function(blob){const data=JSON.parse(blob);let n=0;for(const k in data){if(!/^fm_/.test(k)||/^fm_(set|accts|acct|last_acct|remember|chatfold|dev|lock|gmkey8)$/.test(k))continue;localStorage.setItem(k,data[k]);n++}return n};
 CLOUD.boot=function(){try{const raw=sessionStorage.getItem(CLOUD.pendKey);if(!raw)return false;sessionStorage.removeItem(CLOUD.pendKey);const p=JSON.parse(raw);if(!FM_ACCT||String(p.id).toLowerCase()!==String(FM_ACCT).toLowerCase())return false;
- const n=CLOUD.applyBlob(p.save);if(n){try{sessionStorage.setItem('fm_go','1')}catch(e){}CLOUD.reloading=true;try{_noSave=true}catch(e){}{const SP=Storage.prototype,_s=SP.setItem;SP.setItem=function(k,v){if(/^fm_/.test(String(k)))return;return _s.call(this,k,v)}}location.reload();return true}}catch(e){console.warn('cloud boot',e)}return false};
+ const n=CLOUD.applyBlob(p.save);if(n){/* v5.34: จด baseline หลังนำเข้าเซฟจริง ป้องกันค่าเริ่มต้นทำให้โหลดซ้ำไม่จบ */FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(p.save));try{sessionStorage.setItem('fm_go','1')}catch(e){}CLOUD.reloading=true;try{_noSave=true}catch(e){}{const SP=Storage.prototype,_s=SP.setItem;SP.setItem=function(k,v){if(/^fm_/.test(String(k)))return;return _s.call(this,k,v)}}location.reload();return true}}catch(e){console.warn('cloud boot',e)}return false};
 // ---------- ซิงค์อัตโนมัติ ----------
 CLOUD.revKey=()=>'cloud_rev_'+String(FM_ACCT||'').toLowerCase();
 CLOUD.sync=async function(force,ka){if(!FM_ACCT||CLOUD.busy||CLOUD.reloading||!CLOUD.base()||!CLOUD.tok(FM_ACCT))return;if(typeof P==='undefined'||!P||P.dead&&!force)return;

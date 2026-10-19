@@ -55,6 +55,7 @@ CATS = [
  ('ต่อสู้ / ดาเมจ / มอนตี / ตาย-ฟื้น', ['attack', 'hurtE', 'zHurt', 'hurtPlayer', 'updMob', 'startDeath', 'die'], r'ดาเมจ|โจมตี|ตาย|ฟื้น|สมดุล'),
  ('ขุดแร่ / ตัดไม้ / เครื่องมือ (ขวาน-ที่ขุด)', ['useToolHit', 'hitOre', 'hitTree', 'toolSpr', 'zMine'], r'ขุด|แร่|ต้นไม้|ขวาน|ตัดไม้'),
  ('เนื้อเรื่อง / เควส / เควสรายวัน', ['qTake', 'qClaim', 'talk'], r'เนื้อเรื่อง|เควส|บทที่|เช็กอิน'),
+ ('คลังของทดสอบ / NPC แจกของ / รับของทดสอบ', ['openTestSupplies', 'testSupplyCatalog', 'testSupplyGive', 'testSupplyRetry', 'testSupplyGuard'], r'คลังของทดสอบ|NPC'),
  ('NPC / คุยกับ NPC', ['npcTalk', 'ownerTalk', 'updNPCs', 'drawNPC'], r'NPC'),
  ('สัตว์ขี่ / สัตว์เลี้ยง', ['toggleMount', 'drawSteed', 'drawPet'], r'สัตว์ขี่|สัตว์เลี้ยง'),
  ('แฟชั่น / คอสตูม / เหรียญแฟชั่น', ['fashPreview'], r'แฟชั่น|คอสตูม|บูติก'),
