@@ -9,7 +9,7 @@ const OUTFIT41=[
  {n:'นักบวช',top:'#d8d0c0',pants:'#4a4a52'},{n:'ซากุระ',top:'#c0507a',pants:'#5a1a1a'}];
 const CC41={el:null,mode:'',L:null,dir:'d',hold:0,raf:0,busy:false,done:null};
 let REG41=null;
-const ccDone41=()=>{try{return localStorage.getItem('fm_cc41')==='1'}catch(e){return true}};
+const ccDone41=()=>{try{return !!(window.SERVER_BOOT&&SERVER_BOOT.ready&&window.FM_NEW===false)||localStorage.getItem('fm_cc41')==='1'}catch(e){return false}};
 {const st=document.createElement('style');st.textContent=`
 #cc41{position:fixed;inset:0;z-index:101;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 40%,#2a2448,#0a0814 75%);font-family:system-ui,"Noto Sans Thai",sans-serif;color:#fff;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));box-sizing:border-box}
 #cc41[hidden]{display:none}

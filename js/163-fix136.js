@@ -65,6 +65,7 @@ REG136.push(
  ['เซฟอัตโนมัติใช้คิวRAMและโหลดเซิร์ฟเวอร์ก่อนเข้า (v546)',()=>typeof CLOUD.capture==='function'&&typeof CLOUD.send==='function'&&!!SERVER_BOOT.ram&&cloudBootDecision32({hasRemote:true,same:false})==='pull'?null:'คิวเซฟกลางหรือโหลดข้อมูลก่อนเริ่มหาย'],
  ['สถิติอันดับอยู่ในเซฟก่อนส่งคลาวด์',async()=>{try{st20Save();const saved=JSON.parse(saveKeys8().fm_stat20||'{}');return saved.kills===ST20.kills&&saved.boss===ST20.boss?null:'ข้อมูลสถิติในเซฟล้าหลัง'}catch(e){return 'error '+e.message}}],
  ['ซิงค์ช้าแล้วโหลดอันดับล่าสุดอีกครั้ง',async()=>{try{let n=0;const q=await settleLb20(Promise.resolve({ok:true}),async()=>{n++;return{ok:true,k:[]}});return q.state.ok&&q.top.ok&&n===1?null:'ตารางไม่ได้อ่านอันดับใหม่หลังซิงค์'}catch(e){return 'error '+e.message}}]);
+REG136.push(['ตัวละครเดิมบนเซิร์ฟเวอร์ไม่กลับไปสร้างใหม่เมื่อธงเก่าหาย (v547)',()=>SERVER_BOOT.ready&&window.FM_NEW===false&&!ccDone41()?'พบเซฟตัวละครเดิมแต่ยังขอสร้างใหม่':null]);
 window.REG136=REG136;
 {const _run=SystemValidator.runFullGamePlaytest;SystemValidator.runFullGamePlaytest=async function(opt){const R=await _run.apply(this,arguments);
   const sv={cls:P.cls,lv:P.lv,coin:inv.coin},god=window.GM7&&GM7.god;try{if(window.GM7)GM7.god=true}catch(e){}const out=[];

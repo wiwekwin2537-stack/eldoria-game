@@ -1,6 +1,6 @@
 # 🗺️ แผนที่ระบบ (SYSTEMS.md) — แจ้งบัคเรื่องไหน → แก้ที่ไหน
 
-> ไฟล์นี้สร้างอัตโนมัติด้วย `python3 tools/systems_map.py` (อัปเดต 2026-10-20) · **แก้ไฟล์ใน js/ แล้วรันใหม่ทุกครั้ง**
+> ไฟล์นี้สร้างอัตโนมัติด้วย `python3 tools/systems_map.py` (อัปเดต 2026-10-21) · **แก้ไฟล์ใน js/ แล้วรันใหม่ทุกครั้ง**
 > โค้ดเกมอยู่ในโฟลเดอร์ `js/` (โหลดตามลำดับเลขหน้าชื่อไฟล์) · `js/031-core.js` = เกมหลัก · `js/NNN-fixXX.js` = ชุดแก้ · เลขบรรทัดเปลี่ยนได้ → ค้นด้วยชื่อฟังก์ชัน
 > **วิธีใช้:** เจ้าของบอกอาการ → หาหมวดข้างล่าง → อ่านเฉพาะฟังก์ชัน/ชุดแก้ในหมวดนั้น (ไม่ต้องอ่านทั้งไฟล์) → ก่อนแก้ต้องเห็น **ทุกชั้น** ของฟังก์ชันที่จะแตะ
 > ฝั่งเซิร์ฟเวอร์: บัญชี/เซฟ/ตารางอันดับ/กิลด์ = `accounts.js` · บอสโลก/ประมูล/แผงร้าน = `world.js` · ตลาด/เทรด = `market.js` · PvP = `pvp.js` · ปาร์ตี้ = `party.js` · เส้นทาง/ไฟล์ = `server.js`
@@ -80,7 +80,7 @@
 | `leaveShop` | js\022-core.js:51 | 4 ชั้น | js\031-core.js:3553 · js\031-core.js:4819 · js\127-fix95.js:192 · js\131-fix99.js:22 |
 | `enter62` | js\094-fix62.js:50 | 4 ชั้น | js\096-fix64.js:22 · js\150-fix118.js:16 · js\152-fix121.js:5 · js\161-fix134.js:12 |
 | `leave62` | js\094-fix62.js:59 | 1 ชั้น | js\161-fix134.js:13 |
-| `interact` | js\023-core.js:23 | 24 ชั้น | js\031-core.js:1105 · js\031-core.js:2126 · js\031-core.js:2312 · js\031-core.js:2837 · js\031-core.js:4123 · js\031-core.js:4127 · js\031-core.js:4177 · js\031-core.js:6801 · js\042-fix11.js:19 · js\046-fix15.js:33 · js\047-fix16.js:36 · js\074-fix42.js:85 · js\074-fix42.js:158 · js\096-fix64.js:31 · js\104-fix72.js:110 · js\106-fix74.js:49 · js\108-fix76.js:63 · js\113-fix81.js:252 · js\127-fix95.js:206 · js\128-fix96.js:44 · js\142-fix110.js:47 · js\156-fix129.js:28 · js\171-fix144.js:125 · js\174-fix147.js:13 |
+| `interact` | js\023-core.js:23 | 24 ชั้น | js\031-core.js:1105 · js\031-core.js:2126 · js\031-core.js:2312 · js\031-core.js:2837 · js\031-core.js:4123 · js\031-core.js:4127 · js\031-core.js:4177 · js\031-core.js:6801 · js\042-fix11.js:19 · js\046-fix15.js:33 · js\047-fix16.js:36 · js\074-fix42.js:85 · js\074-fix42.js:158 · js\096-fix64.js:31 · js\104-fix72.js:110 · js\106-fix74.js:49 · js\108-fix76.js:63 · js\113-fix81.js:255 · js\127-fix95.js:206 · js\128-fix96.js:44 · js\142-fix110.js:47 · js\156-fix129.js:28 · js\171-fix144.js:125 · js\174-fix147.js:13 |
 | `toTown` | js\020-core.js:22 | 2 ชั้น | js\030-core.js:69 · js\042-fix11.js:59 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
@@ -239,7 +239,7 @@
 ## ปาร์ตี้ / กิลด์ / เล่นออนไลน์ด้วยกัน
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `netMsg` | js\031-core.js:2670 | 16 ชั้น | js\031-core.js:7279 · js\040-fix9.js:19 · js\051-fix20.js:104 · js\052-fix21.js:61 · js\060-fix29.js:47 · js\060-fix29.js:91 · js\064-fix33.js:28 · js\066-fix35.js:29 · js\104-fix72.js:28 · js\113-fix81.js:86 · js\114-fix82.js:51 · js\153-fix123.js:41 · js\157-fix130.js:87 · js\160-fix133.js:2 · js\166-fix139.js:31 · js\185-shared-world.js:67 |
+| `netMsg` | js\031-core.js:2670 | 16 ชั้น | js\031-core.js:7279 · js\040-fix9.js:19 · js\051-fix20.js:104 · js\052-fix21.js:61 · js\060-fix29.js:47 · js\060-fix29.js:91 · js\064-fix33.js:28 · js\066-fix35.js:29 · js\104-fix72.js:28 · js\113-fix81.js:89 · js\114-fix82.js:51 · js\153-fix123.js:41 · js\157-fix130.js:87 · js\160-fix133.js:2 · js\166-fix139.js:31 · js\185-shared-world.js:67 |
 | `drawOther` | js\031-core.js:2684 | 11 ชั้น | js\031-core.js:3823 · js\031-core.js:7024 · js\031-core.js:7319 · js\040-fix9.js:228 · js\051-fix20.js:105 · js\052-fix21.js:67 · js\056-fix25.js:211 · js\065-fix34.js:24 · js\066-fix35.js:47 · js\089-fix57.js:69 · js\103-fix71.js:13 |
 | `openGuild` | js\031-core.js:2358 | 2 ชั้น | js\031-core.js:2557 · js\153-fix123.js:67 |
 
@@ -380,10 +380,10 @@
 ## NPC / คุยกับ NPC
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `npcTalk` | js\031-core.js:2855 | 9 ชั้น | js\031-core.js:4218 · js\031-core.js:4249 · js\031-core.js:4269 · js\080-fix48.js:43 · js\113-fix81.js:249 · js\127-fix95.js:245 · js\128-fix96.js:73 · js\135-fix103.js:43 · js\161-fix134.js:46 |
+| `npcTalk` | js\031-core.js:2855 | 9 ชั้น | js\031-core.js:4218 · js\031-core.js:4249 · js\031-core.js:4269 · js\080-fix48.js:43 · js\113-fix81.js:252 · js\127-fix95.js:245 · js\128-fix96.js:73 · js\135-fix103.js:43 · js\161-fix134.js:46 |
 | `ownerTalk` | js\031-core.js:2841 | 12 ชั้น | js\031-core.js:4220 · js\031-core.js:4222 · js\031-core.js:4250 · js\031-core.js:4730 · js\031-core.js:4770 · js\031-core.js:4938 · js\050-fix19.js:14 · js\052-fix21.js:59 · js\100-fix68.js:42 · js\101-fix69.js:83 · js\103-fix71.js:16 · js\106-fix74.js:36 |
-| `updNPCs` | js\020-core.js:63 | 3 ชั้น | js\032-fix1.js:6 · js\080-fix48.js:24 · js\113-fix81.js:244 |
-| `drawNPC` | js\020-core.js:70, js\031-core.js:479 | 5 ชั้น | js\031-core.js:3512 · js\031-core.js:4271 · js\080-fix48.js:33 · js\106-fix74.js:57 · js\113-fix81.js:247 |
+| `updNPCs` | js\020-core.js:63 | 3 ชั้น | js\032-fix1.js:6 · js\080-fix48.js:24 · js\113-fix81.js:247 |
+| `drawNPC` | js\020-core.js:70, js\031-core.js:479 | 5 ชั้น | js\031-core.js:3512 · js\031-core.js:4271 · js\080-fix48.js:33 · js\106-fix74.js:57 · js\113-fix81.js:250 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix48` `js\080-fix48.js` — (v4.54) — NPC มีตารางชีวิต: ไม่เดินเตร่ไปมาแล้ว · กลางวัน (05:30–21:00) ยืนประจำจุดทำงาน หันหน้าหาผู้เล่น
@@ -421,7 +421,7 @@
 ## หน้าตาตัวละคร / อาวุธในมือ / ออร่า
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `hero` | js\018-core.js:50 | 53 ชั้น | js\031-core.js:757 · js\031-core.js:1404 · js\031-core.js:1565 · js\031-core.js:1663 · js\031-core.js:1885 · js\031-core.js:2055 · js\031-core.js:2600 · js\031-core.js:2689 · js\031-core.js:2995 · js\031-core.js:3325 · js\031-core.js:3634 · js\031-core.js:3840 · js\031-core.js:4173 · js\031-core.js:4205 · js\031-core.js:4215 · js\031-core.js:4444 · js\031-core.js:4720 · js\031-core.js:4911 · js\031-core.js:5220 · js\031-core.js:6009 · js\031-core.js:6262 · js\031-core.js:6331 · js\031-core.js:6486 · js\031-core.js:6497 · js\038-fix7.js:56 · js\038-fix7.js:83 · js\040-fix9.js:223 · js\041-fix10.js:27 · js\041-fix10.js:54 · js\042-fix11.js:37 · js\042-fix11.js:60 · js\046-fix15.js:36 · js\047-fix16.js:42 · js\073-fix41.js:335 · js\074-fix42.js:163 · js\078-fix46.js:208 · js\087-fix55.js:73 · js\090-fix58.js:38 · js\094-fix62.js:80 · js\096-fix64.js:32 · js\102-fix70.js:9 · js\104-fix72.js:107 · js\105-fix73.js:93 · js\106-fix74.js:48 · js\108-fix76.js:59 · js\113-fix81.js:170 · js\113-fix81.js:194 · js\113-fix81.js:257 · js\118-fix86.js:8 · js\132-fix100.js:6 · js\136-fix104.js:33 · js\170-fix143.js:57 · js\177-fix150.js:14 |
+| `hero` | js\018-core.js:50 | 53 ชั้น | js\031-core.js:757 · js\031-core.js:1404 · js\031-core.js:1565 · js\031-core.js:1663 · js\031-core.js:1885 · js\031-core.js:2055 · js\031-core.js:2600 · js\031-core.js:2689 · js\031-core.js:2995 · js\031-core.js:3325 · js\031-core.js:3634 · js\031-core.js:3840 · js\031-core.js:4173 · js\031-core.js:4205 · js\031-core.js:4215 · js\031-core.js:4444 · js\031-core.js:4720 · js\031-core.js:4911 · js\031-core.js:5220 · js\031-core.js:6009 · js\031-core.js:6262 · js\031-core.js:6331 · js\031-core.js:6486 · js\031-core.js:6497 · js\038-fix7.js:56 · js\038-fix7.js:83 · js\040-fix9.js:223 · js\041-fix10.js:27 · js\041-fix10.js:54 · js\042-fix11.js:37 · js\042-fix11.js:60 · js\046-fix15.js:36 · js\047-fix16.js:42 · js\073-fix41.js:335 · js\074-fix42.js:163 · js\078-fix46.js:208 · js\087-fix55.js:73 · js\090-fix58.js:38 · js\094-fix62.js:80 · js\096-fix64.js:32 · js\102-fix70.js:9 · js\104-fix72.js:107 · js\105-fix73.js:93 · js\106-fix74.js:48 · js\108-fix76.js:59 · js\113-fix81.js:173 · js\113-fix81.js:197 · js\113-fix81.js:260 · js\118-fix86.js:8 · js\132-fix100.js:6 · js\136-fix104.js:33 · js\170-fix143.js:57 · js\177-fix150.js:14 |
 | `heroBody` | js\018-core.js:11 | 12 ชั้น | js\031-core.js:3822 · js\031-core.js:5332 · js\031-core.js:5407 · js\031-core.js:5438 · js\031-core.js:5580 · js\031-core.js:5811 · js\032-fix1.js:63 · js\040-fix9.js:235 · js\089-fix57.js:71 · js\092-fix60.js:31 · js\102-fix70.js:5 · js\170-fix143.js:31 |
 | `renderChar` | js\031-core.js:347 | 6 ชั้น | js\031-core.js:1707 · js\031-core.js:2217 · js\031-core.js:3087 · js\031-core.js:6441 · js\143-fix111.js:62 · js\155-fix128.js:53 |
 | `backSword` | js\015-core.js:218 | 9 ชั้น | js\031-core.js:2070 · js\031-core.js:2430 · js\031-core.js:2576 · js\031-core.js:2993 · js\031-core.js:5330 · js\031-core.js:5474 · js\031-core.js:6278 · js\038-fix7.js:23 · js\058-fix27.js:73 |

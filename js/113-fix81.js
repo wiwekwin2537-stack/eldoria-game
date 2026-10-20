@@ -31,16 +31,19 @@ W81.repair81=function(){try{const done=()=>{try{location.reload()}catch(e){}};co
  if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)jobs.push(navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))));
  if(W81.caches&&caches.keys)jobs.push(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))));
  Promise.all(jobs).then(done,done);setTimeout(done,2500)}catch(e){location.reload()}};
-const E81={shown:0,list:[]};
+const E81={shown:0,list:[],attempt:0};
+W81.cancelPlay81=function(){W81.__play81=0;E81.attempt++;E81.shown=0;const b=document.getElementById('fix81e');if(b)b.remove()};
+function activePlay81(attempt){return !!(attempt&&E81.attempt===attempt&&W81.__play81&&!document.querySelector('#lId, #lGo, #cc41go')&&!(W81.SERVER_BOOT&&!W81.SERVER_BOOT.ready))}
+function pendingPlay81(attempt){return activePlay81(attempt)&&typeof titleEl!=='undefined'&&!titleEl.hidden}
 function errBox81(msg){if(E81.shown)return;E81.shown=1;let b=document.getElementById('fix81e');if(!b){b=document.createElement('div');b.id='fix81e';document.body.appendChild(b)}
  b.innerHTML='⚠️ เปิดเกมไม่สำเร็จบนเครื่องนี้<br><small style="opacity:.8">'+esc81(String(msg).slice(0,120))+'</small><br><button onclick="repair81()">🧹 ซ่อมเกม (ล้างแคช) แล้วโหลดใหม่</button><button onclick="this.parentNode.remove()">ปิด</button>'}
 W81.addEventListener('error',e=>{try{E81.list.push(String(e.message||e));if(E81.list.length>20)E81.list.shift();
- if(typeof titleEl!=='undefined'&&!titleEl.hidden&&W81.__play81&&Date.now()-W81.__play81<15000)errBox81(e.message||'script error')}catch(_){}});
-W81.addEventListener('unhandledrejection',e=>{try{if(typeof titleEl!=='undefined'&&!titleEl.hidden&&W81.__play81&&Date.now()-W81.__play81<15000)errBox81((e.reason&&e.reason.message)||e.reason||'promise')}catch(_){}});
-if(typeof tPlay==='function'){const _tp=tPlay;tPlay=function(){W81.__play81=Date.now();let r;try{r=_tp.apply(this,arguments)}catch(e){errBox81(e.message||e);throw e}
-  if(r&&r.catch)r.catch(e=>errBox81((e&&e.message)||e));
+ if(pendingPlay81(E81.attempt)&&Date.now()-W81.__play81<15000)errBox81(e.message||'script error')}catch(_){}});
+W81.addEventListener('unhandledrejection',e=>{try{if(pendingPlay81(E81.attempt)&&Date.now()-W81.__play81<15000)errBox81((e.reason&&e.reason.message)||e.reason||'promise')}catch(_){}});
+if(typeof tPlay==='function'){const _tp=tPlay;tPlay=function(){const attempt=++E81.attempt;W81.__play81=Date.now();let r;try{r=_tp.apply(this,arguments)}catch(e){if(activePlay81(attempt))errBox81(e.message||e);throw e}
+  if(r&&r.catch)r.catch(e=>{if(activePlay81(attempt))errBox81((e&&e.message)||e)});
   // ยังค้างหน้าแรกนานเกินไป (ไม่มีอะไรเด้งขึ้นมา) → เสนอปุ่มซ่อม
-  setTimeout(()=>{try{const pan=document.getElementById('tpan');const busy=pan&&/กำลัง|โหลด/.test(pan.textContent||'');if(!titleEl.hidden&&!busy&&W81.__play81&&!document.querySelector('#cc41go'))errBox81(E81.list.length?E81.list[E81.list.length-1]:'กดเข้าเกมแล้วไม่ตอบสนอง')}catch(e){}},12000);return r};W81.tPlay=tPlay}
+  setTimeout(()=>{try{const pan=document.getElementById('tpan');const busy=pan&&/กำลัง|โหลด/.test(pan.textContent||'');if(pendingPlay81(attempt)&&!busy)errBox81(E81.list.length?E81.list[E81.list.length-1]:'กดเข้าเกมแล้วไม่ตอบสนอง')}catch(e){}},12000);return r};W81.tPlay=tPlay}
 // ลิงก์ "ซ่อมเกม" เล็ก ๆ ที่หน้าแรกเสมอ
 setInterval(()=>{try{if(typeof titleEl==='undefined'||titleEl.hidden)return;const pan=document.getElementById('tpan');if(!pan||pan.querySelector('.rp81'))return;
  pan.insertAdjacentHTML('beforeend','<div class="rp81" style="margin-top:8px;font-size:11px;opacity:.7">เปิดเกมไม่ขึ้น/ค้าง? <a href="#" onclick="repair81();return false" style="color:#ffd84a">🧹 ซ่อมเกม</a></div>')}catch(e){}},1500);
