@@ -11,7 +11,7 @@ const M83={cur:null,l0:0,h0:0};window.M83=M83;
 function swing83(m){ // เงื่อนไขและสูตรเดียวกับบล็อก "โดนฟัน" ใน updMob ตัวเดิม (+ตัวคูณสายประชิด MEL51 ของ fix51)
  const F=m.F,SPN=P.cmb===2&&P.tool==='sword',ax=SPN?P.x:P.x+DIRV[P.dir][0]*26,ay=SPN?P.y-14:P.y-8+DIRV[P.dir][1]*26,
   atk=P.tool==='sword'&&!(typeof isRng!=='undefined'&&isRng())&&(SPN?(P.at>.12&&P.at<.88):(P.at>.2&&P.at<.7));
- if(!(atk&&m.last!==atkId&&Math.hypot(m.x-ax,(m.y-10*m.sc)-ay)<(SPN?50:34)+F.r*m.sc*.6))return;
+ if(!(atk&&m.last!==atkId&&meleeContact(m,SPN)))return;
  m.last=atkId;const cr=Math.random()<.08+P.stats.agi*.004;
  let dmg=Math.max(1,Math.round(ATK()*rnd(.9,1.1)*(cr?1.8+(window.CRITD?CRITD():0):1)*(SPN?1.15:1)));
  const k=window.MEL51&&MEL51[P.cls];if(k)dmg=Math.round(dmg*k);

@@ -17,7 +17,7 @@ function updSlimes(dt){
   if(s.kx||s.ky){mvS(s,s.kx*dt,s.ky*dt);const d=Math.pow(.02,dt);s.kx*=d;s.ky*=d;if(Math.abs(s.kx)+Math.abs(s.ky)<4)s.kx=s.ky=0}
   s.hurt=Math.max(0,s.hurt-dt);s.cool=Math.max(0,(s.cool||0)-dt);
   if(P.iframe<=0&&cyc>=.3&&s.cool<=0&&s.hurt<=0&&Math.hypot(s.x-P.x,s.y-P.y)<20)hurtPlayer(s);
-  if(atk&&s.last!==atkId&&Math.hypot(s.x-ax,s.y-ay)<(SPN?50:34)){s.last=atkId;{const cr=Math.random()<.08+P.stats.agi*.004,dm=Math.max(1,Math.round(ATK()*(.9+Math.random()*.2)*(cr?1.8+(window.CRITD?CRITD():0):1)));if(!s.max)s.max=s.hp;s.hp-=dm;if(window.dmgTxt)dmgTxt(s.x,s.y-26,(cr?'💥':'')+dm,cr?'#ffd84a':'#fff',cr)}s.hurt=.25;sfx('hit');
+  if(atk&&s.last!==atkId&&meleeContact(s,SPN)){s.last=atkId;{const cr=Math.random()<.08+P.stats.agi*.004,dm=Math.max(1,Math.round(ATK()*(.9+Math.random()*.2)*(cr?1.8+(window.CRITD?CRITD():0):1)));if(!s.max)s.max=s.hp;s.hp-=dm;if(window.dmgTxt)dmgTxt(s.x,s.y-26,(cr?'💥':'')+dm,cr?'#ffd84a':'#fff',cr)}s.hurt=.25;sfx('hit');
    const d=Math.hypot(s.x-P.x,s.y-P.y)||1;s.kx=(s.x-P.x)/d*240;s.ky=(s.y-P.y)/d*240;
    if(s.hp<=0){s.dead=true;sfx('splat');dropLoot(s.x,s.y,s);document.getElementById('msg').textContent='สไลม์แตก!';
     for(let i=0;i<10;i++)fx.push({x:s.x,y:s.y-8,vx:(Math.random()-.5)*120,vy:-40-Math.random()*80,l:.6})}}

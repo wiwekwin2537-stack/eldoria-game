@@ -14,7 +14,7 @@ function heroBody(){
  const R=(c,a,b,w,h)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(a),Math.round(b),w,h)};
  const EC=EQCOL(),BLK='#14141a',LGA=EC.BLK,LGB=EC.LEG2,TOP=EC.TOP,COL=EC.COLLAR,SK='#f1d2b0',tilt=run?.35:0;
  const DP=DPOSE&&!at,leg=(hx,hy,ang,col,h)=>{ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);R(col,0,0,6,h);ctx.restore()};
- const held=(hx,hy,ang)=>{if(P.draw&&(P.tool!=='sword'||P.armor.sword)&&!(side&&!at&&P.tool==='sword'&&!(window.RNGHOLD7&&RNGHOLD7())))toolSpr(hx,hy,ang);R(SK,hx-3,hy-2,6,4)};
+ const held=(hx,hy,ang)=>{if(P.draw&&(P.tool!=='sword'||P.armor.sword))toolSpr(hx,hy,ang);R(SK,hx-3,hy-2,6,4)};
  const slash=()=>slashFx(x,by,d,side,f,TOP,held);
  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(x,y+1,11,4,0,0,7);ctx.fill();
  if(DP){ctx.save();ctx.translate(x,y);if(side)ctx.rotate(f*.42);else ctx.scale(1,.9);ctx.translate(-x,-y)}

@@ -1054,7 +1054,7 @@ function updMob(m,dt){const F=m.F,dx=P.x-m.x,dy=P.y-m.y,dist=Math.hypot(dx,dy)||
  if(!D||!D.zone)return;
  // โดนฟัน
  const SPN=P.cmb===2&&P.tool==='sword',ax=SPN?P.x:P.x+DIRV[P.dir][0]*26,ay=SPN?P.y-14:P.y-8+DIRV[P.dir][1]*26,atk=P.tool==='sword'&&!(typeof isRng!=='undefined'&&isRng())&&(SPN?(P.at>.12&&P.at<.88):(P.at>.2&&P.at<.7));
- if(atk&&m.last!==atkId&&Math.hypot(m.x-ax,(m.y-10*m.sc)-ay)<(SPN?50:34)+F.r*m.sc*.6){m.last=atkId;const cr=Math.random()<.08+P.stats.agi*.004,dmg=Math.max(1,Math.round(ATK()*rnd(.9,1.1)*(cr?1.8+(window.CRITD?CRITD():0):1)*(SPN?1.15:1)));
+ if(atk&&m.last!==atkId&&meleeContact(m,SPN)){m.last=atkId;const cr=Math.random()<.08+P.stats.agi*.004,dmg=Math.max(1,Math.round(ATK()*rnd(.9,1.1)*(cr?1.8+(window.CRITD?CRITD():0):1)*(SPN?1.15:1)));
   m.hp-=dmg;noteBossFight(m);m.hurt=.18;m.aggro=1;if(m.st==='idle')m.st='chase';sfx('hit');dmgTxt(m.x+rnd(-6,6),m.y-26*m.sc,(cr?'💥':'')+dmg,cr?'#ffd84a':'#fff',cr);
   const kb=(SPN?260:200)*F.kb*(m.boss?0:m.elite?.5:1);m.kx=-nx*kb;m.ky=-ny*kb;
   for(let i=0;i<5;i++)fx.push({x:m.x,y:m.y-10*m.sc,vx:(Math.random()-.5)*120,vy:-30-Math.random()*60,l:.35,c:'255,255,255'});
@@ -1119,11 +1119,11 @@ function drawBeetle(m,t,c){const w=m.mv?t*14:0,L=[-1,0,1];ctx.strokeStyle=c[1];c
  ctx.fillStyle=c[1];ctx.beginPath();ctx.ellipse(11,-8,6,5,0,0,7);ctx.fill();ctx.strokeStyle='#120c08';ctx.stroke();
  ctx.strokeStyle=c[1];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(15,-10);ctx.quadraticCurveTo(21,-12,20,-6);ctx.moveTo(15,-6);ctx.quadraticCurveTo(21,-3,19,-1);ctx.stroke();
  ctx.fillStyle=c[2];ctx.fillRect(12,-11,2,2);ctx.fillRect(12,-7,2,2)}
-function drawBat(m,t,c){const f=Math.sin(t*(m.st==='wu'?30:16)),z=-14+Math.sin(t*3)*3;ctx.translate(0,z);
+function drawBat(m,t,c){if(MONSTERART.draw(m,t))return;const f=Math.sin(t*(m.st==='wu'?30:16)),z=-14+Math.sin(t*3)*3;ctx.translate(0,z);
  ctx.fillStyle=c[1];ctx.strokeStyle='#0c080c';ctx.lineWidth=1.2;for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(s*4,-4);ctx.quadraticCurveTo(s*14,-14-f*8,s*22,-6-f*10);ctx.lineTo(s*18,-2-f*5);ctx.lineTo(s*14,0-f*4);ctx.lineTo(s*9,-1-f*2);ctx.closePath();ctx.fill();ctx.stroke()}
  ctx.fillStyle=c[0];ctx.beginPath();ctx.ellipse(0,-4,6,7,0,0,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-4,-9);ctx.lineTo(-3,-15);ctx.lineTo(-1,-10);ctx.moveTo(4,-9);ctx.lineTo(3,-15);ctx.lineTo(1,-10);ctx.fill();
  ctx.fillStyle=c[2];ctx.fillRect(-3,-6,2,2);ctx.fillRect(1,-6,2,2);ctx.fillStyle='#fff';ctx.fillRect(-2,-1,1,2);ctx.fillRect(1,-1,1,2)}
-function drawGolem(m,t,c){const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='slamWU'?1:0,arm=wu?-10:m.st==='strike'?8:w*3;
+function drawGolem(m,t,c){if(MONSTERART.draw(m,t))return;const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='slamWU'?1:0,arm=wu?-10:m.st==='strike'?8:w*3;
  const R=(col,x,y,ww,hh)=>{ctx.fillStyle=col;ctx.fillRect(x,y,ww,hh);ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,ww-1,hh-1)};
  R(c[1],-9,-12+w*2,7,12-w*2);R(c[1],2,-12-w*2,7,12+w*2);
  R(c[0],-12,-32,24,21);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(-12,-18,24,7);ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(-10,-30,9,4);
@@ -1131,7 +1131,7 @@ function drawGolem(m,t,c){const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='s
  const g=ctx.createRadialGradient(3,-23,1,3,-23,6);g.addColorStop(0,'#fff');g.addColorStop(.4,c[2]);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(-4,-30,14,14);
  R(c[0],-20,-31+arm,8,17);R(c[1],-21,-16+arm,10,8);R(c[0],12,-31-arm*.5,8,17);R(c[1],11,-16-arm*.5,10,8);
  R(c[0],-7,-42,14,11);ctx.fillStyle=c[2];ctx.fillRect(-4,-38,3,2);ctx.fillRect(2,-38,3,2)}
-function drawWolf(m,t,c){const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
+function drawWolf(m,t,c){if(MONSTERART.draw(m,t))return;const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
  ctx.strokeStyle=c[1];ctx.lineWidth=3.2;ctx.lineCap='round';for(const [x,i] of [[-9,0],[-5,3],[7,1.5],[11,4.5]]){ctx.beginPath();ctx.moveTo(x,-9+wu);ctx.lineTo(x+lg(i),0);ctx.stroke()}
  ctx.fillStyle=c[1];ctx.beginPath();ctx.moveTo(-13,-12+wu);ctx.quadraticCurveTo(-24,-18+Math.sin(t*5)*3,-22,-6);ctx.lineTo(-13,-9+wu);ctx.fill();
  const g=ctx.createLinearGradient(0,-18,0,-4);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);ctx.fillStyle=g;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=1.2;
@@ -1150,6 +1150,9 @@ function drawDragon(m,t,c){const f=Math.sin(t*5),z=-10+Math.sin(t*2)*3;ctx.trans
  ctx.beginPath();ctx.moveTo(6,-20);ctx.quadraticCurveTo(14,-30,12,-36);ctx.lineTo(22,-36);ctx.lineTo(26,-31);ctx.lineTo(16,-29);ctx.lineTo(12,-18);ctx.closePath();ctx.fill();ctx.stroke();
  ctx.fillStyle=c[2];for(const [x,y] of [[-4,-25],[2,-26],[-9,-21]]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+3,y-7);ctx.lineTo(x+5,y);ctx.fill()}
  ctx.beginPath();ctx.moveTo(14,-37);ctx.lineTo(12,-44);ctx.lineTo(17,-37);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(19,-34,2,2)}
+// One small, reusable atlas; native drawings remain available if the image is unavailable.
+const MONSTERART={image:new Image(),ready:false,frames:{wolf:[[12,94,362,184],[375,94,350,184],[728,94,357,184],[1088,94,356,184]],golem:[[48,336,315,384],[410,336,318,384],[754,336,315,384],[1122,336,290,384]],bat:[[0,720,362,366],[362,720,362,366],[724,720,362,366],[1086,720,362,366]]},draw(m,t){if(!this.ready||!this.frames[m.f])return false;const row=this.frames[m.f],moving=m.mv||m.f==='bat',rate=m.f==='wolf'?10:m.f==='golem'?5:9,frame=moving?Math.floor(t*rate)%4:m.f==='wolf'?1:0,r=row[frame];ctx.save();if(m.f==='bat'&&m.fx<0)ctx.scale(-1,1);if(m.hurt>0)ctx.filter='brightness(1.7)';ctx.imageSmoothingEnabled=true;if(/WU$/.test(m.st)||m.st==='wu'){ctx.translate(-2,1);ctx.scale(1.04,.94)}else if(m.st==='strike'||m.st==='lunge'){ctx.translate(3,-1);ctx.rotate(.045)}if(m.f==='bat'){const scale=.155;ctx.drawImage(this.image,...r,-270*scale,-270*scale,r[2]*scale,r[3]*scale)}else{const width=m.f==='wolf'?54:43,height=m.f==='wolf'?28:49,breathe=moving?0:Math.sin(t*2)*.45;ctx.drawImage(this.image,...r,-width/2,-height-breathe,width,height+breathe)}ctx.restore();return true}};
+MONSTERART.image.onload=()=>{MONSTERART.ready=true};MONSTERART.image.onerror=()=>{MONSTERART.ready=false};MONSTERART.image.src='assets/monsters/creatures-v549.webp';window.MONSTERART=MONSTERART;
 const MOBDRAW={beetle:drawBeetle,bat:drawBat,golem:drawGolem,wolf:drawWolf,wisp:drawWisp,dragon:drawDragon};
 function drawMob(m,t){const c=mobCols(m),s=m.sc;
  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(m.x,m.y+1,(m.F.r+2)*s,4*s,0,0,7);ctx.fill();
@@ -1845,7 +1848,7 @@ setTimeout(()=>{chatSay('guild',GUILD.mem[0][0],'ยินดีต้อนร�
 // ---------- F) เซฟอัตโนมัติ (บันทึกลงเครื่อง) ----------
 const SAVEK='fm_save_v1';let _lastSave=0;const SAVE_STATE={localError:''};window.SAVE_STATE=SAVE_STATE;
 function saveGame(manual){if(document.readyState==='loading'||(FM_ACCT&&window.ONL32&&!ONL32.verified))return false;if(P.dead&&!manual)return false;try{const d={v:1,t:Date.now(),name:P.name,lv:P.lv,xp:P.xp,sp:P.sp,stats:baseStats(),hp:Math.max(1,Math.round(P.hp)),mp:Math.round(P.mp),fa:P.fa,hu:P.hu,armor:Object.assign({},P.armor),tier:P.tier,tool:P.tool,draw:P.draw,bagLv:P.bagLv,
- inv,gear:Object.assign({},window.__PEND8&&__PEND8.g,GEAR),enh:ENH,sk:SK.own,qs:QS.slots,day:DAY.t,buffs:BUFFS.map(b=>({id:b.id,t:b.t}))};for(const [slot,id]of Object.entries(window.__PEND8&&__PEND8.a||{}))if(!d.armor[slot])d.armor[slot]=id;localStorage.setItem(SAVEK,JSON.stringify(d));_lastSave=performance.now();SAVE_STATE.localError='';if(manual&&!(window.CLOUD&&CLOUD.capturing))sysSay('☁️ กำลังบันทึกขึ้นเซิร์ฟเวอร์…');return true}catch(e){SAVE_STATE.localError=String(e&&e.message||e);if(manual)sysSay('เตรียมข้อมูลบันทึกไม่สำเร็จ — กรุณาลองอีกครั้ง');return false}}
+ inv,gear:Object.assign({},window.__PEND8&&__PEND8.g,GEAR),enh:ENH,sk:SK.own,qs:QS.slots,day:DAY.t,buffs:BUFFS.map(b=>({id:b.id,t:b.t}))};for(const [slot,id]of Object.entries(window.__PEND8&&__PEND8.a||{}))if(!d.armor[slot])d.armor[slot]=id;localStorage.setItem(SAVEK,JSON.stringify(d));_lastSave=performance.now();SAVE_STATE.localError='';return true}catch(e){SAVE_STATE.localError=String(e&&e.message||e);if(manual)sysSay('เตรียมข้อมูลบันทึกไม่สำเร็จ — กรุณาลองอีกครั้ง');return false}}
 function loadGame(){let d;try{d=JSON.parse(localStorage.getItem(SAVEK)||'null')}catch(e){}if(!d||d.v!==1)return false;
  if(d.name)P.name=d.name;Object.assign(P,{lv:d.lv,xp:d.xp,sp:d.sp,fa:d.fa,hu:d.hu,bagLv:d.bagLv|0,tool:d.tool||'sword',draw:!!d.draw});Object.assign(P.stats,d.stats);P.ab={str:0,vit:0,int:0,agi:0,end:0};
  Object.assign(P.armor,d.armor);Object.assign(P.tier,d.tier);for(const k in inv)if(k!=='coin')inv[k]=0;Object.assign(inv,d.inv);for(const k in GEAR)delete GEAR[k];Object.assign(GEAR,d.gear);window.__PEND7={a:{},g:{}};for(const k in P.armor){const id=P.armor[k];if(id&&!ITEMS[id]){__PEND7.a[k]=id;P.armor[k]=null}}for(const id in GEAR)if(!ITEMS[id]){__PEND7.g[id]=GEAR[id];delete GEAR[id]}Object.assign(ENH,d.enh);
@@ -1854,8 +1857,7 @@ function loadGame(){let d;try{d=JSON.parse(localStorage.getItem(SAVEK)||'null')}
  syncSword();recalcStats();applyBonus();P.hp=Math.min(BAL.hp,d.hp);P.mp=Math.min(BAL.mp,d.mp);return true}
 const _loaded=loadGame();
 setInterval(()=>saveGame(),20000);addEventListener('beforeunload',()=>saveGame());document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame()});
-setTimeout(()=>{if(_loaded)sysSay('💾 โหลดเกมที่บันทึกไว้แล้ว (Lv.'+P.lv+') · เกมบันทึกอัตโนมัติทุก 20 วินาที');else sysSay('💾 เกมจะบันทึกอัตโนมัติทุก 20 วินาที')},2500);
-{const _ct=clockEl;setInterval(()=>{if(performance.now()-_lastSave<1800&&!_ct.textContent.includes('💾'))_ct.textContent+=' 💾'},300)}
+// Routine autosaves remain silent; online save failures are shown by saveStatus32.
 gid('resume').insertAdjacentHTML('beforebegin','<b class="sec">💾 บันทึกเกม</b><button class="mini" onclick="saveGame(true)">💾 บันทึกตอนนี้</button><button class="mini" id="delsave" onclick="delSave()">🗑️ ลบเซฟ เริ่มใหม่</button>');
 function delSave(){const b=gid('delsave');if(b.dataset.c!=='1'){b.dataset.c='1';b.textContent='⚠️ กดอีกครั้งเพื่อยืนยันลบเซฟ';setTimeout(()=>{b.dataset.c='';b.textContent='🗑️ ลบเซฟ เริ่มใหม่'},3000);return}
  try{localStorage.removeItem(SAVEK)}catch(e){}removeEventListener('beforeunload',saveGame);window.onbeforeunload=null;_noSave=true;location.reload()}
@@ -1925,6 +1927,9 @@ function hurtE(e,mult,o){o=o||{};if(e.dead)return 0;const cr=Math.random()<critC
 function eachIn(x,y,r,fn){for(const e of enemies())if(Math.hypot(e.x-x,(e.y-6)-y)<r+eR(e))fn(e)}
 // อาวุธระยะไกล: ใช้ช่องอาวุธเดิม (ระดับอาวุธเดียวกัน) แต่ยิงแทนการฟัน
 function aimDir(range){const v=DIRV[P.dir];let best=null,bs=-1;for(const e of enemies()){const dx=e.x-P.x,dy=(e.y-8)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.55){const sc=c-d/range*.4;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}return best||v}
+// Segment/circle contact prevents fast projectiles tunneling between frames.
+function shotContact(x0,y0,x1,y1,cx,cy,r){const dx=x1-x0,dy=y1-y0,ox=x0-cx,oy=y0-cy,a=dx*dx+dy*dy,c=ox*ox+oy*oy-r*r;if(c<=0)return 0;if(!a)return null;const b=ox*dx+oy*dy,d=b*b-a*c;if(d<0)return null;const u=(-b-Math.sqrt(d))/a;return u>=0&&u<=1?u:null}
+function meleeContact(e,spin){const v=DIRV[P.dir],x=P.x,y=P.y-8,dx=e.x-x,dy=e.y-8-y,r=(spin?50:34)+(e.F?eR(e)*.6:0);if(typeof wall50==='function'&&D&&D.zone&&wall50(P.x,P.y-6,e.x,e.y-6))return false;if(spin)return Math.hypot(dx,dy)<r;const along=dx*v[0]+dy*v[1];if(along<0&&Math.hypot(dx,dy)>12+(e.F?eR(e)*.6:0))return false;const u=Math.max(0,Math.min(26,along));return Math.hypot(dx-v[0]*u,dy-v[1]*u)<r}
 const PROJ=[];
 function shoot(kind,o){o=o||{};const dv=o.dv||aimDir(o.range||300),sp=o.sp||400,x=P.x+dv[0]*14,y=P.y-14+dv[1]*10;
  PROJ.push({k:kind,x,y,vx:dv[0]*sp,vy:dv[1]*sp,l:(o.range||300)/sp,mult:o.mult||1,pierce:o.pierce||0,aoe:o.aoe||0,stun:o.stun||0,slow:o.slow||0,hit:new Set(),col:o.col,t:0,r:o.r||8})}
@@ -2002,10 +2007,13 @@ skTick=function(dt){
  if(P.ww){const w=P.ww;w.t+=dt;w.tick-=dt;P.dir='drul'[Math.floor(w.t*14)%4];if(w.tick<=0){w.tick=.22;sfx('swing');eachIn(P.x,P.y-8,64,e=>hurtE(e,.7,{kb:90}))}if(Math.random()<dt*40)chipBurst(P.x+(Math.random()-.5)*60,P.y,'dust',1);if(w.t>=w.l)P.ww=null}
  if(P.cast>0)P.cast-=dt;if(P.flip>0)P.flip-=dt;
  // กระสุน
- for(let i=PROJ.length-1;i>=0;i--){const p=PROJ[i];p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;let gone=p.t>p.l;
-  const wall=D&&D.zone?zHit(p.x,p.y+14):false;if(wall)gone=true;
-  if(!gone)for(const e of enemies()){if(p.hit.has(e))continue;if(Math.hypot(e.x-p.x,(e.y-10)-p.y)<p.r+eR(e)){p.hit.add(e);
-   if(p.aoe){gone=true;break}hurtE(e,p.mult,{kb:p.k==='arrow'?70:110,fx:p.x-p.vx*.05,fy:p.y-p.vy*.05,stun:p.stun,col:p.k==='ice'?'#bfe8ff':null,burn:(p.k==='fireball'||p.fire)?3:0});if(p.slow&&e.F){e.slowT=p.slow}if(p.pierce--<=0){gone=true;break}}}
+ for(let i=PROJ.length-1;i>=0;i--){const p=PROJ[i],x0=p.x,y0=p.y,step=Math.max(0,Math.min(dt,p.l-p.t)),x1=x0+p.vx*step,y1=y0+p.vy*step;let stop=1,wall=false;
+  if(D&&D.zone){const n=Math.max(1,Math.ceil(Math.hypot(x1-x0,y1-y0)/4));for(let j=0;j<=n;j++){const u=j/n;if(zHit(x0+(x1-x0)*u,y0+(y1-y0)*u+14)){stop=u;wall=true;break}}}
+  const contacts=enemies().filter(e=>!e.dead&&!p.hit.has(e)).map(e=>({e,u:shotContact(x0,y0,x1,y1,e.x,e.y-10,p.r+eR(e))})).filter(o=>o.u!==null&&(!wall||o.u<stop)).sort((a,b)=>a.u-b.u);
+  p.t+=dt;p.x=x0+(x1-x0)*stop;p.y=y0+(y1-y0)*stop;let gone=wall||p.t>=p.l,impact=false;
+  for(const {e,u} of contacts){p.x=x0+(x1-x0)*u;p.y=y0+(y1-y0)*u;p.hit.add(e);{ 
+   if(p.aoe){gone=true;impact=true;break}hurtE(e,p.mult,{kb:p.k==='arrow'?70:110,fx:p.x-p.vx*.05,fy:p.y-p.vy*.05,stun:p.stun,col:p.k==='ice'?'#bfe8ff':null,burn:(p.k==='fireball'||p.fire)?3:0});if(p.slow&&e.F){e.slowT=p.slow}if(p.pierce--<=0){gone=true;impact=true;break}}}
+  if(!impact){p.x=x0+(x1-x0)*stop;p.y=y0+(y1-y0)*stop}
   if(gone){if(p.aoe){vfx('boom',p.x,p.y+12,.5,{r:p.aoe});sfx('thud');shake(4,.2);eachIn(p.x,p.y+12,p.aoe,e=>hurtE(e,p.mult,{kb:240,stun:p.stun,fx:p.x,fy:p.y+12}))}
    else vfx('puff',p.x,p.y,.3,{c:p.k==='bolt'?'190,140,255':p.k==='ice'?'190,230,255':p.k==='wave'?'200,230,255':'255,230,170'});PROJ.splice(i,1)}}
  // เอฟเฟกต์ต่อเนื่อง
@@ -2429,10 +2437,10 @@ toolIcon=function(type,tier,sz){sz=sz||64;const key=type+tier+'_'+sz;return TICO
 // อาวุธบนหลัง: ใช้ภาพเดียวกัน
 {const _bs=backSword;backSword=function(x,by,side,f,d){if(!isRng())return _bs(x,by,side,f,d);if(!P.armor.sword||(P.draw&&P.tool==='sword')||side)return;const ic=toolIcon(wKind(),P.tier.sword|0,64);
  ctx.save();if(d==='u'){ctx.translate(x+4,by-34);ctx.rotate(-2.62)}else{ctx.translate(x+8,by-33);ctx.rotate(-2.72)}ctx.drawImage(ic,-23,-36,46,46);ctx.restore()}}
-// กระสุนเวทเกิดที่ลูกแก้ว (มีความสูง z แล้วค่อย ๆ ลดลงมาระดับตัวมอน)
+// Weapon tip offsets affect rendering only; collision follows the aimed line.
 {const _sh=shoot;shoot=function(kind,o){_sh(kind,o);const p=PROJ[PROJ.length-1];if(!p)return;
- if(wKind()==='staff'&&P.tip&&performance.now()-P.tip.t<250){p.x=P.tip.x;p.z=Math.max(0,(P.y-14)-P.tip.y)}else if(wKind()==='bow'&&P.tip&&performance.now()-P.tip.t<250){p.x=P.tip.x;p.z=Math.max(0,(P.y-14)-P.tip.y)}}}
-{const _da=drawAir;drawAir=function(){for(const p of PROJ)if(p.z)p.y-=p.z;_da();for(const p of PROJ)if(p.z)p.y+=p.z}}
+ if(wKind()==='staff'&&P.tip&&performance.now()-P.tip.t<250){p.visualX=P.tip.x-p.x;p.z=Math.max(0,(P.y-14)-P.tip.y)}else if(wKind()==='bow'&&P.tip&&performance.now()-P.tip.t<250){p.visualX=P.tip.x-p.x;p.z=Math.max(0,(P.y-14)-P.tip.y)}}}
+{const _da=drawAir;drawAir=function(){const offsets=PROJ.map(p=>{const fade=Math.max(0,1-p.t/Math.min(.14,p.l*.5));return[p,(p.visualX||0)*fade,(p.z||0)*fade]});for(const [p,x,y]of offsets){p.x+=x;p.y-=y}try{return _da()}finally{for(const [p,x,y]of offsets){p.x-=x;p.y+=y}}}}
 
 // ---------- 2) ของดรอป/อาหาร/ปลา: สไตล์เดียวกับไอคอนต้นฉบับ (เงาพื้น · ไล่สี · เส้นขอบเข้ม · ไฮไลต์) ----------
 function icoBase(){const c=document.createElement('canvas');c.width=c.height=48;const k=c.getContext('2d');k.lineJoin='round';k.lineCap='round';return[c,k]}
@@ -5318,7 +5326,7 @@ const SWORD_BACK_SIDE_SCALE=.86;
 const BK6={on:0};
 function backWeaponSide(x,by,f){
  if(!P.armor.sword)return;const kd=wKind(),drawn=P.draw&&P.tool==='sword';
- if(drawn&&P.at>=0)return;                                            // กำลังฟัน = ดาบอยู่ในมือ
+ if(drawn)return;                                            // กำลังฟัน = ดาบอยู่ในมือ
  if(drawn&&(kd==='bow'||kd==='staff'))return;      // คฑา/ธนูที่ถืออยู่ = อยู่ในมือ (ระบบ v46h) // ธนูถืออยู่ในมือ (มีตัววาดของมันแล้ว)
  const O=f<0?swordBackOffsetLeft:swordBackOffsetRight;let rot=f<0?swordBackRotationLeft:swordBackRotationRight,s=SWORD_BACK_SIDE_SCALE,ic,ox=O.x,oy=O.y;
  if(kd==='bow'){ic=toolIcon('bow',P.tier.sword|0,64);rot=f<0?Math.PI-.15:Math.PI+.15;ox=f<0?6:-6;oy=-22;s=.8}
@@ -5468,9 +5476,9 @@ function drawQuiver7(x,y,r,n){ctx.save();ctx.translate(x,y);ctx.rotate(r);ctx.li
  ctx.fillStyle='#1a1008';ctx.fillRect(-4,0,8,19);ctx.fillStyle='#7a4a24';ctx.fillRect(-3,1,6,17);ctx.fillStyle='#a8703a';ctx.fillRect(-3,1,2,17);ctx.fillStyle='#c9a04a';ctx.fillRect(-4,0,8,2);ctx.fillRect(-4,13,8,1.5);ctx.restore()}
 function bowBack7(x,by,side,f,d,phase){ // phase: 'pre' = เรียกก่อนลำตัว (d/side) · 'post' = หลังลำตัว (u)
  const tier=P.tier.sword|0,drawn=P.draw&&P.tool==='sword',q=quiverOffset7[d];
- const O={u:bowBackOffsetUp,d:bowBackOffsetDown,l:bowBackOffsetLeft,r:bowBackOffsetRight}[d],R={u:bowBackRotationUp,d:bowBackRotationDown,l:bowBackRotationLeft,r:bowBackRotationRight}[d];
+ const O={u:bowBackOffsetUp,d:bowBackOffsetDown,l:bowBackOffsetLeft,r:bowBackOffsetRight}[d],R=P.cls==='sniper'?-Math.PI/2+(d==='l'?.25:d==='r'?-.25:d==='u'?.45:-.45):{u:bowBackRotationUp,d:bowBackRotationDown,l:bowBackRotationLeft,r:bowBackRotationRight}[d];
  if(!drawn)drawBow6(x+O.x,by+O.y,R,tier,0,false,.82);
- const nq=(P.at>=0&&P.at<.12)?2:3;drawQuiver7(x+q.x,by+q.y,q.r,nq)}
+ if(P.cls==='sniper')return;const nq=(P.at>=0&&P.at<.12)?2:3;drawQuiver7(x+q.x,by+q.y,q.r,nq)}
 {const _bs=backSword;backSword=function(x,by,side,f,d){if(!(P.armor.sword&&wKind()==='bow'))return _bs(x,by,side,f,d);bowBack7(x,by,side,f,d)}}
 
 // ---------------- ท่าถือ (ยืน/เดิน) ----------------

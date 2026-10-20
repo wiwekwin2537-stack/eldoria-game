@@ -13,9 +13,9 @@ cv.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const r=
 {const _ad=aimDir;aimDir=function(range){let dv=null;
    if(performance.now()-MS9.t<4000){const dx=MS9.x-P.x,dy=MS9.y-(P.y-14),d=Math.hypot(dx,dy);if(d>10){dv=[dx/d,dy/d];
      // ดูดเข้าหามอนที่อยู่ใกล้เส้นเล็ง (เมาส์ห่างมอนไม่เกิน 60px)
-     let bd=60,bt=null;for(const e of enemies()){const q=Math.hypot(e.x-MS9.x,(e.y-8)-MS9.y);if(q<bd&&Math.hypot(e.x-P.x,e.y-P.y)<=range+40){bd=q;bt=e}}
-     if(bt){const ex=bt.x-P.x,ey=(bt.y-8)-(P.y-14),ed=Math.hypot(ex,ey)||1;dv=[ex/ed,ey/ed]}}}
-   if(!dv){const v=DIRV[P.dir];let best=null,bs=-9;for(const e of enemies()){const dx=e.x-P.x,dy=(e.y-8)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.15){const sc=c-d/range*.5;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}dv=best||v}
+     let bd=60,bt=null;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const q=Math.hypot(e.x-MS9.x,(e.y-10)-MS9.y);if(q<bd&&Math.hypot(e.x-P.x,e.y-P.y)<=range+40){bd=q;bt=e}}
+     if(bt){const ex=bt.x-P.x,ey=(bt.y-10)-(P.y-14),ed=Math.hypot(ex,ey)||1;dv=[ex/ed,ey/ed]}}}
+   if(!dv){const v=DIRV[P.dir];let best=null,bs=-9;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const dx=e.x-P.x,dy=(e.y-10)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.15){const sc=c-d/range*.5;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}dv=best||v}
    try{if(Math.abs(dv[0])>Math.abs(dv[1]))P.dir=dv[0]<0?'l':'r';else P.dir=dv[1]<0?'u':'d'}catch(e){}
    return dv}}
 // ---------- ข้อ 97: ธนู/คทา ติดสถานะ CC ได้ (ธนู=ชะลอ · คทา=มึน) ----------

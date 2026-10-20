@@ -9,6 +9,8 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['กระสุนเร็วไม่ข้ามเป้าระหว่างเฟรม (v549)',()=>typeof shotContact==='function'&&shotContact(0,0,38,0,19,17,20)!==null?null:'กระสุนยังตรวจเฉพาะปลายเฟรม'],
+ ['ดาบที่ชักถือมุมข้าง ไม่สะพายซ้ำ (v549)',()=>String(backWeaponSide).includes('if(drawn)return')?null:'อาวุธข้างยังกลับไปอยู่หลัง'],
  ['บันทึกไม่ผ่านครั้งแรกหยุดเล่นและลองใหม่โดยไม่รีโหลด (v546)',()=>String(ONL32.tick).includes('saveBad=CLOUD.fails>=1')?null:'ยังปล่อยเล่นต่อหลังบันทึกล้มเหลว'],
  ['บันทึกตัวละครอยู่ในหน่วยความจำและโหลดจากเซิร์ฟเวอร์ก่อนเริ่ม (v546)',()=>window.SERVER_BOOT&&localStorage.__mem&&SERVER_BOOT.ram instanceof Map&&!window.FM_LOADING?null:'ยังใช้เซฟเครื่องหรือเริ่มก่อนโหลดข้อมูล'],
  ['เซฟเครื่องเก่าไม่สามารถเลือกทับเซฟเซิร์ฟเวอร์ (v546)',()=>cloudBootDecision32({hasRemote:true,same:false,sr:1,lr:999,lastHash:'old',localHash:'new'})==='pull'?null:'เซฟเครื่องยังมีสิทธิ์ทับ'],
