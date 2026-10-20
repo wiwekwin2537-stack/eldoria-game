@@ -77,7 +77,7 @@ const sha = s => crypto.createHash('sha256').update(String(s)).digest('hex');
 const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 const ID_RE = /^[A-Za-z0-9_ก-๙]{3,16}$/;
 const ipHits = new Map();
-const ipOk = ip => { const now = Date.now(), a = (ipHits.get(ip) || []).filter(t => now - t < 60000); a.push(now); ipHits.set(ip, a); if (ipHits.size > 5000) ipHits.clear(); return a.length <= 40; };
+const ipOk = (ip,limit=40) => { const now = Date.now(), a = (ipHits.get(ip) || []).filter(t => now - t < 60000); a.push(now); ipHits.set(ip, a); if (ipHits.size > 5000) ipHits.clear(); return a.length <= limit; };
 /* บังคับล็อกอินใหม่: โทเคนที่ออกก่อนเวลานี้ใช้ไม่ได้ (ผู้เล่นจะถูกเด้งออกแล้วต้องล็อกอินใหม่ 1 ครั้ง) · เปลี่ยนเวลาได้ด้วย env FORCE_RELOGIN_AFTER เช่น 2026-10-18T12:00:00+07:00 */
 const FORCE_RELOGIN = Date.parse(process.env.FORCE_RELOGIN_AFTER || '2026-10-17T20:40:00+07:00') || 0;
 /* FORCE_RELOGIN_NAMES = รายชื่อที่จะถูกเด้ง คั่นด้วยคอมมา (ใส่ไอดีหรือชื่อตัวละครก็ได้ เช่น tiksi,นักรบ01) · เว้นว่าง = เด้งทุกคน */
@@ -264,14 +264,14 @@ async function gemOp(lid, rec, d) {
   if (op === 'look') { const tl = clean(d.to, 16).toLowerCase(); const tr = ID_RE.test(tl) && await dbGet(tl); if (!tr) return { err: 'nouser' }; return { ok: true, id: tr.id, n: tr.name, gem: tr.gem | 0, fown: tr.fown || [], log: (tr.glog || []).slice(-20) }; }
   return { err: 'unknown' }; }
 const lockTbl = new Map();
-async function handle(path_, d, ip) {
+async function handle(path_, d, ip, attempt=0) {
   if (path_ === '/api/ping') return { ok: true, t: Date.now(), store: UP_URL ? 'upstash' : 'file' };
   /* v5.15: ทดสอบเขียน/อ่าน Upstash จริง — เปิด /api/dbtest ในเบราว์เซอร์ (ไม่เผยลิงก์/โทเคน) */
   if (path_ === '/api/dbtest') { const out = { ok: false, store: UP_URL ? 'upstash' : 'file', t: Date.now() }; try { if (!UP_URL) { out.ok = true; return out; }
     const v = 'test-' + Date.now(); const w = await fetch(UP_URL + '/set/eld:dbtest', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body: v }); let wj = null; try { wj = await w.json(); } catch (e) {} out.set = { status: w.status, result: wj && wj.result, error: wj && wj.error ? String(wj.error).slice(0, 120) : undefined };
     const g = await fetch(UP_URL + '/get/eld:dbtest', { headers: { authorization: 'Bearer ' + UP_TOK } }); let gj = null; try { gj = await g.json(); } catch (e) {} out.get = { status: g.status, match: !!gj && gj.result === v, error: gj && gj.error ? String(gj.error).slice(0, 120) : undefined };
     out.ok = !!(wj && wj.result === 'OK' && gj && gj.result === v); } catch (e) { out.error = String(e.message || e).slice(0, 120); } return out; }
-  if (!ipOk(ip)) return { err: 'rate' };
+  if(!attempt){const progress=['/api/save','/api/load'].includes(path_);if(!ipOk(ip+':all',600)||!ipOk(ip+(progress?':'+clean(d.id,16).toLowerCase():':auth'),progress?120:40))return {err:'rate'};}
   if (path_ === '/api/top') { if (!await lbLoad()) return { err: 'store' }; lbMergePending(); const saved = await lbFlush(); return Object.assign(lbTop(), { pending: !saved }); }
   const id = clean(d.id, 16), lid = id.toLowerCase();
   if (!ID_RE.test(id)) return { err: 'badid' };
@@ -283,7 +283,7 @@ async function handle(path_, d, ip) {
     if (GM_IDS.includes(lid) && process.env.GM_ALLOW_REG !== '1') return { err: 'taken' };
     const salt = crypto.randomBytes(16).toString('hex');
     const rec = { id, name: clean(d.name, 14), salt, hash: await hashPw(pw, salt), created: Date.now(), rev: 0, lv: 0, upd: 0, save: '', bak: '', tokens: [], gem: 1000, newbie150: 1, gm: GM_IDS.includes(lid) };
-    gemLog(rec, 1000, 'signup'); const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
+    gemLog(rec, 1000, 'signup'); const token = newToken(rec);if(d.protocol===2){rec.writer=sha(token);rec.document='';rec.writerBase=0;rec.writerRev=0;rec.saveSeq=0;const L=d.look;if(L&&typeof L==='object')rec.save=JSON.stringify({fm_name:rec.name,fm_cc41:'1',fm_look8:JSON.stringify({g:L.g==='f'?'f':'m',top:/^#[0-9a-f]{6}$/i.test(L.top)?L.top:'#262631',pants:/^#[0-9a-f]{6}$/i.test(L.pants)?L.pants:'#14141a',hair:/^#[0-9a-f]{6}$/i.test(L.hair)?L.hair:'#302020'})});} if (!await dbSet(lid, rec)) return { err: 'store' };
     /* ส่ง b150 กลับตอนสมัครด้วย — เดิมคืนแค่ token ทำให้ไคลเอนต์ไม่รู้ว่ามีสิทธิ์เสก Lv.150 (ได้แต่เหรียญ) จนกว่าจะล็อกอินใหม่ */
     return { ok: true, token, rev: 0, name: rec.name, lv: 0, gem: rec.gem, b150: false };
   }
@@ -293,10 +293,14 @@ async function handle(path_, d, ip) {
     const lk = lockTbl.get(lid) || { n: 0, t: 0 }; if (lk.t > Date.now()) return { err: 'locked', wait: Math.ceil((lk.t - Date.now()) / 1000) };
     const h = await hashPw(d.pw || '', rec.salt);
     if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) { lk.n++; if (lk.n >= 8) { lk.t = Date.now() + Math.min(900, 20 * Math.pow(2, lk.n - 8)) * 1000; } lockTbl.set(lid, lk); return { err: 'badpw' }; }
-    lockTbl.delete(lid); if (UNFLAG_IDS.includes(lid) && rec.flag) rec.flag = 0; const token = newToken(rec); if (!await dbSet(lid, rec)) return { err: 'store' };
+    lockTbl.delete(lid); if (UNFLAG_IDS.includes(lid) && rec.flag) rec.flag = 0; const token = newToken(rec);if(d.protocol===2){rec.writer=sha(token);rec.document='';rec.writerBase=rec.rev;rec.writerRev=rec.rev;rec.saveSeq=0;}if (!await dbSet(lid, rec)) {if(attempt<3)return handle(path_,d,ip,attempt+1);return {err:'store'};}
     return { ok: true, token, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', gm: !!rec.gm, id: rec.id, b150: b150can(rec) };
   }
   if (!rec || !await authToken(rec, d.token)) return { err: 'auth' };
+  if(path_==='/api/load'&&d.protocol===2&&!rec.writer){rec.writer=sha(d.token);rec.writerBase=rec.rev;rec.writerRev=rec.rev;rec.saveSeq=0;if(!await dbSet(lid,rec)){if(attempt<3)return handle(path_,d,ip,attempt+1);return {err:'store'};}}
+  if(['/api/save','/api/load'].includes(path_)&&rec.writer&&rec.writer!==sha(d.token))return {err:'session-replaced'};
+  if(path_==='/api/load'&&d.protocol===2&&d.activate===true){if(!/^[a-f0-9-]{16,64}$/i.test(String(d.document||'')))return {err:'session'};if(rec.document!==d.document){rec.document=d.document;rec.writerBase=rec.rev;rec.writerRev=rec.rev;rec.saveSeq=0;if(!await dbSet(lid,rec)){if(attempt<3)return handle(path_,d,ip,attempt+1);return {err:'store'};}}}
+  if(path_==='/api/save'&&rec.document&&d.document!==rec.document)return {err:'session-replaced'};
   if (path_ === '/api/save') {
     const save = String(d.save || ''); if (!save || save.length > MAX_SAVE) return { err: 'size' };
     try{const next=JSON.parse(save);if(!next||Array.isArray(next)||typeof next!=='object'||Object.entries(next).some(([k,v])=>!/^fm_/.test(k)||typeof v!=='string'))return {err:'invalid-save'};
@@ -304,11 +308,14 @@ async function handle(path_, d, ip) {
      const previous=rec.save?JSON.parse(rec.save):null,prior=previous&&previous.fm_save_v1?JSON.parse(previous.fm_save_v1):null;
      if(prior&&prior.v===1&&(!main||main.v!==1||['armor','inv','gear','enh'].some(k=>prior[k]&&(!main[k]||typeof main[k]!=='object'||Array.isArray(main[k])))))return {err:'invalid-save'};
     }catch(e){return {err:'invalid-save'};}
+    if(rec.writer&&d.protocol!==2)return {err:'protocol'};
+    const ordered=d.protocol===2&&rec.writer===sha(d.token);
+    if(ordered){if(!Number.isSafeInteger(d.seq)||d.seq<1)return {err:'sequence'};if(d.seq<rec.saveSeq)return {ok:true,rev:rec.rev,seq:rec.saveSeq,ignored:true,upd:rec.upd};if(d.seq===rec.saveSeq)return rec.save===save?{ok:true,rev:rec.rev,seq:rec.saveSeq,replayed:true,upd:rec.upd}:{err:'sequence'};}
     /* v5.03: ไม่ยอมให้เซฟทับแบบ force แล้ว — เครื่องเก่า (เวอร์ชันเก่าที่ค้างแคช) เซฟทับเซฟใหม่กว่าได้ = ช่องปั๊มของเมื่อเล่น 2 เครื่อง */
-    if (Number.isSafeInteger(d.base) && d.base < rec.rev && rec.save === save) return {ok:true,rev:rec.rev,upd:rec.upd,b150:b150can(rec),replayed:true};
-    if (!Number.isSafeInteger(d.base) || d.base !== rec.rev) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
+    if (!ordered && Number.isSafeInteger(d.base) && d.base < rec.rev && rec.save === save) return {ok:true,rev:rec.rev,upd:rec.upd,b150:b150can(rec),replayed:true};
+    if (!Number.isSafeInteger(d.base) || (d.base !== rec.rev&&!(ordered&&rec.writerRev===rec.rev&&d.base>=rec.writerBase&&d.base<rec.rev))) return { err: 'conflict', rev: rec.rev, lv: rec.lv, upd: rec.upd };
     if (rec.save && rec.save !== save) rec.bak = rec.save;
-    const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++; rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
+    const lv0 = rec.lv | 0, t0 = rec.upd || 0; rec.save = save; rec.rev++;if(ordered){rec.saveSeq=d.seq;rec.writerRev=rec.rev;} rec.upd = Date.now(); rec.lv = Math.max(0, Math.min(200, d.lv | 0));
     const up = rec.lv - lv0, fast = rec.upd - (t0 || rec.created || 0) < 30 * 60e3; /* v5.08: บัญชีใหม่ (ยังไม่เคยเซฟ upd=0) ใช้เวลาสมัครแทน */
     const b150 = !rec.b150 && lv0 < 150 && /* v5.15: ไม่บังคับ lv0>=7 แล้ว — เซิร์ฟเวอร์เห็นเลเวลต่ำเพราะซิงค์ไม่ทัน แล้วเซฟเสก 150 มาทีเดียวต้องไม่ติดธงโกง */ rec.lv >= 140 && rec.lv <= 155 && b150ok(rec); if (b150) rec.b150 = 1; /* v5.09: เจ้าของสั่งเสกเลเวล 150 ให้ไอดีเทส (ครั้งเดียว) — ไม่นับเป็นโกง */
     if (UNFLAG_IDS.includes(lid)) rec.flag = 0;
@@ -317,12 +324,12 @@ async function handle(path_, d, ip) {
     rec.cls = clean(d.cls, 10); rec.name = clean(d.name, 14) || rec.name;
     if (d.stat && typeof d.stat === 'object') rec.stat = { floor: d.stat.floor | 0, mine: d.stat.mine | 0, kills: d.stat.kills | 0 };
     const S = rec.stat || {}, X = d.stat || {}, rankEntry = { n: rec.name, lv: rec.lv, cls: rec.cls, fl: lbN(S.floor, 999), rf: lbN(X.rift, 99999), rw: lbN(X.rw, 1e6), k: lbN(S.kills, 1e8), b: lbN(X.boss, 1e7), w: lbN(X.w, 1e12), t: clean(X.t, 16), av: lbAv(X.av), flag: (rec.flag | 0) >= 2 ? 1 : 0, gm: rec.gm ? 1 : 0, u: Date.now() };
-    if (!await dbSet(lid, rec)) {const latest=await dbGet(lid);if(latest&&latest.save===save&&latest.rev>d.base)return {ok:true,rev:latest.rev,upd:latest.upd,replayed:true,b150:b150can(latest)};return latest&&latest.rev!==d.base?{err:'conflict',rev:latest.rev,lv:latest.lv,upd:latest.upd}:{err:'store'};}
+    if (!await dbSet(lid, rec)) {const latest=await dbGet(lid);if(attempt<3&&latest&&latest.rev===d.base)return handle(path_,d,ip,attempt+1);if(ordered&&attempt<3&&latest&&latest.writer===sha(d.token))return handle(path_,d,ip,attempt+1);if(latest&&latest.save===save&&latest.rev>d.base)return {ok:true,rev:latest.rev,upd:latest.upd,replayed:true,b150:b150can(latest)};return latest&&latest.rev!==d.base?{err:'conflict',rev:latest.rev,lv:latest.lv,upd:latest.upd}:{err:'store'};}
     try { await gLoad(); gTouchMember(lid, rec.name, rec.lv); } catch (e) {}
     if (await lbLoad()) { lbMergePending(); LB.map[lid] = rankEntry; const ks = Object.keys(LB.map); if (ks.length > 5000) { ks.sort((p, q) => LB.map[p].u - LB.map[q].u); for (const k of ks.slice(0, ks.length - 5000)) delete LB.map[k]; } LB.dirty = true; }
     else LB.pending[lid] = rankEntry;
     const rankSaved = LB.pending[lid] ? false : await lbFlush();
-    return { ok: true, rev: rec.rev, upd: rec.upd, b150: b150can(rec), rankSaved };
+    return { ok: true, rev: rec.rev, seq:rec.saveSeq||0, hash:sha(save), upd: rec.upd, b150: b150can(rec), rankSaved };
   }
   /* Recovery is GM-only: rolling back client inventories is never a player action. */
   if(path_==='/api/save-history'){
@@ -346,11 +353,11 @@ async function handle(path_, d, ip) {
     if (d.op === 'set') { const arr = Array.isArray(d.friends) ? d.friends : []; rec.friends = [...new Set(arr.map(x => clean(String(x), 14)).filter(Boolean))].slice(0, 200); if (!await dbSet(lid, rec)) return { err: 'store' }; }
     return { ok: true, friends: rec.friends || [] };
   }
-  if (path_ === '/api/load') return { ok: true, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', b150: b150can(rec) };
+  if (path_ === '/api/load') return { ok: true, protocol:rec.writer?2:1, seq:rec.saveSeq||0, name: rec.name, lv: rec.lv, rev: rec.rev, upd: rec.upd, save: rec.save || '', b150: b150can(rec) };
   if (path_ === '/api/pw') {
     const h = await hashPw(d.old || '', rec.salt); if (!crypto.timingSafeEqual(Buffer.from(h), Buffer.from(rec.hash))) return { err: 'badpw' };
     const np = String(d.pw || ''); if (np.length < 6 || np.length > 64) return { err: 'badpw' };
-    rec.salt = crypto.randomBytes(16).toString('hex'); rec.hash = await hashPw(np, rec.salt); rec.tokens = []; const token = newToken(rec); if(!await dbSet(lid, rec))return {err:'store'}; return { ok: true, token };
+    rec.salt = crypto.randomBytes(16).toString('hex'); rec.hash = await hashPw(np, rec.salt); rec.tokens = [];delete rec.writer;delete rec.saveSeq; const token = newToken(rec); if(!await dbSet(lid, rec))return {err:'store'}; return { ok: true, token };
   }
   return { err: 'unknown' };
 }
@@ -364,12 +371,12 @@ function middleware(req, res, allowOrigin) {
   if (!ok) { res.writeHead(403, hd); res.end('{"err":"origin"}'); return true; }
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
   if (req.method === 'GET') { handle(u, {}, ip).then(r => { res.writeHead(200, hd); res.end(JSON.stringify(r)); }); return true; }
-  let body = '', bytes = 0, big = false;
+  let body = [], bytes = 0, big = false;
   req.on('data', c => { if (big) return; bytes += c.length; if (bytes > MAX_REQUEST) {
-    big = true; body = ''; res.writeHead(413, hd); res.end('{"err":"size"}'); return;
-  } body += c; });
+    big = true; body = []; res.writeHead(413, hd); res.end('{"err":"size"}'); return;
+  } body.push(c); });
   req.on('end', async () => {
-    if (big) return; let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) { res.writeHead(400, hd); res.end('{"err":"json"}'); return; }
+    if (big) return; let d = {}; try { const raw=Buffer.concat(body),plain=raw[0]===31&&raw[1]===139?require('zlib').gunzipSync(raw,{maxOutputLength:MAX_REQUEST}):raw;d=JSON.parse(plain.toString('utf8')||'{}'); } catch (e) { res.writeHead(400, hd); res.end('{"err":"json"}'); return; }
     let r; try { r = await handle(u, d && typeof d === 'object' ? d : {}, ip); } catch (e) { console.log('api', e.message); r = { err: 'server' }; }
     res.writeHead(200, hd); res.end(JSON.stringify(r));
   });
@@ -377,7 +384,7 @@ function middleware(req, res, allowOrigin) {
 }
 
 // ---- ใช้กับเซิร์ฟเวอร์เกม: ยืนยันตัวตน + กล่องจดหมาย (ของจากประมูล/บอสโลก ส่งถึงแม้ออฟไลน์) ----
-async function verify(id, token) { try { const lid = clean(id, 16).toLowerCase(); if (!ID_RE.test(lid)) return null; const rec = await dbGet(lid); if (!await authToken(rec, token)) return null; return { lid, name: rec.name || id, gm: !!rec.gm || GM_IDS.includes(lid) }; } catch (e) { return null; } }
+async function verify(id, token, document) { try { const lid = clean(id, 16).toLowerCase(); if (!ID_RE.test(lid)) return null; const rec = await dbGet(lid); if (!await authToken(rec, token)||rec.writer&&rec.writer!==sha(token)||rec.document&&rec.document!==document) return null; return { lid, name: rec.name || id, gm: !!rec.gm || GM_IDS.includes(lid) }; } catch (e) { return null; } }
 // v4.71 📬 กล่องจดหมายถาวร: ของอยู่ในกล่องจนกว่าผู้เล่นกด "รับ" (ไม่หายแม้หลุด/โหลดเซฟทับ/เซิร์ฟเวอร์รีสตาร์ต)
 const mid71 = () => Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
 const mailFix = rec => { let ch = false; for (const m of rec.mail || []) if (!m.id) { m.id = mid71(); ch = true; } return ch; };

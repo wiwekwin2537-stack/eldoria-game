@@ -16,7 +16,7 @@ const { chromium } = require('playwright');
     if (process.env.ELD_CHROMIUM_ARGS) launch.args = JSON.parse(process.env.ELD_CHROMIUM_ARGS);
     browser = await chromium.launch(launch);
     const page = await browser.newPage({ viewport: { width: 915, height: 412 }, isMobile: true, hasTouch: true });
-    const errors = []; page.on('pageerror', e => errors.push(e.message));
+    page.setDefaultTimeout(120000); const errors = []; page.on('pageerror', e => errors.push(e.message));
     await page.route('**/*', route => {
       const url = route.request().url();
       if (!url.startsWith('http://127.0.0.1:8787')) return route.abort();
@@ -24,7 +24,7 @@ const { chromium } = require('playwright');
       return route.continue();
     });
     await page.goto('http://127.0.0.1:8787/?server=ws://127.0.0.1:8787', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => typeof window.openLb20 === 'function' && typeof window.REG136 !== 'undefined');
+    await page.waitForFunction(() => !window.FM_LOADING && typeof window.openLb20 === 'function' && typeof window.REG136 !== 'undefined').catch(async e=>{console.log('BOOT DIAGNOSTIC',await page.evaluate(()=>({loading:window.FM_LOADING,boot:window.SERVER_BOOT&&{ready:SERVER_BOOT.ready,error:SERVER_BOOT.error},text:document.body.innerText.slice(0,700),last:[...document.scripts].slice(-10).map(s=>s.src)})));throw e});
     /* ไม่มีบัญชี: UI ต้องบอกเหตุผลซิงค์ แม้ยังไม่มีชื่อบนเซิร์ฟเวอร์ */
     await page.evaluate(() => { titleEl.hidden = true; intro.hidden = true; dlgClose(true); });
     await page.evaluate(() => openLb20(true, true));

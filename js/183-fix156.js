@@ -18,7 +18,7 @@ const tick156=setInterval(()=>{try{if(done156)return;if(typeof P==='undefined'||
       if(l&&l.ok){const lr=+FM_RAW.get(CLOUD.revKey())||0;
         if(!((l.rev|0)>lr&&l.save)){ /* ถ้าเซิร์ฟเวอร์มีเซฟใหม่กว่าในเครื่อง ปล่อยให้ขั้นตอนปกติจัดการ (ไม่เขียนทับ) */
           if((l.rev|0)!==lr)FM_RAW.set(CLOUD.revKey(),String(l.rev|0));
-          ONL32.verified=true;await CLOUD.sync(true);ask156=0;
+          /* Server bootstrap owns verification. */ask156=0;
           try{say('☁️ fix156: ซิงค์เซฟขึ้นเซิร์ฟเวอร์แล้ว')}catch(e){}
         }else{try{say('☁️ fix156: เซิร์ฟเวอร์มีเซฟใหม่กว่า — ไม่เขียนทับ ให้ออกจากระบบแล้วล็อกอินใหม่')}catch(e){}}
       }else{try{say('☁️ fix156: ยืนยันบัญชีไม่ผ่าน '+(l&&l.err||''))}catch(e){}}

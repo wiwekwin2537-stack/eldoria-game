@@ -1,19 +1,19 @@
-// ===== v4.3 บัญชีผู้เล่น + ป้องกันการแก้ไฟล์เซฟ (ต้องรันก่อนสคริปต์เกมทั้งหมด) =====
-(function(){const LS=window.localStorage,SP=Storage.prototype,MEM=!!(LS&&LS.__mem),G=MEM?function(k){return LS.getItem(k)}:SP.getItem,S=MEM?function(k,v){return LS.setItem(k,v)}:SP.setItem,R=MEM?function(k){return LS.removeItem(k)}:SP.removeItem;let acct=null;
- try{acct=sessionStorage.getItem('fm_acct');if(!acct&&G.call(LS,'fm_remember')==='1')acct=G.call(LS,'fm_last_acct')}catch(e){}
- window.FM_ACCT=acct||null;
- const glob=k=>!/^fm_/.test(k)||/^fm_(set|accts|acct|last_acct|remember|chatfold|dev|lock)$/.test(k);
- const pre=acct?'u:'+acct+':':'',nk=k=>acct&&!glob(k)?pre+k:k;
- // กุญแจประจำเครื่อง (สุ่มครั้งแรก) ใช้เซ็นข้อมูลเซฟ
- let dev=G.call(LS,'fm_dev');if(!dev){const a=new Uint32Array(4);try{crypto.getRandomValues(a)}catch(e){for(let i=0;i<4;i++)a[i]=Math.random()*4294967296>>>0}dev=[...a].map(x=>x.toString(16).padStart(8,'0')).join('');try{S.call(LS,'fm_dev',dev)}catch(e){}}
- const KEY='eldoria|'+dev+'|'+(acct||'guest');
- function kh(str){let h1=0xdeadbeef^KEY.length,h2=0x41c6ce57;const s=KEY+'#'+str+'#'+KEY;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
-  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (h2>>>0).toString(16).padStart(8,'0')+(h1>>>0).toString(16).padStart(8,'0')}
- const PROT=/^fm_(save_v1|x|cls|pt|rune|story|train|skbar|home)$/;window.FM_TAMPER=[];
- SP.getItem=function(k){if(this!==LS)return G.call(this,k);const K=nk(k),v=G.call(this,K);if(v==null||!PROT.test(k))return v;const sig=G.call(this,K+'#sig');
-  if(sig==null){return v}if(sig===kh(K+'='+v))return v;window.FM_TAMPER.push(k);const b=G.call(this,K+'#bak'),bs=G.call(this,K+'#bsig');if(b!=null&&bs===kh(K+'='+b))return b;return null};
- SP.setItem=function(k,v){if(this!==LS)return S.call(this,k,v);const K=nk(k);if(PROT.test(k)){v=String(v);const old=G.call(this,K),os=G.call(this,K+'#sig');if(old!=null&&os===kh(K+'='+old)){S.call(this,K+'#bak',old);S.call(this,K+'#bsig',os)}S.call(this,K,v);S.call(this,K+'#sig',kh(K+'='+v));return}return S.call(this,K,v)};
- SP.removeItem=function(k){if(this!==LS)return R.call(this,k);const K=nk(k);R.call(this,K);if(PROT.test(k)){R.call(this,K+'#sig');R.call(this,K+'#bak');R.call(this,K+'#bsig')}};
- window.FM_RAW={get:k=>G.call(LS,k),set:(k,v)=>S.call(LS,k,v),del:k=>R.call(LS,k)};window.FM_KH=kh})();
-window.FM_NEW=(()=>{try{return !localStorage.getItem('fm_save_v1')}catch(e){return true}})();
-window.FM_APK=window.FM_APK||/[?&]apk=1/.test(location.search)||/android_asset/.test(location.href);
+/* v5.46: gameplay exists in RAM; durable snapshots belong to the account server. */
+(function(){
+ const disk=window.localStorage,ram=new Map(),global=/^fm_(set|last_acct|remember|chatfold|dev|lock)$/;
+ const gameplay=k=>/^u:/.test(k)||/^fm_/.test(k)&&!global.test(k)||/^cloud_(pending|hash|rev)_/.test(k)||/^eldoria_cloud_recovery_/.test(k);
+ const auth=k=>/^cloud_tok_|^fm_(last_acct|remember)$/.test(k),sk=k=>'eldoria_auth:'+k;
+ const raw={get:k=>{if(gameplay(k))return ram.get(String(k))??null;if(auth(k))try{const v=sessionStorage.getItem(sk(k));if(v!==null)return v}catch(e){}return disk.getItem(k)},set:(k,v)=>{if(gameplay(k)){ram.set(String(k),String(v));return}let session=false;if(auth(k))try{sessionStorage.setItem(sk(k),String(v));session=true}catch(e){}try{disk.setItem(k,v)}catch(e){if(!session)throw e}},del:k=>{if(gameplay(k))ram.delete(String(k));else{if(auth(k))try{sessionStorage.removeItem(sk(k))}catch(e){}disk.removeItem(k)}}};
+ let acct=null;try{acct=sessionStorage.getItem('fm_acct');if(!acct&&raw.get('fm_remember')==='1')acct=raw.get('fm_last_acct')}catch(e){}
+ window.FM_ACCT=acct||null;const nk=k=>acct&&/^fm_/.test(k)&&!global.test(k)&&k!=='fm_accts'?'u:'+acct+':'+k:String(k);
+ const keys=()=>Array.from(new Set([...Array.from({length:disk.length},(_,i)=>disk.key(i)).filter(k=>!gameplay(k)),...ram.keys()]));
+ const storage={__mem:true,getItem:k=>raw.get(nk(String(k))),setItem:(k,v)=>{if(window.__qa154&&/fm_|eldoria/.test(k))return;raw.set(nk(String(k)),String(v))},removeItem:k=>raw.del(nk(String(k))),key:i=>keys()[i]??null,get length(){return keys().length},clear(){ram.clear()}};
+ Object.defineProperty(window,'localStorage',{value:storage,configurable:true});window.FM_RAW=raw;window.FM_KH=()=>'';window.FM_TAMPER=[];window.FM_NEW=true;window.FM_NOSAVE=false;window.FM_APK=window.FM_APK||/[?&]apk=1/.test(location.search);window.FM_LOADING=true;
+ const boot=window.SERVER_BOOT={ram,document:crypto.randomUUID(),ready:false,error:'',rev:0,seq:0};
+ boot.base=()=>{const q=new URLSearchParams(location.search).get('server'),m=document.querySelector('meta[name="eldoria-server"]');return (q||m&&m.content||location.origin).replace(/^ws/,'http').replace(/\/$/,'')};
+ boot.load=async()=>{if(!acct){boot.ready=true;return}const token=raw.get('cloud_tok_'+acct.toLowerCase());if(!token){boot.error='auth';return}try{BOOT106.set(8,'กำลังโหลดตัวละครจากเซิร์ฟเวอร์…');const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),60000);let data;try{data=await(await fetch(boot.base()+'/api/load',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:acct,token,protocol:2,activate:true,document:boot.document}),signal:ac.signal,cache:'no-store'})).json()}finally{clearTimeout(timer)}if(!data.ok){boot.error=data.err||'server';return}const snapshot=JSON.parse(data.save||'{}');if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||Object.entries(snapshot).some(([k,v])=>!/^fm_/.test(k)||typeof v!=='string'))throw Error('invalid-save');if(data.rev>0&&!snapshot.fm_save_v1)throw Error('invalid-save');if(snapshot.fm_save_v1){const p=JSON.parse(snapshot.fm_save_v1);if(!p||p.v!==1)throw Error('invalid-save')}
+ for(const [k,v]of Object.entries(snapshot))if(!global.test(k)&&k!=='fm_accts')storage.setItem(k,v);if(data.name&&!storage.getItem('fm_name'))storage.setItem('fm_name',data.name);raw.set('fm_accts',JSON.stringify({[acct]:{n:data.name||acct}}));boot.rev=data.rev||0;boot.seq=data.seq||0;boot.protocol=data.protocol||1;boot.ready=true;window.FM_NEW=!snapshot.fm_save_v1;
+ }catch(e){boot.error=e.message==='invalid-save'?'invalid-save':'offline'}};
+ async function start(){await boot.load();const scripts=[...document.querySelectorAll('script[data-game-src]')];let done=0;for(let batch=0;batch<scripts.length;batch+=8)await Promise.all(scripts.slice(batch,batch+8).map(tag=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.async=false;s.src=tag.dataset.gameSrc;s.onload=()=>{BOOT106.set(12+80*++done/scripts.length,'กำลังเตรียมเกม…');resolve()};s.onerror=()=>{console.error('Game script failed',s.src);reject(Error('script'))};document.body.appendChild(s)})));window.FM_LOADING=false;dispatchEvent(new Event('eldoria:ready'))}
+ const run=()=>start().catch(()=>{BOOT106.set(0,'ดาวน์โหลดเกมไม่สำเร็จ กรุณาตรวจอินเทอร์เน็ตแล้วกดลองใหม่');const b=document.createElement('button');b.textContent='ลองใหม่';b.onclick=()=>location.reload();BOOT106.el.appendChild(b)});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();

@@ -79,9 +79,9 @@ window.exitGame7=function(){talk({name:'ออกจากเกม',c:'#c0503a'
  (async()=>{const end=Date.now()+45000;try{
    while(CLOUD.inflight&&Date.now()<end)await new Promise(r=>setTimeout(r,100));
    if(CLOUD.inflight)throw Error('timeout');
-   const prev=CLOUD.t||0;await CLOUD.sync(true);
+   const confirmed=await CLOUD.sync(true);
    while(CLOUD.inflight&&Date.now()<end)await new Promise(r=>setTimeout(r,100));
-   if(CLOUD.inflight||!(CLOUD.t>prev)||CLOUD.fails)throw Error('save');
+   if(CLOUD.inflight||!confirmed||CLOUD.fails)throw Error('save');
    dlgClose(true);location.reload()
   }catch(e){say('⚠️ เซฟขึ้นคลาวด์ไม่สำเร็จ · ยังไม่ออกจากเกม กรุณากดบันทึกและออกอีกครั้ง')}})();
  return false

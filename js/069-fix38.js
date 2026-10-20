@@ -113,9 +113,9 @@ tRegForm=function(){const old=(typeof legacyKeys==='function')&&legacyKeys().inc
   REG41={id,pw,mig};try{sfx('ui')}catch(e){}openCC41('reg')};
  setTimeout(()=>gid(R.id?'rPw':'rId').focus(),100)};
 // ---------- ไอดีเก่าที่ยังไม่เคยสร้างตัวละคร: สร้างก่อนเข้าเกม 1 ครั้ง ----------
-{const _tp=tPlay;tPlay=function(){if(FM_ACCT&&!ccDone41()&&!(CC41.el&&!CC41.el.hidden)){titleEl.hidden=false;requestAnimationFrame(titleDraw);openCC41('first',()=>_tp());return}return _tp.apply(this,arguments)}}
+{const _tp=tPlay;tPlay=function(){if(FM_ACCT&&SERVER_BOOT.ready&&!ccDone41()&&!(CC41.el&&!CC41.el.hidden)){titleEl.hidden=false;requestAnimationFrame(titleDraw);openCC41('first',()=>_tp());return}return _tp.apply(this,arguments)}}
 // ถ้าเกมโหลดเซฟจากเซิร์ฟเวอร์ทับหลังเพิ่งสร้างตัวละคร → ใส่รูปลักษณ์/ชื่อที่เลือกกลับคืน
-try{const p=JSON.parse(sessionStorage.getItem('cc41_pend')||'null');if(p&&FM_ACCT&&p.id===String(FM_ACCT).toLowerCase()){Object.assign(LOOK8,p.L);lookSave8();P.name=p.nm;localStorage.setItem('fm_name',p.nm);localStorage.setItem('fm_cc41','1')}
+try{const p=JSON.parse(sessionStorage.getItem('cc41_pend')||'null');if(p&&FM_ACCT&&window.FM_NEW&&p.id===String(FM_ACCT).toLowerCase()){Object.assign(LOOK8,p.L);lookSave8();P.name=p.nm;localStorage.setItem('fm_name',p.nm);localStorage.setItem('fm_cc41','1')}
  setInterval(()=>{try{if(window.ONL32&&ONL32.verified&&sessionStorage.getItem('cc41_pend')){sessionStorage.removeItem('cc41_pend');CLOUD.sync(true)}}catch(e){}},3000)}catch(e){}
 try{const v=titleEl.querySelector('.ver');if(v)v.textContent='v4.42 · ออนไลน์'}catch(e){}
 
@@ -126,7 +126,7 @@ function restorePendingItems38(){try{const Q=window.__PEND8;if(!Q)return;let ch=
  if(ch){try{syncSword();recalcStats();applyBonus();ptDirty();refreshInv()}catch(e){}}
 }catch(e){console.warn('[pending items]',e)}}
 restorePendingItems38();
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restorePendingItems38,{once:true});
+if(window.FM_LOADING)addEventListener('eldoria:ready',restorePendingItems38,{once:true});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restorePendingItems38,{once:true});
 
 // ---------- สรุป ----------
 {const sm=menuEl.querySelector('small');if(sm)sm.insertAdjacentHTML('beforeend',' · H/N ดื่มยา · B กินอาหาร')}

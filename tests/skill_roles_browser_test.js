@@ -9,7 +9,7 @@ const {spawn,execFileSync}=require('node:child_process'),{chromium}=require('pla
   const opts={args:['--no-sandbox','--enable-unsafe-swiftshader']};if(process.env.ELD_CHROMIUM)opts.executablePath=process.env.ELD_CHROMIUM;if(process.env.ELD_CHROMIUM_ARGS)opts.args=JSON.parse(process.env.ELD_CHROMIUM_ARGS);
   browser=await chromium.launch(opts);const page=await browser.newPage({viewport:{width:915,height:412},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!=='http://127.0.0.1:8787')return route.abort();if(process.env.ELD_ROLES_BASELINE&&u.pathname.startsWith('/js/'))return route.fulfill({contentType:'text/javascript',body:execFileSync('git',['show','HEAD:'+u.pathname.slice(1)],{cwd:root})});return route.continue()});
-  await page.goto('http://127.0.0.1:8787/?server=ws://127.0.0.1:8787',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.REG136&&window.NEWU73);
+  await page.goto('http://127.0.0.1:8787/?server=ws://127.0.0.1:8787',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!window.FM_LOADING&&window.REG136&&window.NEWU73);
   await page.evaluate(()=>{titleEl.hidden=true;intro.hidden=true;dlgClose(true);D=null;PAUSED=true});
   const results=[];
   for(const mode of ['pvp','boss'])for(const name of ['shield','aura','heal','cleanse','bless','attack_shield','attack_cap','attack_low','attack_failed','heal_existing_shield','ult_paladin','ult_cleric','ult_sword']){

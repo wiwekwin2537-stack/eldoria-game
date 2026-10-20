@@ -43,7 +43,7 @@ const freshAccounts = () => { const p = require.resolve('../accounts'); delete r
 
   const reg = await accounts.handle('/api/register', { id: 'syncaudit', pw: 'pass1234', name: 'ทดสอบซิงค์' }, 'test-ip');
   assert.equal(reg.ok, true, 'account registration succeeds');
-  failAccountWrite = 1;
+  failAccountWrite = 4;
   const saveBody = { id: 'syncaudit', token: reg.token, base: 0, save: JSON.stringify({ fm_save_v1: '{"lv":10}' }), lv: 10, name: 'ทดสอบซิงค์', stat: { kills: 34 } };
   const failedSave = await accounts.handle('/api/save', saveBody, 'test-ip');
   assert.equal(failedSave.err, 'store', 'failed account write is not acknowledged as saved');

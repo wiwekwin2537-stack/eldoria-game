@@ -14,20 +14,22 @@ const ok = (c, m) => { if (c) console.log('ok  ', m); else { console.log('FAIL',
 
 (async () => {
   const order = [];
-  const update = box.forcedUpdate8(() => order.push('save'), async () => { order.push('sync'); }, () => order.push('reload'), 10, 50);
+  const update = box.forcedUpdate8(() => order.push('save'), async () => { order.push('sync'); return true; }, () => order.push('reload'), 10, 50);
   await new Promise(r => setTimeout(r, 30));
   ok(order.join(',') === 'save,sync,reload', 'ครบเวลานับถอยหลัง → เซฟ → ซิงค์ → รีโหลด');
 
-  const immediate = [], u = box.forcedUpdate8(() => immediate.push('save'), async () => { immediate.push('sync'); }, () => immediate.push('reload'), 100, 50);
+  const immediate = [], u = box.forcedUpdate8(() => immediate.push('save'), async () => { immediate.push('sync'); return true; }, () => immediate.push('reload'), 100, 50);
   const a = u.run(), b = u.run();
   await Promise.all([a, b]);
   ok(a === b && immediate.join(',') === 'save,sync,reload', 'แตะเข้าใหม่เลย → ทำงานครั้งเดียว ไม่รีโหลดซ้ำ');
 
   const timeout = [], t = box.forcedUpdate8(() => timeout.push('save'), () => new Promise(() => {}), () => timeout.push('reload'), 100, 10);
   await t.run();
-  ok(timeout.join(',') === 'save,reload', 'ซิงค์ค้าง → ยังรีโหลดหลังหมดเวลาสำรอง โดยมีเซฟในเครื่องแล้ว');
-  ok(source.includes("const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true)}catch(e){}},()=>location.reload(),0)") && source.includes("addEventListener('controllerchange',()=>{if(had)banner();had=true})"), 'ตัวตรวจอัปเดตจริงเรียกบันทึก/ซิงค์/รีโหลดเมื่อ controller เปลี่ยน');
+  ok(timeout.join(',') === 'save', 'ซิงค์ค้าง → ไม่รีโหลดทิ้งข้อมูลในหน่วยความจำ');
+  ok(source.includes("const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true);return true}catch(e){return false}},()=>location.reload(),0)") && source.includes("addEventListener('controllerchange',()=>{if(had)banner();had=true})"), 'ตัวตรวจอัปเดตจริงเรียกบันทึก/ซิงค์/รีโหลดเมื่อ controller เปลี่ยน');
 
+  const failed=[];let ack=false;const guarded=box.forcedUpdate8(()=>failed.push('save'),async()=>ack,()=>failed.push('reload'),0);ok(await guarded.run()===false&&!failed.includes('reload'),'เซฟไม่ยืนยันไม่โหลดใหม่');ack=true;ok(await guarded.run()===true&&failed.at(-1)==='reload','ยืนยันสำเร็จแล้วกดใหม่ได้');
+  const binding=source.match(/b\.querySelector\('button'\)\.onclick=async\(\)=>\{[^\n]+?\};/)[0];let releaseUpdate;const button={},pausedBox={PAUSED:false,b:{querySelector:()=>button},go:{run:()=>new Promise(r=>releaseUpdate=r)}};vm.createContext(pausedBox);vm.runInContext(binding,pausedBox);const pendingUpdate=button.onclick();ok(pausedBox.PAUSED,'หยุดเกมก่อนส่งเซฟอัปเดต');releaseUpdate(false);await pendingUpdate;ok(pausedBox.PAUSED===false,'บันทึกอัปเดตไม่สำเร็จคืนสถานะหยุดเดิม');
   const activateTest = async cachesAtStart => {
     const events = {}, navigated = [], removed = []; let waited = Promise.resolve(), delay = 0;
     const client = { url: 'https://game.test/', navigate: async url => { navigated.push(url); } };

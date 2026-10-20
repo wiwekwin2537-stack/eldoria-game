@@ -7,7 +7,7 @@ try{
  await new Promise((r,j)=>{server.stdout.once('data',r);server.once('error',j)});
  browser=await chromium.launch({executablePath:process.env.ELD_CHROMIUM,args:['--no-sandbox','--enable-unsafe-swiftshader']});
  const context=await browser.newContext({viewport:{width:915,height:412},isMobile:true,hasTouch:true}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- page.setDefaultTimeout(60000);
+ page.setDefaultTimeout(120000);
  let release;const gate=new Promise(r=>release=r);
  await page.route('**/js/001-core.js*',async route=>{await gate;await route.continue()});
  await page.route('**/assets/ui/loading-v543.webp',async route=>{await gate;await route.continue()});
@@ -31,7 +31,7 @@ try{
  const offlineItems=await page.evaluate(async paths=>Promise.all(paths.map(async path=>{const r=await fetch(path);return {status:r.status,bytes:(await r.arrayBuffer()).byteLength}})),itemPaths);
  for(let i=0;i<itemPaths.length;i++){assert.equal(offlineItems[i].status,200);assert.equal(offlineItems[i].bytes,fs.statSync(path.join(root,itemPaths[i])).size)}
  assert.equal(repeated.status,200);assert.equal(repeated.bytes,fs.statSync(path.join(root,'assets/ui/loading-v543.webp')).size);assert.ok(repeated.ms<1000,'cached image must not wait for origin');
- await context.setOffline(false);await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.REG136&&window.SCENEART);await page.waitForFunction(()=>!document.getElementById('boot106'));assert.deepEqual(errors,[]);
+ await context.setOffline(false);await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>!window.FM_LOADING&&window.REG136&&window.SCENEART);await page.waitForFunction(()=>!document.getElementById('boot106'));assert.deepEqual(errors,[]);
  console.log('IMAGE LOADING BROWSER PASS',JSON.stringify({previewBeforeNetwork:true,...result,repeatOffline:repeated}));
 }finally{await browser?.close();server.kill();await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -21,7 +21,7 @@ SCENEART.warm=async function(){
  if(connection&&(connection.saveData||/^(slow-2g|2g)$/.test(connection.effectiveType)))return;
  for(const key of Object.keys(this.sources)){if(document.hidden)break;await this.load(key)}
 };
-window.addEventListener('load',()=>{
+(document.readyState==='complete'?fn=>fn():fn=>window.addEventListener('load',fn))(()=>{
  const start=()=>SCENEART.warm().catch(()=>{});
  if(window.requestIdleCallback)requestIdleCallback(start,{timeout:8000});else setTimeout(start,1500);
 },{once:true});

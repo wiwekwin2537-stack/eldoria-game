@@ -1845,7 +1845,7 @@ setTimeout(()=>{chatSay('guild',GUILD.mem[0][0],'ยินดีต้อนร�
 // ---------- F) เซฟอัตโนมัติ (บันทึกลงเครื่อง) ----------
 const SAVEK='fm_save_v1';let _lastSave=0;const SAVE_STATE={localError:''};window.SAVE_STATE=SAVE_STATE;
 function saveGame(manual){if(document.readyState==='loading'||(FM_ACCT&&window.ONL32&&!ONL32.verified))return false;if(P.dead&&!manual)return false;try{const d={v:1,t:Date.now(),name:P.name,lv:P.lv,xp:P.xp,sp:P.sp,stats:baseStats(),hp:Math.max(1,Math.round(P.hp)),mp:Math.round(P.mp),fa:P.fa,hu:P.hu,armor:Object.assign({},P.armor),tier:P.tier,tool:P.tool,draw:P.draw,bagLv:P.bagLv,
- inv,gear:Object.assign({},window.__PEND8&&__PEND8.g,GEAR),enh:ENH,sk:SK.own,qs:QS.slots,day:DAY.t,buffs:BUFFS.map(b=>({id:b.id,t:b.t}))};for(const [slot,id]of Object.entries(window.__PEND8&&__PEND8.a||{}))if(!d.armor[slot])d.armor[slot]=id;localStorage.setItem(SAVEK,JSON.stringify(d));_lastSave=performance.now();SAVE_STATE.localError='';if(manual)sysSay('💾 บันทึกในเครื่องแล้ว · รอยืนยันคลาวด์');return true}catch(e){SAVE_STATE.localError=String(e&&e.message||e);if(manual)sysSay('บันทึกในเครื่องไม่ได้ — อย่าเพิ่งปิดเกม');return false}}
+ inv,gear:Object.assign({},window.__PEND8&&__PEND8.g,GEAR),enh:ENH,sk:SK.own,qs:QS.slots,day:DAY.t,buffs:BUFFS.map(b=>({id:b.id,t:b.t}))};for(const [slot,id]of Object.entries(window.__PEND8&&__PEND8.a||{}))if(!d.armor[slot])d.armor[slot]=id;localStorage.setItem(SAVEK,JSON.stringify(d));_lastSave=performance.now();SAVE_STATE.localError='';if(manual&&!(window.CLOUD&&CLOUD.capturing))sysSay('☁️ กำลังบันทึกขึ้นเซิร์ฟเวอร์…');return true}catch(e){SAVE_STATE.localError=String(e&&e.message||e);if(manual)sysSay('เตรียมข้อมูลบันทึกไม่สำเร็จ — กรุณาลองอีกครั้ง');return false}}
 function loadGame(){let d;try{d=JSON.parse(localStorage.getItem(SAVEK)||'null')}catch(e){}if(!d||d.v!==1)return false;
  if(d.name)P.name=d.name;Object.assign(P,{lv:d.lv,xp:d.xp,sp:d.sp,fa:d.fa,hu:d.hu,bagLv:d.bagLv|0,tool:d.tool||'sword',draw:!!d.draw});Object.assign(P.stats,d.stats);P.ab={str:0,vit:0,int:0,agi:0,end:0};
  Object.assign(P.armor,d.armor);Object.assign(P.tier,d.tier);for(const k in inv)if(k!=='coin')inv[k]=0;Object.assign(inv,d.inv);for(const k in GEAR)delete GEAR[k];Object.assign(GEAR,d.gear);window.__PEND7={a:{},g:{}};for(const k in P.armor){const id=P.armor[k];if(id&&!ITEMS[id]){__PEND7.a[k]=id;P.armor[k]=null}}for(const id in GEAR)if(!ITEMS[id]){__PEND7.g[id]=GEAR[id];delete GEAR[id]}Object.assign(ENH,d.enh);
@@ -3471,7 +3471,7 @@ function tPlay(){auInit&&auInit();titleEl.hidden=true;PAUSED=false;sfx('warp');t
 // เปิดเกม: แสดงหน้าเริ่ม (ถ้าเพิ่งเข้าสู่ระบบ ให้เข้าเกมเลย)
 /* v5.34: รอไฟล์เกมทุกระบบก่อนเริ่ม เพื่อไม่ข้ามการยืนยันเซฟคลาวด์ที่ติดตั้งภายหลัง */
 function startAccountGame(){let go=false;try{go=sessionStorage.getItem('fm_go')==='1'}catch(e){}if(FM_ACCT&&go){intro.hidden=true;tPlay()}else showTitle()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startAccountGame,{once:true});else startAccountGame();
+if(window.FM_LOADING)addEventListener('eldoria:ready',startAccountGame,{once:true});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startAccountGame,{once:true});else startAccountGame();
 intro.hidden=true;
 // ปุ่มเมนู: กลับหน้าเริ่ม
 gid('resume').insertAdjacentHTML('beforebegin','<b class="sec">👤 บัญชี'+(FM_ACCT?' : '+esc(FM_ACCT):'')+'</b><button class="mini" onclick="saveGame(true);toggleMenu();showTitle()">🏰 กลับหน้าเริ่มเกม</button><button class="mini" onclick="openJournal()">📜 บันทึกเนื้อเรื่อง</button><button class="mini" onclick="toggleMenu();TUT.on=true;STORY.tut=0;saveStory();tutShow()">🎓 เล่นบทสอนอีกครั้ง</button>');
@@ -3796,7 +3796,7 @@ setInterval(()=>{const e=gid('secinfo');if(e&&!menuEl.hidden)e.textContent='เ�
 if(SET.fpsCap===undefined)SET.fpsCap=COARSE?30:60;
 {const lab=document.createElement('label');lab.innerHTML='อัตราเฟรม<select data-fc><option value="60">60 FPS (ลื่นสุด)</option><option value="30">30 FPS (ประหยัดแบต/เครื่องไม่ร้อน)</option></select>';
  const q=menuEl.querySelector('[data-gq]');q&&q.parentNode.parentNode.insertBefore(lab,q.parentNode.nextSibling);const s=lab.querySelector('select');s.value=String(SET.fpsCap);s.onchange=e=>{e.stopPropagation();SET.fpsCap=+s.value;saveSet();say('อัตราเฟรม '+SET.fpsCap+' FPS')}}
-addEventListener('DOMContentLoaded',()=>{if(typeof window.frame!=='function')return;const _f=window.frame;let lastT=0;window.frame=function(now){if(SET.fpsCap===30&&now-lastT<30){requestAnimationFrame(window.frame);return}lastT=now;return _f(now)}});
+addEventListener(window.FM_LOADING?'eldoria:ready':'DOMContentLoaded',()=>{if(typeof window.frame!=='function')return;const _f=window.frame;let lastT=0;window.frame=function(now){if(SET.fpsCap===30&&now-lastT<30){requestAnimationFrame(window.frame);return}lastT=now;return _f(now)}});
 // โหมดต่ำ: ความละเอียดต่ำลงอีก · อนุภาคน้อยลง
 GQ.low.res=.6;GQ.low.fx=30;GQ.low.mm=10;GQ.med.res=.85;
 if(SET.gq==='auto'&&GQC.lvl==='low')applyGQ('low',true);
@@ -7167,15 +7167,15 @@ function saveUI8(title,msg){saveW8.innerHTML='<div class="w" style="width:min(44
 window.exportSave8=exportSave8;window.importSave8=importSave8;window.openSave8=()=>saveUI8('','');
 // ---------- PWA: ติดตั้งบนหน้าจอหลัก + เปิดเต็มจอ ----------
 const PWA8={evt:null,can:false};
-function forcedUpdate8(save,sync,reload,delay=8000,limit=10000){let timer,promise=null;const run=()=>{if(promise)return promise;if(timer)clearTimeout(timer);promise=(async()=>{try{await save()}catch(e){}if(sync)try{await Promise.race([Promise.resolve().then(sync),new Promise(r=>setTimeout(r,limit))])}catch(e){}reload()})();return promise};if(delay>0)timer=setTimeout(run,delay);return{run}}
+function forcedUpdate8(save,sync,reload,delay=8000,limit=10000){let timer,promise=null;const run=()=>{if(promise)return promise;if(timer)clearTimeout(timer);promise=(async()=>{try{await save();if(sync){const ok=await Promise.race([Promise.resolve().then(sync),new Promise(r=>setTimeout(()=>r(false),limit))]);if(ok!==true)throw Error('unconfirmed')}reload();return true}catch(e){try{say('ยังบันทึกบนเซิร์ฟเวอร์ไม่สำเร็จ · กดอัปเดตอีกครั้งเมื่อเชื่อมต่อได้')}catch(_){}promise=null;return false}})();return promise};if(delay>0)timer=setTimeout(run,delay);return{run}}
 (function(){const web=location.protocol==='https:'&&!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname);
  if(!document.querySelector('link[rel=manifest]')&&web){const l=document.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';document.head.appendChild(l)}
- if(web&&'serviceWorker' in navigator){window.addEventListener('load',()=>{
+ if(web&&'serviceWorker' in navigator){(document.readyState==='complete'?fn=>fn():fn=>window.addEventListener('load',fn))(()=>{
   // ---- อัปเดตอัตโนมัติ: เช็กเวอร์ชันใหม่ทุก 3 นาที / ตอนกลับมาที่แท็บ แล้วเด้งแถบ "อัปเดตเลย" ----
   let shown=false;const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');
    b.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:#2a1d44;color:#fff;border:1px solid #c9a227;border-radius:10px;padding:10px 14px;font:14px sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 4px 18px #0008';
    b.innerHTML='<span>✨ มีอัปเดตใหม่ · กดเมื่อพร้อมเข้าเกมใหม่</span><button style="background:#c9a227;border:0;border-radius:6px;padding:6px 10px;font-weight:bold;cursor:pointer">เข้าใหม่เลย</button>';
-   const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true)}catch(e){}},()=>location.reload(),0);b.querySelector('button').onclick=()=>go.run();document.body.appendChild(b)};
+   const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true);return true}catch(e){return false}},()=>location.reload(),0);b.querySelector('button').onclick=async()=>{const before=PAUSED;PAUSED=true;const ok=await go.run();if(!ok)PAUSED=before};document.body.appendChild(b)};
   const sig=r=>r.headers.get('etag')||r.headers.get('last-modified')||r.headers.get('content-length')||'';
   let base=null;const verCheck=()=>fetch('index.html',{method:'HEAD',cache:'no-store'}).then(r=>{const s=sig(r);if(!s)return;if(base===null)base=s;else if(s!==base)banner()}).catch(()=>{});
   verCheck();
@@ -7203,9 +7203,7 @@ CLOUD.base=()=>{try{const m=document.querySelector('meta[name="eldoria-server"]'
  u=u.replace(/^wss:\/\//,'https://').replace(/^ws:\/\//,'http://');if(!/^https?:\/\//.test(u))u='https://'+u;return u.replace(/\/+$/,'')}catch(e){return ''}};
 CLOUD.tokKey=id=>'cloud_tok_'+String(id).toLowerCase();
 CLOUD.tok=id=>{try{return FM_RAW.get(CLOUD.tokKey(id))||''}catch(e){return ''}};
-CLOUD.call=async function(path,body,ms){const b=CLOUD.base();if(!b)return {err:'nourl'};const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms||30000);
- try{const r=await fetch(b+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body||{}),signal:ac.signal,keepalive:JSON.stringify(body||{}).length<60000&&!!(body&&body.ka)});
-  const j=await r.json();CLOUD.ok=true;return j}catch(e){CLOUD.ok=false;return {err:'offline'}}finally{clearTimeout(tm)}};
+CLOUD.call=async function(path,body,ms){const b=CLOUD.base();if(!b)return {err:'nourl'};const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms||30000);try{let payload=JSON.stringify(body||{}),type='application/json';if(path==='/api/save'&&new Blob([payload]).size>45000&&typeof CompressionStream!=='undefined'){payload=await new Response(new Blob([payload]).stream().pipeThrough(new CompressionStream('gzip'))).blob();type='application/octet-stream'}const bytes=typeof payload==='string'?new Blob([payload]).size:payload.size;const r=await fetch(b+path,{method:'POST',headers:{'content-type':type},body:payload,signal:ac.signal,keepalive:!!(body&&body.ka)&&bytes<60000});const j=await r.json();CLOUD.ok=true;return j}catch(e){CLOUD.ok=false;return {err:'offline'}}finally{clearTimeout(tm)}};
 const cloudMsg=m=>{try{if(typeof tErr==='function'&&document.getElementById('tpan'))tErr(m)}catch(e){}};
 const CLOUD_ERR={badid:'ไอดีไม่ถูกต้อง',badpw:'รหัสผ่านไม่ถูกต้อง',taken:'ไอดีนี้มีคนใช้แล้วในเซิร์ฟเวอร์ — เลือกไอดีอื่น',rate:'ลองเร็วเกินไป รอสักครู่',store:'เซิร์ฟเวอร์บันทึกไม่ได้ ลองใหม่อีกครั้ง',server:'เซิร์ฟเวอร์มีปัญหา ลองใหม่อีกครั้ง'};
 // อ่านเลเวลของเซฟในเครื่อง (ตอนยังไม่ล็อกอิน)
@@ -7259,31 +7257,8 @@ CLOUD.pendKey='fm_cloudpend';
 // ---------- นำเข้าเซฟจากเซิร์ฟเวอร์ตอนเริ่มเกม (ก่อนเกมโหลดเซฟ) ----------
 CLOUD.applyBlob=function(blob){const data=JSON.parse(blob);if(!data||Array.isArray(data)||typeof data!=='object')throw Error('invalid cloud snapshot');const entries=Object.entries(data).filter(([k])=>/^fm_/.test(k)&&!/^fm_(set|accts|acct|last_acct|remember|chatfold|dev|lock|gmkey8)$/.test(k));for(const [k,v]of entries)if(typeof v!=='string')throw Error('invalid cloud value');if(data.fm_save_v1){const main=JSON.parse(data.fm_save_v1);if(!main||typeof main!=='object'||Array.isArray(main))throw Error('invalid player save')}
  const before=entries.map(([k])=>[k,localStorage.getItem(k)]);try{for(const [k,v]of entries)localStorage.setItem(k,v)}catch(e){for(const [k,v]of before)try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(rollbackError){}throw e}return entries.length};
-CLOUD.boot=function(){try{const raw=sessionStorage.getItem(CLOUD.pendKey);if(!raw)return false;const p=JSON.parse(raw);if(!FM_ACCT||String(p.id).toLowerCase()!==String(FM_ACCT).toLowerCase())return false;
- const n=CLOUD.applyBlob(p.save);if(!n)throw Error('empty cloud snapshot');if(n){sessionStorage.removeItem(CLOUD.pendKey);/* v5.34: จด baseline หลังนำเข้าเซฟจริง ป้องกันค่าเริ่มต้นทำให้โหลดซ้ำไม่จบ */FM_RAW.set('cloud_hash_'+String(FM_ACCT).toLowerCase(),sha256hex8(p.save));try{sessionStorage.setItem('fm_go','1')}catch(e){}CLOUD.reloading=true;try{_noSave=true}catch(e){}{const SP=Storage.prototype,_s=SP.setItem;SP.setItem=function(k,v){if(/^fm_/.test(String(k)))return;return _s.call(this,k,v)}}location.reload();return true}}catch(e){CLOUD.importFailed=true;console.warn('cloud boot',e)}return false};
-// ---------- ซิงค์อัตโนมัติ ----------
+CLOUD.boot=function(){return false};
 CLOUD.revKey=()=>'cloud_rev_'+String(FM_ACCT||'').toLowerCase();
-CLOUD.sync=async function(force,ka){if(!FM_ACCT||CLOUD.busy||CLOUD.reloading||!CLOUD.base()||!CLOUD.tok(FM_ACCT))return;if(typeof P==='undefined'||!P||P.dead&&!force)return;
- if(CLOUD.inflight)return;CLOUD.inflight=true;
- try{try{saveGame()}catch(e){}
-  const data=saveKeys8(),save=JSON.stringify(data);if(!force&&save===CLOUD.last)return;
-  let base=+FM_RAW.get(CLOUD.revKey())||0;
-  const body={id:FM_ACCT,token:CLOUD.tok(FM_ACCT),save,lv:P.lv|0,cls:P.cls||'',name:P.name||'',base,ka:!!ka,stat:{floor:(window.__MAXFLOOR8|0),mine:0,kills:0}};
-  let r=await CLOUD.call('/api/save',body,40000);
-  if(r.err==='conflict'){ // มีเซฟใหม่กว่าจากอีกเครื่อง
-   if((r.lv|0)>(P.lv|0)&&!CLOUD.conflictOK){const l=await CLOUD.call('/api/load',{id:FM_ACCT,token:CLOUD.tok(FM_ACCT)});
-    if(l.ok&&l.save){sessionStorage.setItem(CLOUD.pendKey,JSON.stringify({id:FM_ACCT,save:l.save}));FM_RAW.set(CLOUD.revKey(),String(l.rev|0));try{say('☁️ พบตัวละครเลเวลสูงกว่าบนเซิร์ฟเวอร์ — กำลังโหลดมาให้')}catch(e){}CLOUD.reloading=true;setTimeout(()=>location.reload(),900);return}}
-   body.base=r.rev|0;body.force=true;r=await CLOUD.call('/api/save',body,40000)}
-  if(r.ok){CLOUD.last=save;CLOUD.fails=0;FM_RAW.set(CLOUD.revKey(),String(r.rev|0));CLOUD.t=Date.now();if(!CLOUD.said){CLOUD.said=true;try{say('☁️ ซิงค์เซฟกับเซิร์ฟเวอร์แล้ว — ล็อกอินไอดีนี้ที่เครื่องไหนก็ได้')}catch(e){}}}
-  else if(r.err==='auth'){try{FM_RAW.del(CLOUD.tokKey(FM_ACCT))}catch(e){}CLOUD.fails=9}
-  else CLOUD.fails++;
- }catch(e){CLOUD.fails++}finally{CLOUD.inflight=false}};
-if(!CLOUD.boot()){
- setInterval(()=>{if(!document.hidden||CLOUD.fails<3)CLOUD.sync(false)},CLOUD_SYNC_MS());
- document.addEventListener('visibilitychange',()=>{if(document.hidden)CLOUD.sync(false,true)});
- addEventListener('pagehide',()=>{CLOUD.sync(false,true)});
- setTimeout(()=>CLOUD.sync(false),4000);
-}
 function CLOUD_SYNC_MS(){return 45000}
 window.CLOUD=CLOUD;
 

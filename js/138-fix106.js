@@ -7,7 +7,7 @@
 try{
 // ---------- A) ปิดหน้าโหลดตอนเปิดเกม ----------
 {const B=window.BOOT106;if(B&&B.el){const fin=()=>{if(B.done)return;B.done=1;clearInterval(B.tick);B.set(100,'พร้อมแล้ว!');setTimeout(()=>{B.el.style.opacity='0';B.el.style.pointerEvents='none';setTimeout(()=>{try{B.el.remove()}catch(e){}},600)},380)};
-  B.set(95,'กำลังเตรียมโลก…');if(document.readyState==='complete')setTimeout(fin,250);else{addEventListener('load',()=>setTimeout(fin,250),{once:true});setTimeout(fin,8000)}}}
+  B.set(95,'กำลังเตรียมโลก…');if(window.FM_LOADING)addEventListener('eldoria:ready',()=>setTimeout(fin,250),{once:true});else if(document.readyState==='complete')setTimeout(fin,250);else{addEventListener('load',()=>setTimeout(fin,250),{once:true});setTimeout(fin,8000)}}}
 // ---------- B) หน้าโหลดตอนเข้าแมพ ----------
 const ZL106=document.createElement('div');ZL106.id='zl106';ZL106.hidden=true;
 ZL106.innerHTML='<style>#zl106{position:fixed;inset:0;z-index:9990;background:radial-gradient(ellipse at center,rgba(30,22,60,.92),rgba(6,4,16,.97));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:system-ui,"Noto Sans Thai",sans-serif;color:#fff}#zl106[hidden]{display:none}'
