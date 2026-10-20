@@ -1,8 +1,41 @@
-// Service worker — เปิดเร็ว/เล่นออฟไลน์ได้ · อัปเดตเกมอัตโนมัติ (เช็กเวอร์ชันใหม่จากเว็บก่อนเสมอ)
-// ทุกครั้งที่อัปเดตเกมแล้วอยากให้ SW ตัวใหม่เข้ามาแทนที่ทันที ให้เปลี่ยนเลขเวอร์ชันบรรทัดล่างนี้ (v51 → v52 ...)
-const C='eldoria-v145';const CORE=['icon-192-v541.png','icon-512-v541.png','assets/ui/loading-v541.png','./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','loading.jpg','assets/trees/oak.png','assets/trees/ancient.png','assets/trees/fire.png','assets/trees/spirit.png','assets/diamond-ore.png','assets/ores/stone.png','assets/ores/iron.png','assets/ores/copper.png','assets/ores/silver.png','assets/ores/gold.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(CORE.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('eldoria-v')&&k!==C).map(k=>caches.delete(k)));await self.clients.claim()})())});
-self.addEventListener('message',e=>{if(e.data==='skip')self.skipWaiting()});
-self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==location.origin)return;
- e.respondWith(fetch(r,{cache:'no-cache'}).then(res=>{if(res&&res.ok){const cp=res.clone();caches.open(C).then(c=>c.put(r,cp))}return res}).catch(()=>caches.match(r).then(m=>m||(r.mode==='navigate'?caches.match('index.html'):new Response('',{status:503,statusText:'Asset unavailable'})))))});
+/* Code checks for updates; artwork is reused locally without delaying display. */
+const C='eldoria-v146';
+const IMAGES='eldoria-images-v1';
+const CORE=['./','index.html','manifest.webmanifest'];
+const IMAGE_LIMIT=128;
+const isImage=url=>/\.(?:png|jpe?g|webp|gif|svg|ico)$/i.test(url.pathname);
+const immutableImage=url=>/-v\d+[.-]/.test(url.pathname);
+async function storeImage(request,response){
+ if(!response||!response.ok||!/^image\//i.test(response.headers.get('content-type')||''))return;
+ try{const cache=await caches.open(IMAGES);await cache.put(request,response);const keys=await cache.keys();await Promise.all(keys.slice(0,Math.max(0,keys.length-IMAGE_LIMIT)).map(key=>cache.delete(key)))}catch(_){} /* Quota failure must never block the game. */
+}
+self.addEventListener('install',event=>{event.waitUntil((async()=>{
+ const cache=await caches.open(C);
+ await Promise.all(CORE.map(url=>cache.add(new Request(url,{cache:'reload'})).catch(()=>{})));
+ await self.skipWaiting();
+})())});
+self.addEventListener('activate',event=>{event.waitUntil((async()=>{
+ const keys=await caches.keys();
+ await Promise.all(keys.filter(key=>key.startsWith('eldoria-v')&&key!==C).map(key=>caches.delete(key)));
+ await self.clients.claim();
+})())});
+self.addEventListener('message',event=>{if(event.data==='skip')self.skipWaiting()});
+self.addEventListener('fetch',event=>{
+ const request=event.request,url=new URL(request.url);
+ if(request.method!=='GET'||url.origin!==location.origin||url.pathname.startsWith('/api/'))return;
+ if(isImage(url)){
+  /* Register lifetime work synchronously, so background revalidation can finish. */
+  const result=(async()=>{
+   const cache=await caches.open(IMAGES).catch(()=>null),hit=cache&&await cache.match(request).catch(()=>null);
+   const download=async()=>{const response=await fetch(request);await storeImage(request,response.clone());return response};
+   if(hit){return {response:hit,update:immutableImage(url)?Promise.resolve():download().catch(()=>{})}}
+   try{return {response:await download(),update:Promise.resolve()}}catch(_){return {response:new Response('',{status:503,statusText:'Asset unavailable'}),update:Promise.resolve()}}
+  })();
+  event.respondWith(result.then(value=>value.response));
+  event.waitUntil(result.then(value=>value.update));
+  return;
+ }
+ const response=fetch(request,{cache:'no-cache'});
+ event.waitUntil(response.then(value=>value&&value.ok?caches.open(C).then(cache=>cache.put(request,value.clone())):null).catch(()=>{}));
+ event.respondWith(response.catch(()=>caches.match(request).then(hit=>hit||(request.mode==='navigate'?caches.match('index.html'):new Response('',{status:503,statusText:'Asset unavailable'})))));
+});
