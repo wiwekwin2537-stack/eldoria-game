@@ -88,6 +88,25 @@ CLOUD.sync=async function(force,ka){if(!FM_ACCT){CLOUD.lastError='no-account';re
   }return false;
  }catch(e){CLOUD.fails++;CLOUD.lastError='network';return false}finally{CLOUD.inflight=false}};
 setInterval(()=>{if(ONL32.verified&&!document.hidden)CLOUD.sync(false)},15000);
+/* All user logout buttons share this gate; authentication kicks retain their separate recovery journal. */
+ONL32.saveFailureText=function(){
+ const key=window.SAVE_STATE&&SAVE_STATE.localError?'local-storage':CLOUD.lastError;
+ return ({'local-storage':'บันทึกในเครื่องไม่สำเร็จ — ยังไม่ออกจากเกมเพื่อรักษาของไว้',store:'เซิร์ฟเวอร์ยังบันทึกข้อมูลไม่ได้ — ของยังอยู่ในเกมนี้ กรุณาลองอีกครั้ง',offline:'ยังเชื่อมต่อเซิร์ฟเวอร์เพื่อบันทึกไม่ได้ — กรุณาลองอีกครั้ง',network:'ยังเชื่อมต่อเซิร์ฟเวอร์เพื่อบันทึกไม่ได้ — กรุณาลองอีกครั้ง',size:'ข้อมูลบันทึกมีขนาดเกินที่เซิร์ฟเวอร์รองรับ — ยังไม่ออกจากเกม',inflight:'กำลังส่งข้อมูลบันทึกก่อนหน้า — รอสักครู่แล้วลองอีกครั้ง',auth:'เซสชันหมดอายุ — เก็บข้อมูลในเครื่องไว้แล้ว', 'invalid-save':'เซิร์ฟเวอร์ไม่ยอมรับข้อมูลบันทึก — ยังไม่ออกจากเกม'})[key]||'บันทึกขึ้นเซิร์ฟเวอร์ยังไม่สำเร็จ — ยังไม่ออกจากเกม กรุณาลองอีกครั้ง';
+};
+ONL32.logout=function(leave){
+ if(ONL32.logoutTask)return ONL32.logoutTask;
+ const wasPaused=PAUSED;let leaving=false;PAUSED=true;
+ const button=gid('off32')&&gid('off32').querySelector('button'),label=button&&button.textContent;
+ if(button){button.disabled=true;button.textContent='กำลังบันทึกก่อนออก…'}
+ ONL32.logoutTask=(async()=>{
+  try{
+   const ok=await safeSync123();
+   if(!ok){const message=ONL32.saveFailureText();if(ONL32.shown)gid('off32s').textContent=message;try{say(message)}catch(e){}return false}
+   const result=leave();leaving=true;return result;
+  }catch(e){const message=ONL32.saveFailureText();if(ONL32.shown)gid('off32s').textContent=message;try{say(message)}catch(_){}return false}
+  finally{if(!leaving)PAUSED=wasPaused;if(button){button.disabled=false;button.textContent=label}ONL32.logoutTask=null}
+ })();return ONL32.logoutTask;
+};
 ONL32.kick=function(msg){ONL32.verified=false;try{sessionStorage.removeItem('fm_acct');FM_RAW.set('fm_remember','0')}catch(e){}
  try{sessionStorage.setItem('fm_kick32',msg||'')}catch(e){}CLOUD.reloading=true;location.reload()};
 // ---------- หน้าเริ่มเกม ----------
@@ -122,12 +141,12 @@ ONL32.ping=async function(){const s=document.querySelector('#srv32 span');if(!s)
 // ---------- ต้องออนไลน์ตลอด: หลุดแล้วหยุดเกม + ต่อใหม่ให้อัตโนมัติ ----------
 {const st=document.createElement('style');st.textContent='#off32{position:fixed;inset:0;z-index:99999;background:rgba(6,8,20,.86);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;font:600 16px system-ui,"Noto Sans Thai",sans-serif;text-align:center;padding:20px}#off32[hidden]{display:none}#off32 .sp{width:46px;height:46px;border:5px solid rgba(255,255,255,.2);border-top-color:#ffd84a;border-radius:50%;animation:off32 1s linear infinite;margin-bottom:14px}@keyframes off32{to{transform:rotate(360deg)}}#off32 small{display:block;opacity:.75;margin-top:6px;font-weight:400}#off32 button{margin-top:14px;height:42px;padding:0 18px;font-size:15px;border-radius:10px;border:2px solid #e8c14a;background:#2a2340;color:#fff}';document.head.appendChild(st)}
 {const o=document.createElement('div');o.id='off32';o.hidden=true;o.innerHTML='<div class="sp"></div><div id="off32t">🔌 การเชื่อมต่อหลุด</div><small id="off32s">กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เกมหยุดชั่วคราว)</small><button onclick="saveGame(true);accLogout()">ออกจากระบบ</button>';document.body.appendChild(o)}
-ONL32.tick=function(){if(ONL32.dev)return;const ingame=titleEl.hidden&&FM_ACCT&&ONL32.verified;
+ONL32.tick=function(){if(ONL32.dev)return;if(ONL32.logoutTask){PAUSED=true;return}const ingame=titleEl.hidden&&FM_ACCT&&ONL32.verified;
  if(!ingame){if(ONL32.shown)ONL32.show(false);return}
  const now=Date.now();if(!NET.on){if(!ONL32.downAt)ONL32.downAt=now;if(!NET.ws)try{netConnect()}catch(e){}}else ONL32.downAt=0;
  const wsBad=ONL32.downAt&&now-ONL32.downAt>6000,saveBad=CLOUD.fails>=3;
  if(saveBad&&!CLOUD.inflight&&now-(ONL32.lastTry||0)>5000){ONL32.lastTry=now;CLOUD.sync(true)}
- if(wsBad||saveBad){gid('off32t').textContent=saveBad&&!wsBad?'☁️ บันทึกขึ้นเซิร์ฟเวอร์ไม่ได้':'🔌 การเชื่อมต่อหลุด';ONL32.show(true)}else ONL32.show(false)};
+ if(wsBad||saveBad){gid('off32t').textContent=saveBad&&!wsBad?'☁️ บันทึกขึ้นเซิร์ฟเวอร์ไม่ได้':'🔌 การเชื่อมต่อหลุด';gid('off32s').textContent=saveBad?ONL32.saveFailureText():'กำลังเชื่อมต่อเซิร์ฟเวอร์ใหม่… (เกมหยุดชั่วคราว)';ONL32.show(true)}else ONL32.show(false)};
 ONL32.show=function(v){const o=gid('off32');if(!o)return;if(v){if(!ONL32.shown){ONL32.shown=true;o.hidden=false;if(!PAUSED){PAUSED=true;ONL32.paused=true}}else if(!PAUSED){PAUSED=true;ONL32.paused=true}}
  else if(ONL32.shown){ONL32.shown=false;o.hidden=true;if(ONL32.paused){ONL32.paused=false;if(menuEl.hidden)PAUSED=false}try{sysSay('🌐 เชื่อมต่อเซิร์ฟเวอร์กลับมาแล้ว')}catch(e){}}};
 setInterval(ONL32.tick,1000);

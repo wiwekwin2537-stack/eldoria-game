@@ -3433,7 +3433,7 @@ async function accRegister(id,pw,pw2,nm,mig){id=(id||'').trim();nm=(nm||'').trim
  FM_RAW.set('u:'+id+':fm_name',nm);return accLogin(id,pw,true)}
 async function accLogin(id,pw,rem){id=(id||'').trim();const A=ACC.all,key=Object.keys(A).find(k=>k.toLowerCase()===id.toLowerCase());if(!key)return 'ไม่พบไอดีนี้ — สมัครก่อนนะ';
  if(A[key].h!==await pwHash(key,pw))return 'รหัสผ่านไม่ถูกต้อง';try{sessionStorage.setItem('fm_acct',key);sessionStorage.setItem('fm_go','1')}catch(e){}FM_RAW.set('fm_last_acct',key);FM_RAW.set('fm_remember',rem?'1':'0');location.reload();return ''}
-function accLogout(){try{sessionStorage.removeItem('fm_acct')}catch(e){}FM_RAW.set('fm_remember','0');location.reload()}
+function accLogout(){const leave=()=>{try{sessionStorage.removeItem('fm_acct')}catch(e){}FM_RAW.set('fm_remember','0');location.reload();return true};if(FM_ACCT&&window.ONL32&&ONL32.verified&&typeof ONL32.logout==='function')return ONL32.logout(leave);return leave()}
 
 // ---------------- 2) หน้าเริ่มเกม ----------------
 const titleEl=document.createElement('div');titleEl.id='title';document.body.appendChild(titleEl);
