@@ -9,6 +9,7 @@ const until=async(f,ms=8000)=>{const t=Date.now();while(Date.now()-t<ms){try{if(
 const where=()=>!D?'field':D.shop?'shop:'+D.shop:D.town?'town':D.city2?'city2':D.dg?'dg':D.zone?'zone':'?';
 const toTown=async()=>{try{if(D&&D.shop)leaveShop(true)}catch(e){}await sl(200);for(let k=0;k<3&&D&&!D.town;k++){try{exitD()}catch(e){}await sl(250)}if(!D||!D.town){try{enterTown(1)}catch(e){}await sl(700)}try{dlgClose(true)}catch(e){}for(const w of document.querySelectorAll('.p6w'))w.hidden=true;PAUSED=false};
 const REG136=[
+ ['ออกจากระบบต้องผ่านการยืนยันเซฟคลาวด์ (v544)',()=>typeof ONL32.logout==='function'&&String(accLogout).includes('ONL32.logout')&&String(ONL32.logout).includes('safeSync123')?null:'ปุ่มออกข้ามการยืนยันเซฟ'],
  ['ภาพรอฉากตรงกับพื้นที่',()=>SCENEART.pick({id:'volcano'})==='fire'&&SCENEART.pick({id:'frost'})==='ice'&&SCENEART.pick({id:'harbor'})==='sea'?null:'ภาพรอฉากเลือกธีมไม่ตรง'],
  ['ภาพไอเท็มคมชัดและไฟเมืองพร้อม',()=>ITEMART.size>=192&&typeof TOWNLIFE.drawFlags==='function'&&typeof TOWNLIFE.drawLights==='function'?null:'ภาพไอเท็มหรือระบบธงไฟหาย'],
  ['ภาพเพชรดรอปและกระเป๋าใช้รายการเดียวกัน',()=>ITEMART.key('gem')==='ore'&&ITEMART.key('diamond')==='ore'&&Object.keys(INVMETA).every(k=>ITEMART.has(k))&&Object.keys(ITEMS).every(k=>ITEMART.has('item:'+k))?null:'เพชรแยกทางเลือกภาพหรือทะเบียนไอเท็มไม่ครบ'],
