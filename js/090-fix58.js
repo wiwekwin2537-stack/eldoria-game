@@ -76,8 +76,8 @@ const sk58=()=>{const k=FASH.wpn;return k&&SK58[k]?SK58[k]:null};
 {const _fs=fashSword;fashSword=function(id){if(SK58[id])return skCanvas58(id);return _fs(id)};window.fashSword=fashSword}
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){const S=sk58();if(!S)return _ts(hx,hy,ang);
  if(S.cls!==P.cls||P.tool!=='sword'||S.bow||S.rifle){const sv=FASH.wpn;if(S.cls!==P.cls)FASH.wpn=null;try{return _ts(hx,hy,ang)}finally{FASH.wpn=sv}}
- const t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(S.staff||FASH.wpn==='w_mage'?ang*.35:ang);if(P.dir==='r'&&!S.staff)ctx.scale(-1,1);
- if(S.fist){ctx.drawImage(skCanvas58(FASH.wpn),-12,-26,24,24)}else ctx.drawImage(skCanvas58(FASH.wpn),-23,-36,46,46);
+ if(S.staff||FASH.wpn==='w_mage'){staffAt7(hx,hy,ang);return}const t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r'&&!S.staff)ctx.scale(-1,1);
+ if(S.fist){ctx.drawImage(skCanvas58(FASH.wpn),-12,-12,24,24)}else ctx.drawImage(skCanvas58(FASH.wpn),-23,-36,46,46);
  ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(0,-24,0,0,-24,20);g.addColorStop(0,'rgba('+S.glow+','+(.18+.12*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+S.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-20,-44,40,40);ctx.restore();
  if(Math.random()<.14){const a=ang-Math.PI/2;rfxP(hx+Math.cos(a)*16,hy+Math.sin(a)*16,(Math.random()-.5)*12,-14,.6,S.glow,1.6,'spark')}};window.toolSpr=toolSpr}
 // ธนู/ไรเฟิลแฟชั่น

@@ -1,5 +1,5 @@
 /* Code checks for updates; artwork is reused locally without delaying display. */
-const C='eldoria-v152';
+const C='eldoria-v153';
 const IMAGES='eldoria-images-v1';
 const CORE=['./','index.html','manifest.webmanifest'];
 const IMAGE_LIMIT=128;
@@ -17,6 +17,7 @@ self.addEventListener('install',event=>{event.waitUntil((async()=>{
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{
  const keys=await caches.keys();
  await Promise.all(keys.filter(key=>key.startsWith('eldoria-v')&&key!==C).map(key=>caches.delete(key)));
+ if(keys.includes(IMAGES)){const images=await caches.open(IMAGES);const old=await images.keys();await Promise.all(old.filter(request=>{const url=typeof request==='string'?request:request.url;return url&&new URL(url,location.origin).pathname==='/assets/monsters/creatures-v549.webp'}).map(request=>images.delete(request)))}
  await self.clients.claim();
 })())});
 self.addEventListener('message',event=>{if(event.data==='skip')self.skipWaiting()});

@@ -21,6 +21,18 @@ window.fwMine145=fwMine145;
   return _sa.apply(this,arguments)};window.staffAt7=staffAt7}
 /* 3) คทาแฟชั่นตอนเก็บหลัง */
 {const _ti=toolIcon;toolIcon=function(type,tier,sz){if(type==='axe'||type==='pick'){const art=TOOLART.icon(type,tier);if(art)return art}try{if(window.BACKSW7>0&&type==='staff'&&wKind()==='staff'){const fw=fwMine145();if(fw)return fashSword(fw)}}catch(e){}return _ti.apply(this,arguments)};window.toolIcon=toolIcon}
+/* The back uses the same live weapon renderer as the hand, without thumbnail cropping. */
+function glow145(hx,hy,ang,sc=1){try{const W=wAura(),len={dragoon:50,ninja:32,paladin:34,monk:9,cleric:40,necro:40,summoner:40}[P.cls]||30;if(W&&typeof aura151==='function')aura151(hx,hy,ang,len*sc,W)}catch(e){}}
+function bowGlow145(x,y,aim,sc=1){try{const W=wAura();if(!W)return;if(P.cls==='sniper'){aura151(x,y,aim+Math.PI/2,29*sc,W);return}ctx.save();try{ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc,sc);ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba('+W.rgb+',.26)';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(1,-18);ctx.quadraticCurveTo(16,0,1,18);ctx.stroke();ctx.strokeStyle='rgba('+W.rgb2+',.55)';ctx.lineWidth=1.4;ctx.stroke()}finally{ctx.restore()}const px=-Math.sin(aim)*18*sc,py=Math.cos(aim)*18*sc;auraEmit(x+px,y+py,x-px,y-py,W,DT||0,1)}catch(e){}}
+function back145(x,by,side,f,d){if(!P.armor.sword)return false;const kd=wKind(),drawn=!!window.SKPOSE57||(P.draw&&P.tool==='sword');
+ if(kd==='bow'&&P.cls!=='sniper'){const q=quiverOffset7[d];drawQuiver7(x+q.x,by+q.y,q.r,3)}
+ if(drawn||P.cls==='monk')return true;
+ const saved={tool:P.tool,draw:P.draw,at:P.at};ctx.save();try{P.tool='sword';P.draw=false;P.at=-1;const ox=side?-f*4:d==='u'?3:-3;
+  if(kd==='bow'){const aim=P.cls==='sniper'?-Math.PI/2+(d==='l'?.3:d==='r'?-.3:.4):d==='l'?.35:d==='r'?Math.PI-.35:-.7;drawBow6(x+ox,by-23,aim,P.tier.sword|0,0,false,.78);bowGlow145(x+ox,by-23,aim,.78)}
+  else if(kd==='staff'){staffAt7(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86);glow145(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86)}
+  else{ctx.translate(x+ox,by-32);ctx.scale(P.cls==='dragoon'?.72:.82,P.cls==='dragoon'?.72:.82);const ang=Math.PI+(d==='l'?-.42:.42);toolSpr(0,0,ang);glow145(0,0,ang)}
+ }finally{Object.assign(P,saved);ctx.restore()}return true}
+window.Grip145={back:back145,glow:glow145,bowGlow:bowGlow145};
 /* REG136 */
 try{if(window.REG136)REG136.push(
  ['อาวุธตอนยิงเวท = อาวุธที่ถือ (แฟชั่น/อาชีพ/สีย้อม)',async()=>{const sv={cls:P.cls,w:P.armor.sword,fw:FASH.wpn},s0=ctx,c=document.createElement('canvas');c.width=c.height=64;document.body.appendChild(c);const k=c.getContext('2d');let bad=null;

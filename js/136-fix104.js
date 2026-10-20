@@ -85,8 +85,8 @@ window.cv104=cv104;
 const w104=()=>{const k=FASH.wpn;return k&&W104[k]?W104[k]:null};
 {const _fs=fashSword;fashSword=function(id){if(W104[id])return cv104(id);return _fs.apply(this,arguments)};window.fashSword=fashSword}
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){const S=w104();if(!S||S.cls!==P.cls||P.tool!=='sword'||S.bow||S.rifle){if(S&&S.cls!==P.cls){const sv=FASH.wpn;FASH.wpn=null;try{return _ts.apply(this,arguments)}finally{FASH.wpn=sv}}return _ts.apply(this,arguments)}
-  const t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(S.staff?ang*.35:ang);if(P.dir==='r'&&!S.staff)ctx.scale(-1,1);
-  if(S.fist)ctx.drawImage(cv104(FASH.wpn),-12,-26,24,24);else ctx.drawImage(cv104(FASH.wpn),-23,-36,46,46);
+  if(S.staff){staffAt7(hx,hy,ang);return}const t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r'&&!S.staff)ctx.scale(-1,1);
+  if(S.fist)ctx.drawImage(cv104(FASH.wpn),-12,-12,24,24);else ctx.drawImage(cv104(FASH.wpn),-23,-36,46,46);
   ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(0,-24,0,0,-24,20);g.addColorStop(0,'rgba('+S.glow+','+(.18+.12*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+S.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-20,-44,40,40);ctx.restore();
   if(Math.random()<.14){const a=ang-Math.PI/2;try{rfxP(hx+Math.cos(a)*16,hy+Math.sin(a)*16,(Math.random()-.5)*12,-14,.6,S.glow,1.6,'spark')}catch(e){}}};window.toolSpr=toolSpr}
 // ธนู/ปืนวาดเองทั้งกระบอก

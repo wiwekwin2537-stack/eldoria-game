@@ -22,7 +22,7 @@ window.aura151=aura151;
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){const n0=EMIT151;const r=_ts.apply(this,arguments);
   try{if(EMIT151===n0&&P.tool==='sword'&&P.draw&&P.armor&&P.armor.sword){const W=wAura();if(W){const c=P.cls,kd=wKind();
     const own=window.cwOk25&&cwOk25()&&((STAFF25.has(c)&&kd==='staff')||(MELEE25.has(c)&&kd==='sword'));
-    let d=own?(LEN151[c]||30):kd==='staff'?29.5:kd==='bow'?13:30,a=own&&STAFF25.has(c)?ang*.35:ang;
+    let d=own?(LEN151[c]||30):kd==='staff'?29.5:kd==='bow'?13:30,a=ang;
     aura151(hx,hy,a,d,W)}}}catch(e){}
   return r};window.toolSpr=toolSpr}
 /* REG136 */

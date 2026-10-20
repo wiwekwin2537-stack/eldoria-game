@@ -25,7 +25,7 @@ function gemIcon(){const c=document.createElement('canvas');c.width=c.height=48;
  k.fillStyle=g;k.strokeStyle='#103a86';k.lineWidth=1.6;k.beginPath();k.moveTo(14,6);k.lineTo(34,6);k.lineTo(45,19);k.lineTo(24,44);k.lineTo(3,19);k.closePath();k.fill();k.stroke();
  k.strokeStyle='rgba(255,255,255,.7)';k.lineWidth=1;k.beginPath();k.moveTo(3,19);k.lineTo(45,19);k.moveTo(14,6);k.lineTo(19,19);k.lineTo(24,44);k.moveTo(34,6);k.lineTo(29,19);k.lineTo(24,44);k.stroke();return c}
 const ICON={sword:iconCanvas('sword'),axe:iconCanvas('axe'),pick:iconCanvas('pick')};
-function toolSpr(hx,hy,ang){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);if(P.dir==='u'&&P.tool==='axe')ctx.scale(.36,1);ctx.drawImage(toolIcon(P.tool,P.tier[P.tool],64),-23,-36,46,46);ctx.restore()}
+function toolSpr(hx,hy,ang){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);ctx.drawImage(toolIcon(P.tool,P.tier[P.tool],64),-23,-36,46,46);ctx.restore()}
 function makeStump(){const c=document.createElement('canvas');c.width=32;c.height=26;const k=c.getContext('2d');
  k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(16,21,13,4,0,0,7);k.fill();
  const g=k.createLinearGradient(5,0,27,0);g.addColorStop(0,'#3a2615');g.addColorStop(.5,'#7d5632');g.addColorStop(1,'#3a2615');

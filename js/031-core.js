@@ -1119,11 +1119,11 @@ function drawBeetle(m,t,c){const w=m.mv?t*14:0,L=[-1,0,1];ctx.strokeStyle=c[1];c
  ctx.fillStyle=c[1];ctx.beginPath();ctx.ellipse(11,-8,6,5,0,0,7);ctx.fill();ctx.strokeStyle='#120c08';ctx.stroke();
  ctx.strokeStyle=c[1];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(15,-10);ctx.quadraticCurveTo(21,-12,20,-6);ctx.moveTo(15,-6);ctx.quadraticCurveTo(21,-3,19,-1);ctx.stroke();
  ctx.fillStyle=c[2];ctx.fillRect(12,-11,2,2);ctx.fillRect(12,-7,2,2)}
-function drawBat(m,t,c){if(MONSTERART.draw(m,t))return;const f=Math.sin(t*(m.st==='wu'?30:16)),z=-14+Math.sin(t*3)*3;ctx.translate(0,z);
+function drawBat(m,t,c){const f=Math.sin(t*(m.st==='wu'?30:16)),z=-14+Math.sin(t*3)*3;ctx.translate(0,z);
  ctx.fillStyle=c[1];ctx.strokeStyle='#0c080c';ctx.lineWidth=1.2;for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(s*4,-4);ctx.quadraticCurveTo(s*14,-14-f*8,s*22,-6-f*10);ctx.lineTo(s*18,-2-f*5);ctx.lineTo(s*14,0-f*4);ctx.lineTo(s*9,-1-f*2);ctx.closePath();ctx.fill();ctx.stroke()}
  ctx.fillStyle=c[0];ctx.beginPath();ctx.ellipse(0,-4,6,7,0,0,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(-4,-9);ctx.lineTo(-3,-15);ctx.lineTo(-1,-10);ctx.moveTo(4,-9);ctx.lineTo(3,-15);ctx.lineTo(1,-10);ctx.fill();
  ctx.fillStyle=c[2];ctx.fillRect(-3,-6,2,2);ctx.fillRect(1,-6,2,2);ctx.fillStyle='#fff';ctx.fillRect(-2,-1,1,2);ctx.fillRect(1,-1,1,2)}
-function drawGolem(m,t,c){if(MONSTERART.draw(m,t))return;const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='slamWU'?1:0,arm=wu?-10:m.st==='strike'?8:w*3;
+function drawGolem(m,t,c){const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='slamWU'?1:0,arm=wu?-10:m.st==='strike'?8:w*3;
  const R=(col,x,y,ww,hh)=>{ctx.fillStyle=col;ctx.fillRect(x,y,ww,hh);ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,ww-1,hh-1)};
  R(c[1],-9,-12+w*2,7,12-w*2);R(c[1],2,-12-w*2,7,12+w*2);
  R(c[0],-12,-32,24,21);ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(-12,-18,24,7);ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(-10,-30,9,4);
@@ -1131,7 +1131,7 @@ function drawGolem(m,t,c){if(MONSTERART.draw(m,t))return;const w=m.mv?Math.sin(t
  const g=ctx.createRadialGradient(3,-23,1,3,-23,6);g.addColorStop(0,'#fff');g.addColorStop(.4,c[2]);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(-4,-30,14,14);
  R(c[0],-20,-31+arm,8,17);R(c[1],-21,-16+arm,10,8);R(c[0],12,-31-arm*.5,8,17);R(c[1],11,-16-arm*.5,10,8);
  R(c[0],-7,-42,14,11);ctx.fillStyle=c[2];ctx.fillRect(-4,-38,3,2);ctx.fillRect(2,-38,3,2)}
-function drawWolf(m,t,c){if(MONSTERART.draw(m,t))return;const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
+function drawWolf(m,t,c){const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
  ctx.strokeStyle=c[1];ctx.lineWidth=3.2;ctx.lineCap='round';for(const [x,i] of [[-9,0],[-5,3],[7,1.5],[11,4.5]]){ctx.beginPath();ctx.moveTo(x,-9+wu);ctx.lineTo(x+lg(i),0);ctx.stroke()}
  ctx.fillStyle=c[1];ctx.beginPath();ctx.moveTo(-13,-12+wu);ctx.quadraticCurveTo(-24,-18+Math.sin(t*5)*3,-22,-6);ctx.lineTo(-13,-9+wu);ctx.fill();
  const g=ctx.createLinearGradient(0,-18,0,-4);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);ctx.fillStyle=g;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=1.2;
@@ -1150,9 +1150,6 @@ function drawDragon(m,t,c){const f=Math.sin(t*5),z=-10+Math.sin(t*2)*3;ctx.trans
  ctx.beginPath();ctx.moveTo(6,-20);ctx.quadraticCurveTo(14,-30,12,-36);ctx.lineTo(22,-36);ctx.lineTo(26,-31);ctx.lineTo(16,-29);ctx.lineTo(12,-18);ctx.closePath();ctx.fill();ctx.stroke();
  ctx.fillStyle=c[2];for(const [x,y] of [[-4,-25],[2,-26],[-9,-21]]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+3,y-7);ctx.lineTo(x+5,y);ctx.fill()}
  ctx.beginPath();ctx.moveTo(14,-37);ctx.lineTo(12,-44);ctx.lineTo(17,-37);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(19,-34,2,2)}
-// One small, reusable atlas; native drawings remain available if the image is unavailable.
-const MONSTERART={image:new Image(),ready:false,frames:{wolf:[[12,94,362,184],[375,94,350,184],[728,94,357,184],[1088,94,356,184]],golem:[[48,336,315,384],[410,336,318,384],[754,336,315,384],[1122,336,290,384]],bat:[[0,720,362,366],[362,720,362,366],[724,720,362,366],[1086,720,362,366]]},draw(m,t){if(!this.ready||!this.frames[m.f])return false;const row=this.frames[m.f],moving=m.mv||m.f==='bat',rate=m.f==='wolf'?10:m.f==='golem'?5:9,frame=moving?Math.floor(t*rate)%4:m.f==='wolf'?1:0,r=row[frame];ctx.save();if(m.f==='bat'&&m.fx<0)ctx.scale(-1,1);if(m.hurt>0)ctx.filter='brightness(1.7)';ctx.imageSmoothingEnabled=true;if(/WU$/.test(m.st)||m.st==='wu'){ctx.translate(-2,1);ctx.scale(1.04,.94)}else if(m.st==='strike'||m.st==='lunge'){ctx.translate(3,-1);ctx.rotate(.045)}if(m.f==='bat'){const scale=.155;ctx.drawImage(this.image,...r,-270*scale,-270*scale,r[2]*scale,r[3]*scale)}else{const width=m.f==='wolf'?54:43,height=m.f==='wolf'?28:49,breathe=moving?0:Math.sin(t*2)*.45;ctx.drawImage(this.image,...r,-width/2,-height-breathe,width,height+breathe)}ctx.restore();return true}};
-MONSTERART.image.onload=()=>{MONSTERART.ready=true};MONSTERART.image.onerror=()=>{MONSTERART.ready=false};MONSTERART.image.src='assets/monsters/creatures-v549.webp';window.MONSTERART=MONSTERART;
 const MOBDRAW={beetle:drawBeetle,bat:drawBat,golem:drawGolem,wolf:drawWolf,wisp:drawWisp,dragon:drawDragon};
 function drawMob(m,t){const c=mobCols(m),s=m.sc;
  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(m.x,m.y+1,(m.F.r+2)*s,4*s,0,0,7);ctx.fill();
@@ -1418,7 +1415,7 @@ const _dieOrig=die;die=function(){if(P.dead)return;startDeath()};
 
 // ---------- 1) ขนาดเครื่องมือในมือ: ขวาน/ที่ขุดเล็กลง ----------
 toolSpr=function(hx,hy,ang){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);const s=P.tool==='sword'?1:(P.tool==='axe'||P.tool==='pick')&&window.AXS7?AXS7:.7;ctx.scale(s,s);
- if(P.dir==='u'&&P.tool==='axe')ctx.scale(.5,1);ctx.drawImage(toolIcon(P.tool,P.tier[P.tool],64),-23,-36,46,46);ctx.restore()};
+ ctx.drawImage(toolIcon(P.tool,P.tier[P.tool],64),-23,-36,46,46);ctx.restore()};
 
 // ---------- 2) กล้องสั่น (ใช้ตอนขุด/ฟันโดน) ----------
 const SHK={t:0,a:0};function shake(a,t){SHK.a=Math.max(SHK.a,a);SHK.t=Math.max(SHK.t,t)}
@@ -5479,7 +5476,7 @@ function bowBack7(x,by,side,f,d,phase){ // phase: 'pre' = เรียกก่�
  const O={u:bowBackOffsetUp,d:bowBackOffsetDown,l:bowBackOffsetLeft,r:bowBackOffsetRight}[d],R=P.cls==='sniper'?-Math.PI/2+(d==='l'?.25:d==='r'?-.25:d==='u'?.45:-.45):{u:bowBackRotationUp,d:bowBackRotationDown,l:bowBackRotationLeft,r:bowBackRotationRight}[d];
  if(!drawn)drawBow6(x+O.x,by+O.y,R,tier,0,false,.82);
  if(P.cls==='sniper')return;const nq=(P.at>=0&&P.at<.12)?2:3;drawQuiver7(x+q.x,by+q.y,q.r,nq)}
-{const _bs=backSword;backSword=function(x,by,side,f,d){if(!(P.armor.sword&&wKind()==='bow'))return _bs(x,by,side,f,d);bowBack7(x,by,side,f,d)}}
+{const _bs=backSword;backSword=function(x,by,side,f,d){if(window.Grip145&&Grip145.back(x,by,side,f,d))return;if(!(P.armor.sword&&wKind()==='bow'))return _bs(x,by,side,f,d);bowBack7(x,by,side,f,d)}}
 
 // ---------------- ท่าถือ (ยืน/เดิน) ----------------
 // คฑา: จับช่วงล่างของด้าม ตั้งเกือบตรง ไม้แกว่งตามจังหวะเดิน · ธนู: ถือมือซ้ายข้างลำตัว คันตั้งแนวขา
@@ -5492,7 +5489,7 @@ function orbOf7(hx,hy,ang,sc){const r=STF_ORB7*(sc||1);return{x:hx+Math.sin(ang)
   if(kd==='staff'){let a;if(rgSide7(d))a=f*(.1+.12*s);else a=(d==='d'?-.06:.06)+.05*s;staffAt7(hx,hy,a);const o=orbOf7(hx,hy,a);P.tip={x:o.x,y:o.y,t:performance.now()};
    ctx.fillStyle='#f1d2b0';ctx.fillRect(hx-3,hy-2.5,6,5);return}
   // ธนู: หน้า/หลัง ถือมือซ้ายตัวละคร (หน้า=ขวาจอ, หลัง=ซ้ายจอ) · ข้าง = มือข้างลำตัว
-  let gx=hx,gy=hy,aim;if(d==='d'){gx=hx+(P.dash>0?32:22);aim=-.2}else if(d==='u'){gx=hx-(P.dash>0?32:22);aim=Math.PI+.2}else aim=f>0?.35+.08*s:Math.PI-.35-.08*s;
+  let gx=hx,gy=hy,aim;if(d==='d'){aim=-.2}else if(d==='u'){aim=Math.PI+.2}else aim=f>0?.35+.08*s:Math.PI-.35-.08*s;
   drawBow6(gx,gy+1,aim,tier,0,false,.85);ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-1.5,5,5);P.tip={x:gx,y:gy,t:performance.now()}}}
 
 // ---------------- ท่าโจมตี: ธนู ----------------
@@ -5501,6 +5498,7 @@ const BWPH=[.08,.16,.30,.34,.42,.6];
 const BOWSHOT7=[{dy:0,tilt:0,deep:1,lean:[-1.5,1]},{dy:2,tilt:-.1,deep:1,lean:[-1,1.5]},{dy:0,tilt:0,deep:1.18,lean:[-3,2.5]}]; // shot 1 ปกติ · 2 ย่อต่ำ เงยนิด · 3 ง้างลึกแรงสุด
 function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],aim0=sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd?-f*SH.tilt:0);
  const av=[Math.cos(aim),Math.sin(aim)],sc=d==='u'?.8:sd?.88:.9;
+ if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*12*sc,g[1]+axis[1]*12*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
  const G=sd?[f*13,-24+SH.dy]:d==='d'?[3,-16+SH.dy]:[-2,-40+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
  const I=sd?[f*5,-13]:d==='d'?[11,-12]:[-11,-12];                                     // ตำแหน่งมือถือธนูตอนพัก
  const aimI=sd?(f>0?.35:Math.PI-.35):d==='d'?-.2:Math.PI+.2;
@@ -5524,10 +5522,12 @@ const bowSh7=(x,by,d,f)=>rgSide7(d)?{bow:[x+f*2,by-25],dr:[x-f*1,by-24]}:d==='d'
 function bowParts7(x,by,d,f,TOP,which){const n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=P.tier.sword|0;
  if(which!=='arms'){
   drawBow6(gx,gy,q.a,tier,Math.max(0,q.pull),false,q.sc);
+  if(window.Grip145)Grip145.bowGlow(gx,gy,q.a,q.sc);
+  if(P.cls==='sniper')P.tip={x:gx+q.av[0]*32*q.sc,y:gy+q.av[1]*32*q.sc,t:performance.now()};
   if(q.onStr){const sx=gx+q.av[0]*(-5-11*q.pull)*q.sc,sy=gy+q.av[1]*(-5-11*q.pull)*q.sc;drawArrow7(sx,sy,q.aim,24*q.sc);
    if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+q.av[0]*27*q.sc,ty=sy+q.av[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
    P.tip={x:sx+q.av[0]*26*q.sc,y:sy+q.av[1]*26*q.sc,t:performance.now()}}
-  if(q.snap>0){ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(gx,gy,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
+  if(q.snap>0){const mx=gx+(P.cls==='sniper'?q.av[0]*32*q.sc:0),my=gy+(P.cls==='sniper'?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
   if(which==='bow'){swArm6(S.bow[0],S.bow[1],gx,gy,TOP,-1);ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-2.5,5,5);return}} // หันขึ้น: แขนจับคันอยู่หน้าตัว (หลังลำตัวจากมุมกล้อง)
  // แขนจับคันธนู → มือที่กำคัน · แขนดึงสาย → มือ (ถือลูกธนูตอนหยิบ/พาดสาย)
  if(which!=='arms'||d!=='u'){swArm6(S.bow[0],S.bow[1],gx,gy,TOP,d==='d'?1:d==='u'?-1:f);ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-2.5,5,5)}
@@ -5556,13 +5556,13 @@ function staffPose7(d,p,n){const sd=rgSide7(d),f=rgF7(d),K=STK7[sd?'s':d][n%3],I
  else if(p<STPH[2]){const u=(p-STPH[1])/(STPH[2]-STPH[1]),r=Math.sin(u*Math.PI)*1.5;w=[K.S[0]-(sd?f:0)*r,K.S[1]+(sd?0:r*.6),K.S[2]];fh=K.fS.slice();b=K.b.S;ph=2}
  else if(p<STPH[3]){const u=e6o((p-STPH[2])/(STPH[3]-STPH[2]));w=L3(K.S,K.F,u);fh=LP7(K.fS,K.fF,u);b=LP7(K.b.S,[0,0],u);ph=3}
  else{const u=e6io((p-STPH[3])/(1-STPH[3]));w=L3(K.F,I,u);fh=LP7(K.fF,fI,u);b=[0,0];ph=4}
- if(sd){w[0]*=f;w[2]*=f;fh[0]*=f}return{w,fh,b,ph}}
+ if(sd){w[0]*=f;w[2]*=f;fh[0]*=f}if(window.SkillMotion57){const S=stSh7(0,0,d,f),a=SkillMotion57.ik(S.st[0],S.st[1],w[0],w[1],f),c=SkillMotion57.ik(S.fr[0],S.fr[1],fh[0],fh[1],-f);w[0]=a.hx;w[1]=a.hy;fh[0]=c.hx;fh[1]=c.hy}return{w,fh,b,ph}}
 const stSh7=(x,by,d,f)=>rgSide7(d)?{st:[x+f*1,by-24],fr:[x+f*2,by-25]}:d==='d'?{st:[x-10,by-24],fr:[x+10,by-24]}:{st:[x+10,by-24],fr:[x-10,by-24]};
 function magicCol7(){const t=P.tier.sword|0,Q=TIERS[t]||TIERS[0];return Q.gl}
 function staffParts7(x,by,d,f,TOP,which){const n=P._rgN|0,p=P.at,q=staffPose7(d,p,n),hx=x+q.w[0],hy=by+q.w[1],ang=q.w[2],S=stSh7(x,by,d,f),fx2=x+q.fh[0],fy2=by+q.fh[1],col=magicCol7();
  const sc=d==='u'&&q.ph>=1&&q.ph<4?.94:1;
  if(which!=='arms'){
-  staffAt7(hx,hy,ang,sc);const o=orbOf7(hx,hy,ang,sc);P.tip={x:o.x,y:o.y,t:performance.now()};
+  staffAt7(hx,hy,ang,sc);if(window.Grip145)Grip145.glow(hx,hy,ang,sc);const o=orbOf7(hx,hy,ang,sc);P.tip={x:o.x,y:o.y,t:performance.now()};
   ctx.save();ctx.globalCompositeOperation='lighter';
   if(q.ph===0||q.ph===1){const k=q.ph===0?p/STPH[0]:1,g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,6+6*k);g.addColorStop(0,'rgba(255,255,255,'+(.6*k)+')');g.addColorStop(1,'rgba(150,100,255,0)');ctx.fillStyle=g;ctx.fillRect(o.x-14,o.y-14,28,28);
    for(let i=0;i<4;i++){const a=p*20+i*1.57,r=14*(1-k)+3;ctx.fillStyle='rgba(200,170,255,'+(.7*k)+')';ctx.fillRect(o.x+Math.cos(a)*r-1,o.y+Math.sin(a)*r-1,2,2)}}
