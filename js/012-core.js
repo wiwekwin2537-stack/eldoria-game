@@ -9,8 +9,8 @@ const TOWNART={settled:false,pending:[],sheets:{shops:{src:'assets/town/shops.pn
  guild:{sheet:'shops',r:[895,432,424,428],d:[.446,.675,.15,.88]},fashion:{sheet:'shops',r:[1346,467,417,392],d:[.472,.66,.15,.88]},
  castle:{sheet:'landmarks',r:[19,2,540,475]},bank:{sheet:'landmarks',r:[570,16,409,458],d:[.486,.69,.175,.91]},
  ware:{sheet:'landmarks',r:[1024,62,486,414],d:[.519,.655,.214,.90]},seal113:{sheet:'landmarks',r:[37,500,505,488],d:[.495,.715,.174,.925]},
- tower:{sheet:'landmarks',r:[600,478,331,514]},templeFloor:{sheet:'landmarks',r:[1140,726,260,210]},
- templeRear:{sheet:'landmarks',r:[1140,525,280,205]},templePillar:{sheet:'landmarks',r:[1034,788,112,190]}
+ tower:{sheet:'landmarks',r:[600,478,331,514]},templeFloor:{sheet:'landmarks',r:[1132,726,270,258]},
+ templeRear:{sheet:'landmarks',r:[1138,492,266,234]},templePillar:{sheet:'landmarks',r:[1020,774,124,216]}
 }};
 TOWNART.ready=function(role){const f=this.frames[role],s=f&&this.sheets[f.sheet];return !!(s&&s.state==='ready')};
 TOWNART.paint=function(k,role,x,y,w,h,shop){const f=this.frames[role];if(!f||!this.ready(role))return false;const s=this.sheets[f.sheet],r=f.r;if(r[0]+r[2]>s.image.naturalWidth||r[1]+r[3]>s.image.naturalHeight)return false;const cut=window.TOWNLIFE&&TOWNLIFE.mask(k,role,x,y,w,h,shop);if(shop&&f.d){const cx=f.d[0],dw=f.d[2],a=cx-dw/2,b=cx+dw/2,center=shop.door.x+shop.door.w/2,middle=dw*w,left=center-middle/2,right=center+middle/2;k.drawImage(s.image,r[0],r[1],r[2]*a,r[3],x,y,left,h);k.drawImage(s.image,r[0]+r[2]*a,r[1],r[2]*dw,r[3],x+left,y,middle,h);k.drawImage(s.image,r[0]+r[2]*b,r[1],r[2]*(1-b),r[3],x+right,y,w-right,h)}else k.drawImage(s.image,...r,x,y,w,h);if(cut)k.restore();return true};

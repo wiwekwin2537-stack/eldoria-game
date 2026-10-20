@@ -50,7 +50,8 @@ function saveSnapshot(rec) {
 function durableFile(file, body) {
  const temp=file+'.'+crypto.randomBytes(6).toString('hex')+'.tmp';let fd;
  try{fd=fs.openSync(temp,'wx');fs.writeFileSync(fd,body);fs.fsyncSync(fd);fs.closeSync(fd);fd=null;fs.renameSync(temp,file);
-  const dir=fs.openSync(path.dirname(file),'r');try{fs.fsyncSync(dir)}finally{fs.closeSync(dir)}
+  /* Node cannot fsync directory handles on Windows. File fsync and atomic rename still run; POSIX directory durability is retained. */
+  if(process.platform!=='win32'){const dir=fs.openSync(path.dirname(file),'r');try{fs.fsyncSync(dir)}finally{fs.closeSync(dir)}}
  }finally{if(fd!=null)fs.closeSync(fd);if(fs.existsSync(temp))fs.unlinkSync(temp);}
 }
 async function dbSet(lid, rec, operationId=crypto.randomBytes(16).toString('hex')) {

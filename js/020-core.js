@@ -35,7 +35,7 @@ function townDoors(){const L=SHOP_ORDER.map(id=>{const S=SHOP_DATA[id],[bx,by,bw
  return L}
 function doorNear(){for(const d of D.doors)if(Math.abs(P.x-d.cx)<30&&P.y>d.cy-4&&P.y<d.cy+30)return d;return null}
 function drawTown(){const t=performance.now()/1000,[cx,cy]=cam(TW*T,TH*T,.55);
- view(cx,cy);ctx.fillStyle='#223';ctx.fillRect(cx,cy,VW/Z,VH/Z);ctx.drawImage(dcv,0,0);TOWNLIFE.drawBuildings(ctx);
+ view(cx,cy);ctx.fillStyle='#223';ctx.fillRect(cx,cy,VW/Z,VH/Z);ctx.drawImage(dcv,0,0);TOWNLIFE.drawBuildings(ctx);if(!D.city2)padLight();
  for(let i=0;i<3;i++){const u=((t*.5+i/3)%1);ctx.strokeStyle='rgba(235,248,255,'+(.7*(1-u))+')';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(22*T,13*T+2,8+u*36,3.5+u*15,0,0,7);ctx.stroke()}
  drawGhosts();drawDrops();const L=D.npcs.map(n=>[n.y,()=>drawNPC(n,t)]).concat(D.carts.map(c=>[c.y,()=>drawCart(c,t)]),D.stalls.map(s=>[(s.y+1)*T,()=>drawStall(s,t)]),doorLayer(t),FORGE.map(f=>[(f.y+1)*T,()=>drawForge(f,t)]));
  L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);

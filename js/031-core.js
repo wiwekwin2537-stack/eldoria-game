@@ -211,9 +211,8 @@ function padLight(){const t=performance.now()/1000,x=PAD.x,y=PAD.y,u=Math.max(0,
  if(u>0){const w=34*(.35+.65*u),h=250,gp=ctx.createLinearGradient(0,y,0,y-h);gp.addColorStop(0,'rgba(255,255,255,'+(.95*Math.min(1,u*1.5))+')');gp.addColorStop(.45,'rgba(170,225,255,'+(.5*u)+')');gp.addColorStop(1,'rgba(170,225,255,0)');
   ctx.fillStyle=gp;ctx.fillRect(x-w/2,y-h,w,h);ctx.fillStyle='rgba(255,255,255,'+(.5*u)+')';ctx.fillRect(x-w/6,y-h*.8,w/3,h*.8);
   ctx.lineWidth=2.4;for(let i=0;i<3;i++){const p=Math.max(0,e*1.6-i*.22);if(p>1)continue;ctx.strokeStyle='rgba(200,240,255,'+(.8*(1-p))+')';ctx.beginPath();ctx.ellipse(x,y,12+p*74,5+p*32,0,0,7);ctx.stroke()}}
- ctx.restore();ui();
- if(u>0){ctx.fillStyle='rgba(255,255,255,'+(.3*u*u)+')';ctx.fillRect(0,0,VW,VH)}}
-{const _d=drawTown;drawTown=function(){_d();if(D&&D.town)padLight()}}
+ ctx.restore()}
+
 
 // ===== v2.2 : เมนูซื้อ/ขาย (ยืนยันก่อนขาย) · สถานีในร้าน (เตาหลอม/ทั่ง/หม้อปรุงยา) · ห้องร้านใหญ่ขึ้น · ไม่กระตุก =====
 const SHOPUI={id:null,tab:'buy',sel:null,qty:1},STN={open:null};
@@ -1321,7 +1320,7 @@ buildTown=function(){
  k.drawImage(ART.fountain,22*T-48,13*T-62,96,96);box(21,12,2,2,1);
  // วิหาร: เสา + รูปปั้น
  for(const [x,y] of [[3,19],[11,19],[3,24],[11,24]]){const px=x*T+16,py=y*T+28;prop(kk=>twPillar(kk,x,y),py,px-20,py-76,46,84,false,true);box(x,y,1,1,1)}
- prop(kk=>twStatue(kk,7*T,27*T-6),27*T-6,7*T-92,27*T-180,184,190);box(6,25,2,2,1);
+ prop(kk=>twStatue(kk,7*T,27*T-6),27*T-6,7*T-92,27*T-236,184,246);box(6,25,2,2,1);
  // ลานฝึก
  for(const x of [32,35,38]){const px=x*T+16,py=21*T+28;prop(kk=>twDummy(kk,x,21),py,px-20,py-52,40,58);box(x,21,1,1,1)}
  for(const [x,y] of [[31,23],[40,20]]){k.fillStyle='rgba(0,0,0,.25)';k.beginPath();k.ellipse(x*T+18,y*T+28,12,4,0,0,7);k.fill();k.fillStyle='#7a4a22';k.fillRect(x*T+6,y*T+6,20,22);k.fillStyle='#4a2a12';k.fillRect(x*T+6,y*T+10,20,2);k.fillRect(x*T+6,y*T+22,20,2);box(x,y,1,1,1)}
@@ -2147,7 +2146,7 @@ const NPCNAME={'แม่ค้าผัก':'แม่ค้ามาลี','�
  'ชาวนา':'ชาวนาบุญมี','หญิงสาว':'ลิลลี่','ช่างตีเหล็ก':'ช่างเหล็กดอร์ก','นักเดินทาง':'นักเดินทางเคน','เด็กหญิง':'น้องมิว','คุณยาย':'ยายบัว','คุณตา':'ตาเหลียง','นักบวชแห่งแสง':'นักบวชออรีออน','ปรมาจารย์อาชีพ':'ปรมาจารย์ซีรอส'};
 {const _bt=buildTown;buildTown=function(){_bt();let g=0;for(const n of D.npcs){if(n.name==='ทหารยาม')n.dn=['ทหารยามโรแลนด์','ทหารยามการ์ธ'][g++%2];else if(NPCNAME[n.name])n.dn=NPCNAME[n.name]}
  // ป้ายวิหารแห่งแสง (ชัดขึ้น)
- shopName(dcv.getContext('2d'),{b:[3,18.95,9],name:'วิหารแห่งแสง · จุดเกิด',emoji:'⛪'});mkMini(dcv,TW,TH,2.6)}}
+ /* Shrine sign is rendered with the final town label layer. */mkMini(dcv,TW,TH,2.6)}}
 
 
 // =====================================================================
