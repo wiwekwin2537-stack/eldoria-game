@@ -33,7 +33,7 @@ W81.repair81=function(){try{const done=()=>{try{location.reload()}catch(e){}};co
  Promise.all(jobs).then(done,done);setTimeout(done,2500)}catch(e){location.reload()}};
 const E81={shown:0,list:[],attempt:0};
 W81.cancelPlay81=function(){W81.__play81=0;E81.attempt++;E81.shown=0;const b=document.getElementById('fix81e');if(b)b.remove()};
-function activePlay81(attempt){return !!(attempt&&E81.attempt===attempt&&W81.__play81&&!document.querySelector('#lId, #lGo, #cc41go')&&!(W81.SERVER_BOOT&&!W81.SERVER_BOOT.ready))}
+function activePlay81(attempt){return !!(attempt&&E81.attempt===attempt&&W81.__play81&&!document.querySelector('#lId, #lGo, #cc41go')&&!(W81.SERVER_BOOT&&!W81.SERVER_BOOT.ready)&&!(W81.SCENEREADY&&(W81.SCENEREADY.busy||W81.SCENEREADY.failed)))}
 function pendingPlay81(attempt){return activePlay81(attempt)&&typeof titleEl!=='undefined'&&!titleEl.hidden}
 function errBox81(msg){if(E81.shown)return;E81.shown=1;let b=document.getElementById('fix81e');if(!b){b=document.createElement('div');b.id='fix81e';document.body.appendChild(b)}
  b.innerHTML='⚠️ เปิดเกมไม่สำเร็จบนเครื่องนี้<br><small style="opacity:.8">'+esc81(String(msg).slice(0,120))+'</small><br><button onclick="repair81()">🧹 ซ่อมเกม (ล้างแคช) แล้วโหลดใหม่</button><button onclick="this.parentNode.remove()">ปิด</button>'}

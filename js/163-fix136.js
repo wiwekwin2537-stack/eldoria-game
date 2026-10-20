@@ -67,6 +67,7 @@ REG136.push(
  ['ซิงค์ช้าแล้วโหลดอันดับล่าสุดอีกครั้ง',async()=>{try{let n=0;const q=await settleLb20(Promise.resolve({ok:true}),async()=>{n++;return{ok:true,k:[]}});return q.state.ok&&q.top.ok&&n===1?null:'ตารางไม่ได้อ่านอันดับใหม่หลังซิงค์'}catch(e){return 'error '+e.message}}]);
 REG136.push(['ตัวละครเดิมบนเซิร์ฟเวอร์ไม่กลับไปสร้างใหม่เมื่อธงเก่าหาย (v547)',()=>SERVER_BOOT.ready&&window.FM_NEW===false&&!ccDone41()?'พบเซฟตัวละครเดิมแต่ยังขอสร้างใหม่':null]);
 window.REG136=REG136;
+REG136.push(['เข้าเกมรอภาพฉากจริงก่อนเกิดโดยไม่เพิ่มชั้นห่อ (v548)',()=>typeof window.SCENEREADY==='object'&&typeof SCENEREADY.enter==='function'&&typeof SCENEREADY.cancel==='function'&&(!ONL32.verified||ONL32.dev||SCENEREADY.state==='ready')?null:'ยังไม่มีตัวเตรียมฉากหรือเริ่มเล่นก่อนฉากพร้อม']);
 {const _run=SystemValidator.runFullGamePlaytest;SystemValidator.runFullGamePlaytest=async function(opt){const R=await _run.apply(this,arguments);
   const sv={cls:P.cls,lv:P.lv,coin:inv.coin},god=window.GM7&&GM7.god;try{if(window.GM7)GM7.god=true}catch(e){}const out=[];
   for(const [name,fn] of REG136){let m=null;try{m=await fn()}catch(e){m='error '+e.message}if(m){const b={module:'regression',type:'regression',scene:where(),detail:name+' — '+m,sev:'major'};out.push(b);try{R.bugs.push(b)}catch(e){}}}

@@ -3465,7 +3465,7 @@ function tLoginForm(){const last=FM_RAW.get('fm_last_acct')||'';gid('tpan').inne
  tInputs();gid('lGo').onclick=async()=>{const r=await accLogin(gid('lId').value,gid('lPw').value,gid('lRem').checked);if(r){tErr(r);sfx('thud')}};setTimeout(()=>gid(last?'lPw':'lId').focus(),100)}
 function tInputs(){for(const i of titleEl.querySelectorAll('input'))for(const ev of ['keydown','keyup','keypress'])i.addEventListener(ev,e=>{e.stopPropagation();if(ev==='keydown'&&e.key==='Enter'){const b=titleEl.querySelector('#rGo,#lGo');if(b)b.click()}})}
 function showTitle(){titleEl.hidden=false;PAUSED=true;intro.hidden=true;requestAnimationFrame(titleDraw);tMain()}
-function tPlay(){auInit&&auInit();titleEl.hidden=true;PAUSED=false;sfx('warp');try{sessionStorage.removeItem('fm_go')}catch(e){}
+function tPlay(){auInit&&auInit();if(D&&D.town&&!D.shop)placeAtSpawn();titleEl.hidden=true;PAUSED=false;sfx('warp');try{sessionStorage.removeItem('fm_go')}catch(e){}
  if(!STORY.intro){STORY.intro=1;saveStory();if(D&&D.town)placeAtSpawn&&placeAtSpawn();cinePlay(PROLOGUE,()=>{TUT.on=STORY.tut<TUTS.length;tutShow();sysSay('📜 เนื้อเรื่อง: '+STCH[STORY.ch].t)})}
  else{TUT.on=STORY.tut<TUTS.length;tutShow()}}
 // เปิดเกม: แสดงหน้าเริ่ม (ถ้าเพิ่งเข้าสู่ระบบ ให้เข้าเกมเลย)
