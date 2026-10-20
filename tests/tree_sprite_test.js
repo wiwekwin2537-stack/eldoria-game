@@ -74,10 +74,9 @@ for (const invalid of [false, true]) {
   assert.equal(f.box.art.pending.length, 0, 'โหลดพลาดแล้วไม่สะสม callback');
 }
 const server = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
-const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
+/* Service-worker tree delivery is covered behaviorally in image_cache_test.js; images are no longer eagerly downloaded at install. */
 assert.ok(server.includes("'/assets/trees/oak.png': ['assets/trees/oak.png','image/png']"));
-assert.ok(sw.includes("'assets/trees/oak.png'"));
-for(const kind of ['ancient','fire','spirit']){assert.ok(server.includes("'/assets/trees/"+kind+".png'"));assert.ok(sw.includes("'assets/trees/"+kind+".png'"));const b=fs.readFileSync(path.join(__dirname,'../assets/trees/'+kind+'.png'));assert.equal(b.subarray(1,4).toString(),'PNG')}
+for(const kind of ['ancient','fire','spirit']){assert.ok(server.includes("'/assets/trees/"+kind+".png'"));const b=fs.readFileSync(path.join(__dirname,'../assets/trees/'+kind+'.png'));assert.equal(b.subarray(1,4).toString(),'PNG')}
 const png = fs.readFileSync(path.join(__dirname, '../assets/trees/oak.png'));
 assert.equal(png.subarray(1, 4).toString(), 'PNG');
 console.log('tree_sprite_test: PASS (โหลดช้า/โหลดแล้ว/โหลดพลาด/รูปเดิม/ธีม/เส้นทางภาพ)');
