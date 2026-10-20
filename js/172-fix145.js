@@ -20,7 +20,7 @@ window.fwMine145=fwMine145;
    if(typeof cwOld27==='function'&&cwOld27()){ctx.save();ctx.filter=FLT27[P.cls]||'none';try{return _sa.apply(this,arguments)}finally{ctx.restore()}}}}catch(e){}
   return _sa.apply(this,arguments)};window.staffAt7=staffAt7}
 /* 3) คทาแฟชั่นตอนเก็บหลัง */
-{const _ti=toolIcon;toolIcon=function(type,tier,sz){try{if(window.BACKSW7>0&&type==='staff'&&wKind()==='staff'){const fw=fwMine145();if(fw)return fashSword(fw)}}catch(e){}return _ti.apply(this,arguments)};window.toolIcon=toolIcon}
+{const _ti=toolIcon;toolIcon=function(type,tier,sz){if(type==='axe'||type==='pick'){const art=TOOLART.icon(type,tier);if(art)return art}try{if(window.BACKSW7>0&&type==='staff'&&wKind()==='staff'){const fw=fwMine145();if(fw)return fashSword(fw)}}catch(e){}return _ti.apply(this,arguments)};window.toolIcon=toolIcon}
 /* REG136 */
 try{if(window.REG136)REG136.push(
  ['อาวุธตอนยิงเวท = อาวุธที่ถือ (แฟชั่น/อาชีพ/สีย้อม)',async()=>{const sv={cls:P.cls,w:P.armor.sword,fw:FASH.wpn},s0=ctx,c=document.createElement('canvas');c.width=c.height=64;document.body.appendChild(c);const k=c.getContext('2d');let bad=null;

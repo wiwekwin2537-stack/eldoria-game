@@ -7168,15 +7168,15 @@ function saveUI8(title,msg){saveW8.innerHTML='<div class="w" style="width:min(44
 window.exportSave8=exportSave8;window.importSave8=importSave8;window.openSave8=()=>saveUI8('','');
 // ---------- PWA: ติดตั้งบนหน้าจอหลัก + เปิดเต็มจอ ----------
 const PWA8={evt:null,can:false};
-function forcedUpdate8(save,sync,reload,delay=8000,limit=10000){let timer,promise=null;const run=()=>{if(promise)return promise;if(timer)clearTimeout(timer);promise=(async()=>{try{await save()}catch(e){}if(sync)try{await Promise.race([Promise.resolve().then(sync),new Promise(r=>setTimeout(r,limit))])}catch(e){}reload()})();return promise};timer=setTimeout(run,delay);return{run}}
+function forcedUpdate8(save,sync,reload,delay=8000,limit=10000){let timer,promise=null;const run=()=>{if(promise)return promise;if(timer)clearTimeout(timer);promise=(async()=>{try{await save()}catch(e){}if(sync)try{await Promise.race([Promise.resolve().then(sync),new Promise(r=>setTimeout(r,limit))])}catch(e){}reload()})();return promise};if(delay>0)timer=setTimeout(run,delay);return{run}}
 (function(){const web=location.protocol==='https:'&&!/claude\.ai|claudeusercontent|anthropic/.test(location.hostname);
  if(!document.querySelector('link[rel=manifest]')&&web){const l=document.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';document.head.appendChild(l)}
  if(web&&'serviceWorker' in navigator){window.addEventListener('load',()=>{
   // ---- อัปเดตอัตโนมัติ: เช็กเวอร์ชันใหม่ทุก 3 นาที / ตอนกลับมาที่แท็บ แล้วเด้งแถบ "อัปเดตเลย" ----
   let shown=false;const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');
    b.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:#2a1d44;color:#fff;border:1px solid #c9a227;border-radius:10px;padding:10px 14px;font:14px sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 4px 18px #0008';
-   b.innerHTML='<span>✨ มีอัปเดต · กำลังบันทึกและเข้าเกมใหม่ใน 8 วินาที</span><button style="background:#c9a227;border:0;border-radius:6px;padding:6px 10px;font-weight:bold;cursor:pointer">เข้าใหม่เลย</button>';
-   const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true)}catch(e){}},()=>location.reload());b.querySelector('button').onclick=()=>go.run();document.body.appendChild(b)};
+   b.innerHTML='<span>✨ มีอัปเดตใหม่ · กดเมื่อพร้อมเข้าเกมใหม่</span><button style="background:#c9a227;border:0;border-radius:6px;padding:6px 10px;font-weight:bold;cursor:pointer">เข้าใหม่เลย</button>';
+   const go=forcedUpdate8(()=>{try{if(typeof saveGame==='function')saveGame(true)}catch(e){}},()=>{try{if(window.ONL32&&ONL32.verified&&window.CLOUD&&CLOUD.sync)return CLOUD.sync(true)}catch(e){}},()=>location.reload(),0);b.querySelector('button').onclick=()=>go.run();document.body.appendChild(b)};
   const sig=r=>r.headers.get('etag')||r.headers.get('last-modified')||r.headers.get('content-length')||'';
   let base=null;const verCheck=()=>fetch('index.html',{method:'HEAD',cache:'no-store'}).then(r=>{const s=sig(r);if(!s)return;if(base===null)base=s;else if(s!==base)banner()}).catch(()=>{});
   verCheck();
