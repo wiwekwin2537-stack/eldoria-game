@@ -1797,23 +1797,20 @@ const VENDOR={veg:'แม่ค้าผัก',fruit:'แม่ค้าผล�
 for(const ty in STALLS){const S=STALLS[ty];SD['st_'+ty]={name:S.name,emoji:S.emoji,owner:{name:VENDOR[ty],greet:['มาจ้า เลือกได้เลย!']},buy:S.items.map(k=>({id:'f_'+k,name:FOOD[k].n,mat:k,emoji:FOOD[k].e,price:FOOD[k].price,give:k,note:foodTxt(FOOD[k])})),sell:S.sell}}
 for(const s of STALL_DATA)s.a=STALLS[s.type].a;
 const stallNear=()=>D&&D.town&&STALL_DATA.find(s=>Math.abs(P.x-(s.x+1)*T)<40&&P.y>(s.y+1)*T-4&&P.y<(s.y+2)*T+8);
-function drawStallBack(s,t){if(DECOR560.ready('props')){ctx.save();ctx.beginPath();ctx.rect(s.x*T-8,s.y*T-64,80,46);ctx.clip();DECOR560.draw(ctx,'props',0,s.x*T-8,s.y*T-64,80,96);ctx.restore();return;}const x=s.x*T,y=s.y*T,w=2*T,sw=Math.sin(t*1.6+s.x)*1.5;
- ctx.fillStyle='#4a2e16';ctx.fillRect(x+1,y-56,4,70);ctx.fillRect(x+w-5,y-56,4,70);ctx.fillStyle='#6a4422';ctx.fillRect(x+2,y-56,2,70);ctx.fillRect(x+w-4,y-56,2,70);
+function drawStallBack(s,t){const x=s.x*T,y=s.y*T-28,w=2*T,sw=Math.sin(t*1.6+s.x)*1.5;
+ ctx.fillStyle='#4a2e16';ctx.fillRect(x+1,y-56,4,98);ctx.fillRect(x+w-5,y-56,4,98);ctx.fillStyle='#6a4422';ctx.fillRect(x+2,y-56,2,98);ctx.fillRect(x+w-4,y-56,2,98);
  const n=8;for(let i=0;i<n;i++){const ax=x-6+i*(w+12)/n,bw=(w+12)/n;ctx.fillStyle=i%2?'#f2ead6':s.a;ctx.beginPath();ctx.moveTo(ax,y-58);ctx.lineTo(ax+bw,y-58);ctx.lineTo(ax+bw+sw*.5,y-38);ctx.quadraticCurveTo(ax+bw/2+sw,y-32,ax+sw*.5,y-38);ctx.closePath();ctx.fill()}
  ctx.fillStyle='rgba(0,0,0,.2)';ctx.fillRect(x-6,y-60,w+12,3);ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(x-6,y-58,w+12,2);
- // ป้ายแผง
- const S=STALLS[s.type],TG={veg:'ผักสด',fruit:'ผลไม้',bread:'ขนมปัง',farm:'ของไร่'}[s.type];ctx.font='bold 9px system-ui,"Noto Sans Thai",sans-serif';const tw=ctx.measureText(S.emoji+' '+TG).width+10;ctx.fillStyle='#3a2410';ctx.fillRect(x+w/2-tw/2,y-74,tw,14);ctx.strokeStyle='#e8c14a';ctx.lineWidth=1;ctx.strokeRect(x+w/2-tw/2+.5,y-73.5,tw-1,13);
- ctx.fillStyle='#ffe9a8';ctx.textAlign='center';ctx.fillText(S.emoji+' '+TG,x+w/2,y-64);ctx.textAlign='left'}
+}
 function goods(s,x,y,t){const G={
  fruit:()=>{for(let i=0;i<6;i++){ctx.fillStyle=i<3?'#d03030':'#f09a22';ctx.beginPath();ctx.arc(x+8+i*4.5,y-14-(i%2)*3,4,0,7);ctx.fill()}for(let i=0;i<5;i++){ctx.fillStyle='#8a4ad0';ctx.beginPath();ctx.arc(x+40+(i%3)*4,y-15-Math.floor(i/3)*4,3,0,7);ctx.fill()}ctx.fillStyle='#f4d03a';ctx.beginPath();ctx.ellipse(x+56,y-14,7,3,-.4,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(x+56,y-17,7,3,-.4,0,7);ctx.fill()},
  veg:()=>{for(let i=0;i<4;i++){ctx.fillStyle='#e86a10';ctx.beginPath();ctx.moveTo(x+6+i*5,y-20);ctx.lineTo(x+10+i*5,y-20);ctx.lineTo(x+8+i*5,y-8);ctx.fill();ctx.fillStyle='#4fae3a';ctx.fillRect(x+7+i*5,y-23,2,3)}for(let i=0;i<2;i++){ctx.fillStyle='#6ac04a';ctx.beginPath();ctx.arc(x+34+i*10,y-14,6,0,7);ctx.fill();ctx.strokeStyle='#3a8a2a';ctx.stroke()}ctx.fillStyle='#ffd23a';ctx.beginPath();ctx.ellipse(x+56,y-14,3,7,.3,0,7);ctx.fill()},
  bread:()=>{for(let i=0;i<3;i++){ctx.fillStyle='#c8934a';ctx.beginPath();ctx.ellipse(x+10+i*9,y-14,5,4,0,0,7);ctx.fill();ctx.fillStyle='#e8c080';ctx.fillRect(x+8+i*9,y-16,4,1)}ctx.fillStyle='#d8a050';ctx.save();ctx.translate(x+42,y-17);ctx.rotate(-.3);ctx.fillRect(-10,-2.5,20,5);ctx.restore();ctx.fillStyle='#b87830';ctx.beginPath();ctx.ellipse(x+54,y-13,7,4,0,0,7);ctx.fill();ctx.fillStyle='#ff8ab0';ctx.fillRect(x+48,y-24,8,6)},
  farm:()=>{for(const [dx,r] of [[12,7],[26,6]]){ctx.fillStyle='#e07a1a';ctx.beginPath();ctx.ellipse(x+dx,y-15,r+2,r,0,0,7);ctx.fill();ctx.strokeStyle='#a04a0a';ctx.beginPath();ctx.moveTo(x+dx,y-15-r);ctx.lineTo(x+dx,y-15+r);ctx.stroke();ctx.fillStyle='#5a3a1a';ctx.fillRect(x+dx-1,y-15-r-3,2,4)}for(let i=0;i<2;i++){ctx.fillStyle='#e8a820';ctx.fillRect(x+40+i*9,y-24,7,11);ctx.fillStyle='#8a5a2e';ctx.fillRect(x+40+i*9,y-26,7,3)}}};
  (G[s.type]||G.fruit)()}
-function drawStallFront(s,t){const x=s.x*T,y=s.y*T,w=2*T;if(DECOR560.ready('props')){ctx.save();ctx.beginPath();ctx.rect(s.x*T-8,s.y*T-18,80,50);ctx.clip();DECOR560.draw(ctx,'props',0,s.x*T-8,s.y*T-64,80,96);ctx.restore();}else{const x=s.x*T,y=s.y*T,w=2*T;ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+w/2+6,y+T-1,w/2+10,6,0,0,7);ctx.fill();
+function drawStallFront(s,t){const x=s.x*T,y=s.y*T,w=2*T;ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+w/2+6,y+T-1,w/2+10,6,0,0,7);ctx.fill();
  ctx.fillStyle='#7a4e26';ctx.fillRect(x-2,y-10,w+4,40);ctx.fillStyle='#9a6a36';ctx.fillRect(x-2,y-10,w+4,5);ctx.fillStyle='#5a3418';for(let i=1;i<8;i++)ctx.fillRect(x-2+i*8.5,y-5,1,35);
  ctx.fillStyle='#3a2410';ctx.fillRect(x-2,y+28,w+4,2);goods(s,x,y,t);
- }
  // ป้ายราคา
  ctx.fillStyle='#f6ecd0';ctx.fillRect(x+w/2-10,y+4,20,11);ctx.strokeStyle='#5a3418';ctx.strokeRect(x+w/2-9.5,y+4.5,19,10);ctx.fillStyle='#8a2a1a';ctx.font='bold 7px system-ui';ctx.textAlign='center';ctx.fillText('🪙',x+w/2,y+12);ctx.textAlign='left';
  if(stallNear()===s&&shopEl.hidden){ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';const tx='กด E / ⚔️ ซื้อของ',tw=ctx.measureText(tx).width+14,cx=x+w/2,cy=y+T+30+Math.sin(t*4)*2;ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(cx-tw/2,cy-13,tw,19);ctx.strokeStyle='#e8c14a';ctx.strokeRect(cx-tw/2+.5,cy-12.5,tw-1,18);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(tx,cx,cy);ctx.textAlign='left'}}
