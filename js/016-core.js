@@ -42,7 +42,9 @@ const ores=[],oreAt={},falling=[],drops=[];
 for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]===ORE){const kd=oreKind(x,y),o={id:ores.length+1,tx:x,ty:y,kind:kd,hp:OREK[kd].hp,max:OREK[kd].hp,shake:0,bar:0,regen:0};ores.push(o);oreAt[y*W+x]=o}
 function addDrop(type,x,y){drops.push({type,x,y,z:0,vz:120+Math.random()*80,vx:(Math.random()-.5)*90,vy:(Math.random()-.5)*60,t:0})}
 function dropLoot(x,y){const n=1+(Math.random()<.4?1:0),c=1+Math.floor(Math.random()*3);for(let i=0;i<n;i++)addDrop('gel',x,y);for(let i=0;i<c;i++)addDrop('coin',x,y)}
-function refreshInv(){const c=document.getElementById('coinhud');if(c)c.textContent=inv.coin;const sb=document.getElementById('scrollbadge');if(sb)sb.textContent=inv.scroll;const b=document.getElementById('bag');if(b&&!b.hidden&&typeof renderBag==='function')renderBag();const cp=document.getElementById('chp');if(cp&&!cp.hidden&&typeof renderChar==='function')renderChar()}
+/* v5.65 เงินหลักเยอะแสดงย่อ (เจ้าของสั่ง): 250K · 12.5M · 1.2B · ต่ำกว่าแสนแสดงเต็มมีจุลภาค */
+function fmtCoin64(n){n=Math.floor(+n||0);const a=Math.abs(n),f=(v,u)=>(v>=100?Math.floor(v):Math.floor(v*10)/10)+u;return a>=1e9?f(n/1e9,'B'):a>=1e6?f(n/1e6,'M'):a>=1e5?f(n/1e3,'K'):n.toLocaleString('en-US')}window.fmtCoin64=fmtCoin64;
+function refreshInv(){const c=document.getElementById('coinhud');if(c)c.textContent=fmtCoin64(inv.coin);const sb=document.getElementById('scrollbadge');if(sb)sb.textContent=inv.scroll;const b=document.getElementById('bag');if(b&&!b.hidden&&typeof renderBag==='function')renderBag();const cp=document.getElementById('chp');if(cp&&!cp.hidden&&typeof renderChar==='function')renderChar()}
 const isBorder=()=>false;
 function pickTarget(){const [x,y]=target();
  for(const [a,b] of [[x,y],[Math.floor(P.x/T),Math.floor(P.y/T)]]){const t=map[b]&&map[b][a];

@@ -3787,12 +3787,13 @@ async function accChangePw(oldp,np,np2){const key=FM_ACCT;if(!key)return 'ยั
 function tPwForm(){gid('tpan').innerHTML='<h3>🔒 เปลี่ยนรหัสผ่าน</h3><label>รหัสผ่านเดิม</label><input id="cOld" type="password"><label>รหัสผ่านใหม่</label><input id="cNew" type="password"><label>ยืนยันรหัสใหม่</label><input id="cNew2" type="password"><div class="err"></div><button class="tb" id="cGo">บันทึก</button><button class="tb ghost" onclick="tMain()">← กลับ</button>';
  tInputs();gid('cGo').onclick=async()=>{const r=await accChangePw(gid('cOld').value,gid('cNew').value,gid('cNew2').value);if(r){tErr(r);sfx('thud')}else{tErr('');titleEl.querySelector('.err').innerHTML='<span style="color:#8fe08a">✅ เปลี่ยนรหัสผ่านแล้ว</span>';sfx('gem');setTimeout(tMain,1200)}}}
 // ---------- ป้องกันโกงขณะเล่น ----------
-const AC={flags:[],last:0};
+const AC={flags:[],last:0,testOff:true}; /* v5.65 ช่วงเปิดเทส เจ้าของสั่งปิดกันโกง (เลเวล/แต้ม/เงิน/ตีบวก/พาสซีฟ/โปรเร่งความเร็ว) · เปิดเกมจริง → เปลี่ยนเป็น false · ยังกันค่าเสีย (NaN/ติดลบ) ไว้กันเกมพัง */window.AC=AC;
 function acFlag(why){AC.flags.push([Date.now(),why]);if(AC.flags.length>30)AC.flags.shift();const n=performance.now();if(n-AC.last>8000){AC.last=n;sysSay('🛡️ ระบบป้องกัน: '+why)}}
 // 1) ตรวจโปรเร่งความเร็ว (เวลาเกมวิ่งเร็วกว่าเวลาจริง)
-{let p0=performance.now(),d0=Date.now(),strikes=0;setInterval(()=>{const p=performance.now(),d=Date.now(),r=(p-p0)/Math.max(1,d-d0);p0=p;d0=d;if(r>1.35||r<0){if(++strikes>=2){acFlag('ตรวจพบเวลาเกมผิดปกติ (โปรเร่งความเร็ว) — หยุดเกมชั่วคราว');PAUSED=true;setTimeout(()=>{PAUSED=!titleEl.hidden||!menuEl.hidden},3000)}}else strikes=Math.max(0,strikes-1)},2000)}
+{let p0=performance.now(),d0=Date.now(),strikes=0;setInterval(()=>{const p=performance.now(),d=Date.now(),r=(p-p0)/Math.max(1,d-d0);p0=p;d0=d;if(!AC.testOff&&(r>1.35||r<0)){if(++strikes>=2){acFlag('ตรวจพบเวลาเกมผิดปกติ (โปรเร่งความเร็ว) — หยุดเกมชั่วคราว');PAUSED=true;setTimeout(()=>{PAUSED=!titleEl.hidden||!menuEl.hidden},3000)}}else strikes=Math.max(0,strikes-1)},2000)}
 // 2) ตรวจค่าผิดปกติ (เลเวล/แต้ม/เงิน/เลือด)
 setInterval(()=>{if(!titleEl.hidden)return;try{
+ if(AC.testOff){if(!Number.isFinite(inv.coin)||inv.coin<0)inv.coin=0;for(const k in inv)if(!Number.isFinite(inv[k])||inv[k]<0)inv[k]=0;return}
  if(P.lv>MAXLV||P.lv<1||!Number.isFinite(P.lv)){P.lv=Math.max(1,Math.min(MAXLV,P.lv|0||1));acFlag('เลเวลผิดปกติ — ปรับคืนแล้ว')}
  const bs=baseStats(),cap=3*(P.lv-1)+3;let base=Object.values(bs).reduce((a,b)=>a+(b|0),0);if(base+(P.sp|0)>cap){P.sp=Math.max(0,cap-base);if(base>cap){const ks=Object.keys(bs).sort((a,b)=>bs[b]-bs[a]);let over=base-cap;for(const k of ks){const c=Math.min(over,bs[k]);P.stats[k]-=c;over-=c;if(over<=0)break}}acFlag('แต้มสเตตัสเกินกำหนด — ปรับคืนแล้ว');recalcStats()}
  if(!Number.isFinite(inv.coin)||inv.coin<0||inv.coin>99999999){inv.coin=Math.max(0,Math.min(99999999,inv.coin|0));acFlag('จำนวนเหรียญผิดปกติ')}

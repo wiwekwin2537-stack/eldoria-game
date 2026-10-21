@@ -131,5 +131,5 @@ if(window.FM_LOADING)addEventListener('eldoria:ready',restorePendingItems38,{onc
 // ---------- สรุป ----------
 {const sm=menuEl.querySelector('small');if(sm)sm.insertAdjacentHTML('beforeend',' · H/N ดื่มยา · B กินอาหาร')}
 window.GAME&&Object.assign(window.GAME,{equipItem,unequip,craftGear,smeltX,renderBag,PAD,ARR,vitalsTick,hitOre,logPick,useItem});
-lvBox.innerHTML='🪙 <b id="coinhud">'+inv.coin+'</b>';
+lvBox.innerHTML='🪙 <b id="coinhud">'+fmtCoin64(inv.coin)+'</b>';
 redrawHotbar();refreshInv();lvHud();
