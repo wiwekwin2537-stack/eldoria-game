@@ -352,29 +352,29 @@ lay41();
   for(const s of [4,5]){const b=document.createElement('button');b.className='bt'+(bar[s]===i?'':' gr');b.style.cssText='width:34px;padding:3px';b.textContent=s+1;b.onclick=()=>setBar(s,i);row.appendChild(b)}})}catch(e){}}}
 // ---------- CSS ผังวงคู่ (คิดจากจุดกลางปุ่มโจมตี) ----------
 {const st=document.createElement('style');st.textContent=`
-#wrap #acts.six{width:262px!important;height:276px!important}
-#wrap #acts.six .sk{width:64px!important;height:64px!important;background-size:cover;background-position:center}
-#wrap #acts.six #sk1{right:109px!important;bottom:72px!important}
-#wrap #acts.six #sk2{right:64px!important;bottom:113px!important}
-#wrap #acts.six #sk3{right:5px!important;bottom:121px!important}
-#wrap #acts.six #sk5{display:block!important;right:191px!important;bottom:67px!important}
-#wrap #acts.six #sk6{right:146px!important;bottom:146px!important}
-#wrap #acts.six #sk7{right:67px!important;bottom:191px!important}
-#wrap #acts.six #ultb{width:60px!important;height:60px!important;right:2px!important;bottom:210px!important}
-#wrap #acts.six #dashb{width:56px!important;height:56px!important;right:124px!important;bottom:6px!important}
-#wrap #acts.six #sk4{width:44px!important;height:44px!important;right:184px!important;bottom:8px!important}
-#wrap #acts.six .sk.new::after{top:-4px}
-#acts #skpg41{display:none;position:absolute;width:48px;height:48px;border-radius:50%;border:2px solid #f2c95a;background:rgba(30,24,50,.85);color:#f2c95a;font:700 22px system-ui;right:176px;bottom:84px;z-index:3;box-shadow:0 3px 10px rgba(0,0,0,.55)}
+#wrap #acts.six{width:220px!important;height:236px!important}
+#wrap #acts.six .sk{width:48px!important;height:48px!important;font-size:23px!important;background-size:cover;background-position:center}
+#wrap #acts.six #sk1{right:80px!important;bottom:61px!important}
+#wrap #acts.six #sk2{right:54px!important;bottom:112px!important}
+#wrap #acts.six #sk3{right:2px!important;bottom:78px!important}
+#wrap #acts.six #sk5{display:block!important;right:166px!important;bottom:60px!important}
+#wrap #acts.six #sk6{right:137px!important;bottom:111px!important}
+#wrap #acts.six #sk7{right:103px!important;bottom:163px!important}
+#wrap #acts.six #ultb{width:44px!important;height:44px!important;right:2px!important;bottom:164px!important}
+#wrap #acts.six #dashb{width:44px!important;height:44px!important;right:83px!important;bottom:6px!important}
+#wrap #acts.six #sk4{width:44px!important;height:44px!important;right:137px!important;bottom:6px!important}
+#wrap #acts.six #atk{width:68px!important;height:68px!important;right:2px!important;bottom:2px!important;font-size:32px!important}#wrap #acts.six .sk .n{font-size:16px!important}#wrap #acts.six .sk.new::after{top:-4px}
+#acts #skpg41{display:none;position:absolute;width:48px;height:48px;border-radius:50%;border:2px solid #f2c95a;background:rgba(30,24,50,.85);color:#f2c95a;font:700 22px system-ui;right:139px;bottom:64px;z-index:3;box-shadow:0 3px 10px rgba(0,0,0,.55)}
 #wrap #acts.six.pg{height:200px!important}
 #wrap #acts.six.pg #skpg41{display:block}
 #wrap #acts.six.pg #sk5,#wrap #acts.six.pg #sk6,#wrap #acts.six.pg #sk7{display:none!important}
-#wrap #acts.six.pg #ultb{right:184px!important;bottom:140px!important;width:52px!important;height:52px!important}
+#wrap #acts.six.pg #ultb{right:164px!important;bottom:116px!important;width:44px!important;height:44px!important}
 #wrap #acts.six.pg.p2 #sk1,#wrap #acts.six.pg.p2 #sk2,#wrap #acts.six.pg.p2 #sk3{display:none!important}
-#wrap #acts.six.pg.p2 #sk5{display:block!important;right:109px!important;bottom:72px!important}
-#wrap #acts.six.pg.p2 #sk6{display:block!important;right:64px!important;bottom:113px!important}
-#wrap #acts.six.pg.p2 #sk7{display:block!important;right:5px!important;bottom:121px!important}
+#wrap #acts.six.pg.p2 #sk5{display:block!important;right:80px!important;bottom:61px!important}
+#wrap #acts.six.pg.p2 #sk6{display:block!important;right:54px!important;bottom:112px!important}
+#wrap #acts.six.pg.p2 #sk7{display:block!important;right:2px!important;bottom:78px!important}
 #wrap.six41 #chatTg{left:calc(84px + var(--sl,0px))!important;top:calc(98px + var(--st,0px))!important;bottom:auto!important}
-@media (max-width:1100px){#wrap.six41 #bar{left:auto!important;right:calc(272px + var(--sr,0px))!important;transform:none!important}}
+@media (max-width:1100px){#wrap.six41 #bar{left:auto!important;right:calc(230px + var(--sr,0px))!important;transform:none!important}}
 @media (max-width:759px){#wrap.six41 #bar{transform:scale(.8)!important;transform-origin:right bottom}}
 @media (max-width:639px){#wrap.six41 #bar{right:auto!important;left:calc(8px + var(--sl,0px))!important;bottom:calc(178px + var(--sb,0px))!important;transform:scale(.8)!important;transform-origin:left bottom}}
 `;document.head.appendChild(st)}

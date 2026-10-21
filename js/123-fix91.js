@@ -5,7 +5,7 @@
 try{
 // ---------- ข้อ 23 ขนาดปุ่ม ----------
 try{if(!(SET.btn91>0))SET.btn91=1}catch(e){}
-const applyBtn91=()=>{try{const a=gid('acts');if(a)a.style.zoom=String(Math.max(.7,Math.min(1.5,+SET.btn91||1)))}catch(e){}};applyBtn91();
+const applyBtn91=()=>{try{const a=gid('acts');if(!a)return;const mobile=matchMedia('(pointer:coarse)').matches||innerHeight<=500,desired=Math.max(.7,Math.min(1.5,+SET.btn91||1)),available=Math.max(180,Math.min(innerHeight-76,innerWidth*.58));a.style.zoom=String(mobile?Math.max(40/44,Math.min(desired,available/236,1.2)):desired)}catch(e){}};applyBtn91();window.addEventListener('resize',applyBtn91);
 {const _tm=toggleMenu;toggleMenu=function(){const r=_tm.apply(this,arguments);try{if(!menuEl.hidden&&!gid('btn91')){const jo=gid('joyopts');const host=jo||menuEl.querySelector('label');if(host){
    const lb=document.createElement('label');lb.id='btn91';lb.innerHTML='ขนาดปุ่มโจมตี/สกิล <b id="btn91v">'+Math.round((SET.btn91||1)*100)+'%</b><input type="range" min="0.7" max="1.5" step="0.05" value="'+(SET.btn91||1)+'">';
    const inp=lb.querySelector('input');inp.oninput=()=>{SET.btn91=+inp.value;gid('btn91v').textContent=Math.round(SET.btn91*100)+'%';applyBtn91();try{saveSet()}catch(e){}};

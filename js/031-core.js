@@ -5499,14 +5499,14 @@ const BOWSHOT7=[{dy:0,tilt:0,deep:1,lean:[-1.5,1]},{dy:2,tilt:-.1,deep:1,lean:[-
 function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],aim0=sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd?-f*SH.tilt:0);
  const av=[Math.cos(aim),Math.sin(aim)],sc=d==='u'?.8:sd?.88:.9;
  if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*12*sc,g[1]+axis[1]*12*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
- const G=sd?[f*13,-24+SH.dy]:d==='d'?[3,-16+SH.dy]:[-2,-40+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
- const I=sd?[f*5,-13]:d==='d'?[11,-12]:[-11,-12];                                     // ตำแหน่งมือถือธนูตอนพัก
- const aimI=sd?(f>0?.35:Math.PI-.35):d==='d'?-.2:Math.PI+.2;
+ const G=sd?[f*13,-24+SH.dy]:d==='d'?[10,-23+SH.dy]:[-10,-30+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
+ const I=sd?[f*10,-23]:d==='d'?[12,-23]:[-12,-25];                                     // ตำแหน่งมือถือธนูตอนพัก
+ const aimI=sd?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12,displayAim=sd?aim:d==='d'?0:Math.PI,stringAxis=[Math.cos(displayAim),Math.sin(displayAim)];
  const H0=sd?[-f*2,-14]:d==='d'?[-11,-13]:[11,-13];                                    // มือดึงสายตอนพัก
- const Q=quiverReach7(d),nock=k=>[G[0]+av[0]*(-5-11*k)*sc,G[1]+av[1]*(-5-11*k)*sc];
+ const Q=quiverReach7(d),nock=k=>[G[0]+stringAxis[0]*(-5-11*k)*sc,G[1]+stringAxis[1]*(-5-11*k)*sc];
  let g,a,h,pull=0,onStr=false,inHand=null,snap=0,lean=0;
  const raise=Math.min(1,e6o(p/.12)),back=p>BWPH[5]?e6io((p-BWPH[5])/(1-BWPH[5])):0;
- g=LP7(LP7(I,G,raise),I,back);a=L7(L7(aimI,aim,raise),aimI,back);
+ g=LP7(LP7(I,G,raise),I,back);a=L7(L7(aimI,displayAim,raise),aimI,back);
  if(p<BWPH[0]){h=LP7(H0,Q,e6o(p/BWPH[0]));inHand={k:0}}
  else if(p<BWPH[1]){const u=e6io((p-BWPH[0])/(BWPH[1]-BWPH[0]));h=LP7(Q,nock(0),u);inHand={k:u}}
  else if(p<BWPH[2]){const u=e6o((p-BWPH[1])/(BWPH[2]-BWPH[1]));pull=u*SH.deep;h=nock(pull);onStr=true;lean=SH.lean[0]*u}
@@ -5514,7 +5514,7 @@ function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],aim0=sd?
  else if(p<BWPH[4]){const u=(p-BWPH[3])/(BWPH[4]-BWPH[3]);snap=1-u;pull=-.18*Math.sin(u*Math.PI*3)*(1-u);const A=nock(SH.deep);h=[A[0]-av[0]*6*e6o(u),A[1]-av[1]*6*e6o(u)-3*e6o(u)];lean=L7(SH.lean[0],SH.lean[1],e6o(u))}
  else if(p<BWPH[5]){const A=nock(SH.deep);h=[A[0]-av[0]*6,A[1]-av[1]*6-3];lean=L7(SH.lean[1],0,(p-BWPH[4])/(BWPH[5]-BWPH[4]))}
  else{const A=nock(SH.deep);h=LP7([A[0]-av[0]*6,A[1]-av[1]*6-3],H0,back)}
- return{g,a,h,pull,onStr,inHand,snap,sc,aim,av,lean,dip:SH.dy}}
+ if(window.SkillMotion57){const S=bowSh7(0,0,d,f),hand=SkillMotion57.ik(S.dr[0],S.dr[1],h[0],h[1],-f);h=[hand.hx,hand.hy]}return{g,a,h,pull,onStr,inHand,snap,sc,aim,av,stringAxis:[Math.cos(a),Math.sin(a)],lean,dip:SH.dy}}
 function drawArrow7(x,y,ang,len){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.lineCap='round';ctx.strokeStyle='#7a5a32';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(len,0);ctx.stroke();
  ctx.fillStyle='#d8dce8';ctx.beginPath();ctx.moveTo(len+5,0);ctx.lineTo(len-1,-2.6);ctx.lineTo(len-1,2.6);ctx.closePath();ctx.fill();ctx.fillStyle='#e04a3a';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-3,-2.5);ctx.lineTo(3,0);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.restore()}
 // ไหล่: แขนจับคันธนู = แขนซ้ายตัวละคร · แขนดึงสาย = แขนขวา
@@ -5524,7 +5524,7 @@ function bowParts7(x,by,d,f,TOP,which){const n=P._rgN|0,p=P.at,q=bowPose7(d,p,n)
   drawBow6(gx,gy,q.a,tier,Math.max(0,q.pull),false,q.sc);
   if(window.Grip145)Grip145.bowGlow(gx,gy,q.a,q.sc);
   if(P.cls==='sniper')P.tip={x:gx+q.av[0]*32*q.sc,y:gy+q.av[1]*32*q.sc,t:performance.now()};
-  if(q.onStr){const sx=gx+q.av[0]*(-5-11*q.pull)*q.sc,sy=gy+q.av[1]*(-5-11*q.pull)*q.sc;drawArrow7(sx,sy,q.aim,24*q.sc);
+  if(q.onStr){const sx=gx+q.stringAxis[0]*(-5-11*q.pull)*q.sc,sy=gy+q.stringAxis[1]*(-5-11*q.pull)*q.sc;drawArrow7(sx,sy,q.aim,24*q.sc);
    if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+q.av[0]*27*q.sc,ty=sy+q.av[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
    P.tip={x:sx+q.av[0]*26*q.sc,y:sy+q.av[1]*26*q.sc,t:performance.now()}}
   if(q.snap>0){const mx=gx+(P.cls==='sniper'?q.av[0]*32*q.sc:0),my=gy+(P.cls==='sniper'?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}

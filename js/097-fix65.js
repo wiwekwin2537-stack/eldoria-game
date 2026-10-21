@@ -6,18 +6,18 @@ window.myAv65=myAv65;
 {const _c=CLOUD.call;CLOUD.call=function(p,body,to){try{if(p==='/api/save'&&body){body.stat=Object.assign({},body.stat||{},{av:myAv65()})}}catch(e){}return _c.call(this,p,body,to)}}
 const AVC65={};
 function avCanvas65(av,w,h,sc,dir){const key=JSON.stringify(av||{})+w+h+sc+(dir||'');if(AVC65[key])return AVC65[key];const c=document.createElement('canvas');c.width=w;c.height=h;const k=c.getContext('2d');
- const sv={ctx,armor:Object.assign({},P.armor),tier:Object.assign({},P.tier),cls:P.cls,fb:FASH.body,fw:FASH.wpn,look:P.look8,x:P.x,y:P.y,dir:P.dir,mv:P.mv,draw:P.draw,tool:P.tool,name:P.name,at:P.at,mount:MOUNT.on,dash:P.dash};
+ const sv={ctx,armor:Object.assign({},P.armor),tier:Object.assign({},P.tier),cls:P.cls,fb:FASH.body,fw:FASH.wpn,look:P.look8,x:P.x,y:P.y,dir:P.dir,mv:P.mv,draw:P.draw,tool:P.tool,name:P.name,at:P.at,mount:MOUNT.on,dash:P.dash,tip:P.tip,preview:window.__lbav65};
  try{ctx=k;k.translate(w/2,h-6);k.scale(sc,sc);av=av||{};const A=av.a||{};for(const s of ['helm','chest','pants','arm','neck','ring','sword'])P.armor[s]=A[s]&&ITEMS[A[s]]?A[s]:null;P.tier.sword=av.ts|0;
   P.cls=CLS[av.c]?av.c:'none';FASH.body=av.fb&&OUTFIT[av.fb]?av.fb:null;FASH.wpn=av.fw&&FWPN[av.fw]?av.fw:null;P.look8=Object.assign({},window.LOOKDEF8||{},av.lk||{});
   P.x=0;P.y=0;P.dir=dir||'d';P.mv=false;P.draw=true;P.tool='sword';P.name='';P.at=-1;MOUNT.on=false;P.dash=0;window.__lbav65=1;hero()}catch(e){}
- finally{window.__lbav65=0;ctx=sv.ctx;Object.assign(P.armor,sv.armor);Object.assign(P.tier,sv.tier);P.cls=sv.cls;FASH.body=sv.fb;FASH.wpn=sv.fw;P.look8=sv.look;P.x=sv.x;P.y=sv.y;P.dir=sv.dir;P.mv=sv.mv;P.draw=sv.draw;P.tool=sv.tool;P.name=sv.name;P.at=sv.at;MOUNT.on=sv.mount;P.dash=sv.dash}
+ finally{window.__lbav65=sv.preview;P.tip=sv.tip;ctx=sv.ctx;Object.assign(P.armor,sv.armor);Object.assign(P.tier,sv.tier);P.cls=sv.cls;FASH.body=sv.fb;FASH.wpn=sv.fw;P.look8=sv.look;P.x=sv.x;P.y=sv.y;P.dir=sv.dir;P.mv=sv.mv;P.draw=sv.draw;P.tool=sv.tool;P.name=sv.name;P.at=sv.at;MOUNT.on=sv.mount;P.dash=sv.dash}
  return AVC65[key]=c}
 window.avCanvas65=avCanvas65;
 {const st=document.createElement('style');st.textContent=`
 #lb20 .w{background:linear-gradient(180deg,#1c1530,#0e0a18)!important}
 #lb20 .lb65{display:block!important;flex:1 1 auto;min-height:0;padding:8px 10px;overflow-y:auto;font-family:system-ui,"Noto Sans Thai",sans-serif;color:#f3e9d2}
 #lb20 .lb65 .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:rgba(0,0,0,.35);padding:3px;border-radius:12px;border:1px solid rgba(232,193,74,.25);margin-bottom:8px}
-#lb20 .lb65 .tabs button{all:unset;cursor:pointer;text-align:center;padding:6px 2px;border-radius:9px;font:700 11.5px system-ui,"Noto Sans Thai";color:#d8ccb0;white-space:nowrap}
+#lb20 .lb65 .tabs button{all:unset;cursor:pointer;text-align:center;box-sizing:border-box;min-height:40px;display:flex;align-items:center;justify-content:center;padding:4px 2px;border-radius:9px;font:700 12px system-ui,"Noto Sans Thai";color:#d8ccb0;white-space:nowrap}
 #lb20 .lb65 .tabs button.on{background:linear-gradient(180deg,#ffd86a,#d9a42a);color:#2a1a06}
 #lb20 .me65{display:flex;gap:10px;align-items:center;padding:8px;border-radius:14px;background:linear-gradient(90deg,rgba(122,255,154,.12),rgba(255,255,255,.03));border:1px solid rgba(122,255,154,.5);margin-bottom:10px}
 #lb20 .me65 canvas,#lb20 .pod canvas,#lb20 .row65 canvas{image-rendering:pixelated;flex:none;border:none!important;background:none!important;border-radius:0!important;max-width:none!important;margin:0!important;box-shadow:none!important}
@@ -35,7 +35,7 @@ window.avCanvas65=avCanvas65;
 #lb20 .row65 i{font-style:normal;width:26px;text-align:center;font:900 13px system-ui;color:#d8ccb0}
 #lb20 .row65 .nm{flex:1;min-width:0}#lb20 .row65 .nm b{display:block;font:800 12.5px system-ui,"Noto Sans Thai";color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #lb20 .row65 .nm small{font:600 10.5px system-ui,"Noto Sans Thai";color:#c8bca2}#lb20 .row65 .v{font:800 12px system-ui;color:#ffd86a;white-space:nowrap}
-#lb20 .ft65{font:600 10.5px system-ui,"Noto Sans Thai";color:#8a8070;text-align:center;margin-top:6px}`;document.head.appendChild(st)}
+@media(max-height:500px){#lb20 .me65{padding:5px;margin-bottom:6px}#lb20 .me65 canvas{width:38px!important;height:44px!important}#lb20 .pod canvas{width:47px!important;height:54px!important}#lb20 .pod.p1 canvas{width:54px!important;height:62px!important}#lb20 .pod .md{font-size:18px}#lb20 .pod{padding:4px}#lb20 .pod.p1{padding-top:5px}}#lb20 .ft65{font:600 10.5px system-ui,"Noto Sans Thai";color:#8a8070;text-align:center;margin-top:6px}`;document.head.appendChild(st)}
 const esc65=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 const clsN65=c=>CLS[c]?CLS[c].e+' '+CLS[c].n:'🔰 ไม่มีอาชีพ';
 const syncMsg65={store:'ฐานข้อมูลปฏิเสธการบันทึก',offline:'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้',network:'การเชื่อมต่อขัดข้อง',size:'ข้อมูลเซฟเกินขนาดที่เซิร์ฟเวอร์รับได้',conflict:'ข้อมูลเปลี่ยนจากอีกเครื่อง กรุณาเข้าเกมใหม่',auth:'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่',timeout:'รอเซิร์ฟเวอร์นานเกินไป',busy:'ระบบกำลังทำรายการอื่นอยู่',inflight:'มีการซิงค์อีกครั้งกำลังทำงาน',unverified:'ยังตรวจสอบบัญชีออนไลน์ไม่เสร็จ','no-server':'ไม่พบที่อยู่เซิร์ฟเวอร์','no-account':'ไม่พบบัญชีที่เข้าสู่ระบบ',sync:'เซิร์ฟเวอร์ยังไม่ยืนยันการบันทึก'};
