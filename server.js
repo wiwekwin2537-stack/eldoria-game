@@ -25,6 +25,7 @@ const server = http.createServer((req, res) => {
   if ((req.url || '').split('?')[0] === '/api/pvptop') { res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' }); res.end(JSON.stringify({ ok: true, list: PVP.top() })); return; }
   if (ACC.middleware(req, res, o => originOk(o, req.headers.host || ''))) return;
   const u = (req.url || '/').split('?')[0], f = STATIC[u];
+  if(u==='/assets/town/goddess-v562.webp'||/^\/assets\/(?:town\/(?:houses|details|props)|city2\/(?:houses|remaining))-v560\.webp$/.test(u)){const assetPath=path.join(__dirname,u);if(!fs.existsSync(assetPath)){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':'image/webp','x-content-type-options':'nosniff','cache-control':'public, max-age=31536000, immutable'});fs.createReadStream(assetPath).pipe(res);return;}
   if ((u === '/' || u === '/index.html') && USE_PAGES) { res.writeHead(302, { location: GAME_URL, 'cache-control': 'no-store' }); res.end(); return; }
   if (u === '/sw.js' && USE_PAGES) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'cache-control': 'no-cache' }); res.end("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))).then(()=>self.registration.unregister()).then(()=>self.clients.matchAll()).then(cs=>cs.forEach(c=>{try{c.navigate(c.url)}catch(_){}}))));"); return; }
   if (u==='/assets/monsters/creatures-v549.webp'){res.writeHead(404);res.end();return;}
