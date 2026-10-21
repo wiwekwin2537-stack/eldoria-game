@@ -1,3 +1,4 @@
+const SNZ54=.7;window.SNZ54=SNZ54;
 // fix46 (v4.52) — สกิลใหม่ช่อง 4–6 + พาสซีฟเสริมสกิล 3 ขั้น ของอีก 10 อาชีพ (ตามแผน design/skills-plan.json) + ตารางพาสซีฟในหน้าต่างสกิล
 // ทุกอย่างเป็นของใหม่ห่อทับ ไม่แก้โค้ดเดิม · มังค์ทำไว้แล้วใน fix41
 try{
@@ -121,6 +122,8 @@ NEWSK.summoner=[
  const BT=buf('bats');if(BT){BT.tick-=dt;if(BT.tick<=0){BT.tick=.3;eachIn(P.x,P.y-6,170,e=>{if(e.dead)return;const d=hurtE(e,.45,{kb:20,col:'#ff6a7a'});if(d>0)P.hp=Math.min(BAL.hp,P.hp+d*.5)})}}
  // โหมดซุ่มยิง: ขยับ = ยกเลิก
  const SN=buf('snipe');if(SN&&Math.hypot(P.x-SN.x,P.y-SN.y)>10){SN.t=0;say('🔭 ขยับตัว — โหมดซุ่มยิงถูกยกเลิก')}
+ /* v5.54 โหมดซุ่มยิง: ซูมจอออก 70% (มองไกลขึ้นตามระยะยิง +50%) แบบนุ่ม · หมดเวลา/ขยับ/ตาย/ย้ายฉาก = ซูมกลับเท่าที่ผู้เล่นตั้งไว้ */
+ try{const zb=ZS[zi],zt=SN&&SN.t>0&&!P.dead?zb*SNZ54:zb;if(Z!==zt){Z+=(zt-Z)*Math.min(1,dt*6);if(Math.abs(Z-zt)<.003)Z=zt}}catch(e){}
  // สมุนพิเศษ: เต่ากระแทกกระดอง · พญานาคพ่นน้ำ · อัศวินมรณะฟาดกว้าง
  const B44w=window.B44||{};B44w.inMin=true;try{for(const o of MIN){if(o.k==='turtle46'){o.sl46=(o.sl46||3)-dt;if(o.sl46<=0){o.sl46=3;hitAt(o.x,o.y,130,.8,{kb:160,fx:o.x,fy:o.y,col:'#c8f08a'});ring25(o.x,o.y,'200,240,140',130,.4)}}
   else if(o.k==='naga46'){o.sp46=(o.sp46||1.5)-dt;if(o.sp46<=0){o.sp46=1.5;const e=o.tg&&!o.tg.dead?o.tg:null;if(e){const dx=e.x-o.x,dy=e.y-o.y,d=Math.hypot(dx,dy)||1;if(d<240){for(const q of enemies()){const ax=q.x-o.x,ay=q.y-o.y,dd=Math.hypot(ax,ay);if(dd<220&&(ax*dx+ay*dy)/(dd*d||1)>.75){hurtE(q,1.0,{kb:80,fx:o.x,fy:o.y,col:'#bff0ff'});q.slowT=2}}ef({k:'water',x:o.x,y:o.y-20,dx:dx/d,dy:dy/d,l:.5})}}}}
