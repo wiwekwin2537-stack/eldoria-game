@@ -145,8 +145,8 @@ function build98(G){C2ART.start();const ART558=C2ART.ready('b')&&C2ART.ready('g'
  const drawB=b=>{const X=b.x*T,Y=b.y*T,Wp=b.w*T,Hp=b.h*T,o=b.o;
   {const extra=b.shop?({skill:0,store:1,fashion:2,ware:3}[b.shop.id]):o.style==='tower'&&!o.clock558?5:b.x===3&&b.y===25?4:null;
    const sheet=extra!=null?'extra2':!b.shop&&o.style!=='tower'?'homes2':null,index=extra!=null?extra:Math.abs(b.x*7+b.y*3)%6;
-   if(sheet&&DECOR560.ready(sheet)){const r=DECOR560.sheets[sheet].boxes[index],dw=Wp+24,dh=Math.min(Hp+T*1.5+34,r[3]*dw/r[2]),dx=X+(Wp-dw)/2,dy=Y+Hp+6-dh;sprite(q=>DECOR560.draw(q,sheet,index,dx,dy,dw,dh),dx,dy,dw,dh,Y+Hp,1);return}}
-  {const ak=ART558&&(b.shop?C2ART.SHOP[b.shop.id]:o.clock558?'clock':null);if(ak){const [sx,sy,sw,sh]=C2ART.BOX[ak],dw=Wp+(o.style==='tower'?60:24),dh=sh*dw/sw,dx=X+Wp/2-dw/2,dy=Y+Hp+6-dh;sprite(q=>q.drawImage(C2ART.img.b,sx,sy,sw,sh,dx,dy,dw,dh),dx,dy,dw,dh,Y+Hp,1);return}}
+   if(sheet&&DECOR560.ready(sheet)){const r=DECOR560.sheets[sheet].boxes[index],dw=Wp,dh=Math.min(Hp+T*1.5+34,r[3]*dw/r[2]),dx=X+(Wp-dw)/2,dy=Y+Hp-dh;sprite(q=>DECOR560.draw(q,sheet,index,dx,dy,dw,dh),dx,dy,dw,dh,Y+Hp,1);return}}
+  {const ak=ART558&&(b.shop?C2ART.SHOP[b.shop.id]:o.clock558?'clock':null);if(ak){const [sx,sy,sw,sh]=C2ART.BOX[ak],dw=Wp+(o.style==='tower'?60:0),dh=sh*dw/sw,dx=X+Wp/2-dw/2,dy=Y+Hp-dh;sprite(q=>q.drawImage(C2ART.img.b,sx,sy,sw,sh,dx,dy,dw,dh),dx,dy,dw,dh,Y+Hp,1);return}}
   if(o.style==='tower')sprite(q=>tower98(q,X,Y,Wp,Hp,o),X-10,Y-T*2.2-30,Wp+24,Hp+T*2.2+40,Y+Hp,1);
   else sprite(q=>house98(q,X,Y,Wp,Hp,o,rng98(b.x*131+b.y*17)),X-12,Y-T*1.5-34,Wp+28,Hp+T*1.5+44,Y+Hp,1)};
  // แถวอาคารต่อถนน (หันหน้าลงใต้)

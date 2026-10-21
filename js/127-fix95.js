@@ -226,13 +226,16 @@ function drawUnder95(){const t=performance.now()/1000,[x0,y0,x1,y1]=view95();
   ctx.strokeText(lab,x,y-64);ctx.fillStyle=ok?'#fff':'#c8c0d8';ctx.fillText(lab,x,y-64);ctx.font='bold 10px system-ui';ctx.strokeText(sub,x,y+36);ctx.fillStyle=ok?'#9dffb0':'#ff9a9a';ctx.fillText(sub,x,y+36);ctx.textAlign='left'});
  // วงเวทกลับเมือง 1 (ป้าย)
  const Zm=D.zone,ex=Zm.ent.x*T+16,ey=(Zm.ent.y+2)*T+16;ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText('⛵ เรือไปท่าเรือตะวันออก',ex,ey+28);ctx.fillStyle='#fff';ctx.fillText('⛵ เรือไปท่าเรือตะวันออก',ex,ey+28);ctx.textAlign='left';
- for(const n of D.npcs||[])if(n.y<P.y)try{drawNPC(n,t)}catch(e){}}
+}
 // ---------- วาด: ชาวเมืองข้างหน้า + ของที่บังตัวละคร + ป้ายกด E (หลังตัวละคร) ----------
 {const _dt=drawDmgTxt;drawDmgTxt=function(dt){try{if(inC2())drawOver95()}catch(e){}return _dt.apply(this,arguments)};window.drawDmgTxt=drawDmgTxt}
-function drawOver95(){const t=performance.now()/1000;for(const n of D.npcs||[])if(n.y>=P.y)try{drawNPC(n,t)}catch(e){}
- const ents=[{x:P.x,y:P.y}];try{for(const o of NET.others.values())ents.push(o)}catch(e){}for(const n of D.npcs||[])ents.push(n);
- const [x0,y0,x1,y1]=view95();
- for(const o of C2.occ){if(o.x0>x1||o.x0+o.w<x0||o.y0>y1||o.y0+o.h<y0)continue;let hit=false;for(const e of ents){if(e.y<o.base&&e.y>o.y0-10&&e.x>o.x0-10&&e.x<o.x0+o.w+10){hit=true;break}}if(hit)ctx.drawImage(o.cv,o.x0,o.y0)}
+// อาคารและทุกคนใช้คิวเดียวกันตามระดับเท้า ไม่วาดบ้านทับทั้งฉากทีหลัง
+C2.depth=function(L,t,[x0,y0,x1,y1]){
+ for(const o of C2.occ){if(o.x0>x1||o.x0+o.w<x0||o.y0>y1||o.y0+o.h<y0)continue;L.push([o.base,()=>ctx.drawImage(o.cv,o.x0,o.y0)])}
+ for(const n of D.npcs||[])if(n.x>x0-48&&n.x<x1+48&&n.y>y0-48&&n.y<y1+80)L.push([n.y,()=>drawNPC(n,t)]);
+ for(const o of NET.others.values())if(o.x>x0-96&&o.x<x1+96&&o.y>y0-96&&o.y<y1+120)L.push([o.y,()=>drawOther(o)]);
+};
+function drawOver95(){
  const b=near95();if(b){let x,y,txt;if(b.k==='door'){x=b.d.x;y=b.d.y-6;txt='🚪 กด E เข้า '+b.d.n}else if(b.k==='portal'){const pp=portalPos95(b.i,C2.portals.length);x=pp.x;y=pp.y-80;txt=P.lv>=b.p.lv?'🌀 กด E ลง '+b.p.n:'🔒 ต้อง Lv.'+b.p.lv}
   else if(b.k==='npc'){x=b.n.x;y=b.n.y-62;txt='💬 กด E คุยกับ'+b.n.name}else{const Zm=D.zone;x=Zm.ent.x*T+16;y=(Zm.ent.y+2)*T-10;txt='⛵ กด E ล่องเรือไปท่าเรือตะวันออก (ทางกลับเอลโดเรีย)'}
   ctx.font='bold 12px system-ui,"Noto Sans Thai",sans-serif';const w=ctx.measureText(txt).width+16;ctx.fillStyle='rgba(20,14,34,.85)';ctx.beginPath();ctx.roundRect?ctx.roundRect(x-w/2,y-18,w,22,8):ctx.rect(x-w/2,y-18,w,22);ctx.fill();ctx.strokeStyle='#e8c14a';ctx.lineWidth=1.5;ctx.stroke();
