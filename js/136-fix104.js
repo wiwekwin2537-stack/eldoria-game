@@ -90,10 +90,10 @@ const w104=()=>{const k=FASH.wpn;return k&&W104[k]?W104[k]:null};
   ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(0,-24,0,0,-24,20);g.addColorStop(0,'rgba('+S.glow+','+(.18+.12*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+S.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-20,-44,40,40);ctx.restore();
   if(Math.random()<.14){const a=ang-Math.PI/2;try{rfxP(hx+Math.cos(a)*16,hy+Math.sin(a)*16,(Math.random()-.5)*12,-14,.6,S.glow,1.6,'spark')}catch(e){}}};window.toolSpr=toolSpr}
 // ธนู/ปืนวาดเองทั้งกระบอก
-function bow104(x,y,aim,pull,arrow,sc){const t=performance.now()/1000;ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);const p=Math.min(1,pull||0),sx=-3-p*8;
- for(const s of [-1,1]){ctx.save();ctx.scale(1,s);ctx.fillStyle='#ffd86a';ctx.strokeStyle='#6a4a08';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(7,-8,3,-19);ctx.quadraticCurveTo(0,-10,-2,-1);ctx.closePath();ctx.fill();ctx.stroke();
-  for(let i=0;i<4;i++){ctx.save();ctx.translate(3+i*.3,-5-i*3.6);ctx.rotate(-.9+i*.12);ctx.fillStyle=i%2?'#ffffff':'#fff2c8';ctx.beginPath();ctx.ellipse(4,0,5,1.8,0,0,7);ctx.fill();ctx.restore()}ctx.restore()}
- ctx.strokeStyle='rgba(255,240,180,.95)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(2,-19);ctx.lineTo(sx,0);ctx.lineTo(2,19);ctx.stroke();
+function bow104(x,y,aim,pull,arrow,sc){const t=performance.now()/1000;ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);const p=Math.min(1,pull||0),sx=-8-p*9; /* v5.61 คันโค้งกลับด้าน: เดิมปลายคันโค้งไปทางเป้า (เหมือนยิงใส่ตัวเอง) → ปลายคันโค้งมาทางคนยิงแบบธนูทุกแบบในเกม · กำ (x=0) อยู่หน้าสุด */
+ for(const s of [-1,1]){ctx.save();ctx.scale(1,s);ctx.fillStyle='#ffd86a';ctx.strokeStyle='#6a4a08';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(2,0);ctx.quadraticCurveTo(3,-12,-8,-19);ctx.quadraticCurveTo(-3,-10,-2,-1);ctx.closePath();ctx.fill();ctx.stroke();
+  for(let i=0;i<4;i++){ctx.save();ctx.translate(1.5-i*1.4,-5-i*3.6);ctx.rotate(-.9+i*.12);ctx.fillStyle=i%2?'#ffffff':'#fff2c8';ctx.beginPath();ctx.ellipse(4,0,5,1.8,0,0,7);ctx.fill();ctx.restore()}ctx.restore()}
+ ctx.strokeStyle='rgba(255,240,180,.95)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-8,-19);ctx.lineTo(sx,0);ctx.lineTo(-8,19);ctx.stroke();
  if(arrow){ctx.strokeStyle='#fff6d8';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(16,0);ctx.stroke();ctx.fillStyle='#ffd86a';ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(14,-2.6);ctx.lineTo(14,2.6);ctx.fill()}
  ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(4,0,0,4,0,20);g.addColorStop(0,'rgba(255,220,120,'+(.25+.1*Math.sin(t*5))+')');g.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=g;ctx.fillRect(-16,-20,40,40);ctx.restore()}
 function rifle104(x,y,aim,sc){const t=performance.now()/1000;ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);

@@ -5,7 +5,7 @@
   try{if(P.tool!=='sword'||!isRng()||window.FRG7on)return;const W=wAura();if(!W)return;const kd=wKind(),t=performance.now()/1000,L=W.L;
    const pul=.75+.25*Math.sin(t*(4+L*.3)),a=Math.min(.8,(.2+L*.04+(W.r?.12+.06*W.r.g:0))*pul);
    ctx.save();ctx.globalCompositeOperation='lighter';ctx.lineCap='round';
-   if(kd==='bow'){const at=P.at>=0&&P.at<.5;let bx=hx,by=hy;if(at){const sd=P.dir==='l'?-1:P.dir==='r'?1:0;bx+=sd*7;if(P.dir==='u')by-=6}
+   if(kd==='bow'&&P.cls!=='sniper'){/* v5.61 ปืนสไนเก็บชนิดเป็น bow → เคยได้ออร่าโค้งรูปคันธนูค้างที่พานท้ายปืน · ปืนมีออร่าตามลำกล้องของตัวเองแล้ว (bowGlow145/aura151) */const at=P.at>=0&&P.at<.5;let bx=hx,by=hy;if(at){const sd=P.dir==='l'?-1:P.dir==='r'?1:0;bx+=sd*7;if(P.dir==='u')by-=6}
     const aim=at?AIM[P.dir]:(P.dir==='d'?Math.PI/2+.75:P.dir==='u'?-Math.PI/2-.6:AIM[P.dir]),sc=at?1:.85,HL=15*sc,px=-Math.sin(aim),py=Math.cos(aim),fx=Math.cos(aim),fy=Math.sin(aim);
     const x1=bx+px*HL,y1=by+py*HL,x2=bx-px*HL,y2=by-py*HL,cx=bx+fx*9*sc,cy=by+fy*9*sc;
     ctx.strokeStyle='rgba('+W.rgb+','+a*.5+')';ctx.lineWidth=7+L*.45;ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(cx*2-bx,cy*2-by,x2,y2);ctx.stroke();

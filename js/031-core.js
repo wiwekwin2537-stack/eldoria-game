@@ -1131,11 +1131,36 @@ function drawGolem(m,t,c){const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='s
  const g=ctx.createRadialGradient(3,-23,1,3,-23,6);g.addColorStop(0,'#fff');g.addColorStop(.4,c[2]);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(-4,-30,14,14);
  R(c[0],-20,-31+arm,8,17);R(c[1],-21,-16+arm,10,8);R(c[0],12,-31-arm*.5,8,17);R(c[1],11,-16-arm*.5,10,8);
  R(c[0],-7,-42,14,11);ctx.fillStyle=c[2];ctx.fillRect(-4,-38,3,2);ctx.fillRect(2,-38,3,2)}
-/* v5.59 หมาป่าภาพใหม่จาก ChatGPT (ทดลอง · 4 ทิศ: ลง/ซ้าย/ขวา/ขึ้น) · ภาพยังไม่โหลด → วาดด้วยโค้ดแบบเดิม · ไม่เปลี่ยนค่าสถานะ/ดรอป/XP */
-const WOLFART559={img:new Image(),ok:false,B:[[0,11,180,280],[188,5,309,286],[505,5,309,286],[822,0,178,291]]};WOLFART559.img.decoding='async';WOLFART559.img.onload=()=>{WOLFART559.ok=WOLFART559.img.naturalWidth>0};WOLFART559.img.src='assets/monsters/wolf-v559.webp';window.WOLFART559=WOLFART559;
-function drawWolf(m,t,c){if(WOLFART559.ok){const dx=m.x-(m._wx==null?m.x:m._wx),dy=m.y-(m._wy==null?m.y:m._wy);m._wx=m.x;m._wy=m.y;if(Math.abs(dx)+Math.abs(dy)>.3)m._wv=Math.abs(dy)>Math.abs(dx)*1.3?(dy>0?0:3):2;
-  const B=WOLFART559.B[m._wv==null?2:m._wv],k=48/286,bob=m.mv?-Math.abs(Math.sin(t*(m.st==='lunge'||m.st==='charge'?26:14)))*2.2:0,w=B[2]*k,h=B[3]*k;
-  ctx.drawImage(WOLFART559.img,B[0],B[1],B[2],B[3],-w/2,-h+bob,w,h);if(m.hurt>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.7;ctx.drawImage(WOLFART559.img,B[0],B[1],B[2],B[3],-w/2,-h+bob,w,h);ctx.restore()}return}
+/* v5.59 หมาป่าภาพใหม่จาก ChatGPT · v5.60 ขาก้าวได้: ข้างใช้ขาเขียนด้วยโค้ดแบบหมาจริง (ขาหลังซิกแซก ข้อเท้าสูง · ขาหน้ายกพับข้อมือ · เดินสลับเฉียง · วิ่งกระโจน)
+   หน้า/หลังตัดขาจากภาพมายกสลับ · จังหวะก้าวผูกกับระยะที่เดินจริง (ไม่ไถล) · ภาพยังไม่โหลด → วาดด้วยโค้ดแบบเดิม · ไม่เปลี่ยนค่าสถานะ/ดรอป/XP */
+const WOLFART559={img:new Image(),ok:false,B:[[0,11,180,280],[188,5,309,286],[505,5,309,286],[822,0,178,291]],P:null};WOLFART559.img.decoding='async';
+WOLFART559.img.onload=()=>{const W=WOLFART559,im=W.img;if(!(im.naturalWidth>0))return;try{const cut=(bx,er)=>{const [x,y,w,h]=bx,c=document.createElement('canvas');c.width=w;c.height=h;const q=c.getContext('2d');q.drawImage(im,x,y,w,h,0,0,w,h);q.globalCompositeOperation='destination-out';for(const r of er)q.fillRect(r[0],r[1],r[2],r[3]);return c};
+  const leg=(bx,r)=>{const c=document.createElement('canvas');c.width=r[2];c.height=r[3];c.getContext('2d').drawImage(im,bx[0]+r[0],bx[1]+r[1],r[2],r[3],0,0,r[2],r[3]);return {c,x:r[0],y:r[1]}};
+  const FL=[[20,212,62,68],[98,212,62,68]],BL=[[28,228,52,63],[96,228,54,63]];
+  W.P={side:cut(W.B[2],[[44,206,84,90],[148,202,96,90]]),front:cut(W.B[0],FL),back:cut(W.B[3],BL),fl:FL.map(r=>leg(W.B[0],r)),bl:BL.map(r=>leg(W.B[3],r))}}catch(e){W.P=null}W.ok=true};
+WOLFART559.img.src='assets/monsters/wolf-v559.webp';window.WOLFART559=WOLFART559;
+/* เฟสขา 1 ข้าง: ยกขา 40% (เหวี่ยงไปหน้า+พับ) · แตะพื้น 60% (ถีบไปหลัง+เหยียด) · มุมบวก = ปลายขาไปข้างหลัง (หมาหันขวา) */
+const wolfStep560=(ph,amp)=>{const u=((ph/(2*Math.PI))%1+1)%1,sw=u<.4?Math.cos(Math.PI*u/.4):-1+2*(u-.4)/.6,lift=u<.4?Math.sin(Math.PI*u/.4):0;return [sw*amp,lift*Math.min(1,amp*2.4)]};window.wolfStep560=wolfStep560;
+const WC560={main:'#1f1d2a',hi:'#4d4868',mid:'#2e2b3d',sh:'#111019',paw:'#2a2738'};
+function wSeg560(len,w0,w1,col,hl){ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(-w0/2,0);ctx.lineTo(w0/2,0);ctx.lineTo(w1/2,len);ctx.lineTo(-w1/2,len);ctx.closePath();ctx.fill();if(hl){ctx.fillStyle=hl;ctx.fillRect(-w0/2,2,5,len-4)}}
+function wPaw560(far){ctx.fillStyle=far?WC560.sh:WC560.paw;ctx.fillRect(-8,-7,26,12);ctx.fillStyle=far?WC560.sh:WC560.hi;ctx.fillRect(-8,-7,26,3)}
+function wHind560(hx,hy,sw,lift,far){const C=WC560,c=far?C.sh:C.main,m=far?C.sh:C.mid,h=far?null:C.hi;ctx.save();ctx.translate(hx,hy);ctx.rotate(-.42+sw);wSeg560(46,38,24,c,h);ctx.translate(0,44);ctx.rotate(.95+lift*.5);wSeg560(40,22,16,m,h);ctx.translate(0,38);ctx.rotate(-.6-lift*.9);wSeg560(26,16,14,m,h);ctx.translate(0,24);ctx.rotate(.07-sw-lift*.05);wPaw560(far);ctx.restore()}
+function wFore560(hx,hy,sw,lift,far){const C=WC560,c=far?C.sh:C.main,m=far?C.sh:C.mid,h=far?null:C.hi;ctx.save();ctx.translate(hx,hy);ctx.rotate(.08+sw);wSeg560(50,30,22,c,h);ctx.translate(0,48);ctx.rotate(-.1+lift*1.3);wSeg560(44,20,16,m,h);ctx.translate(0,42);ctx.rotate(.02-sw-lift*1.1);wPaw560(far);ctx.restore()}
+function drawWolf(m,t,c){const W=WOLFART559;if(W.ok&&W.P){const dx=m.x-(m._wx==null?m.x:m._wx),dy=m.y-(m._wy==null?m.y:m._wy),d=Math.hypot(dx,dy);m._wx=m.x;m._wy=m.y;
+  if(d>.3)m._wv=Math.abs(dy)>Math.abs(dx)*1.3?(dy>0?0:3):2;const run=m.st==='lunge'||m.st==='charge'||d>3.2;
+  if(d>0&&d<40)m._wph=(m._wph||0)+d*2*Math.PI/(run?29:17.5);   /* ระยะเดินจริง 1 รอบก้าว (วัดจากระยะกวาดเท้า ÷ ช่วงแตะพื้น 60%): เดิน 17.5px · วิ่ง 29px → เท้าที่แตะพื้นไม่ไถล */
+  const moving=d>.15||m.mv,ph=m._wph||0,v=m._wv==null?2:m._wv,k=48/286,P=W.P;
+  ctx.save();ctx.scale(k,k);
+  if(v===2){const A=moving?(run?.55:.3):0,o=run?{hn:wolfStep560(ph,A),hf:wolfStep560(ph+.35,A),fn:wolfStep560(ph+Math.PI*.9,A),ff:wolfStep560(ph+Math.PI*.9+.3,A)}:{hn:wolfStep560(ph,A),ff:wolfStep560(ph+.25,A),hf:wolfStep560(ph+Math.PI,A),fn:wolfStep560(ph+Math.PI+.25,A)};
+   let bob=moving?(run?-Math.max(0,Math.sin(ph+.6))*9:-Math.abs(Math.sin(ph))*2):Math.sin(t*2)*1.2,pitch=run&&moving?Math.sin(ph+1.2)*.07:0;
+   if(m.st==='wu'||m.st==='chargeWU'){pitch=-.07;bob=4}   /* ย่อตัวก่อนพุ่ง */
+   ctx.translate(0,bob);ctx.rotate(pitch);ctx.translate(-155,-286);
+   wHind560(100,190,o.hf[0],o.hf[1],true);wFore560(206,186,o.ff[0],o.ff[1],true);ctx.drawImage(P.side,0,0);wHind560(84,194,o.hn[0],o.hn[1],false);wFore560(190,190,o.fn[0],o.fn[1],false);
+   if(m.hurt>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.7;ctx.drawImage(P.side,0,0)}}
+  else{const front=v===0,B=W.B[v],body=front?P.front:P.back,legs=front?P.fl:P.bl,A=moving?.5:0,bob=moving?-Math.abs(Math.sin(ph))*3:Math.sin(t*2)*1.2;
+   ctx.translate(-B[2]/2,-B[3]+bob);legs.forEach((L,i)=>{const lift=wolfStep560(ph+i*Math.PI,A)[1];ctx.drawImage(L.c,L.x,L.y-lift*26,L.c.width,L.c.height-lift*8)});ctx.drawImage(body,0,0);
+   if(m.hurt>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.7;ctx.drawImage(body,0,0)}}
+  ctx.restore();return}
 const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
  ctx.strokeStyle=c[1];ctx.lineWidth=3.2;ctx.lineCap='round';for(const [x,i] of [[-9,0],[-5,3],[7,1.5],[11,4.5]]){ctx.beginPath();ctx.moveTo(x,-9+wu);ctx.lineTo(x+lg(i),0);ctx.stroke()}
  ctx.fillStyle=c[1];ctx.beginPath();ctx.moveTo(-13,-12+wu);ctx.quadraticCurveTo(-24,-18+Math.sin(t*5)*3,-22,-6);ctx.lineTo(-13,-9+wu);ctx.fill();
