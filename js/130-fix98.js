@@ -6,6 +6,13 @@
 //  - ต่อกับ fix95 ผ่าน C2.alt (สร้างผัง) และ C2.npcAlt (ชาวเมือง) · ประตูร้านยังพาเข้าร้านเดิมทั้งหมด
 try{
 const T98=T;
+/* v5.58 ภาพเมือง 2 จาก ChatGPT (ตรวจ/จัดขอบ/ทำพื้นต่อไร้รอยแล้ว) · โหลดไม่ขึ้น → ใช้ภาพวาดด้วยโค้ดเดิม · ตำแหน่งอาคาร/ประตู/ทางเดินเหมือนเดิมทุกจุด */
+const C2ART={src:{b:'assets/city2/buildings-v558.webp',g:'assets/city2/ground-v558.webp'},img:{},ok:{},started:0,
+ BOX:{weapon:[37,168,309,328],armor:[415,140,322,356],forge:[801,139,317,357],potion:[1192,142,304,354],bank:[31,634,321,374],guild:[405,616,342,392],inn:[791,641,338,367],clock:[1182,611,324,397]},
+ SHOP:{gear:'forge',potion:'potion',bank:'bank',guild:'guild',inn:'inn'},
+ start(){if(this.started)return;this.started=1;for(const k in this.src){const im=new Image();im.decoding='async';im.onload=()=>{this.ok[k]=1;try{if(this.ok.b&&this.ok.g&&C2.Zm&&!C2.Zm.art558&&!(window.inC2&&inC2()))C2.Zm=null}catch(e){}};im.onerror=()=>{this.ok[k]=0};im.src=this.src[k];this.img[k]=im}},
+ ready(k){const im=this.img[k];return this.ok[k]===1&&!!im&&im.naturalWidth>0}};
+window.C2ART=C2ART;setTimeout(()=>{try{if((P.lv|0)>=140)C2ART.start()}catch(e){}},8000);
 function rng98(s){let a=s>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
 const sh98=(h,a)=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,f=v=>Math.max(0,Math.min(255,Math.round(a<0?v*(1+a):v+(255-v)*a)));return 'rgb('+f(r)+','+f(g)+','+f(b)+')'};
 // ---------- พื้นผิว ----------
@@ -92,7 +99,7 @@ function planter98(q,cx,cy,tree){q.fillStyle='rgba(0,0,0,.25)';q.beginPath();q.e
  if(tree){q.fillStyle='#5a3a1a';q.fillRect(cx-3,cy-40,6,32);for(const [dx,dy,r,c] of [[0,-50,17,'#2f6a2f'],[-10,-42,12,'#2a5a2a'],[10,-43,12,'#3a7a3a'],[0,-60,11,'#4a8a40']]){const g=q.createRadialGradient(cx+dx-4,cy+dy-4,2,cx+dx,cy+dy,r);g.addColorStop(0,'#7ac070');g.addColorStop(1,c);q.fillStyle=g;q.beginPath();q.arc(cx+dx,cy+dy,r,0,7);q.fill()}}
  else{q.fillStyle='#3a7a2a';q.beginPath();q.arc(cx-5,cy-12,6,0,7);q.arc(cx+5,cy-12,6,0,7);q.arc(cx,cy-16,6,0,7);q.fill();const C=['#ff5a7a','#ffd84a','#fff','#c07aff'];for(let i=0;i<7;i++){q.fillStyle=C[i%4];q.beginPath();q.arc(cx-9+i*3,cy-14-(i%2)*5,2,0,7);q.fill()}}}
 // ---------- ผังเมือง ----------
-function build98(G){const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]=[];for(let x=0;x<W;x++)G[y][x]='sea'}
+function build98(G){C2ART.start();const ART558=C2ART.ready('b')&&C2ART.ready('g');const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]=[];for(let x=0;x<W;x++)G[y][x]='sea'}
  const rr=(x0,y0,x1,y1,r,v)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const dx=Math.max(x0+r-x,0,x-(x1-r)),dy=Math.max(y0+r-y,0,y-(y1-r));if(dx*dx+dy*dy<=r*r+1)G[y][x]=v}};
  const fill=(x0,y0,x1,y1,v)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(G[y]&&G[y][x]!=null)G[y][x]=v};
  rr(13,11,70,52,5,'street');rr(30,2,53,8,3,'plaza');rr(34,55,49,61,3,'plaza');rr(2,24,10,39,3,'street');rr(73,24,81,39,3,'land');
@@ -107,7 +114,7 @@ function build98(G){const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const g=G[y][x],px=x*T,py=y*T,h=hash(x*2.1,y*1.3);
   if(g==='sea'){const gr=k.createLinearGradient(px,py,px,py+T);gr.addColorStop(0,h>.5?'#2d7fb8':'#2a78b0');gr.addColorStop(1,'#22689c');k.fillStyle=gr;k.fillRect(px,py,T,T);
    k.strokeStyle='rgba(255,255,255,'+(.08+h*.1)+')';k.lineWidth=1.2;k.beginPath();const ox=px+4+h*10,oy=py+8+((h*97)%1)*14;k.moveTo(ox,oy);k.quadraticCurveTo(ox+5,oy-3,ox+10,oy);k.quadraticCurveTo(ox+15,oy+3,ox+20,oy);k.stroke()}
-  else if(g==='street')k.drawImage(COB,(x%4)*32,(y%4)*32,32,32,px,py,T,T);
+  else if(g==='street'){if(ART558)k.drawImage(C2ART.img.g,px%384,py%384,T,T,px,py,T,T);else k.drawImage(COB,(x%4)*32,(y%4)*32,32,32,px,py,T,T)}
   else if(g==='path')k.drawImage(PATH,(x%4)*32,(y%4)*32,32,32,px,py,T,T);
   else if(g==='plaza')k.drawImage(PLZ,(x%4)*32,(y%4)*32,32,32,px,py,T,T);
   else if(g==='land'||g==='garden'){if(TX)k.drawImage(TX.grass,(x%4)*32,(y%4)*32,32,32,px,py,T,T);else k.drawImage(grassV[gv(x,y)],px,py)}
@@ -136,6 +143,7 @@ function build98(G){const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]
  const BLDS=[];
  const spec=(x,y,w,h,o)=>{block(x,y,w,h);const b={x,y,w,h,o};BLDS.push(b);return b};
  const drawB=b=>{const X=b.x*T,Y=b.y*T,Wp=b.w*T,Hp=b.h*T,o=b.o;
+  {const ak=ART558&&(b.shop?C2ART.SHOP[b.shop.id]:o.clock558?'clock':null);if(ak){const [sx,sy,sw,sh]=C2ART.BOX[ak],dw=Wp+(o.style==='tower'?60:24),dh=sh*dw/sw,dx=X+Wp/2-dw/2,dy=Y+Hp+6-dh;sprite(q=>q.drawImage(C2ART.img.b,sx,sy,sw,sh,dx,dy,dw,dh),dx,dy,dw,dh,Y+Hp,1);return}}
   if(o.style==='tower')sprite(q=>tower98(q,X,Y,Wp,Hp,o),X-10,Y-T*2.2-30,Wp+24,Hp+T*2.2+40,Y+Hp,1);
   else sprite(q=>house98(q,X,Y,Wp,Hp,o,rng98(b.x*131+b.y*17)),X-12,Y-T*1.5-34,Wp+28,Hp+T*1.5+44,Y+Hp,1)};
  // แถวอาคารต่อถนน (หันหน้าลงใต้)
@@ -150,7 +158,7 @@ function build98(G){const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]
  for(const [id,oo] of SHOPS){const b=cand.find(q=>!used.has(q)&&q.w>=5&&q.h>=3);const S=SHOP_DATA[id];if(!b||!S)continue;used.add(b);
   b.o=Object.assign({},b.o,oo,{floors:oo.floors||Math.max(2,b.o.floors)});b.shop={id,S}}
  // หอคอยโดมแดง/ฟ้า (แลนด์มาร์ก): แทนบ้านที่อยู่มุม
- for(const [tx,ty,col] of [[30,47,'#c03a3a'],[56,13,'#3a6ac0']]){const b=BLDS.filter(q=>!q.shop&&q.h>=4).sort((a,c)=>Math.hypot(a.x-tx,a.y-ty)-Math.hypot(c.x-tx,c.y-ty))[0];if(b){for(let j=b.y;j<b.y+b.h;j++)for(let i=b.x;i<b.x+b.w;i++)m[j][i]=FL;b.o={style:'tower',roof:col};b.x+=Math.floor((b.w-3)/2);b.w=3;block(b.x,b.y,b.w,b.h)}}
+ for(const [tx,ty,col] of [[30,47,'#c03a3a'],[56,13,'#3a6ac0']]){const b=BLDS.filter(q=>!q.shop&&q.h>=4).sort((a,c)=>Math.hypot(a.x-tx,a.y-ty)-Math.hypot(c.x-tx,c.y-ty))[0];if(b){for(let j=b.y;j<b.y+b.h;j++)for(let i=b.x;i<b.x+b.w;i++)m[j][i]=FL;b.o={style:'tower',roof:col,clock558:tx===56};b.x+=Math.floor((b.w-3)/2);b.w=3;block(b.x,b.y,b.w,b.h)}}
  BLDS.sort((a,b)=>(a.y+a.h)-(b.y+b.h));for(const b of BLDS)drawB(b);
  for(const b of BLDS)if(b.shop){const {id,S}=b.shop,nm=(C2.shopNames&&C2.shopNames[id])||S.name;C2.lbl=C2.lbl||[];C2.lbl.push([S,nm,b]);C2.doors.push({id,x:(b.x+b.w/2)*T,y:(b.y+b.h)*T+8,n:nm,e:S.emoji||'🚪'})}
  // น้ำพุ 2 ชั้นกลางลาน
@@ -191,7 +199,7 @@ function build98(G){const W=C2.W,H=C2.H,R=rng98(98001);for(let y=0;y<H;y++){G[y]
  k.font='bold 14px system-ui,"Noto Sans Thai",sans-serif';k.textAlign='center';k.lineWidth=4;k.strokeStyle='rgba(0,0,0,.65)';k.strokeText('🌀 ลานประตูมิติ — ทางลงดันเจี้ยน',41.5*T+16,2*T+4);k.fillStyle='#e8d8ff';k.fillText('🌀 ลานประตูมิติ — ทางลงดันเจี้ยน',41.5*T+16,2*T+4);k.textAlign='left';
  const floor=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(m[y][x]===FL)floor.push([x,y]);C2.houses=BLDS.length;
  const Zd={id:'city2',n:'นครวารีอัสตรา',e:'🏙️',lv:[1,1],dark:0,amb:'',pal:{vd:'#22689c'},mobs:[],boss:null,ores:[],raw:'stone',ing:'ingSt',safe:1};
- return {zi:C2.ZI,name:'city2',Zd,m,ores:[],oreAt:{},floor,ent:{x:41,y:57},arena:{x:41,y:31},seen:new Uint8Array(W*H).fill(1),W,H,cv}}
+ return {zi:C2.ZI,name:'city2',Zd,m,ores:[],oreAt:{},floor,ent:{x:41,y:57},arena:{x:41,y:31},seen:new Uint8Array(W*H).fill(1),W,H,cv,art558:ART558}}
 C2.alt=build98;
 // ธงราวข้ามถนน (ทับตัวละคร)
 {const _dt=drawDmgTxt;drawDmgTxt=function(dt){try{if(inC2()&&C2.bunt){const t=performance.now()/1000,CL=['#e74c3c','#f1c40f','#2ecc71','#3498db','#9b59b6','#ffffff'];
