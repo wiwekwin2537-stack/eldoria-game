@@ -108,7 +108,7 @@ function toTown144(){if(busy)return;busy=1;setTimeout(()=>{busy=0},2500);Loading
 window.toTown144=toTown144;
 /* ประตูขวาของเมือง → ถนนตะวันออก (ทุกเลเวล) */
 {const _h=dhit;dhit=function(x,y){if(D&&D.town&&!D.shop&&x+7>=(TW-1)*T&&y>14*T&&y<19*T){for(const [a,b] of [[-7,-4],[7,-4],[-7,4],[7,4]]){const tx=Math.floor((x+a)/T),ty=Math.floor((y+b)/T);if(!dm[ty]||(dm[ty][tx]!==FL&&dm[ty][tx]!==GATE))return true}return false}return _h.apply(this,arguments)};window.dhit=dhit}
-{const _ex=exitD;exitD=function(){if(D&&D.town&&!D.shop&&P.x>(TW-3)*T){if(busy)return;busy=1;setTimeout(()=>{busy=0},2500);P.x=(TW-4)*T;try{enterRoad144('west')}catch(e){console.warn(e)}return}return _ex.apply(this,arguments)};window.exitD=exitD}
+window.ROAD144={busy:()=>busy,lock(){busy=1;setTimeout(()=>{busy=0},2500)}};/* v5.55 ทางออกขวาของเมือง ย้ายไปอยู่ใน exitD ฟังก์ชันเดียว (js/023-core.js) */
 /* เมือง 2 ท่าเรือ → กลับมาขึ้นฝั่งที่ท่าเรือตะวันออก */
 backToCity1=function(){enterRoad144('port')};window.backToCity1=backToCity1;
 /* เดินถึงขอบซ้าย → กลับเมือง */

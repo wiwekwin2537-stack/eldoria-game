@@ -15,7 +15,24 @@ function buildD(){
 dsav=slimes.splice(0);let n=0;for(const [tx,ty] of DUNGEON_SLIMES){slimes.push({x:tx*T+16,y:ty*T+16,hp:3,t:n*.13,dx:0,dy:0,kx:0,ky:0,hurt:0,last:-1,cool:0});n++}
  D={open:false,total:n,ret:[(W-4.5)*T,5.5*T]}}
 function enterD(){fade('#000');sfx('cave');setScene('cave');flushDrops();buildD();mkMini(dcv,DW,DH,5);P.x=10.5*T;P.y=12.5*T;P.dir='u';P.kx=P.ky=0;say('เข้าดันเจี้ยน! กำจัดสไลม์ '+D.total+' ตัวเพื่อปลดผนึกหีบ')}
-function exitD(){fade(D&&D.town?'#fff':'#000');sfx(D&&D.town?'warp':'cave');setScene('field');setMini(MINIW);shopEl.hidden=true;flushDrops();slimes.length=0;slimes.push(...dsav);const R=D.ret;D=null;dm=null;P.x=R[0];P.y=R[1];P.dir='d';P.kx=P.ky=0;say('ออกจากดันเจี้ยนแล้ว')}
+/* v5.55 ออกจากสถานที่ — ฟังก์ชันเดียว (เดิมห่อทับกัน 9 ชั้นใน 031/146/161/171 · เทส tests/exit_scenes_browser_test.js ล็อกผลเดิมทุกที่)
+   ออกจากไหน → ไปไหน:
+   · เมือง ยืนขอบขวา (ไม่ใช่ในร้าน) → ถนนตะวันออก (enterRoad144) · กันกดซ้ำ 2.5 วิ ร่วมกับทางกลับเมืองของถนน
+   · ไม่มีฉาก → ไม่ทำอะไร
+   · ที่อื่นทั้งหมด (เมือง/ดันเจี้ยน/เหมือง-ป่า/หอคอย/ตลาด/บอสโลก/สนามประลอง/เมือง 2/ถนน) → ทุ่งหญ้า ตำแหน่ง D.ret
+     ก่อนออก: ปิดแผนที่หมอก ล้างสมุน · ออกจากเหมือง-ป่า ล้างกระสุนมอน · ออกจากเมือง 2 จำเวลาไว้ให้ระบบไกด์ (RT134.c2t)
+   ชั้นที่ไม่เคยทำงานจริง (ถูกชั้นถนนตะวันออกดักก่อนเสมอ) จึงไม่รวมเข้ามา: fix114 ขอบขวาเมือง→เมือง 2 · 031 ขอบขวาเมือง→บ้าน */
+function exitD(){
+ if(D&&D.town&&!D.shop&&P.x>(TW-3)*T){if(window.ROAD144.busy())return;window.ROAD144.lock();P.x=(TW-4)*T;try{enterRoad144('west')}catch(e){console.warn(e)}return}
+ const fromC2=!!(D&&D.city2);
+ if(!D)return;
+ const wasTown=D.town,wasDg=D.dg,wasZone=D.zone;
+ bmEl.hidden=true;EXPL.c=null;MIN.length=0;
+ if(D.zone){ZPROJ.length=0}
+ fade(D&&D.town?'#fff':'#000');sfx(D&&D.town?'warp':'cave');setScene('field');setMini(MINIW);shopEl.hidden=true;flushDrops();slimes.length=0;slimes.push(...dsav);const R=D.ret;D=null;dm=null;P.x=R[0];P.y=R[1];P.dir='d';P.kx=P.ky=0;say('ออกจากดันเจี้ยนแล้ว');
+ say(wasTown?'🌾 ออกจากเมือง — ทุ่งหญ้าเอลโดเรีย (สไลม์ฝั่งขวาอ่อน ฝั่งซ้ายแรงขึ้น)':wasDg?'ออกจากดันเจี้ยนแล้ว':wasZone?'ออกจากเหมืองกลับสู่ทุ่งหญ้า':'ออกมาที่ทุ่งหญ้าแล้ว');
+ if(fromC2)window.RT134.c2t=Date.now()}
+window.exitD=exitD;
 function openChest(){sfx('chest');D.open=true;const cx=10*T+16,cy=3*T+4;
  for(let i=0;i<6;i++)addDrop('gem',cx,cy);for(let i=0;i<18;i++)addDrop('coin',cx,cy);for(let i=0;i<3;i++)addDrop('wood',cx,cy);
  for(let i=0;i<20;i++)fx.push({x:cx,y:cy-10,vx:(Math.random()-.5)*160,vy:-40-Math.random()*100,l:.9,c:'255,216,74'});

@@ -45,7 +45,7 @@ const G134={on:0};
 {const _tk=talk;talk=function(n){if(n&&n.c2warp&&!G134.on){guide(n);return}return _tk.apply(this,arguments)};window.talk=talk}
 {const _nt=npcTalk;npcTalk=function(n){if(n&&n.c2warp){guide(n);return}return _nt.apply(this,arguments)};window.npcTalk=npcTalk}
 /* เมือง 2 → คุยกับเอเดน (ป้าย "กด E คุยกับ" ใช้ npcTalk) · ท่าเรือขาออกยังกลับเมือง 1 ได้ฟรีเหมือนเดิม แต่ขึ้นฝั่งข้างอาร์เทน */
-{const _ex=exitD;exitD=function(){const fromC2=!!(D&&D.city2);const r=_ex.apply(this,arguments);if(fromC2)RT.c2t=Date.now();return r};window.exitD=exitD}
+
 {const _et=enterTown;enterTown=function(){const r=_et.apply(this,arguments);try{if(RT.c2t&&Date.now()-RT.c2t<4000){RT.c2t=0;nearGuide();setTimeout(()=>{try{if(D&&D.town&&!D.shop)nearGuide()}catch(e){}},80)}}catch(e){}return r};window.enterTown=enterTown}
 /* เมนูลัด "เมือง 2" เดิมวาปฟรีทันที → บอกให้ไปหาผู้นำทาง */
 try{const m=PM7.find(x=>x[1]==='เมือง 2');if(m)m[2]=()=>{if(D&&D.city2){say('อยู่ในนครวารีอัสตราแล้ว — คุยกับเอเดนผู้นำทางที่ท่าเรือเพื่อเดินทาง');return}say('🧭 ไปนครวารี: คุยกับ "อาร์เทน ผู้นำทาง" ข้างน้ำพุกลางเมือง หรือเดินออกขอบขวาของเมือง');try{if(typeof GUIDE!=='undefined'&&D&&D.town)GUIDE.to=[24.5*T,20*T]}catch(e){}}}catch(e){}

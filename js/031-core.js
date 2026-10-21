@@ -1106,7 +1106,7 @@ const zExitNear=()=>D&&D.zone&&Math.hypot(P.x-(D.zone.ent.x*T+16),P.y-((D.zone.e
  if(!D){if(zgNear()){openZMenu();return true}let bi=-1,bd=30;GPK.forEach((p,i)=>{const d=Math.hypot(p.x-P.x,p.y-P.y);if(d<bd){bd=d;bi=i}});if(bi>=0){takeGpk(bi);return true}}
  else if(D.zone){if(zExitNear()){exitD();say('กลับสู่ทุ่งหญ้าแล้ว');return true}return false}
  return _it()}}
-{const _ex=exitD;exitD=function(){if(D&&D.zone){ZPROJ.length=0}_ex()}}
+
 
 // ============ 7) วาดมอนสเตอร์ ============
 const shade=(h,a)=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,f=v=>Math.round(a<0?v*(1+a):v+(255-v)*a);return'rgb('+f(r)+','+f(g)+','+f(b)+')'};
@@ -3229,7 +3229,7 @@ function bigMap(){if(bmEl.hidden||!D||!D.zone||!MI){bmEl.hidden=true;return}cons
 setInterval(bigMap,200);
 mini.addEventListener('click',()=>{if(D&&D.zone){bmEl.hidden=!bmEl.hidden;sfx('ui');bigMap()}});
 addEventListener('keydown',e=>{if(e.key==='Tab'&&D&&D.zone){e.preventDefault();bmEl.hidden=!bmEl.hidden;bigMap()}});
-{const _ex=exitD;exitD=function(){bmEl.hidden=true;EXPL.c=null;MIN.length=0;return _ex.apply(this,arguments)}}
+
 
 // ---------------- 2) ซัพพอร์ตจากพาสซีฟ ----------------
 const SUPN=[['str',7,'aspd',{aspd:.12},'⚡ เร่งดาบ','ความเร็วโจมตี +12%'],['str',7,'chain',{chain:1},'🔗 วาปต่อเนื่อง','ฟันวาป/ยิงวาป/โซ่สายฟ้า +1 ครั้ง'],
@@ -3697,7 +3697,7 @@ function fanfare(){try{[523,659,784,1047].forEach((f,i)=>tone(f,0,.35,'triangle'
 // ประตูปราสาท: ยืนใกล้ก็เข้าได้ (ไม่ต้องหันตรงช่อง)
 {const _ta=townAct;townAct=function(){if(D&&D.town&&Math.hypot(P.x-22*T,P.y-9.4*T)<56){enterHall();return true}return _ta()}}
 // ข้อความออกจากเมือง/โซนให้ถูกต้อง
-{const _ex=exitD;exitD=function(){const wasTown=D&&D.town,wasDg=D&&D.dg,wasZone=D&&D.zone;const r=_ex.apply(this,arguments);say(wasTown?'🌾 ออกจากเมือง — ทุ่งหญ้าเอลโดเรีย (สไลม์ฝั่งขวาอ่อน ฝั่งซ้ายแรงขึ้น)':wasDg?'ออกจากดันเจี้ยนแล้ว':wasZone?'ออกจากเหมืองกลับสู่ทุ่งหญ้า':'ออกมาที่ทุ่งหญ้าแล้ว');return r}}
+
 // สไลม์เกิดใกล้ผู้เล่น (ไม่ต้องเดินหาไกล)
 function spawnNear(){for(let i=0;i<60;i++){const a=Math.random()*6.283,r=240+Math.random()*220,tx=Math.floor((P.x+Math.cos(a)*r)/T),ty=Math.floor((P.y+Math.sin(a)*r)/T);
   if(tx<2||ty<2||tx>=W-2||ty>=H-2||map[ty][tx]!==GRASS||Math.hypot(tx-6,ty-6)<=8)continue;const lv=Math.max(1,Math.min(5,Math.ceil((W-tx)/12)));
@@ -6458,7 +6458,7 @@ const PETST7={dog:{str:2,vit:2},cat:{agi:2,int:2}};
 // ขอบเมืองด้านขวา → ที่ดินผู้กล้า (กำแพงล่องหนจนกว่าจะปราบบอสสุดท้าย)
 const homeOpen7=()=>!!(HOME.unlocked||STORY.done);
 {let lastMsg=0;const _dh=dhit;dhit=function(x,y){if(D&&D.town&&!homeOpen7()&&x+7>=(TW-1)*T&&y>14*T&&y<19*T){const n=performance.now();if(n-lastMsg>2500){lastMsg=n;say('🔒 ทางไปที่ดินผู้กล้า — เปิดหลังปราบบอสสุดท้าย ('+ABYSS.n+')');sfx('thud')}return true}return _dh(x,y)}}
-{const _ex=exitD;exitD=function(){if(D&&D.town&&P.x>(TW-3)*T){if(homeOpen7()){try{if(!HOME.unlocked){HOME.unlocked=1;try{saveHome()}catch(e){}}const sv=dsav;exitD.busy7=1;enterHome();if(sv&&sv.length&&!(dsav&&dsav.length))dsav=sv}catch(e){console.warn('[v478] toHome',e)}finally{exitD.busy7=0}}else{P.x=(TW-2)*T}return}return _ex()}}
+
 
 // ระยะคุยกับเจ้าของร้านสั้นลง + ปิดร้าน/บทสนทนาอัตโนมัติเมื่อเดินออกห่าง
 let SHOPOPN7=false;
@@ -6772,7 +6772,7 @@ window.wallBetween7=wallBetween7;window.MINSRC7=0;
  // อัญเชิญ: มินเนียนไม่ไล่ล่าเป้าที่อยู่หลังกำแพง (กันบินข้ามกำแพงไปตี)
  const _en=enemies;enemies=function(){const L=_en();if(window.MINSRC7>0&&D&&D.zone&&!D.home)return L.filter(e=>!wallBetween7(P.x,P.y-6,e.x,e.y-6));return L};
  // exitD ปลอดภัยเมื่อไม่ได้อยู่ในฉากย่อย
- const _ex=exitD;exitD=function(){if(!D)return;return _ex.apply(this,arguments)};
+ /* v5.55 กันออกตอนไม่มีฉาก ย้ายไปอยู่ใน exitD (js/023-core.js) */
 })();
 
 // =====================================================================

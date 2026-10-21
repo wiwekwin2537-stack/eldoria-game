@@ -10,7 +10,7 @@ try{const i=PM7.findIndex(m=>m[1]==='เมือง 2');if(i>=0){PM7.splice(i,1
 // 2) ประตูขวา
 let msgT114=0;
 {const _h=dhit;dhit=function(x,y){if(D&&D.town&&!D.shop&&x+7>=(TW-1)*T&&y>14*T&&y<19*T){if(P.lv>=LV114()){for(const [a,b] of [[-7,-4],[7,-4],[-7,4],[7,4]]){const tx=Math.floor((x+a)/T),ty=Math.floor((y+b)/T);if(!dm[ty]||(dm[ty][tx]!==FL&&dm[ty][tx]!==GATE))return true}return false}const n=performance.now();if(n-msgT114>2500){msgT114=n;say('🔒 ถนนสู่นครวารีอัสตรา — เปิดเมื่อถึง Lv.'+LV114()+' (ตอนนี้ Lv.'+P.lv+')');sfx('thud')}return true}return _h.apply(this,arguments)};window.dhit=dhit}
-{const _ex=exitD;exitD=function(){if(D&&D.town&&!D.shop&&P.x>(TW-3)*T){if(P.lv<LV114()){P.x=(TW-3.5)*T;return}if(exitD.busy114)return;exitD.busy114=1;setTimeout(()=>{exitD.busy114=0},2500);P.x=(TW-4)*T;try{enterCity2()}catch(e){console.warn(e)}return}return _ex.apply(this,arguments)};window.exitD=exitD}
+
 // ป้ายบอกทาง (วาดที่ประตูขวาในเมือง)
 const SIGN={x:TW-3,y:14.6,sign114:1},HSN={x:7.1,y:6.4,house114:1};
 {const _ds=drawStall;drawStall=function(s,t){if(s&&s.sign114){const x=(TW-2.6)*T,y=14.3*T,open=P.lv>=LV114();ctx.save();ctx.fillStyle='#4a2e16';ctx.fillRect(x-2,y,4,26);ctx.fillStyle=open?'#2a5a8a':'#4a3a2a';ctx.strokeStyle='#e8c14a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-34,y-14);ctx.lineTo(x+26,y-14);ctx.lineTo(x+34,y-5);ctx.lineTo(x+26,y+4);ctx.lineTo(x-34,y+4);ctx.closePath();ctx.fill();ctx.stroke();
