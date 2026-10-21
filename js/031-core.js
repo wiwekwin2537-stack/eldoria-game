@@ -1131,7 +1131,12 @@ function drawGolem(m,t,c){const w=m.mv?Math.sin(t*6):0,wu=m.st==='wu'||m.st==='s
  const g=ctx.createRadialGradient(3,-23,1,3,-23,6);g.addColorStop(0,'#fff');g.addColorStop(.4,c[2]);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(-4,-30,14,14);
  R(c[0],-20,-31+arm,8,17);R(c[1],-21,-16+arm,10,8);R(c[0],12,-31-arm*.5,8,17);R(c[1],11,-16-arm*.5,10,8);
  R(c[0],-7,-42,14,11);ctx.fillStyle=c[2];ctx.fillRect(-4,-38,3,2);ctx.fillRect(2,-38,3,2)}
-function drawWolf(m,t,c){const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
+/* v5.59 หมาป่าภาพใหม่จาก ChatGPT (ทดลอง · 4 ทิศ: ลง/ซ้าย/ขวา/ขึ้น) · ภาพยังไม่โหลด → วาดด้วยโค้ดแบบเดิม · ไม่เปลี่ยนค่าสถานะ/ดรอป/XP */
+const WOLFART559={img:new Image(),ok:false,B:[[0,11,180,280],[188,5,309,286],[505,5,309,286],[822,0,178,291]]};WOLFART559.img.decoding='async';WOLFART559.img.onload=()=>{WOLFART559.ok=WOLFART559.img.naturalWidth>0};WOLFART559.img.src='assets/monsters/wolf-v559.webp';window.WOLFART559=WOLFART559;
+function drawWolf(m,t,c){if(WOLFART559.ok){const dx=m.x-(m._wx==null?m.x:m._wx),dy=m.y-(m._wy==null?m.y:m._wy);m._wx=m.x;m._wy=m.y;if(Math.abs(dx)+Math.abs(dy)>.3)m._wv=Math.abs(dy)>Math.abs(dx)*1.3?(dy>0?0:3):2;
+  const B=WOLFART559.B[m._wv==null?2:m._wv],k=48/286,bob=m.mv?-Math.abs(Math.sin(t*(m.st==='lunge'||m.st==='charge'?26:14)))*2.2:0,w=B[2]*k,h=B[3]*k;
+  ctx.drawImage(WOLFART559.img,B[0],B[1],B[2],B[3],-w/2,-h+bob,w,h);if(m.hurt>0){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.7;ctx.drawImage(WOLFART559.img,B[0],B[1],B[2],B[3],-w/2,-h+bob,w,h);ctx.restore()}return}
+const w=m.mv?t*(m.st==='lunge'||m.st==='charge'?26:14):0,lg=i=>Math.sin(w+i)*4,wu=m.st==='wu'||m.st==='chargeWU'?3:0;
  ctx.strokeStyle=c[1];ctx.lineWidth=3.2;ctx.lineCap='round';for(const [x,i] of [[-9,0],[-5,3],[7,1.5],[11,4.5]]){ctx.beginPath();ctx.moveTo(x,-9+wu);ctx.lineTo(x+lg(i),0);ctx.stroke()}
  ctx.fillStyle=c[1];ctx.beginPath();ctx.moveTo(-13,-12+wu);ctx.quadraticCurveTo(-24,-18+Math.sin(t*5)*3,-22,-6);ctx.lineTo(-13,-9+wu);ctx.fill();
  const g=ctx.createLinearGradient(0,-18,0,-4);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);ctx.fillStyle=g;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineWidth=1.2;
