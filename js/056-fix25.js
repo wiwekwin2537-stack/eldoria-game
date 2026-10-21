@@ -85,7 +85,7 @@ const SKN25={
    if(st===0){shoot('bullet25',{dv,sp:950,range:540,mult:2.4,r:7,crit25:1});sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})}
    else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{for(const o of [-.06,.06]){const a=Math.atan2(dv[1],dv[0])+o;shoot('bullet25',{dv:[Math.cos(a),Math.sin(a)],sp:900,range:480,mult:1.4,r:7})}sfx('thud')},180)}
    else{shoot('bomb',{dv,sp:620,range:420,mult:2.8,aoe:90,stun:.8,r:9});sfx('thud');shake(2,.1)}},
-  ()=>{const dv=aimDir(320);ef25({k:'barrage',x:P.x+dv[0]*140,y:P.y+dv[1]*140,r:95,l:3,tick:0});sfx('swing2')}],
+  ()=>{const dv=aimDir(320),point=window.SKILLAIM46&&SKILLAIM46.point(2);ef25({k:'barrage',x:point?point[0]:P.x+dv[0]*140,y:point?point[1]:P.y+dv[1]*140,r:95,l:3,tick:0});sfx('swing2')}],
  paladin:[()=>{ef25({k:'hammer',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,95,e=>hurtE(e,1.7,{kb:180,stun:1,col:'#ffe9a0'}));heal25(.1);shake(4,.25);sfx('thud');sfx('crumble')},
   st=>{const v=DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.26;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);P.dashHit=new Set();P.dashMult=1.5;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]});sfx('dash')}
    else if(st===1){ef25({k:'bash',x:P.x+v[0]*26,y:P.y+v[1]*20,l:.35});eachIn(P.x+v[0]*26,P.y-8+v[1]*20,48,e=>hurtE(e,1.6,{kb:200,stun:1.2}));sfx('thud');shake(3,.15)}

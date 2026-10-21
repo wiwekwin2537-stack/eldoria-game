@@ -9,6 +9,24 @@ const buf=k=>B46.buf[k]&&B46.buf[k].t>0?B46.buf[k]:null;
 const setBuf=(k,t,o)=>{B46.buf[k]=Object.assign({t},o||{});return B46.buf[k]};
 const sc46=()=>{try{return netScene()}catch(e){return ''}};
 const later=(ms,fn)=>{const s=sc46();setTimeout(()=>{try{if(P.dead||sc46()!==s)return;fn()}catch(e){console.warn('[fix46]',e)}},ms)};
+/* Manual sniper aim belongs to the skill-button lifecycle, not automatic target lock. */
+const SKILLAIM46={active:null,cast:null,ui:null,
+ config(i){if(P.cls!=='sniper'||![0,1,2,3,5].includes(i))return null;const step=CS.step||0,range=i===0?560:i===1?[540,480,420][step%3]:i===2?140:i===3?300:800;return{spread:i===1&&step===1?.06:0,range:range*(buf('snipe')&&i<2?1.5:1),width:i===5?30:i===2?95:i===3?130:7,area:i===2||i===3}},
+ valid(a){return a&&P.cls==='sniper'&&!PAUSED&&!P.dead&&!DOORA.k&&P.stun<=0&&P.dash<=0&&!FISH.st&&sc46()===a.scene},
+ begin(button,i,e){if(this.active)return true;const cfg=this.config(i);if(!cfg||PAUSED||P.dead||DOORA.k||P.stun>0||P.dash>0||CS.cd[i]>0&&!(i===1&&CS.step>0)||!skOwned(i)||i>=3&&!bought56(i)||D&&(D.town||D.shop)||FISH.st)return false;
+ const S=CSKILLS[P.cls][i],cost=i<3?cskMp(S,i===1?CS.step||0:0):Math.round(cskMp(S,0)*(1-PTX().mpc));if(P.mp<cost)return false;const dv=aimDir(cfg.range).slice();this.active={...cfg,i,id:e.pointerId,button,x:e.clientX,y:e.clientY,dv,distance:cfg.range,scene:sc46(),cancel:false,moved:false};try{button.setPointerCapture(e.pointerId)}catch(error){}
+ const ui=document.createElement('div');ui.id='skillAim46';ui.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:35;color:white;font:600 13px system-ui';ui.innerHTML='<span style="position:absolute;right:calc(12px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));width:68px;height:68px;border:2px solid #ff6262;border-radius:50%;display:grid;place-items:center;background:#451825cc">✕ ยกเลิก</span><span style="position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:12px;background:#25131ccc;white-space:nowrap">ลากเล็ง • ปล่อยเพื่อยิง</span>';document.body.appendChild(ui);this.ui=ui;return true},
+ move(e){const a=this.active;if(!a||a.id!==e.pointerId)return;if(!this.valid(a)){this.cancel();return}this.sync(a);const dx=e.clientX-a.x,dy=e.clientY-a.y,d=Math.hypot(dx,dy);const box=this.ui?.firstElementChild.getBoundingClientRect();a.cancel=!!box&&e.clientX>=box.left-12&&e.clientY<=box.bottom+12;if(d>=6){a.dv=[dx/d,dy/d];a.moved=true;if(a.area)a.distance=Math.min(1,d/90)*a.range}if(this.ui)this.ui.lastElementChild.textContent=a.cancel?'ปล่อยเพื่อยกเลิก':'ลากเล็ง • ปล่อยเพื่อยิง'},
+ end(e){const a=this.active;if(!a||a.id!==e.pointerId)return;this.move(e);const valid=this.valid(a)&&!a.cancel;this.cancel();if(!valid)return;if(!a.moved){useSkill(a.i);return}const old=this.cast;this.cast={...a,dv:a.dv.slice()};try{P.dir=Math.abs(a.dv[0])>Math.abs(a.dv[1])?(a.dv[0]>0?'r':'l'):(a.dv[1]>0?'d':'u');useSkill(a.i)}finally{this.cast=old}},
+ cancel(id){const a=this.active;if(!a||id!=null&&id!==a.id)return;this.active=null;this.ui?.remove();this.ui=null;try{if(a.button.hasPointerCapture(a.id))a.button.releasePointerCapture(a.id)}catch(error){}},
+ sync(a){const cfg=this.config(a.i);if(cfg)a.spread=cfg.spread;if(cfg&&cfg.range!==a.range){a.distance*=cfg.range/a.range;a.range=cfg.range}},
+ effective(a){const max=a.area?a.distance:a.range;return (a.i===3||a.i===5)&&typeof reach61==='function'?Math.min(max,Math.max(a.i===5?40:0,reach61(P.x,P.y,a.dv[0],a.dv[1],max))):max},
+ point(i){const a=this.cast,d=a?this.effective(a):0;return a&&a.i===i?[P.x+a.dv[0]*d,P.y+a.dv[1]*d]:null},
+ draw(){if(window.__IN_OTHER8||window.__lbav65||window.GHOST143)return;const a=this.active;if(!a)return;this.sync(a);if(!this.valid(a)){this.cancel();return}const distance=this.effective(a),x=P.x,y=P.y-(a.area?0:a.i===5?12:14),angle=Math.atan2(a.dv[1],a.dv[0]);ctx.save();try{ctx.translate(x,y);ctx.rotate(angle);ctx.strokeStyle=a.cancel?'#999':'#ff5555';ctx.fillStyle=a.cancel?'rgba(150,150,150,.12)':'rgba(255,45,70,.17)';ctx.lineWidth=1.5;if(a.area){ctx.beginPath();ctx.arc(distance,0,a.width,0,Math.PI*2);ctx.fill();ctx.stroke()}else{for(const offset of a.spread?[-a.spread,a.spread]:[0]){ctx.save();ctx.rotate(offset);ctx.fillRect(0,-a.width,distance,a.width*2);ctx.strokeRect(0,-a.width,distance,a.width*2);ctx.restore()}}ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(distance,0);ctx.stroke();ctx.strokeStyle='#ffe5e5';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(distance-7,0);ctx.lineTo(distance+7,0);ctx.moveTo(distance,-7);ctx.lineTo(distance,7);ctx.stroke()}finally{ctx.restore()}}
+};window.SKILLAIM46=SKILLAIM46;
+window.addEventListener('pointermove',e=>{const a=SKILLAIM46.active;if(a&&(e.target===window||!a.button.contains(e.target)))SKILLAIM46.move(e)});window.addEventListener('pointerup',e=>SKILLAIM46.end(e));window.addEventListener('pointercancel',e=>SKILLAIM46.cancel(e.pointerId));
+for(const type of ['blur','resize'])window.addEventListener(type,()=>SKILLAIM46.cancel());document.addEventListener('visibilitychange',()=>{if(document.hidden)SKILLAIM46.cancel()});window.addEventListener('keydown',e=>{if(e.key==='Escape')SKILLAIM46.cancel()});
+
 const dirv=r=>aimDir(r||300);
 const hitAt=(x,y,r,mult,o)=>{let n=0,k=0;eachIn(x,y-6,r,e=>{if(e.dead)return;const d=hurtE(e,mult,Object.assign({},o));if(d>0){n++;if(e.hp<=0||e.dead)k++}});return {n,k}};
 const lineHit=(dv,len,w,mult,o)=>{let n=0;line25(dv,len,w,e=>{if(!e.dead&&hurtE(e,mult,Object.assign({},o))>0)n++});return n};
@@ -49,9 +67,9 @@ NEWSK.ninja=[
  ()=>{summon('shade46',2);P.cast=.3},
  ()=>{const R=200;let n=0;eachIn(P.x,P.y-6,R,e=>{if(e.dead)return;const low=e.hp<(e.mhp||e.hp)*.3;if(hurtE(e,low?6:3,{kb:160,col:low?'#ff4a5a':'#ffb0b8'})>0)n++});ef({k:'moon',x:P.x,y:P.y,r:R,l:.5});shake(5,.25);sfx('swing2')}];
 NEWSK.sniper=[
- ()=>{const e=near25(300),dv=dirv(300),x=e?e.x:P.x+dv[0]*200,y=e?e.y:P.y+dv[1]*160;ef({k:'nade',x0:P.x,y0:P.y-14,x,y,l:.4});later(400,()=>{hitAt(x,y,130,1.6,{kb:240,stun:1.2,col:'#fff6c0'});ring25(x,y,'255,250,210',130,.4);try{flash('#ffffff',.12)}catch(e){}sfx('thud')});sfx('swing')},
+ ()=>{const e=near25(300),dv=dirv(300),point=SKILLAIM46.point(3),x=point?point[0]:e?e.x:P.x+dv[0]*200,y=point?point[1]:e?e.y:P.y+dv[1]*160;ef({k:'nade',x0:P.x,y0:P.y-14,x,y,l:.4});later(400,()=>{hitAt(x,y,130,1.6,{kb:240,stun:1.2,col:'#fff6c0'});ring25(x,y,'255,250,210',130,.4);try{flash('#ffffff',.12)}catch(e){}sfx('thud')});sfx('swing')},
  ()=>{setBuf('snipe',6,{x:P.x,y:P.y});ring25(P.x,P.y,'255,210,80',50,.4);sfx('ui')},
- ()=>{P.cast=1.05;ef({k:'charge',l:1,c:'140,220,255'});sfx('warp');later(1000,()=>{const dv=dirv(800),m=buf('snipe')?1.3:1;lineHit(dv,800,30,6.0*m,{kb:200,col:'#bff0ff'});ef({k:'rail',x:P.x,y:P.y-14,dx:dv[0],dy:dv[1],len:800,l:.45});shake(6,.25);sfx('thud')})}];
+ ()=>{const dv=dirv(800).slice();P.cast=1.05;ef({k:'charge',l:1,c:'140,220,255'});sfx('warp');later(1000,()=>{const m=buf('snipe')?1.3:1;lineHit(dv,800,30,6.0*m,{kb:200,col:'#bff0ff'});ef({k:'rail',x:P.x,y:P.y-12,dx:dv[0],dy:dv[1],len:800,l:.45});shake(6,.25);sfx('thud')})}];
 NEWSK.paladin=[
  ()=>{const dv=dirv(240);const sx46=P.x,sy46=P.y,m=dash46(dv,200),ex46=P.x,ey46=P.y;P.x=sx46;P.y=sy46;if(m>0)lineHit(dv,m+20,34,1.6,{kb:260,stun:1,col:'#ffe9a0'});P.x=ex46;P.y=ey46;P.iframe=Math.max(P.iframe||0,.3);ef({k:'streak',x:P.x-dv[0]*m,y:P.y-dv[1]*m,x2:P.x,y2:P.y,l:.35,c:'255,235,160'});sfx('dash')},
  ()=>{setBuf('aura',10,{tick:0});ring25(P.x,P.y,'255,240,170',160,.6);sfx('warp')},
@@ -175,7 +193,7 @@ const ICE46=['วาร์ปเวท','คุกน้ำแข็ง'],FIRE46
 // พาลาดิน Lv.110 ผู้ไม่ยอมตาย: ฟื้นทันที 30% (ทุก 5 นาที · ไม่ทำงานใน PvP/ดวล/สนาม)
 {const _sd=startDeath;startDeath=function(){try{const sc=sc46();if(on46('paladin',110)&&!P.dead&&!/^(arena|duel)/.test(sc)&&(B46.st.undying||0)<Date.now()&&!(typeof PV29!=='undefined'&&PV29.duel)){B46.st.undying=Date.now()+300000;P.hp=Math.round(BAL.hp*.3);P.iframe=2;ring25(P.x,P.y,'255,240,170',120,.6);try{flash('#ffe9a0',.35)}catch(e){}say('👼 ผู้ไม่ยอมตาย! ฟื้นคืนชีพ (ใช้ได้อีกใน 5 นาที)');sfx('warp');return}}catch(e){}return _sd.apply(this,arguments)}}
 // ---------- วาด ----------
-function draw46(){const t=performance.now()/1000;ctx.save();
+function draw46(){SKILLAIM46.draw();const t=performance.now()/1000;ctx.save();
  for(const e of E46){const u=Math.min(1,e.t/e.l),a=Math.max(0,1-u);ctx.save();ctx.globalCompositeOperation='lighter';
   if(e.k==='streak'){ctx.strokeStyle='rgba('+e.c+','+a+')';ctx.lineWidth=10*a+2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(e.x,e.y-12);ctx.lineTo(e.x2,e.y2-12);ctx.stroke()}
   else if(e.k==='fan'){const ang=Math.atan2(e.dy,e.dx);ctx.fillStyle='rgba('+e.c+','+(.35*a)+')';ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.arc(e.x,e.y,e.r*(.4+.6*u),ang-.6,ang+.6);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(255,255,255,'+a+')';ctx.lineWidth=4;ctx.beginPath();ctx.arc(e.x,e.y,e.r*(.4+.6*u),ang-.6,ang+.6);ctx.stroke()}

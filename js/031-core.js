@@ -3354,7 +3354,8 @@ const sk5=document.createElement('button');sk5.className='sk';sk5.id='sk5';sk5.i
 {const st=document.createElement('style');st.textContent='#acts #sk5{right:168px;bottom:44px}#acts .sk.new::after{content:"NEW";position:absolute;left:-2px;top:-6px;font-size:8px;font-weight:800;background:#e04a3a;color:#fff;border-radius:4px;padding:0 3px}';document.head.appendChild(st)}
 const SBTN=[skB[0],skB[1],skB[2],sk5];
 const barOf=()=>SKBAR[P.cls]||[0,1,2,3];
-SBTN.forEach((b,s)=>{b.onpointerdown=e=>{e.preventDefault();if(P.cls==='none'){if(s<3)useSkill(s);return}useSkill(barOf()[s])}});
+function bindSkillPointer(b,s){b.onpointerdown=e=>{e.preventDefault();const i=P.cls==='none'?s:barOf()[s];if(window.SKILLAIM46&&SKILLAIM46.begin(b,i,e)){e.stopPropagation();return}if(P.cls==='none'&&s>=3)return;useSkill(i)};b.onpointermove=e=>{if(window.SKILLAIM46)SKILLAIM46.move(e)};b.onpointerup=e=>{if(window.SKILLAIM46)SKILLAIM46.end(e)};for(const type of ['pointercancel','lostpointercapture'])b.addEventListener(type,e=>{if(window.SKILLAIM46)SKILLAIM46.cancel(e.pointerId)})}
+SBTN.forEach(bindSkillPointer);
 addEventListener('keydown',e=>{if(e.repeat||DLG.open)return;const s='5678'.indexOf(e.key);if(s<0||document.activeElement.tagName==='INPUT')return;e.stopImmediatePropagation();if(P.cls==='none'){if(s<3)useSkill(s);return}useSkill(barOf()[s])},true);
 function updSkBar(){const L=CSKILLS[P.cls];if(P.cls==='none'||!L){sk5.style.display='none';return}sk5.style.display='';const bar=barOf();
  SBTN.forEach((b,s)=>{const i=bar[s],S=L[i],o=S&&skOwned(i),c=CS.cd[i]||0;b.classList.toggle('lock',!o);const step=i===1?CS.step:0,mp=S?Math.round(cskMp(S,step)*(1-PTX().mpc)):0;
@@ -5496,9 +5497,9 @@ function orbOf7(hx,hy,ang,sc){const r=STF_ORB7*(sc||1);return{x:hx+Math.sin(ang)
 // จังหวะ (ยิงจริงที่ P.at=.34 ตามระบบเดิม): ยกธนู+เอื้อมหยิบลูก 0-.08 · พาดสาย .08-.16 · ง้าง .16-.30 · เล็งค้าง .30-.34 · ปล่อย .34-.42 · follow-through .42-.6 · คืนท่า .6-1
 const BWPH=[.08,.16,.30,.34,.42,.6];
 const BOWSHOT7=[{dy:0,tilt:0,deep:1,lean:[-1.5,1]},{dy:2,tilt:-.1,deep:1,lean:[-1,1.5]},{dy:0,tilt:0,deep:1.18,lean:[-3,2.5]}]; // shot 1 ปกติ · 2 ย่อต่ำ เงยนิด · 3 ง้างลึกแรงสุด
-function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],aim0=sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd?-f*SH.tilt:0);
+function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],manual=P.cls==='sniper'&&window.SKPOSE57?.aim,aim0=manual?Math.atan2(manual[1],manual[0]):sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd&&!manual?-f*SH.tilt:0);
  const av=[Math.cos(aim),Math.sin(aim)],sc=d==='u'?.8:sd?.88:.9;
- if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*12*sc,g[1]+axis[1]*12*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
+ if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,manual?-31:-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*(manual?9:12)*sc,g[1]+axis[1]*(manual?9:12)*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
  const G=sd?[f*13,-24+SH.dy]:d==='d'?[10,-23+SH.dy]:[-10,-30+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
  const I=sd?[f*10,-23]:d==='d'?[12,-23]:[-12,-25];                                     // ตำแหน่งมือถือธนูตอนพัก
  const aimI=sd?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12,displayAim=sd?aim:d==='d'?0:Math.PI,stringAxis=[Math.cos(displayAim),Math.sin(displayAim)];

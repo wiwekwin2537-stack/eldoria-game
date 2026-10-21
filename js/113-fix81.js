@@ -178,7 +178,7 @@ const AIM81={on:0,dx:0,dy:0,f:0,cast:null};W81.AIM81=AIM81;
 const AREA81={arrowrain:180,meteor:225};// ระยะไกลสุดที่ลากวางได้ (เดิม 120/150 = ×1.5 · สมดุล)
 {const pp=PERS.push;PERS.push=function(){try{const c=AIM81.cast;if(c&&performance.now()<c.until)for(const o of arguments){if(o&&o.x!=null&&o.y!=null&&AREA81[o.k]){const R=AREA81[o.k],d=Math.max(40,Math.min(R,c.f*R));o.x=P.x+c.dx*d;o.y=P.y+c.dy*d}}}catch(e){}return pp.apply(this,arguments)}}
 function aimWrap81(b,s){if(!b||!b.onpointerdown||b.onpointerdown===b.my81)return;b.h081=b.onpointerdown;
- const my=function(e){if(e.pointerType==='mouse')return b.h081.call(this,e);e.preventDefault();
+ const my=function(e){if(P.cls==='sniper'&&window.SKILLAIM46&&SKILLAIM46.config(barOf()[s]))return b.h081.call(this,e);if(e.pointerType==='mouse')return b.h081.call(this,e);e.preventDefault();
   b.st81={id:e.pointerId,x0:e.clientX,y0:e.clientY,aim:0,ev:e};try{b.setPointerCapture(e.pointerId)}catch(_){}};
  b.my81=my;b.onpointerdown=my;if(b.a81)return;b.a81=1;
  b.addEventListener('pointermove',e=>{const st=b.st81;if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0,L=Math.hypot(dx,dy);

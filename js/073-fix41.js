@@ -337,7 +337,7 @@ window.draw41=draw41;
 const acts41=gid('acts'),wrap41=gid('wrap');
 const mkBtn41=id=>{const b=document.createElement('button');b.className='sk';b.id=id;b.innerHTML='<span class="ic"></span><i class="cd"></i><b class="n"></b><small></small>';acts41.appendChild(b);return b};
 const sk6=mkBtn41('sk6'),sk7=mkBtn41('sk7');SBTN.push(sk6,sk7);
-[sk6,sk7].forEach((b,j)=>{const s=4+j;b.onpointerdown=e=>{e.preventDefault();if(P.cls==='none')return;useSkill(barOf()[s])}});
+[sk6,sk7].forEach((b,j)=>bindSkillPointer(b,4+j));
 addEventListener('keydown',e=>{if(e.repeat||(typeof DLG!=='undefined'&&DLG.open))return;const s='90'.indexOf(e.key);if(s<0||document.activeElement.tagName==='INPUT')return;if(!six41())return;e.stopImmediatePropagation();useSkill(barOf()[4+s])},true);
 const pg41=document.createElement('button');pg41.id='skpg41';pg41.textContent='⇄';pg41.setAttribute('aria-label','สลับหน้าสกิล');acts41.appendChild(pg41);
 let page41=0;pg41.onpointerdown=e=>{e.preventDefault();page41^=1;sfx('ui');lay41()};
