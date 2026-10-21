@@ -62,8 +62,8 @@ const FIX = path.join(__dirname, 'fixtures', 'exit_scenes.json');
     if (process.env.ELD_RECORD) { fs.mkdirSync(path.dirname(FIX), { recursive: true }); fs.writeFileSync(FIX, JSON.stringify(out, null, 1) + '\n'); console.log('EXIT SCENES RECORDED', Object.keys(out).length); }
     else {
       const want = JSON.parse(fs.readFileSync(FIX, 'utf8'));
-      /* จุดเกิดตอนเข้า (in.x/y) ของดันเจี้ยนสุ่มแผนที่ เปลี่ยนทุกครั้ง — ไม่เกี่ยวกับ exitD จึงไม่เทียบ · ผลตอนออก (out) เทียบทุกค่า */
-      const norm = v => v && v.in ? { ...v, in: { ...v.in, x: 0, y: 0 } } : v;
+      /* ผลตอนออก (out) เทียบทุกค่า */
+      const norm = v => v && v.in ? { ...v, in: { scene: v.in.scene, msg: v.in.msg } } : v; /* ก่อนออก เทียบแค่ฉาก+ข้อความ (จุดเกิด/กระสุนมอนในดันเจี้ยนสุ่ม) */
       const bad = Object.keys(want).filter(k => JSON.stringify(norm(out[k])) !== JSON.stringify(norm(want[k])));
       for (const k of bad) console.log('DIFF', k, '\n got ', JSON.stringify(out[k]), '\n want', JSON.stringify(want[k]));
       assert.equal(bad.length, 0, 'ออกจากสถานที่ต้องเหมือนเดิม: ' + bad.join(', '));

@@ -19,6 +19,7 @@ function enterD(){fade('#000');sfx('cave');setScene('cave');flushDrops();buildD(
    ออกจากไหน → ไปไหน:
    · เมือง ยืนขอบขวา (ไม่ใช่ในร้าน) → ถนนตะวันออก (enterRoad144) · กันกดซ้ำ 2.5 วิ ร่วมกับทางกลับเมืองของถนน
    · ไม่มีฉาก → ไม่ทำอะไร
+   · ร้าน/ท้องพระโรง → leaveShop() กลับเมือง (v5.56)
    · ที่อื่นทั้งหมด (เมือง/ดันเจี้ยน/เหมือง-ป่า/หอคอย/ตลาด/บอสโลก/สนามประลอง/เมือง 2/ถนน) → ทุ่งหญ้า ตำแหน่ง D.ret
      ก่อนออก: ปิดแผนที่หมอก ล้างสมุน · ออกจากเหมือง-ป่า ล้างกระสุนมอน · ออกจากเมือง 2 จำเวลาไว้ให้ระบบไกด์ (RT134.c2t)
    ชั้นที่ไม่เคยทำงานจริง (ถูกชั้นถนนตะวันออกดักก่อนเสมอ) จึงไม่รวมเข้ามา: fix114 ขอบขวาเมือง→เมือง 2 · 031 ขอบขวาเมือง→บ้าน */
@@ -26,7 +27,8 @@ function exitD(){
  if(D&&D.town&&!D.shop&&P.x>(TW-3)*T){if(window.ROAD144.busy())return;window.ROAD144.lock();P.x=(TW-4)*T;try{enterRoad144('west')}catch(e){console.warn(e)}return}
  const fromC2=!!(D&&D.city2);
  if(!D)return;
- const wasTown=D.town,wasDg=D.dg,wasZone=D.zone;
+ if(D.shop){leaveShop();return} /* v5.56 ในร้าน/ท้องพระโรงไม่มี D.ret — เดิมพังกลางทาง (ฉากเปลี่ยนเป็นทุ่งแต่ยังค้างในร้าน) → ออกทางประตูร้านตามปกติ */
+ const wasTown=D.town,wasDg=D.dg||!!(D.zone&&D.zone.Zd&&D.zone.Zd.dg),wasZone=D.zone&&!(D.tower10||D.mk10||D.wb10||D.arena8||D.city2||D.road144||D.duel29); /* v5.56 หอคอย/ตลาด/บอสโลก/สนามประลอง/เมือง2/ถนน ใช้ระบบแมพเดียวกับเหมือง แต่ไม่ใช่เหมือง → ไม่ขึ้น "ออกจากเหมือง" */
  bmEl.hidden=true;EXPL.c=null;MIN.length=0;
  if(D.zone){ZPROJ.length=0}
  fade(D&&D.town?'#fff':'#000');sfx(D&&D.town?'warp':'cave');setScene('field');setMini(MINIW);shopEl.hidden=true;flushDrops();slimes.length=0;slimes.push(...dsav);const R=D.ret;D=null;dm=null;P.x=R[0];P.y=R[1];P.dir='d';P.kx=P.ky=0;say('ออกจากดันเจี้ยนแล้ว');

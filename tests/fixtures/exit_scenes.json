@@ -83,7 +83,17 @@
    "bm": true,
    "sh": true
   },
-  "outErr": "Cannot read properties of undefined (reading '0')"
+  "out": {
+   "scene": "t56,town,twr42",
+   "x": 176,
+   "y": 536,
+   "dir": "d",
+   "msg": "ออกจากร้านอาวุธเกราะลุงเหล็กแล้ว",
+   "min": 0,
+   "zproj": 1,
+   "bm": true,
+   "sh": true
+  }
  },
  "ร้าน inn": {
   "in": {
@@ -97,7 +107,17 @@
    "bm": true,
    "sh": true
   },
-  "outErr": "Cannot read properties of undefined (reading '0')"
+  "out": {
+   "scene": "t56,town,twr42",
+   "x": 1200,
+   "y": 536,
+   "dir": "d",
+   "msg": "ออกจากโรงเตี๊ยมบัวหลวงแล้ว",
+   "min": 0,
+   "zproj": 1,
+   "bm": true,
+   "sh": true
+  }
  },
  "ร้าน hall": {
   "in": {
@@ -111,7 +131,17 @@
    "bm": true,
    "sh": true
   },
-  "outErr": "Cannot read properties of undefined (reading '0')"
+  "out": {
+   "scene": "t56,town,twr42",
+   "x": 704,
+   "y": 310,
+   "dir": "d",
+   "msg": "ออกจากปราสาทแล้ว",
+   "min": 0,
+   "zproj": 1,
+   "bm": true,
+   "sh": true
+  }
  },
  "ร้าน seal113": {
   "in": {
@@ -125,7 +155,17 @@
    "bm": true,
    "sh": true
   },
-  "outErr": "Cannot read properties of undefined (reading '0')"
+  "out": {
+   "scene": "t56,town,twr42",
+   "x": 368,
+   "y": 280,
+   "dir": "d",
+   "msg": "ออกจากหอผนึกอสูรแล้ว",
+   "min": 0,
+   "zproj": 1,
+   "bm": true,
+   "sh": true
+  }
  },
  "บ้าน": {
   "in": {
@@ -178,12 +218,12 @@
  "ดันเจี้ยน 40": {
   "in": {
    "scene": "",
-   "x": 1616,
-   "y": 1424,
+   "x": 1584,
+   "y": 1328,
    "dir": "u",
    "msg": "🗝️ ดันเจี้ยนชั้น 40 — มอน 46 ตัว · บอสอยู่ห้องไกลสุด · แตะแผนที่มุมขวาบนเพื่อดูแผนที่ใหญ่",
    "min": 0,
-   "zproj": 0,
+   "zproj": 2,
    "bm": true,
    "sh": true
   },
@@ -264,7 +304,7 @@
    "x": 1200,
    "y": 920,
    "dir": "d",
-   "msg": "ออกจากเหมืองกลับสู่ทุ่งหญ้า",
+   "msg": "ออกมาที่ทุ่งหญ้าแล้ว",
    "min": 0,
    "zproj": 0,
    "bm": true,
@@ -288,7 +328,7 @@
    "x": 1200,
    "y": 920,
    "dir": "d",
-   "msg": "ออกจากเหมืองกลับสู่ทุ่งหญ้า",
+   "msg": "ออกมาที่ทุ่งหญ้าแล้ว",
    "min": 0,
    "zproj": 0,
    "bm": true,
@@ -307,7 +347,17 @@
    "bm": true,
    "sh": true
   },
-  "outErr": "Cannot read properties of undefined (reading '0')"
+  "out": {
+   "scene": "t56,town,twr42",
+   "x": 704,
+   "y": 310,
+   "dir": "d",
+   "msg": "ออกจากปราสาทแล้ว",
+   "min": 0,
+   "zproj": 1,
+   "bm": true,
+   "sh": true
+  }
  },
  "สนามประลอง": {
   "in": {
@@ -326,7 +376,7 @@
    "x": 1200,
    "y": 920,
    "dir": "d",
-   "msg": "ออกจากเหมืองกลับสู่ทุ่งหญ้า",
+   "msg": "ออกมาที่ทุ่งหญ้าแล้ว",
    "min": 0,
    "zproj": 0,
    "bm": true,
@@ -422,7 +472,7 @@
    "x": 1200,
    "y": 920,
    "dir": "d",
-   "msg": "ออกจากเหมืองกลับสู่ทุ่งหญ้า",
+   "msg": "ออกมาที่ทุ่งหญ้าแล้ว",
    "min": 0,
    "zproj": 0,
    "bm": true,
@@ -446,7 +496,7 @@
    "x": 1200,
    "y": 920,
    "dir": "d",
-   "msg": "ออกจากเหมืองกลับสู่ทุ่งหญ้า",
+   "msg": "ออกมาที่ทุ่งหญ้าแล้ว",
    "min": 0,
    "zproj": 0,
    "bm": true,
