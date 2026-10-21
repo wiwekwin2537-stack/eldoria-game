@@ -84,6 +84,7 @@ wss.on('connection', (ws, req) => {
       if (!p.joined) { p.joined = true; send(p, { t: 'hist', list: history }); broadcast({ t: 'sys', txt: p.name + ' เข้าสู่โลกแล้ว' }, p); }
       else if (old !== p.name) broadcast({ t: 'sys', txt: old + ' เปลี่ยนชื่อเป็น ' + p.name }, p);
     } else if (d.t === 'st') {
+      if (p.dupeT) return; /* v5.52 การเชื่อมต่อเก่าที่ถูกแทนแล้ว ห้ามกลับเข้าฉาก */
       const sc = clean(d.sc, 32);
       if (p.sc && sc !== p.sc) for (const o of players.values()) if (o !== p && o.sc === p.sc) send(o, { t: 'gone', id });
       const ns = sanitizeState(d);

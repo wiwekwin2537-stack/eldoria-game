@@ -6,6 +6,9 @@ function noteBossFight(m){
  const b=m.hp==null?(D.boss||(D.mobs||[]).find(x=>x.boss&&!x.dead)):m;
  if(b)BOSS_HEAL_FIGHT.set(b,{scene:D,until:srvNow()+BAL.regenDelay*1000});
 }
+/* v5.52: ฮีลทุกแหล่งระหว่างสู้ PvP (สนามประลอง · ดวล · โดนผู้เล่นตีภายใน 10 วิ) ได้ผล 40% — สายฮีลยังรอดนานกว่าแต่ไม่อมตะ · นอก PvP ฮีลเต็มเหมือนเดิม */
+const PVPHEAL52={k:.4,last:null,hitT:-1e9,fight(){if(typeof pvpOn8!=='function'||!pvpOn8())return false;try{if(inArena8()||(D&&D.duel29))return true}catch(e){}return performance.now()-this.hitT<10000},
+ tick(){if(P.dead||this.last==null||!this.fight()){this.last=P.dead?null:P.hp;return}if(P.hp>this.last)P.hp=this.last+(P.hp-this.last)*this.k;this.last=P.hp}};window.PVPHEAL52=PVPHEAL52;
 function passiveRegenBlocked(){
  if(typeof pvpOn8==='function'&&pvpOn8())return true;
  if(typeof D==='undefined'||!D||D.town||D.shop||D.home)return false;
@@ -36,6 +39,7 @@ function die(){sfx('die');P.hp=BAL.hp;P.mp=BAL.mp;P.kx=P.ky=0;P.iframe=2;P.stun=
  document.getElementById('msg').textContent='ล้มแล้ว! ฟื้นที่เมืองเอลโดเรีย (จุดเกิด)'}
 const hpb=document.getElementById('hpb'),mpb=document.getElementById('mpb'),hpt=document.getElementById('hpt'),mpt=document.getElementById('mpt'),faceEl=document.getElementById('face');
 function playerTick(dt){
+ PVPHEAL52.tick();
  if(P.stun>0)P.stun-=dt;
  if(P.kx||P.ky){const kx=P.kx*dt,ky=P.ky*dt;if(!hit(P.x+kx,P.y))P.x+=kx;if(!hit(P.x,P.y+ky))P.y+=ky;
   const d=Math.pow(.02,dt);P.kx*=d;P.ky*=d;if(Math.abs(P.kx)+Math.abs(P.ky)<4)P.kx=P.ky=0}

@@ -33,7 +33,7 @@ const PVPCB29={sword:.99,mage:.94,archer:.97,ninja:1.42,sniper:1.05,paladin:1.04
 {const _sm=spdMul;spdMul=function(){return _sm()*(PV29.haste>performance.now()?1.35:1)}}
 // ดาเมจ PvP ใหม่: ผู้ตีส่งดาเมจดิบ (ATK×สกิล×คริ) · ผู้โดนลดตามเกราะแบบ % + DR · ×0.3 · ดาเมจต่อครั้งไม่เกิน 18% เลือดสูงสุด (ไม่มีวันช็อต)
 PVP8.dmgK=1;const PVPK29=.5;
-pvpHurt8=function(d){if(!pvpOn8()||P.dead)return;const n=performance.now();if(n<PVP8.hitT)return;const du=D&&D.duel29;if(du&&!(PV29.duel&&PV29.duel.st==='fight'&&!PV29.duel.ko))return;
+pvpHurt8=function(d){if(!pvpOn8()||P.dead)return;const n=performance.now();PVPHEAL52.hitT=n;/* v5.52 จำเวลาโดนผู้เล่นตี เพื่อลดฮีลระหว่างสู้ PvP */if(n<PVP8.hitT)return;const du=D&&D.duel29;if(du&&!(PV29.duel&&PV29.duel.st==='fight'&&!PV29.duel.ko))return;
  let dmg=(d.dmg|0)*100/(100+DEF())*PVPK29*(1-Math.min(.5,PTX().dr||0));dmg=Math.max(1,Math.round(Math.min(dmg,BAL.hp*.18)));
  P.hp=Math.max(0,P.hp-dmg);P.red=.25;sfx('hurt');dmgTxt(P.x,P.y-44,'-'+dmg,d.crit?'#ffd84a':'#ff5a5a',!!d.crit);
  if(P.hp<=0){netSend({t:'pvpko',by:d.from});flash('#ff3a3a',.4);shake(5,.3);

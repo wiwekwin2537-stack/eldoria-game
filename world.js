@@ -67,7 +67,7 @@ function onMsg(p, d, now) {
   switch (d.t) {
     case 'auth': ACC.verify(d.id, d.token, d.document).then(async v => { if (!v) { send(p, { t: 'auth_no' }); return; }
         /* v5.03: ไอดีเดียวเข้าจากเครื่องใหม่ → เครื่องเก่าโดนเตะทันที + ตัดสิทธิ์ออนไลน์ (ตลาด/เทรด/จดหมาย) กันเล่น 2 เครื่องปั๊มของ */
-        for (const o of H.players.values()) if (o !== p && o.acct === v.lid) { o.acct = null; o.gm = false; send(o, { t: 'dupe' }); }
+        for (const o of H.players.values()) if (o !== p && o.acct === v.lid) { o.acct = null; o.gm = false; send(o, { t: 'dupe' }); /* v5.52 ตัวเก่าหลังต่อใหม่ต้องหายจากฉากทันที ไม่ค้างเป็นร่างซ้ำให้ตีได้ */ if (o.sc) for (const x of H.players.values()) if (x !== o && x.sc === o.sc) send(x, { t: 'gone', id: o.id }); o.sc = ''; o.st = null; o.dupeT = now; setTimeout(() => { try { o.ws.terminate(); } catch (e) {} }, 800); }
         p.acct = v.lid; p.gm = v.gm; try { const g = await ACC.guildOf(v.lid); p.gid = g ? g.id : ''; p.gtag = g ? g.tag : ''; p.gname = g ? g.name : ''; } catch (e) {} send(p, { t: 'auth_ok', gm: v.gm, g: p.gid ? { id: p.gid, tag: p.gtag, name: p.gname } : null });
         try { const m = await ACC.mailList(v.lid); send(p, { t: 'mbox', list: m }); } catch (e) {}
         try { if (v.gm && ACC.topPend) { const n = await ACC.topPend(); if (n) send(p, { t: 'gmtop', n }); } } catch (e) {} }).catch(() => {}); return true;

@@ -5502,7 +5502,7 @@ function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],manual=P
  if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,manual?-31:-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*(manual?9:12)*sc,g[1]+axis[1]*(manual?9:12)*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
  const G=sd?[f*13,-24+SH.dy]:d==='d'?[10,-23+SH.dy]:[-10,-30+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
  const I=sd?[f*10,-23]:d==='d'?[12,-23]:[-12,-25];                                     // ตำแหน่งมือถือธนูตอนพัก
- const aimI=sd?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12,displayAim=sd?aim:d==='d'?0:Math.PI,stringAxis=[Math.cos(displayAim),Math.sin(displayAim)];
+ const aimI=sd?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12,displayAim=sd?aim:d==='d'?.5:Math.PI+.5,/* v5.52 หน้า/หลัง: เอียงคันไปทางที่ยิง ลูกธนูวางบนคันจริง */stringAxis=[Math.cos(displayAim),Math.sin(displayAim)];
  const H0=sd?[-f*2,-14]:d==='d'?[-11,-13]:[11,-13];                                    // มือดึงสายตอนพัก
  const Q=quiverReach7(d),nock=k=>[G[0]+stringAxis[0]*(-5-11*k)*sc,G[1]+stringAxis[1]*(-5-11*k)*sc];
  let g,a,h,pull=0,onStr=false,inHand=null,snap=0,lean=0;
@@ -5520,14 +5520,14 @@ function drawArrow7(x,y,ang,len){ctx.save();ctx.translate(x,y);ctx.rotate(ang);c
  ctx.fillStyle='#d8dce8';ctx.beginPath();ctx.moveTo(len+5,0);ctx.lineTo(len-1,-2.6);ctx.lineTo(len-1,2.6);ctx.closePath();ctx.fill();ctx.fillStyle='#e04a3a';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-3,-2.5);ctx.lineTo(3,0);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.restore()}
 // ไหล่: แขนจับคันธนู = แขนซ้ายตัวละคร · แขนดึงสาย = แขนขวา
 const bowSh7=(x,by,d,f)=>rgSide7(d)?{bow:[x+f*2,by-25],dr:[x-f*1,by-24]}:d==='d'?{bow:[x+10,by-24],dr:[x-10,by-24]}:{bow:[x-10,by-24],dr:[x+10,by-24]};
-function bowParts7(x,by,d,f,TOP,which){const n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=P.tier.sword|0;
+function bowParts7(x,by,d,f,TOP,which){const sd7b=rgSide7(d)||!!(P.cls==='sniper'&&window.SKPOSE57?.aim),n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=P.tier.sword|0;
  if(which!=='arms'){
   drawBow6(gx,gy,q.a,tier,Math.max(0,q.pull),false,q.sc);
   if(window.Grip145)Grip145.bowGlow(gx,gy,q.a,q.sc);
   if(P.cls==='sniper')P.tip={x:gx+q.av[0]*32*q.sc,y:gy+q.av[1]*32*q.sc,t:performance.now()};
-  if(q.onStr){const sx=gx+q.stringAxis[0]*(-5-11*q.pull)*q.sc,sy=gy+q.stringAxis[1]*(-5-11*q.pull)*q.sc;drawArrow7(sx,sy,q.aim,24*q.sc);
-   if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+q.av[0]*27*q.sc,ty=sy+q.av[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
-   P.tip={x:sx+q.av[0]*26*q.sc,y:sy+q.av[1]*26*q.sc,t:performance.now()}}
+  if(q.onStr){const sx=gx+q.stringAxis[0]*(-5-11*q.pull)*q.sc,sy=gy+q.stringAxis[1]*(-5-11*q.pull)*q.sc;const fa=sd7b?q.aim:q.a,fv=sd7b?q.av:q.stringAxis;/* v5.52 ลูกธนู+แสง อยู่แนวเดียวกับคันธนู ไม่แยกข้าง */drawArrow7(sx,sy,fa,24*q.sc);
+   if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+fv[0]*27*q.sc,ty=sy+fv[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
+   P.tip={x:sx+fv[0]*26*q.sc,y:sy+fv[1]*26*q.sc,t:performance.now()}}
   if(q.snap>0){const mx=gx+(P.cls==='sniper'?q.av[0]*32*q.sc:0),my=gy+(P.cls==='sniper'?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
   if(which==='bow'){swArm6(S.bow[0],S.bow[1],gx,gy,TOP,-1);ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-2.5,5,5);return}} // หันขึ้น: แขนจับคันอยู่หน้าตัว (หลังลำตัวจากมุมกล้อง)
  // แขนจับคันธนู → มือที่กำคัน · แขนดึงสาย → มือ (ถือลูกธนูตอนหยิบ/พาดสาย)
