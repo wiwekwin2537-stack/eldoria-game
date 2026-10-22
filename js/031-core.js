@@ -2002,15 +2002,15 @@ const SKFN={
    if(st===0){for(const o of [-.32,-.16,0,.16,.32]){const a=Math.atan2(dv[1],dv[0])+o;shoot('ice',{dv:[Math.cos(a),Math.sin(a)],sp:420,range:300,mult:.8,slow:2.5,r:7})}sfx('mine')}
    else if(st===1){let from={x:P.x,y:P.y-20},left=5;const hitSet=new Set();while(left-->0){let b=null,bd=230;for(const e of enemies())if(!hitSet.has(e)){const d=Math.hypot(e.x-from.x,e.y-12-from.y);if(d<bd){bd=d;b=e}}if(!b)break;hitSet.add(b);vfx('bolt',from.x,from.y,.35,{x2:b.x,y2:b.y-12});hurtE(b,1.3,{kb:40,stun:.4,col:'#bfe8ff',fx:from.x,fy:from.y});from={x:b.x,y:b.y-12}}
     if(!hitSet.size)vfx('bolt',P.x,P.y-20,.3,{x2:P.x+dv[0]*140,y2:P.y-20+dv[1]*140});sfx('hit');shake(2,.12)}
-   else{const tx=P.x+dv[0]*150,ty=P.y+dv[1]*150;vfx('tele',tx,ty,.9,{r:90});PERS.push({k:'meteor',x:tx,y:ty,t:0,l:.9,r:90,mult:3.2,big:1});sfx('warp')}},
+   else{const pt=window.SKILLAIM46&&SKILLAIM46.point(1),tx=pt?pt[0]:P.x+dv[0]*150,ty=pt?pt[1]:P.y+dv[1]*150;/* v5.75 ลากเลือกจุดตก */vfx('tele',tx,ty,.9,{r:90});PERS.push({k:'meteor',x:tx,y:ty,t:0,l:.9,r:90,mult:3.2,big:1});sfx('warp')}},
   ()=>{PERS.push({k:'meteorstorm',t:0,l:3.5,tick:0});P.cast=.8;P.stun=.5;sfx('warp');shake(3,.4)}],
  archer:[
   ()=>{const dv=aimDir(320),a0=Math.atan2(dv[1],dv[0]);for(let i=-2;i<=2;i++){const a=a0+i*.17;shoot('arrow',{dv:[Math.cos(a),Math.sin(a)],sp:560,range:330,mult:.9})}P.at=0;P.cmb=0;sfx('swing')},
   st=>{const dv=aimDir(340);P.at=0;P.cmb=0;
    if(st===0){shoot('spirit',{dv,sp:620,range:380,mult:1.5,pierce:99,r:10});sfx('swing');sfx('gem')}
-   else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{shoot('arrow',{dv:aimDir(340),sp:600,range:340,mult:1.2});sfx('swing')},180)}
+   else if(st===1){const cdv=window.SKILLAIM46&&SKILLAIM46.cast?dv.slice():null;/* v5.75 ลากเล็ง: ยิงตามทิศที่ลาก */P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{shoot('arrow',{dv:cdv||aimDir(340),sp:600,range:340,mult:1.2});sfx('swing')},180)}
    else{shoot('bomb',{dv,sp:480,range:300,mult:2.6,aoe:70,stun:1,r:9});sfx('swing')}},
-  ()=>{const dv=aimDir(300);PERS.push({k:'arrowrain',x:P.x+dv[0]*120,y:P.y+dv[1]*120,t:0,l:3,tick:0,r:85});sfx('swing2')}]};
+  ()=>{const dv=aimDir(300),pt=window.SKILLAIM46&&SKILLAIM46.point(2);PERS.push({k:'arrowrain',x:pt?pt[0]:P.x+dv[0]*120,y:pt?pt[1]:P.y+dv[1]*120,t:0,l:3,tick:0,r:85});sfx('swing2')}]};
 
 // ---------- ยิงพื้นฐาน (นักเวท/นักธนู) ----------
 {const _a=attack;attack=function(q){if(typeof FISH!=='undefined'&&FISH.st){fishPress();return}const a0=P.at;_a(q);if(isRng()&&a0<0&&P.at===0){P.cmb=0;P.shot=false}}}
