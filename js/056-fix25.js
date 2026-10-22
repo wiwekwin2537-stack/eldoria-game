@@ -87,20 +87,20 @@ const SKN25={
    else{shoot('bomb',{dv,sp:620,range:420,mult:2.8,aoe:90,stun:.8,r:9,gun:'he'});sfx('thud');shake(2,.1)}},
   ()=>{const dv=aimDir(320),point=window.SKILLAIM46&&SKILLAIM46.point(2);ef25({k:'barrage',x:point?point[0]:P.x+dv[0]*140,y:point?point[1]:P.y+dv[1]*140,r:95,l:3,tick:0});sfx('swing2')}],
  paladin:[()=>{ef25({k:'hammer',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,95,e=>hurtE(e,1.7,{kb:180,stun:1,col:'#ffe9a0'}));heal25(.1);shake(4,.25);sfx('thud');sfx('crumble')},
-  st=>{const v=DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.26;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);P.dashHit=new Set();P.dashMult=1.5;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]});sfx('dash')}
+  st=>{const v=(st===0&&window.SKILLAIM46&&SKILLAIM46.cast)?SKILLAIM46.cast.dv.slice():DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.26;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);P.dashHit=new Set();P.dashMult=1.5;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]});sfx('dash')}
    else if(st===1){ef25({k:'bash',x:P.x+v[0]*26,y:P.y+v[1]*20,l:.35});eachIn(P.x+v[0]*26,P.y-8+v[1]*20,48,e=>hurtE(e,1.6,{kb:200,stun:1.2}));sfx('thud');shake(3,.15)}
-   else{const dv=aimDir(220),x=P.x+dv[0]*110,y=P.y+dv[1]*110;ef25({k:'pillar',x,y,l:.9,r:80,mult:2.8})}},
+   else{const dv=aimDir(220),pt=(window.SKILLAIM46&&SKILLAIM46.point(1)),x=pt?pt[0]:P.x+dv[0]*110,y=pt?pt[1]:P.y+dv[1]*110;ef25({k:'pillar',x,y,l:.9,r:80,mult:2.8})}},
   ()=>{B25.shieldT=6;sfx('warp');ring25(P.x,P.y,'255,240,170',90,.6)}],
  cleric:[()=>{heal25(.3);ef25({k:'holyburst',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,85,e=>hurtE(e,1.2,{kb:160,col:'#fff6c0'}));sfx('gem');P.cast=.4},
   st=>{P.cast=.45;P.stun=.2;const dv=aimDir(320);
    if(st===0){for(const o of [-.25,0,.25]){const a=Math.atan2(dv[1],dv[0])+o;shoot('holy25',{dv:[Math.cos(a),Math.sin(a)],sp:380,range:340,mult:1.4,r:9,home:1})}sfx('gem')}
    else if(st===1){ef25({k:'halo',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,110,e=>hurtE(e,1.5,{kb:260,col:'#fff6c0'}));sfx('warp')}
-   else{const x=P.x+dv[0]*120,y=P.y+dv[1]*120;ef25({k:'beam',x,y,l:1,r:70,mult:3.2});sfx('warp')}},
+   else{const pt=(window.SKILLAIM46&&SKILLAIM46.point(1)),x=pt?pt[0]:P.x+dv[0]*120,y=pt?pt[1]:P.y+dv[1]*120;ef25({k:'beam',x,y,l:1,r:70,mult:3.2});sfx('warp')}},
   ()=>{B25.blessT=8;B25.atk=.35;flash('#fff6c0',.3);ring25(P.x,P.y,'255,250,200',100,.7);sfx('chest')}],
  necro:[()=>{summon('skel',2);P.cast=.5;P.stun=.3;ef25({k:'grave',x:P.x,y:P.y,l:.8})},
   st=>{P.cast=.45;P.stun=.2;const dv=aimDir(320);
    if(st===0){shoot('soul25',{dv,sp:420,range:340,mult:1.6,r:10,leech:.25});sfx('warp')}
-   else if(st===1){const x=P.x+dv[0]*110,y=P.y+dv[1]*110;ef25({k:'curse',x,y,r:85,l:4,tick:0});sfx('warp')}
+   else if(st===1){const pt=(window.SKILLAIM46&&SKILLAIM46.point(1)),x=pt?pt[0]:P.x+dv[0]*110,y=pt?pt[1]:P.y+dv[1]*110;ef25({k:'curse',x,y,r:85,l:4,tick:0});sfx('warp')}
    else{shoot('bone25',{dv,sp:700,range:420,mult:3.0,pierce:99,r:10});sfx('crumble');shake(2,.1)}},
   ()=>{ef25({k:'deathnova',x:P.x,y:P.y,l:.8});eachIn(P.x,P.y-8,140,e=>hurtE(e,2.2,{kb:240,col:'#7affb0'}));summon('skel',5);shake(5,.3);flash('#3aff9a',.25);sfx('thud')}],
  monk:[()=>{const v=DIRV[P.dir];let n=0;const go=()=>{if(n++>=8||P.dead)return;eachIn(P.x+v[0]*30,P.y-10+v[1]*24,40,e=>{if(!(typeof wallBetween7==='function'&&wallBetween7(P.x,P.y-6,e.x,e.y-6)))hurtE(e,.55,{kb:30})});ef25({k:'fist',x:P.x+v[0]*(24+Math.random()*16)+(Math.random()-.5)*14,y:P.y-14+v[1]*18+(Math.random()-.5)*14,l:.18});sfx('swing');setTimeout(go,70)};go();P.draw=true},
@@ -114,7 +114,7 @@ const SKN25={
    if(st===0){const e=near25(200);if(e){P.x=e.x;P.y=e.y+6}P.jump={t:0,l:.55,land:false,mult25:1};sfx('dash')}
    else if(st===1){ef25({k:'sweep',x:P.x,y:P.y,l:.4});eachIn(P.x,P.y-8,88,e=>hurtE(e,1.5,{kb:180}));sfx('swing2')}
    else{ef25({k:'breath',x:P.x,y:P.y-14,dx:dv[0],dy:dv[1],l:1});cone25(dv,170,.5,e=>hurtE(e,2.6,{kb:120,burn:4,col:'#ff9a4a'}));sfx('warp');shake(3,.3)}},
-  ()=>{const dv=aimDir(220),x=P.x+dv[0]*120,y=P.y+dv[1]*120;ef25({k:'dragondive',x,y,l:1.1,r:120,mult:4.2});sfx('warp')}],
+  ()=>{const dv=aimDir(220),pt=(window.SKILLAIM46&&SKILLAIM46.point(2)),x=pt?pt[0]:P.x+dv[0]*120,y=pt?pt[1]:P.y+dv[1]*120;ef25({k:'dragondive',x,y,l:1.1,r:120,mult:4.2});sfx('warp')}],
  summoner:[()=>{summon('wolf',2);P.cast=.5;P.stun=.3;ring25(P.x,P.y,'180,255,120',60)},
   st=>{P.cast=.4;P.stun=.2;
    if(st===0){summon('hawk',1);sfx('swing')}

@@ -25,9 +25,15 @@ function fire62(a){const t=a.target&&!a.target.dead?a.target:null;if(t)P.dir=Mat
    รูปแบบ: {range,width,spread,area} · spread = มุมครึ่งพัด (เส้นขอบสองเส้น) · area = ลากไกล/ใกล้เลือกจุดตกวงกลมรัศมี width · เป็นฟังก์ชันได้ (ขึ้นกับจังหวะ CS.step)
    สกิลต้องอ่านทิศจาก aimDir()/SKILLAIM46.point(i) (ตอนปล่อยนิ้ว SKILLAIM46.cast ถูกตั้ง) · เปิดทีละคลาส ตรวจครบทุกสกิลก่อนเพิ่ม */
 const AIMCFG={
- archer:{0:{range:330,width:7,spread:.34,area:false},1:()=>{const st=CS.step||0;return{range:st===0?380:st===1?340:300,width:st===0?10:st===2?14:7,spread:0,area:false}},2:{range:240,width:85,spread:0,area:true}},
- sword:{1:()=>{const st=CS.step||0;return st===0?{range:110,width:30,spread:0,area:false}:st===2?{range:320,width:52,spread:0,area:false}:null}},
- mage:{0:null,1:()=>{const st=CS.step||0;return st===0?{range:300,width:7,spread:.32,area:false}:st===2?{range:260,width:90,spread:0,area:true}:null}}
+ archer:{4:{range:360,width:10,spread:0,area:false},5:{range:320,width:30,spread:0,area:false},0:{range:330,width:7,spread:.34,area:false},1:()=>{const st=CS.step||0;return{range:st===0?380:st===1?340:300,width:st===0?10:st===2?14:7,spread:0,area:false}},2:{range:240,width:85,spread:0,area:true}},
+ sword:{3:{range:220,width:30,spread:0,area:false},5:{range:280,width:7,spread:.5,area:false},1:()=>{const st=CS.step||0;return st===0?{range:110,width:30,spread:0,area:false}:st===2?{range:320,width:52,spread:0,area:false}:null}},
+ mage:{3:{range:180,width:20,spread:0,area:false},4:{range:200,width:160,spread:0,area:true},0:null,1:()=>{const st=CS.step||0;return st===0?{range:300,width:7,spread:.32,area:false}:st===2?{range:260,width:90,spread:0,area:true}:null}},
+ paladin:{1:()=>{const st=CS.step||0;return st===0?{range:150,width:30,spread:0,area:false}:st===2?{range:200,width:80,spread:0,area:true}:null},3:{range:200,width:34,spread:0,area:false},5:{range:260,width:30,spread:0,area:false}},
+ monk:{1:()=>{const st=CS.step||0;return st===0?{range:200,width:20,spread:0,area:false}:st===2?{range:340,width:30,spread:0,area:false}:null},5:{range:280,width:34,spread:0,area:false}},
+ dragoon:{0:{range:200,width:18,spread:0,area:false},1:()=>(CS.step||0)===2?{range:170,width:7,spread:.5,area:false}:null,2:{range:200,width:120,spread:0,area:true},3:{range:400,width:26,spread:0,area:false},5:{range:200,width:160,spread:0,area:true}},
+ cleric:{1:()=>{const st=CS.step||0;return st===0?{range:340,width:9,spread:.25,area:false}:st===2?{range:200,width:70,spread:0,area:true}:null},4:{range:200,width:150,spread:0,area:true}},
+ necro:{1:()=>{const st=CS.step||0;return st===0?{range:340,width:10,spread:0,area:false}:st===1?{range:200,width:85,spread:0,area:true}:{range:420,width:10,spread:0,area:false}}},
+ summoner:{3:{range:240,width:140,spread:0,area:true}}
 };
 const SKILLAIM46={active:null,cast:null,ui:null,
  config(i){if(P.cls!=='sniper'){const T=AIMCFG[P.cls],c=T&&T[i];return typeof c==='function'?c():c||null}if(![0,1,2,3,4,5].includes(i))return null;if(i===4)return{lock:true,spread:0,range:900,width:0,area:false}; /* v5.63 ซุ่มยิง: กดค้าง=ซูม · ลาก=ล็อคมอน · ปล่อย=ยิงตูมตัวที่ล็อค */const step=CS.step||0,range=i===0?560:i===1?[540,480,420][step%3]:i===2?140:i===3?300:800;return{spread:i===1&&step===1?.06:0,range:range*(buf('snipe')&&i<2?1.5:1),width:i===5?30:i===2?95:i===3?130:7,area:i===2||i===3}},
@@ -71,10 +77,10 @@ const mins=k=>MIN.filter(o=>o.k===k);
 NEWSK.sword=[
  ()=>{const dv=dirv(260);const sx46=P.x,sy46=P.y,m=dash46(dv,220),ex46=P.x,ey46=P.y;P.x=sx46;P.y=sy46;if(m>0)lineHit(dv,m+20,30,2.0,{kb:120,col:'#cfe4ff'});P.x=ex46;P.y=ey46;P.iframe=Math.max(P.iframe||0,.35);ef({k:'streak',x:P.x-dv[0]*m,y:P.y-dv[1]*m,x2:P.x,y2:P.y,l:.35,c:'180,220,255'});P.at=0;P.cmb=1;sfx('dash');sfx('swing2')},
  ()=>{hitAt(P.x,P.y,140,1.2,{kb:200,col:'#ffd8a0'});ring25(P.x,P.y,'255,210,140',140,.5);shake(4,.2);setBuf('guard',6,{dr:.4,refl:1});sfx('thud')},
- ()=>{P.cast=.65;ef({k:'charge',l:.6,c:'200,230,255'});sfx('warp');later(600,()=>{const dv=dirv(280);cone25(dv,260,.6,e=>hurtE(e,4.5,{kb:240,stun:1.5,col:'#e8f4ff'}));ef({k:'fan',x:P.x,y:P.y-12,dx:dv[0],dy:dv[1],r:260,l:.45,c:'200,230,255'});shake(7,.3);try{flash('#cfe4ff',.2)}catch(e){}sfx('swing2');sfx('thud')})}];
+ ()=>{P.cast=.65;ef({k:'charge',l:.6,c:'200,230,255'});sfx('warp');const cdv=(window.SKILLAIM46&&SKILLAIM46.cast)?dirv(280).slice():null;later(600,()=>{const dv=cdv||dirv(280);cone25(dv,260,.6,e=>hurtE(e,4.5,{kb:240,stun:1.5,col:'#e8f4ff'}));ef({k:'fan',x:P.x,y:P.y-12,dx:dv[0],dy:dv[1],r:260,l:.45,c:'200,230,255'});shake(7,.3);try{flash('#cfe4ff',.2)}catch(e){}sfx('swing2');sfx('thud')})}];
 NEWSK.mage=[
  ()=>{const ox=P.x,oy=P.y,dv=dirv(220);dash46(dv,180);hitAt(ox,oy,120,1.5,{kb:80,col:'#bff0ff'});eachIn(ox,oy-6,120,e=>{e.slowT=3});ring25(ox,oy,'160,220,255',120,.5);pt25(ox,oy-10,18,'190,235,255',100,2.4,'spark');B46.st.ice=performance.now();sfx('warp')},
- ()=>{const dv=dirv(220),x=P.x+dv[0]*100,y=P.y+dv[1]*90;hitAt(x,y,160,1.5,{kb:0,stun:2.5,col:'#bff0ff'});eachIn(x,y-6,160,e=>{e.frz46=performance.now()+2500;e.slowT=3});ef({k:'ice',x,y,r:160,l:.9});B46.st.ice=performance.now();sfx('crumble')},
+ ()=>{const dv=dirv(220),pt=(window.SKILLAIM46&&SKILLAIM46.point(4)),x=pt?pt[0]:P.x+dv[0]*100,y=pt?pt[1]:P.y+dv[1]*90;hitAt(x,y,160,1.5,{kb:0,stun:2.5,col:'#bff0ff'});eachIn(x,y-6,160,e=>{e.frz46=performance.now()+2500;e.slowT=3});ef({k:'ice',x,y,r:160,l:.9});B46.st.ice=performance.now();sfx('crumble')},
  ()=>{setBuf('beam',2.5,{tick:0});P.cast=2.5;sfx('warp')}];
 NEWSK.archer=[
  ()=>{const dv=DIRV[P.dir];for(const o of [-1,0,1]){const a=Math.atan2(dv[1],dv[0])+o*.7,x=P.x+Math.cos(a)*34,y=P.y+Math.sin(a)*26;ef({k:'trap',x,y,l:15,armed:.4})}sfx('ui')},
@@ -95,7 +101,7 @@ NEWSK.paladin=[
  ()=>{const dv=dirv(260),go=(i)=>{if(i<2){lineHit(dv,220,30,2.0,{kb:120,col:'#fff6c0'});ef({k:'rail',x:P.x,y:P.y-8,dx:dv[0],dy:dv[1],len:220,l:.3,c:'255,240,170'});sfx('swing2')}else{const x=P.x+dv[0]*150,y=P.y+dv[1]*120;hitAt(x,y,180,3.5,{kb:240,stun:.8,col:'#fff6c0'});ef({k:'pillar46',x,y,r:180,l:.6});try{heal25(.15)}catch(e){}shake(6,.3);sfx('thud')}};go(0);later(350,()=>go(1));later(700,()=>go(2))}];
 NEWSK.cleric=[
  ()=>{hitAt(P.x,P.y,150,1.2,{kb:200,col:'#e8ffff'});P.stun=0;P.slowT=0;P.burnT=0;try{heal25(.15)}catch(e){}ring25(P.x,P.y,'220,255,255',150,.5);B46.st.healed=performance.now();sfx('warp')},
- ()=>{const dv=dirv(220),x=P.x+dv[0]*140,y=P.y+dv[1]*110;zone46({x,y,r:150,l:6,every:1,mult:1.0,col:'255,235,160',heal:.03,bell:1});B46.st.healed=performance.now();sfx('ui')},
+ ()=>{const dv=dirv(220),pt=(window.SKILLAIM46&&SKILLAIM46.point(4)),x=pt?pt[0]:P.x+dv[0]*140,y=pt?pt[1]:P.y+dv[1]*110;zone46({x,y,r:150,l:6,every:1,mult:1.0,col:'255,235,160',heal:.03,bell:1});B46.st.healed=performance.now();sfx('ui')},
  ()=>{setBuf('wings',6,{tick:0});sfx('warp')}];
 NEWSK.necro=[
  ()=>{const S=mins('skel');if(S.length){for(const o of S){hitAt(o.x,o.y,110,2.0,{kb:180,col:'#9affc0'});ring25(o.x,o.y,'120,255,170',110,.4);MIN.splice(MIN.indexOf(o),1)}}else{hitAt(P.x,P.y,110,1.2,{kb:160,col:'#9affc0'});ring25(P.x,P.y,'120,255,170',110,.4)}shake(4,.2);sfx('crumble')},
@@ -104,9 +110,9 @@ NEWSK.necro=[
 NEWSK.dragoon=[
  ()=>{const dv=dirv(400);lineHit(dv,400,26,1.8,{kb:120,col:'#ffb0a0'});ef({k:'spear',x:P.x,y:P.y-12,dx:dv[0],dy:dv[1],len:400,l:1.0});later(550,()=>lineHit(dv,400,26,1.0,{kb:60,col:'#ffb0a0'}));sfx('swing2')},
  ()=>{setBuf('scale',8,{tick:0});ring25(P.x,P.y,'255,120,60',90,.5);sfx('warp')},
- ()=>{const dv=dirv(220),x=P.x+dv[0]*160,y=P.y+dv[1]*130;P.iframe=Math.max(P.iframe||0,1.3);B46.st.jump=performance.now()+1500;ef25({k:'dragondive',x,y,l:1.2,r:220,mult:5.0});later(660,()=>{if(!hit(x,y)){P.x=x;P.y=y}zone46({x,y,r:160,l:3,every:.5,mult:.3,col:'255,120,40',burn:3})});sfx('dash')}];
+ ()=>{const dv=dirv(220),pt=(window.SKILLAIM46&&SKILLAIM46.point(5)),x=pt?pt[0]:P.x+dv[0]*160,y=pt?pt[1]:P.y+dv[1]*130;P.iframe=Math.max(P.iframe||0,1.3);B46.st.jump=performance.now()+1500;ef25({k:'dragondive',x,y,l:1.2,r:220,mult:5.0});later(660,()=>{if(!hit(x,y)){P.x=x;P.y=y}zone46({x,y,r:160,l:3,every:.5,mult:.3,col:'255,120,40',burn:3})});sfx('dash')}];
 NEWSK.summoner=[
- ()=>{const dv=dirv(260),x=P.x+dv[0]*150,y=P.y+dv[1]*120;hitAt(x,y,140,1.0,{kb:100,col:'#d8ffb0'});eachIn(x,y-6,140,e=>{e.slowT=2});let tg=null,bd=1e9;for(const e of enemies()){const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&d<220){bd=d;tg=e}}if(tg)for(const o of MIN)o.tg=tg;setBuf('horn',5);ring25(x,y,'200,255,140',140,.5);sfx('warp')},
+ ()=>{const dv=dirv(260),pt=(window.SKILLAIM46&&SKILLAIM46.point(3)),x=pt?pt[0]:P.x+dv[0]*150,y=pt?pt[1]:P.y+dv[1]*120;hitAt(x,y,140,1.0,{kb:100,col:'#d8ffb0'});eachIn(x,y-6,140,e=>{e.slowT=2});let tg=null,bd=1e9;for(const e of enemies()){const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&d<220){bd=d;tg=e}}if(tg)for(const o of MIN)o.tg=tg;setBuf('horn',5);ring25(x,y,'200,255,140',140,.5);sfx('warp')},
  ()=>{summon('turtle46',1);P.cast=.4;sfx('thud')},
  ()=>{summon('naga46',1);P.cast=.5;sfx('warp')}];
 // เลือดสมุนใหม่ (ระบบเลือดสมุนของ fix44 ตั้งค่าตอนเห็นครั้งแรก → ตั้งให้ก่อน)

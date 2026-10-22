@@ -279,8 +279,8 @@ NEWSK.monk=[
   const k=hitAll41(e.x,e.y,110,1.8,{kb:170,col:'#ffe0a0'});ef41({k:'kick',x:e.x,y:e.y,l:.5,r:110});shake(3,.15);sfx('swing2');sfx('thud');
   if(k>0){B41.reset=3;setTimeout(()=>{try{say('☁️ ก้าวเมฆา: รีเซ็ตคูลดาวน์!')}catch(_){}},10)}},
  ()=>{B41.vajra={t:0,l:6,cd:0};B41.lastHp=P.hp;ring25(P.x,P.y,'255,200,100',90,.5);pt25(P.x,P.y-16,18,'255,210,120',90,2.4,'spark');sfx('warp')},
- ()=>{B41.charge={t:0,l:.5};P.cast=.55;sfx('warp');ring25(P.x,P.y,'255,170,80',50,.5)}];
-function fist41(){const dv=aimDir(280),L=280,sx=P.x,sy=P.y-12;P.at=0;P.cmb=2;P.draw=true;
+ ()=>{B41.charge={t:0,l:.5,dv:(window.SKILLAIM46&&SKILLAIM46.cast)?SKILLAIM46.cast.dv.slice():null};P.cast=.55;sfx('warp');ring25(P.x,P.y,'255,170,80',50,.5)}];
+function fist41(dv0){const dv=dv0||aimDir(280),L=280,sx=P.x,sy=P.y-12;P.at=0;P.cmb=2;P.draw=true;
  line25(dv,L,34,e=>hurtE(e,5.0,{kb:260,col:'#ffb46a'}));
  let ex=sx,ey=sy;for(let d=0;d<=L;d+=12){const nx=sx+dv[0]*d,ny=sy+dv[1]*d;if(typeof hit==='function'&&hit(nx,ny+12))break;ex=nx;ey=ny}
  ef41({k:'dfist',x:sx,y:sy,dx:dv[0],dy:dv[1],ex,ey,l:.65,boom:0});shake(6,.3);try{flash('#ffb46a',.18)}catch(_){}sfx('swing2');sfx('warp')}
@@ -291,7 +291,7 @@ function fist41(){const dv=aimDir(280),L=280,sx=P.x,sy=P.y-12;P.at=0;P.cmb=2;P.d
  const V=B41.vajra;if(V){V.t+=dt;V.cd-=dt;if(B41.lastHp!=null&&P.hp<B41.lastHp&&!P.dead){const loss=B41.lastHp-P.hp;P.hp=Math.min(BAL.hp,P.hp+loss*.35);
    if(V.cd<=0){V.cd=.4;hitAll41(P.x,P.y,110,.8,{kb:140,col:'#ffd27a'});ring25(P.x,P.y,'255,210,120',110,.35);sfx('swing')}}
   if(V.t>=V.l||P.dead)B41.vajra=null}
- const C=B41.charge;if(C){C.t+=dt;if(P.dead||P.stun>0){B41.charge=null}else if(C.t>=C.l){B41.charge=null;fist41()}}
+ const C=B41.charge;if(C){C.t+=dt;if(P.dead||P.stun>0){B41.charge=null}else if(C.t>=C.l){B41.charge=null;fist41(C.dv)}}
  for(let i=E41.length-1;i>=0;i--){const e=E41[i];e.t+=dt;
   if(e.k==='dfist'&&!e.boom&&e.t>=.3){e.boom=1;hitAll41(e.ex,e.ey+12,120,2.0,{kb:220,stun:.5,col:'#ffcf7a'});ring25(e.ex,e.ey+12,'255,180,90',120,.5);pt25(e.ex,e.ey,26,'255,190,100',170,3,'spark');shake(7,.3);sfx('thud');sfx('crumble')}
   if(e.t>=e.l)E41.splice(i,1)}
