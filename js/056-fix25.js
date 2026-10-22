@@ -83,7 +83,7 @@ const SKN25={
  sniper:[()=>{const dv=aimDir(520);shoot('bullet25',{dv,sp:900,range:560,mult:3.0,pierce:99,r:7});P.at=0;P.cmb=0;shake(2,.1);sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})},
   st=>{const dv=aimDir(520);P.at=0;P.cmb=0;
    if(st===0){shoot('bullet25',{dv,sp:950,range:540,mult:2.4,r:7,crit25:1});sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})}
-   else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{for(const o of [-.06,.06]){const a=Math.atan2(dv[1],dv[0])+o;shoot('bullet25',{dv:[Math.cos(a),Math.sin(a)],sp:900,range:480,mult:1.4,r:7})}sfx('thud')},180)}
+   else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{const dv2=(()=>{try{return aimDir(480)}catch(e){return dv}})();/* v5.68 ยิงตามทิศตอนยิงจริง (หลังตีลังกาตัวละครหันตามเป้าแล้ว) ไม่ใช้ทิศเก่าก่อนตีลังกา */for(const o of [-.06,.06]){const a=Math.atan2(dv2[1],dv2[0])+o;shoot('bullet25',{dv:[Math.cos(a),Math.sin(a)],sp:900,range:480,mult:1.4,r:7})}sfx('thud')},180)}
    else{shoot('bomb',{dv,sp:620,range:420,mult:2.8,aoe:90,stun:.8,r:9});sfx('thud');shake(2,.1)}},
   ()=>{const dv=aimDir(320),point=window.SKILLAIM46&&SKILLAIM46.point(2);ef25({k:'barrage',x:point?point[0]:P.x+dv[0]*140,y:point?point[1]:P.y+dv[1]*140,r:95,l:3,tick:0});sfx('swing2')}],
  paladin:[()=>{ef25({k:'hammer',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,95,e=>hurtE(e,1.7,{kb:180,stun:1,col:'#ffe9a0'}));heal25(.1);shake(4,.25);sfx('thud');sfx('crumble')},

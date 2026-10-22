@@ -190,7 +190,7 @@ function cleric148(k,t){const p=pal148(t),tt=T148(t),now=tNow148();k.lineCap='ro
  else{for(const s of [-1,1])for(let i=0;i<3;i++){k.fillStyle=i%2?'#ffb0e8':'#ffe6f6';k.beginPath();k.ellipse(s*(5+i*3),hy-2-i*2,2.8,1.3,s*(.4+i*.3),0,7);k.fill()}k.strokeStyle='#ff7ad8';k.lineWidth=1.4;k.beginPath();k.ellipse(0,hy-10,6,1.8,0,0,7);k.stroke();gem148(k,0,hy,3.4,'#ff7ad8');gl148(k,0,hy,18,p.g,.55)}}
 
 // ---------- เนโคร: เคียว 11 แบบ ----------
-function necro148(k,t){const p=pal148(t),tt=T148(t),now=tNow148();k.lineCap='round';k.lineJoin='round';
+function necro148(k,t){const p=pal148(t),tt=T148(t),now=tNow148();k.lineCap='round';k.lineJoin='round';if(k===ctx&&P.dir==='r')k.scale(-1,1);/* v5.68 เจ้าของแจ้ง: หันขวาใบเคียวงอเข้าหาหัวตัวละคร → พลิกใบเฉพาะตอนหันขวาบนจอเกม (หันซ้าย/หน้า/หลัง และไอคอนถูกอยู่แล้ว) · ด้ามอยู่แกน x=0 จึงพลิกเฉพาะใบ ทุกระดับ */
  const sh=[['#1a1414','#3a3440'],['#3a2412','#5a3a1e'],['#2a0806','#7a1a10'],['#24405a','#8ac8ee'],['#14102a','#4a3a7a'],['#3a2408','#c8a040'],['#14281a','#2a8a6a'],['#100a08','#4a3a34'],['#0a0612','#3a2e4e'],['#c8b88a','#fff6d8'],['#2a0a20','#c83a9a']][tt];
  if(tt===5||tt===9){k.strokeStyle=sh[0];k.lineWidth=3;k.beginPath();k.moveTo(0,12);k.lineTo(0,-36);k.stroke();k.fillStyle=sh[1];for(let y=8;y>-34;y-=6){k.beginPath();k.arc(0,y,1.9,0,7);k.fill()}}
  else{k.strokeStyle=sh[0];k.lineWidth=3;k.beginPath();k.moveTo(0,12);k.lineTo(0,-36);k.stroke();k.strokeStyle=sh[1];k.lineWidth=1;k.stroke()}

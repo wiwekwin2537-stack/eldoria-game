@@ -10,8 +10,8 @@ const buf=k=>B46.buf[k]&&B46.buf[k].t>0?B46.buf[k]:null;
 const setBuf=(k,t,o)=>{B46.buf[k]=Object.assign({t},o||{});return B46.buf[k]};
 const sc46=()=>{try{return netScene()}catch(e){return ''}};
 const later=(ms,fn)=>{const s=sc46();setTimeout(()=>{try{if(P.dead||sc46()!==s)return;fn()}catch(e){console.warn('[fix46]',e)}},ms)};
-/* v5.63 ซุ่มยิงล็อคเป้า (เจ้าของสั่ง 2026-10-21: "ซูมแล้วล็อคเป้า ปล่อยแล้วตูมตัวนั้น") · เลือกมอนที่ตรงทิศลากที่สุดในระยะ 900 · ยิง ×3.0 (ซ้อนบัฟซุ่มยิง ×1.4) · ติดกำแพง = ไม่โดน · มอนเท่านั้น ไม่โดนผู้เล่น */
-const LOCKX62=3.0;window.LOCKX62=LOCKX62;window.lock62=(a)=>lock62(a);
+/* v5.63 ซุ่มยิงล็อคเป้า (เจ้าของสั่ง 2026-10-21: "ซูมแล้วล็อคเป้า ปล่อยแล้วตูมตัวนั้น") · เลือกมอนที่ตรงทิศลากที่สุดในระยะ 900 · ยิง ×8 (v5.68 เจ้าของ: เดิม ×3 เบาสุดในอาชีพ · วัดเฉลี่ย 10 นัด ≈ 1.5 เท่าของห่ากระสุน · ซ้อนบัฟซุ่มยิง ×1.4) · ติดกำแพง = ไม่โดน · มอนเท่านั้น ไม่โดนผู้เล่น */
+const LOCKX62=8;window.LOCKX62=LOCKX62;window.lock62=(a)=>lock62(a);
 function lock62(a){let best=null,bs=-1;try{for(const e of enemies()){if(!e||e.dead)continue;const dx=e.x-P.x,dy=(e.y-14)-(P.y-14),d=Math.hypot(dx,dy);if(d<1||d>a.range)continue;const c=(dx*a.dv[0]+dy*a.dv[1])/d;if(c<.93)continue;const sc=c-d/a.range*.05;if(sc>bs){bs=sc;best=e}}}catch(e){}return best}
 function draw62(a){const t=a.target&&!a.target.dead?a.target:null;ctx.save();try{if(!t){ctx.strokeStyle='rgba(255,85,85,.55)';ctx.lineWidth=1.5;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(P.x,P.y-14);ctx.lineTo(P.x+a.dv[0]*a.range,P.y-14+a.dv[1]*a.range);ctx.stroke();return}
  const x=t.x,y=t.y-16,r=22+3*Math.sin(performance.now()/120);ctx.strokeStyle='#ff3b3b';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.stroke();ctx.beginPath();for(const [u,v] of [[1,0],[-1,0],[0,1],[0,-1]]){ctx.moveTo(x+u*(r-8),y+v*(r-8));ctx.lineTo(x+u*(r+8),y+v*(r+8))}ctx.stroke();ctx.fillStyle='#ff3b3b';ctx.fillRect(x-2,y-2,4,4);

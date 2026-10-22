@@ -7,7 +7,7 @@ function noteBossFight(m){
  if(b)BOSS_HEAL_FIGHT.set(b,{scene:D,until:srvNow()+BAL.regenDelay*1000});
 }
 /* v5.52: ฮีลทุกแหล่งระหว่างสู้ PvP (สนามประลอง · ดวล · โดนผู้เล่นตีภายใน 10 วิ) ได้ผล 40% — สายฮีลยังรอดนานกว่าแต่ไม่อมตะ · นอก PvP ฮีลเต็มเหมือนเดิม */
-const PVPHEAL52={k:.4,last:null,hitT:-1e9,fight(){if(typeof pvpOn8!=='function'||!pvpOn8())return false;try{if(inArena8()||(D&&D.duel29))return true}catch(e){}return performance.now()-this.hitT<10000},
+/* v5.68 เจ้าของเลือก 25% (จำลองดวล: เดิม 40% พระรอด 16 วิ พาลาดิน 14 วิ อาชีพทั่วไป 5–7.5 วิ → 25% พระ 9 พาลาดิน 12 นักดาบ 11) */const PVPHEAL52={k:.25,last:null,hitT:-1e9,fight(){if(typeof pvpOn8!=='function'||!pvpOn8())return false;try{if(inArena8()||(D&&D.duel29))return true}catch(e){}return performance.now()-this.hitT<10000},
  tick(){if(P.dead||this.last==null||!this.fight()){this.last=P.dead?null:P.hp;return}if(P.hp>this.last)P.hp=this.last+(P.hp-this.last)*this.k;this.last=P.hp}};window.PVPHEAL52=PVPHEAL52;
 function passiveRegenBlocked(){
  if(typeof pvpOn8==='function'&&pvpOn8())return true;
