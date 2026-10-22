@@ -22,12 +22,33 @@ const NAT16={
   spr:()=>[glowTree16(dark16(makeTree(41,252),'rgba(12,8,30,.45)'),'rgba(220,180,255,.9)',14,41),glowTree16(dark16(makeTree(42,238),'rgba(12,8,30,.45)'),'rgba(160,230,255,.9)',10,42),dark16(makeTree(43,262),'rgba(12,8,30,.5)')],dec:'shadow'}};
 const NATSPR16={};const natSpr16=id=>NATSPR16[id]||(NATSPR16[id]=NAT16[id].spr());
 const CUTSPR16={};const cutSpr16=kd=>CUTSPR16[kd]||(CUTSPR16[kd]=kd==='treeE'?glowTree16(makeTree(51,112),'rgba(210,255,200,.95)',12,51):kd==='treeF'?glowTree16(makeTree(52,24),'rgba(255,200,80,.95)',14,52):glowTree16(makeTree(53,288),'rgba(230,200,255,.95)',16,53));
+// ---------- v5.68 หุบเขา: ขอบแมพเป็นหน้าผา (K=4) · ป่ากลางแมพเหลือเฉพาะกอใหญ่ · ลบกอเล็กที่ทำให้เดินติด (เจ้าของแจ้ง 2026-10-22: ผู้เล่นเดินติดบ่อย อยากให้ขอบเป็นหุบเขา กว้างไว้ฟาร์มไม้) ----------
+//  ไม่ใช้ R() (ตัวสุ่มของแมพ) → ลำดับสุ่มของแม่น้ำ/ทาง/ต้นไม้ให้ตัดยังเหมือนเดิม · ใช้ทั้ง natGen16 และ natGen42 (fix42)
+function valley68(K,W,H,S,sd){
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const e=Math.min(x,y,W-1-x,H-1-y),n=vn(x/5+sd+33,y/5+71);
+  if(e<2+n*1.6){K[y][x]=4;continue}
+  const k=K[y][x];if(k===1||k===3){const f=vn(x/7+sd+50,y/7+20)*.6+vn(x/2.6+sd,y/2.6+90)*.4;if(f<S.forest+.06)K[y][x]=0}}
+ tidy68(K,W,H)}
+/* กอต้นไม้/หินเล็ก (<12 ช่อง) กลางแมพ = จุดเดินติด → ลบ · กอที่ติดหน้าผา → กลืนเป็นหน้าผา · เรียกซ้ำหลังวางแม่น้ำ/ทาง เพราะแม่น้ำตัดกอใหญ่ให้เหลือชิ้นเล็กได้ */
+function tidy68(K,W,H){const seen=new Uint8Array(W*H);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,k=K[y][x];if(seen[i]||!(k===1||k===3))continue;
+  const q=[i],c=[];seen[i]=1;let touch=false;
+  while(q.length){const j=q.pop();c.push(j);const jx=j%W,jy=(j/W)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const kx=jx+dx,ky=jy+dy;if(kx<0||ky<0||kx>=W||ky>=H)continue;const v=K[ky][kx],kk=ky*W+kx;if(v===4)touch=true;if(!seen[kk]&&(v===1||v===3)){seen[kk]=1;q.push(kk)}}}
+  if(touch)for(const j of c)K[(j/W)|0][j%W]=4; /* ป่าที่ติดขอบ → กลืนเป็นหน้าผา */
+  else if(c.length<12)for(const j of c)K[(j/W)|0][j%W]=0}}
+/* เกาะต้นไม้เล็กกลางน้ำ (พื้นที่เดินไม่ถึงถูกถมเป็นป่า) → เป็นน้ำ · ผู้เล่นว่ายน้ำได้ จึงเคยชนเกาะเล็ก ๆ (m เป็น WL เหมือนเดิม ไม่กระทบพื้นที่เดิน) */
+function islands68(K,W,H){const seen=new Uint8Array(W*H);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(seen[i]||K[y][x]!==1)continue;const q=[i],c=[];seen[i]=1;let wet=false,dry=false;
+  while(q.length){const j=q.pop();c.push(j);const jx=j%W,jy=(j/W)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const kx=jx+dx,ky=jy+dy;if(kx<0||ky<0||kx>=W||ky>=H){dry=true;continue}const v=K[ky][kx],kk=ky*W+kx;if(v===2)wet=true;else if(v!==1)dry=true;if(!seen[kk]&&v===1){seen[kk]=1;q.push(kk)}}}
+  if(wet&&!dry&&c.length<12)for(const j of c)K[(j/W)|0][j%W]=2}}
+window.valley68=valley68;window.tidy68=tidy68;window.islands68=islands68;
 // ---------- สร้างแมพธรรมชาติ ----------
 function natGen16(zi){const Zd=ZONES[zi],S=NAT16[Zd.id];ZW=62;ZH=44;const R=srand(7331*(zi+3)),sd=zi*13.7,cx=ZW>>1,K=[],m=[];
  for(let y=0;y<ZH;y++){K[y]=[];for(let x=0;x<ZW;x++){const e=Math.min(x,y,ZW-1-x,ZH-1-y),n=vn(x/3+sd,y/3+5);let k=0;
   if(e<2+n*3.2)k=(S.rockMix>.3&&vn(x/4+90,y/4+sd)>.6)?3:1;
   else{const f=vn(x/7+sd+50,y/7+20)*.6+vn(x/2.6+sd,y/2.6+90)*.4;if(f>S.forest)k=R()<S.rockMix?3:1;else if(f>S.forest-.07&&R()<.18)k=R()<S.rockMix?3:1;else if(R()<.012)k=R()<.5?3:1}
   K[y][x]=k}}
+ valley68(K,ZW,ZH,S,sd);
  const blob=(x0,y0,r,k)=>{x0=Math.round(x0);y0=Math.round(y0);const ri=Math.ceil(r);for(let y=Math.max(2,y0-ri-2);y<Math.min(ZH-2,y0+ri+3);y++)for(let x=Math.max(2,x0-ri-2);x<Math.min(ZW-2,x0+ri+3);x++){const d=Math.hypot((x-x0)*.85,y-y0)+(vn(x/2+sd,y/2)-.5)*2.2;if(d<r)K[y][x]=k}};
  if(S.river){const y0=Math.round(ZH*(.42+R()*.12)),ph=R()*6;for(let x=0;x<ZW;x++){const yy=Math.round(y0+Math.sin(x*.17+ph)*2.6+Math.sin(x*.06+ph*2)*3.5),w=vn(x/4,sd)>.55?1:0;for(let dy=-1-w;dy<=w;dy++){const y=yy+dy;if(y>1&&y<ZH-2)K[y][x]=2}}}
  for(let i=0;i<S.ponds;i++)blob(6+Math.floor(R()*(ZW-12)),8+Math.floor(R()*(ZH-16)),2+R()*2.4,2);
@@ -39,11 +60,13 @@ function natGen16(zi){const Zd=ZONES[zi],S=NAT16[Zd.id];ZW=62;ZH=44;const R=sran
  walk(ent.x,ent.y-3,arena.x,arena.y+6,1,1,1);
  for(let i=0;i<3;i++){const tx=i===0?6+Math.floor(R()*8):i===1?ZW-7-Math.floor(R()*8):6+Math.floor(R()*(ZW-12)),ty=8+Math.floor(R()*(ZH-18));walk(ent.x+(R()<.5?-2:2),ent.y-6-Math.floor(R()*10),tx,ty,0,1)}
  for(let i=0;i<5;i++)walk(6+Math.floor(R()*(ZW-12)),6+Math.floor(R()*(ZH-12)),ent.x+Math.floor(R()*7)-3,ent.y-4-Math.floor(R()*14),0,0);
+ tidy68(K,ZW,ZH); /* v5.68 */
  // ไม่ให้แม่น้ำ/ลาวาตัดขาดแมพ: ทุกจุดที่เป็นพื้นแต่เดินไม่ถึง → กลายเป็นป่า
  for(let y=0;y<ZH;y++){m[y]=[];for(let x=0;x<ZW;x++)m[y][x]=K[y][x]?WL:FL}
  const seen=new Uint8Array(ZW*ZH),q=[ent.y*ZW+ent.x];seen[q[0]]=1;
  while(q.length){const i=q.pop(),x=i%ZW,y=(i/ZW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=(y+dy)*ZW+x+dx;if(!seen[j]&&m[y+dy]&&m[y+dy][x+dx]===FL){seen[j]=1;q.push(j)}}}
  const floor=[];for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(m[y][x]===FL&&!seen[y*ZW+x]){m[y][x]=WL;K[y][x]=1}else if(m[y][x]===FL)floor.push([x,y])}
+ islands68(K,ZW,ZH); /* v5.68 */
  // ต้นไม้ให้ตัด
  const ores=[],oreAt={},wsum=Zd.ores.reduce((a,b)=>a+b[1],0);
  for(let n=0,g=0;n<46&&g<9000;g++){const [x,y]=floor[Math.floor(R()*floor.length)];
@@ -60,7 +83,7 @@ function natPaint16(Zm,R,S){const {m,K,Zd}=Zm,id=Zd.id,c=document.createElement(
  for(let py=0;py<c.height;py+=8)for(let px=0;px<c.width;px+=8){const n1=vn(px/150+sd,py/150+3),n2=vn(px/40+sd*2,py/40+11),n3=hash(px*.37,py*.71);
   let col=mix(G[0],G[1],n1);col=mix(col,G[2],Math.max(0,n2-.55)*1.6);col=mix(col,G[3],Math.max(0,.35-n2)*1.2);const j=(n3-.5)*7;k.fillStyle=rgb([col[0]+j,col[1]+j,col[2]+j]);k.fillRect(px,py,8,8)}
  // ร่มเงาใต้ป่า (พื้นติดป่าเข้มลง)
- for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(K[y][x]!==1&&K[y][x]!==3)continue;const g=k.createRadialGradient(x*T+16,y*T+22,4,x*T+16,y*T+22,34);g.addColorStop(0,'rgba(0,0,0,.30)');g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(x*T-18,y*T-12,68,68)}
+ for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(K[y][x]!==1&&K[y][x]!==3&&K[y][x]!==4)continue;const g=k.createRadialGradient(x*T+16,y*T+22,4,x*T+16,y*T+22,34);g.addColorStop(0,'rgba(0,0,0,.30)');g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(x*T-18,y*T-12,68,68)}
  // 2) ทางเดินดิน: เส้นโค้งต่อเนื่อง (วาดบนแคนวาสแยกแล้วผสมโปร่ง)
  {const pc=document.createElement('canvas');pc.width=c.width;pc.height=c.height;const q=pc.getContext('2d');q.lineCap='round';q.lineJoin='round';
   const P2=[...Zm.path].filter(i=>!K[(i/ZW)|0][i%ZW]||Zm.bridge.has(i)),has=i=>Zm.path.has(i);
@@ -124,8 +147,26 @@ function natPaint16(Zm,R,S){const {m,K,Zd}=Zm,id=Zd.id,c=document.createElement(
   if(id==='volcano'){k.strokeStyle='rgba(255,120,30,.75)';k.lineWidth=1.2;k.beginPath();k.moveTo(px-6*s,py-2);k.lineTo(px-2*s,py-10*s);k.lineTo(px+4*s,py-14*s);k.stroke()}
   else if(id==='shadow'&&R()<.5){k.fillStyle='rgba(180,140,255,.9)';k.beginPath();k.moveTo(px+4,py-20*s);k.lineTo(px+8,py-34*s);k.lineTo(px+11,py-19*s);k.closePath();k.fill()}
   else if(id==='mist'){k.fillStyle='rgba(90,150,80,.6)';k.beginPath();k.ellipse(px-3*s,py-20*s,8*s,3*s,-.3,0,7);k.fill()}}
+ // 6b) v5.68 หน้าผาหุบเขา (K=4): หินก้อนใหญ่ต่อกันเป็นผนัง · หน้าผาด้านล่างเห็นชั้นหิน · เงาตกลงพื้น
+ {const isC=(x,y)=>x<0||y<0||x>=ZW||y>=ZH||K[y][x]===4;
+  const PAL={volcano:['#4e3f3a','#332824','#2a1f1c','#170f0d'],shadow:['#4c4664','#3a3450','#2a2440','#15111f'],heaven:['#e2e6ee','#c4cad8','#9aa2b6','#6e7690'],throne:['#6e5e8c','#56487a','#3e3258','#221a34']}[id]||['#7f8577','#686e60','#4d5248','#2c2f28'];
+  const moss=['mist','grove','creek','pine'].indexOf(id)>=0;
+  for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(!isC(x,y))continue;const px=x*T,py=y*T,h=hash(x*2.3+sd,y*1.7);
+   const g=k.createLinearGradient(px,py,px+T,py+T);g.addColorStop(0,PAL[0]);g.addColorStop(1,PAL[1]);k.fillStyle=g;k.fillRect(px,py,T,T);
+   for(let i=0;i<4;i++){const a=hash(x*7+i,y*3+sd),b=hash(y*5+i,x*11);k.fillStyle=i%2?'rgba(255,255,255,.07)':'rgba(0,0,0,.14)';k.fillRect(px+a*26,py+b*24,3+a*5,2+b*3)}
+   if(h<.35){k.strokeStyle='rgba(0,0,0,.22)';k.lineWidth=1;k.beginPath();k.moveTo(px+4+h*20,py+3);k.lineTo(px+10+h*14,py+14);k.lineTo(px+6+h*18,py+26);k.stroke()}
+   if(moss&&h>.55){k.fillStyle='rgba(84,130,64,.55)';k.beginPath();k.ellipse(px+8+h*16,py+8+hash(x,y*9)*12,6+h*5,3+h*2,0,0,7);k.fill()}}
+  for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(!isC(x,y))continue;const px=x*T,py=y*T;
+   if(!isC(x,y+1)){/* หน้าผาที่หันลงล่าง (เห็นจากมุมกล้อง) */const fg=k.createLinearGradient(0,py+12,0,py+T);fg.addColorStop(0,PAL[2]);fg.addColorStop(1,PAL[3]);k.fillStyle=fg;k.fillRect(px,py+12,T,T-12);
+    k.strokeStyle='rgba(0,0,0,.35)';k.lineWidth=1;for(let i=0;i<3;i++){const sx=px+4+hash(x*13+i,y)*24;k.beginPath();k.moveTo(sx,py+14);k.lineTo(sx+(hash(i,x)-.5)*4,py+T-2);k.stroke()}
+    k.fillStyle='rgba(255,255,255,.16)';k.fillRect(px,py+11,T,2);
+    if(id==='volcano'&&hash(x,y*7)<.3){k.strokeStyle='rgba(255,120,30,.7)';k.beginPath();k.moveTo(px+8,py+16);k.lineTo(px+14,py+24);k.lineTo(px+12,py+30);k.stroke()}
+    const sg=k.createLinearGradient(0,py+T,0,py+T+14);sg.addColorStop(0,'rgba(0,0,0,.35)');sg.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=sg;k.fillRect(px-2,py+T,T+4,14)}
+   if(!isC(x-1,y)){k.fillStyle='rgba(0,0,0,.28)';k.fillRect(px,py,3,T)}
+   if(!isC(x+1,y)){k.fillStyle='rgba(0,0,0,.18)';k.fillRect(px+T-3,py,3,T)}
+   if(!isC(x,y-1)){k.fillStyle='rgba(255,255,255,.18)';k.fillRect(px,py,T,2)}}}
  // 7) ต้นไม้ป่า (เรียงตามแกน y)
- const spr=natSpr16(id),tr=[];for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(K[y][x]!==1)continue;const h=hash(x*1.31+Zm.zi,y*2.17),sc=.88+h*.32;tr.push({x:x*T+16+(hash(x,y*3)-.5)*10,base:y*T+28+(hash(y,x*5)-.5)*6,sc,s:spr[Math.floor(h*spr.length)%spr.length],f:hash(x*3,y)>.5})}
+ const spr=natSpr16(id),tr=[];for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(K[y][x]!==1&&!(K[y][x]===4&&y>0&&x>0&&y<ZH-1&&x<ZW-1&&K[y-1][x]===4&&K[y+1][x]===4&&K[y][x-1]===4&&K[y][x+1]===4&&hash(x*4.1+sd,y*3.3)<.3))continue; /* v5.68: ต้นไม้บนสันหุบเขา (ตกแต่ง) */const h=hash(x*1.31+Zm.zi,y*2.17),sc=.88+h*.32;tr.push({x:x*T+16+(hash(x,y*3)-.5)*10,base:y*T+28+(hash(y,x*5)-.5)*6,sc,s:spr[Math.floor(h*spr.length)%spr.length],f:hash(x*3,y)>.5})}
  tr.sort((a,b)=>a.base-b.base);for(const t of tr)natTree16(k,t);Zm.trees16=tr;
  // 8) หมอกบาง ๆ
  if(id==='mist'){k.fillStyle='rgba(210,240,230,.05)';for(let i=0;i<50;i++){k.beginPath();k.ellipse(R()*c.width,R()*c.height,70+R()*90,16+R()*20,0,0,7);k.fill()}}

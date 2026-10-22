@@ -102,3 +102,34 @@ REG136.push(['สไนซุ่มยิงล็อคเป้า: เลื�
 REG136.push(['เมือง 2 เรียงบ้าน NPC ผู้เล่นอื่นด้วยคิวระดับเท้าเดียวกัน',()=>{if(!window.C2||!C2.depth)return'ไม่มีคิวเมือง 2';const sv={occ:C2.occ,d:D,others:NET.others};try{C2.occ=[{x0:0,y0:0,w:160,h:100,base:100,cv:null}];D={npcs:[{x:40,y:90}]};NET.others=new Map([['test',{x:80,y:110}]]);const L=[];C2.depth(L,0,[0,0,200,200]);L.sort((a,b)=>a[0]-b[0]);return L.length===3&&L[0][0]===90&&L[1][0]===100&&L[2][0]===110?null:'คนและบ้านไม่ได้เรียงระดับเท้า'}finally{C2.occ=sv.occ;D=sv.d;NET.others=sv.others}}]);
 
 REG136.push(['แผงตลาด: หลังคาเว้นพื้นที่หัวเจ้าของร้านทั้ง 4',()=>{const old=ctx,c=document.createElement('canvas');c.width=TW*T;c.height=TH*T;ctx=c.getContext('2d');try{for(const s of STALL_DATA){ctx.clearRect(0,0,c.width,c.height);drawStallBack(s,0);const a=ctx.getImageData((s.x+1)*T-9,Math.round(s.y*T-3.2)-51,18,24).data;if(a.some((v,i)=>i%4===3&&v>0))return'หัวเจ้าของร้านชนหลังคา '+s.type}return null}finally{ctx=old}}]);
+
+/* REG136 (v5.68): ออร่าชุดต้องหันตามทิศผู้เล่น — ปีกติดด้านหลัง (หันขวา → ปีกอยู่ซ้ายตัว · หันซ้าย → ขวา) · หันหลัง (ขึ้น) → ปีกวาดทับด้านหน้าตัว */
+REG136.push(['ออร่าชุดหันตามทิศผู้เล่น (ปีกอยู่ด้านหลังตัว)',async()=>{
+ const sv={armor:Object.assign({},P.armor),enh:{},dir:P.dir,dead:P.dead};const sl=['helm','chest','pants','arm'];for(const s of sl)sv.enh[s+'2']=ENH[s+'2'];
+ const tr=ctx.translate;let rec=null,bad=null;
+ try{for(const s of sl){P.armor[s]=s+'2';ENH[s+'2']=14}P.dead=false;
+  ctx.translate=function(x,y){if(rec&&Math.abs(y-(P.y-31))<2.5)rec.push({x:x-P.x,front:!!window.AURA60PH});return tr.apply(this,arguments)};
+  const run=d=>{P.dir=d;rec=[];ctx.save();try{heroBody()}finally{ctx.restore()}const r=rec;rec=null;return r};
+  const R=run('r'),L=run('l'),U=run('u'),Dn=run('d');
+  if(!R.length||!L.length||!U.length||!Dn.length)bad='ไม่พบการวาดปีกออร่า';
+  else if(!R.every(w=>w.x<0))bad='หันขวาแต่ปีกยังอยู่ทั้งสองข้างตัว';
+  else if(!L.every(w=>w.x>0))bad='หันซ้ายแต่ปีกยังอยู่ทั้งสองข้างตัว';
+  else if(!U.every(w=>w.front))bad='หันหลังแต่ปีกถูกตัวบัง (ควรอยู่ด้านหน้า)';
+  else if(Dn.some(w=>w.front))bad='หันหน้าแต่ปีกวาดทับตัว'}
+ catch(e){bad='error '+e.message}
+ finally{ctx.translate=tr;Object.assign(P.armor,sv.armor);for(const k in sv.enh){if(sv.enh[k]==null)delete ENH[k];else ENH[k]=sv.enh[k]}P.dir=sv.dir;P.dead=sv.dead}
+ return bad}]);
+
+/* v5.68: แมพป่า (ตัวสร้าง nat16/42) — ขอบเป็นหน้าผาหุบเขา (K=4) ไม่ใช่ป่า · ในแมพโล่งพอฟาร์มไม้ · ไม่มีกอสิ่งกีดขวางเล็ก ๆ ที่ทำให้เดินติด */
+REG136.push(['แมพป่า: ขอบเป็นหุบเขา · ในแมพโล่ง · ไม่มีจุดติดเล็ก ๆ',async()=>{
+ const ids=['mist','volcano','shadow','heaven','throne','grove','creek','pine'];
+ for(const id of ids){const zi=ZONES.findIndex(z=>z.id===id);if(zi<0)continue;const sv=[ZW,ZH],had=ZCACHE[zi];let Zm;
+  try{delete ZCACHE[zi];Zm=genZone(zi)}finally{if(had)ZCACHE[zi]=had;else delete ZCACHE[zi];ZW=sv[0];ZH=sv[1]}
+  const K=Zm.K,W=Zm.W,H=Zm.H;let edge=0,cl=0,inner=0,obs=0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const e=Math.min(x,y,W-1-x,H-1-y);if(e===0){edge++;if(K[y][x]===4||K[y][x]===2)cl++}else if(e>=4){inner++;if(K[y][x]===1||K[y][x]===3)obs++}}
+  if(cl<edge*.9)return id+': ขอบแมพยังไม่เป็นหน้าผา ('+cl+'/'+edge+')';
+  if(obs/inner>.2)return id+': ในแมพยังรก '+Math.round(obs/inner*100)+'% (ต้องไม่เกิน 20%)';
+  const seen=new Uint8Array(W*H);for(let y=4;y<H-4;y++)for(let x=4;x<W-4;x++){const i=y*W+x;if(seen[i]||!(K[y][x]===1||K[y][x]===3))continue;
+   const q=[i],c=[];seen[i]=1;let touch=false;while(q.length){const j=q.pop();c.push(j);const jx=j%W,jy=(j/W)|0;for(const d of [1,-1,W,-W]){const k=j+d,kx=k%W,ky=(k/W)|0;if(k<0||k>=W*H)continue;const v=K[ky][kx];if(v===4)touch=true;if(!seen[k]&&(v===1||v===3)){seen[k]=1;q.push(k)}}}
+   if(!touch&&c.length<10)return id+': มีกอต้นไม้/หินเล็ก '+c.length+' ช่องกลางแมพ (เดินติด) ที่ '+x+','+y}}
+ return null}]);

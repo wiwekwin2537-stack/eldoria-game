@@ -112,6 +112,7 @@ function natGen42(zi){const Zd=ZONES[zi],S=NAT16[Zd.id];ZW=BIG42.W;ZH=BIG42.H;co
   if(e<2+n*3.2)k=(S.rockMix>.3&&vn(x/4+90,y/4+sd)>.6)?3:1;
   else{const f=vn(x/7+sd+50,y/7+20)*.6+vn(x/2.6+sd,y/2.6+90)*.4;if(f>S.forest)k=R()<S.rockMix?3:1;else if(f>S.forest-.07&&R()<.18)k=R()<S.rockMix?3:1;else if(R()<.012)k=R()<.5?3:1}
   K[y][x]=k}}
+ valley68(K,ZW,ZH,S,sd); /* v5.68 หุบเขา (fix17) */
  const blob=(x0,y0,r,k)=>{x0=Math.round(x0);y0=Math.round(y0);const ri=Math.ceil(r);for(let y=Math.max(2,y0-ri-2);y<Math.min(ZH-2,y0+ri+3);y++)for(let x=Math.max(2,x0-ri-2);x<Math.min(ZW-2,x0+ri+3);x++){const d=Math.hypot((x-x0)*.85,y-y0)+(vn(x/2+sd,y/2)-.5)*2.2;if(d<r)K[y][x]=k}};
  if(S.river){const x0=Math.round(ZW*(.4+R()*.2)),ph=R()*6;for(let y=0;y<ZH;y++){const xx=Math.round(x0+Math.sin(y*.17+ph)*2.6+Math.sin(y*.06+ph*2)*3.5),w=vn(sd,y/4)>.55?1:0;for(let dx=-1-w;dx<=w;dx++){const x=xx+dx;if(x>1&&x<ZW-2)K[y][x]=2}}}
  for(let i=0;i<S.ponds+2;i++)blob(8+Math.floor(R()*(ZW-16)),8+Math.floor(R()*(ZH-16)),2+R()*2.6,2);
@@ -126,10 +127,12 @@ function natGen42(zi){const Zd=ZONES[zi],S=NAT16[Zd.id];ZW=BIG42.W;ZH=BIG42.H;co
  walk(w1.x,w1.y,arena.x+3,arena.y+6,1,1,1);
  for(let i=0;i<6;i++){const tx=6+Math.floor(R()*(ZW-12)),ty=6+Math.floor(R()*(ZH-12));walk(i%2?w1.x:w2.x,i%2?w1.y:w2.y,tx,ty,0,1)}
  for(let i=0;i<9;i++)walk(6+Math.floor(R()*(ZW-12)),6+Math.floor(R()*(ZH-12)),(i%2?w1:w2).x+Math.floor(R()*7)-3,(i%2?w1:w2).y+Math.floor(R()*7)-3,0,0);
+ tidy68(K,ZW,ZH); /* v5.68 */
  for(let y=0;y<ZH;y++){m[y]=[];for(let x=0;x<ZW;x++)m[y][x]=K[y][x]?WL:FL}
  const seen=new Uint8Array(ZW*ZH),q=[ent.y*ZW+ent.x];seen[q[0]]=1;
  while(q.length){const i=q.pop(),x=i%ZW,y=(i/ZW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=(y+dy)*ZW+x+dx;if(!seen[j]&&m[y+dy]&&m[y+dy][x+dx]===FL){seen[j]=1;q.push(j)}}}
  const floor=[];for(let y=0;y<ZH;y++)for(let x=0;x<ZW;x++){if(m[y][x]===FL&&!seen[y*ZW+x]){m[y][x]=WL;K[y][x]=1}else if(m[y][x]===FL)floor.push([x,y])}
+ islands68(K,ZW,ZH); /* v5.68 */
  const ores=[],oreAt={},wsum=Zd.ores.reduce((a,b)=>a+b[1],0);
  for(let n=0,g=0;n<120&&g<20000;g++){const [x,y]=floor[Math.floor(R()*floor.length)];
   if(path.has(y*ZW+x)||bridge.has(y*ZW+x)||Math.hypot(x-ent.x,y-ent.y)<6||Math.hypot(x-gate.x,y-gate.y)<6||Math.hypot(x-arena.x,y-arena.y)<9||oreAt[y*ZW+x])continue;

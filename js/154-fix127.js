@@ -9,8 +9,9 @@ try{
 //                          0 นักล่าเงา · 16 จักรพรรดิเงา · 8 วิญญาณอนธการ = เงา | 1 พฤกษาโบราณ · 6 พิทักษ์พงไพร · 11 หนามพงไพร = ใบไม้
 const WSTYLE127={2:'dragon',15:'dragon',19:'dragon',3:'ice',13:'ice',17:'ice',0:'shadow',16:'shadow',8:'shadow',1:'leaf',6:'leaf',11:'leaf'};
 window.WSTYLE127=WSTYLE127;
-function wing127(x,y,t,rgb,I){const st=WSTYLE127[I&&I.tier];if(!st)return false;const flap=Math.sin(t*2.6)*.12;
- for(const s of [-1,1]){ctx.save();ctx.translate(x+s*5,y-31);ctx.scale(s,1);ctx.rotate(-.18+flap);
+function wing127(x,y,t,rgb,I,po){const st=WSTYLE127[I&&I.tier];if(!st)return false;const flap=Math.sin(t*2.6)*.12;
+ /* v5.68: po = ท่าตามทิศจาก pose60 (fix60) — ปีกติดด้านหลังตัว */const L=po&&po.list||[[-1,1,1],[1,1,1]],ox=po&&po.ox||0;
+ for(const [s,k,wa] of L){ctx.save();ctx.globalAlpha=wa==null?1:wa;ctx.translate(x+ox+s*5,y-31);ctx.scale(s*(k||1),1);ctx.rotate(-.18+flap);
   if(st==='dragon'){// ปีกมังกร: กระดูกนิ้ว 4 ซี่ + พังผืดขอบหยัก
    const tips=[[40,-30],[46,-14],[42,0],[32,10]];ctx.globalCompositeOperation='source-over';
    const mg=ctx.createLinearGradient(0,0,46,0);mg.addColorStop(0,'rgba('+rgb+',.55)');mg.addColorStop(1,'rgba('+rgb+',.22)');ctx.fillStyle=mg;
