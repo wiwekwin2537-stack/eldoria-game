@@ -63,13 +63,13 @@ function row115(kind,a){const k=a.k,own=kind==='p'?ownP(k):ownM(k),n=kind==='p'?
 function render115(){let h='<div class="w"><div class="hd"><b>⭐ อัปดาวสัตว์เลี้ยง / สัตว์ขี่</b><button onclick="p6close(gid(\'st115\'))">✕</button></div><div class="bd"><small style="color:#aaa">ดาว 4 ขั้น: ทองแดง → เงิน → เขียว → แดง (ขั้นละ 5 ดาว รวม 20 ระดับ) · ใช้ชิ้นส่วนตามขั้น · อัปได้ทุกตัวที่มี · โบนัสใช้กับตัวที่พาเดิน/เลือกขี่</small>'
  +'<div class="gr115">'+GR.map((G,i)=>'<span style="color:'+G.c+'">★ '+G.n+' = มอน Lv.'+LVR[i]+'</span>').join('')+'</div>'
  +'<div class="hv115">'+PK.concat(MK).map(k=>'<span><img src="'+iconURL('mat:'+k)+'">'+(inv[k]|0)+'</span>').join('')+'</div>';
- h+='<h4>🐾 สัตว์เลี้ยง</h4>'+allP().map(a=>row115('p',a)).join('');h+='<h4>🐎 สัตว์ขี่</h4>'+allM().map(a=>row115('m',a)).join('');W115.innerHTML=h+'</div></div>'}
+ const srt=(L,f)=>L.filter(a=>f(a.k)).concat(L.filter(a=>!f(a.k)));/* v5.72 ตัวที่มีแล้วขึ้นก่อน */h+='<h4>🐾 สัตว์เลี้ยง</h4>'+srt(allP(),ownP).map(a=>row115('p',a)).join('');h+='<h4>🐎 สัตว์ขี่</h4>'+srt(allM(),ownM).map(a=>row115('m',a)).join('');const bd0=W115.querySelector('.bd'),sy=bd0?bd0.scrollTop:0;W115.innerHTML=h+'</div></div>';const bd=W115.querySelector('.bd');if(bd)bd.scrollTop=sy/* v5.72 กดอัปแล้วจอไม่เด้งขึ้นบนสุด (เจ้าของแจ้ง 2026-10-22) */}
 window.up115=(kind,k)=>{const own=kind==='p'?ownP(k):ownM(k);if(!own)return;const n=kind==='p'?stP(k):stM(k);if(n>=MAXN)return;const gi=Math.min(3,Math.floor(n/5)),mat=(kind==='p'?PK:MK)[gi],need=CNT[n%5],coin=COIN(n);
  if((inv[mat]|0)<need||inv.coin<coin){say('ของไม่พอ');sfx('thud');return}inv[mat]-=need;inv.coin-=coin;
  if(kind==='p'){E92.pets[k]=n+1;try{save92()}catch(e){}try{if(HOME.pet===k&&window.pgDirty92)pgDirty92()}catch(e){}}else{MS112[k]=n+1;try{localStorage.setItem('fm_star112',JSON.stringify(MS112))}catch(e){}}
  try{ptDirty();applyBonus();recalcStats();refreshInv();saveGame(false)}catch(e){}sfx('chest');const nm=(ANIMS.find(q=>q.k===k)||{}).n||k,g=Math.min(3,Math.floor(n/5));
  try{flash('#ffe08a',.3);banner('⭐ อัปดาวสำเร็จ!',nm+' ขั้น'+GR[g].n+' ★'+((n%5)+1),'green')}catch(e){say('⭐ '+nm)}render115()};
-window.open112=()=>{render115();p6open(W115)};window.up112=window.up115;
+window.render115=render115;window.open112=()=>{render115();const bd=W115.querySelector('.bd');if(bd)bd.scrollTop=0;p6open(W115)};window.up112=window.up115;
 // ---------- D) บ้านว่าง 2 หลังเคยเป็นบ้านครอบครัวชาวเมือง (fix81 HOMES81 A/B) → ตอนนี้เป็น "บ้านของคุณ" (A) และ "หอผนึกอสูร" (B) → ชาวเมืองไปนอนโรงเตี๊ยมแทน ----------
 try{const H=window.HOMES81||(window.W81&&W81.HOMES81)||null;if(H){for(const k of ['A','B'])if(H[k]){H[k].door='inn'}}}catch(e){}
 // ---------- C) เนื้อเรื่อง ----------
