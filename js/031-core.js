@@ -2013,7 +2013,7 @@ const SKFN={
   ()=>{const dv=aimDir(300),pt=window.SKILLAIM46&&SKILLAIM46.point(2);PERS.push({k:'arrowrain',x:pt?pt[0]:P.x+dv[0]*120,y:pt?pt[1]:P.y+dv[1]*120,t:0,l:3,tick:0,r:85});sfx('swing2')}]};
 
 // ---------- ยิงพื้นฐาน (นักเวท/นักธนู) ----------
-{const _a=attack;attack=function(q){if(typeof FISH!=='undefined'&&FISH.st){fishPress();return}const a0=P.at;_a(q);if(isRng()&&a0<0&&P.at===0){P.cmb=0;P.shot=false}}}
+{const _a=attack;attack=function(q){if(typeof FISH!=='undefined'&&FISH.st){fishPress();return}const a0=P.at;_a(q);if(isRng()&&a0<0&&P.at===0){P.cmb=0;P.shot=false;P.bas70=atkId}}} /* v5.71: จำว่าท่านี้มาจากโจมตีปกติ */
 // ---------- อัปเดตทุกเฟรม ----------
 skTick=function(dt){
  for(let i=0;i<3;i++)CS.cd[i]=Math.max(0,CS.cd[i]-dt);if(CS.step>0){CS.win-=dt;if(CS.win<=0){CS.cd[1]=CSKILLS[P.cls]?CSKILLS[P.cls][1].cd*(CS.step/3+.34):5;CS.step=0}}
@@ -2022,7 +2022,8 @@ skTick=function(dt){
   b.classList.toggle('lock',!o);const mp=S?cskMp(S,i===1?CS.step:0):0;b.classList.toggle('nomp',!!o&&P.mp<mp);b.querySelector('.ic').textContent=o?S.e:'🔒';
   b.querySelector('.cd').style.height=o&&c>0?(c/S.cd*100)+'%':'0';b.querySelector('.n').textContent=o&&c>0?Math.ceil(c):(i===1&&CS.step>0?(CS.step+1)+'/3':'');b.querySelector('small').textContent=o?mp:'';b.classList.toggle('chain',i===1&&CS.step>0)}
  // ยิงพื้นฐาน
- if(isRng()&&P.at>=.34&&!P.shot&&P.tool==='sword'&&P.armor.sword){P.shot=true;if(wKind()==='staff'){shoot('bolt',{range:260,sp:380,mult:1,r:9});sfx('swing2')}else{shoot('arrow',{range:320,sp:560,mult:.95});sfx('swing')}}
+ /* v5.71 ยิงเบิ้ล: ยิงพื้นฐานเฉพาะท่าที่เริ่มจากโจมตีปกติ (P.bas70===atkId) — สกิลที่เริ่มท่าโจมตีใหม่ (P.at=0) เคยทำให้ธนู/ลูกเวทปกติแถมออกมา */
+ if(isRng()&&P.at>=.34&&!P.shot&&P.bas70===atkId&&P.tool==='sword'&&P.armor.sword){P.shot=true;if(wKind()==='staff'){shoot('bolt',{range:260,sp:380,mult:1,r:9});sfx('swing2')}else{shoot('arrow',{range:320,sp:560,mult:.95});sfx('swing')}}
  if(P.at<0)P.shot=false;
  // มานาฟื้นเพิ่ม (นักเวทฟื้นไวกว่า)
  if(!P.dead)P.mp=Math.min(BAL.mp,P.mp+(BAL.mpRegen*(P.cls==='mage'?1.5:0)+P.stats.int*.06)*dt);
@@ -2220,7 +2221,7 @@ useSkill=function(i){if(PAUSED||DOORA.k||P.dead)return;if(FISH.st)return;const L
  const heal=P.cls==='none'&&i===2;if(!heal&&D&&(D.town||D.shop)){say('ใช้สกิลต่อสู้ในเมืองไม่ได้');return}if(heal&&P.hp>=BAL.hp){say('เลือดเต็มอยู่แล้ว');return}
  const chain=S.steps&&CS.step>0&&i===1;if(!chain&&CS.cd[i]>0)return;if(P.stun>0||P.dash>0)return;
  const st=chain?CS.step:0,mp=cskMp(S,st);if(P.mp<mp){say('💧 มานาไม่พอ (ต้องใช้ '+mp+')');sfx('thud');return}
- P.mp-=mp;if(P.recall>0)cancelRecall('ใช้สกิล — การวาปถูกยกเลิก');P.at=-1;
+ P.mp-=mp;if(P.recall>0)cancelRecall('ใช้สกิล — การวาปถูกยกเลิก');P.at=-1;P.bas70=-1;/* v5.71: ใช้สกิล = ยกเลิกยิงปกติที่ค้างอยู่ */
  if(S.steps){CS.step=st+1;CS.win=1.8;if(CS.step>=3){CS.step=0;CS.win=0;CS.cd[i]=S.cd}}else CS.cd[i]=S.cd;
  if(P.cls!=='none'){castBanner(S.n+(S.steps?' '+['Ⅰ','Ⅱ','Ⅲ'][st]:''),CLS[P.cls].col,i===2);if(i===2){flash(CLS[P.cls].col,.35);vfx('pillar',P.x,P.y,1.1,{c:P.cls==='mage'?'200,150,255':P.cls==='archer'?'140,255,170':'255,210,140'});shake(4,.3)}}
  SKFN[P.cls][i](st);if(!heal)P.draw=true;if(P.armor.sword)P.tool='sword'};

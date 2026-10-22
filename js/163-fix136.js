@@ -160,3 +160,23 @@ REG136.push(['สมุดมอนสเตอร์: นับตอนตา�
 REG136.push(['ร้านสัตว์: สัตว์ขี่ที่ซื้อแล้วทุกตัวขึ้น "มีแล้ว ✓" + มีม้าอัคคีนรกขาย (v572)',()=>{const sm=HOME.mounts,sc=HOME.mount,st=LIFE.tab,lh=lifeEl.hidden,pz=PAUSED;try{if(!ANIMS.some(a=>a.k==='flame'&&a.mount))return'ม้าอัคคีนรกไม่มีในร้าน';HOME.mounts=['horse','flame'];HOME.mount='horse';LIFE.tab='pet';renderLife();const it=[...lifeEl.querySelectorAll('.it')].find(d=>/ม้าอัคคีนรก/.test(d.textContent));const b=it&&it.querySelector('button');if(!b)return'ไม่เจอแถวม้าอัคคีนรก';if(!/มีแล้ว/.test(b.textContent)||!b.disabled)return'ซื้อแล้วแต่ยังขึ้น "'+b.textContent+'"';return null}finally{HOME.mounts=sm;HOME.mount=sc;LIFE.tab=st;lifeEl.hidden=lh;PAUSED=pz}}]);
 REG136.push(['อัปดาว/อัญมณี: กดอัปหรือรวมแล้วรายการไม่เด้งขึ้นบนสุด (v572)',()=>{const out=[];for(const [id,op,re] of [['st115',()=>open112(),()=>window.render115()],['gm117w',()=>open117(),()=>window.render117()]]){try{op();const bd=gid(id).querySelector('.bd');bd.scrollTop=60;const y=bd.scrollTop;re();const y1=gid(id).querySelector('.bd').scrollTop;if(y>0&&y1!==y)out.push(id+' เลื่อนจาก '+y+' → '+y1)}catch(e){out.push(id+' '+e.message)}finally{try{p6close(gid(id))}catch(e){}}}return out.length?out.join(' · '):null}]);
 REG136.push(['ลากเล็งสกิล: นักธนู/จอมเวทลากเล็งได้ (เส้น/พื้นที่) แตะเฉย ๆ ยังเหมือนเดิม · มนตร์ธาตุข้อ 1 แตะอย่างเดียว (v575)',()=>{const oc=P.cls,os=CS.step;try{P.cls='archer';CS.step=0;const a=[0,1,2].map(i=>SKILLAIM46.config(i));if(!a[0]||!a[1]||!a[2]||!a[2].area)return'นักธนูสกิล 1-3 ลากเล็งไม่ได้';P.cls='mage';CS.step=0;if(SKILLAIM46.config(0))return'จอมเวทสกิล 1 ควรแตะอย่างเดียว';if(!SKILLAIM46.config(1))return'จอมเวทน้ำแข็งลากเล็งไม่ได้';CS.step=2;const m=SKILLAIM46.config(1);if(!m||!m.area)return'อุกกาบาตต้องเป็นลากเล็งพื้นที่';P.cls='monk';if(SKILLAIM46.config(0))return'คลาสที่ยังไม่เปิดต้องเป็นแตะอย่างเดียว';return null}finally{P.cls=oc;CS.step=os}}]);
+
+/* v5.76: ยิงเบิ้ล — สกิลของอาชีพยิงไกลเริ่มท่าโจมตีใหม่ (P.at=0) แล้วระบบยิงปกติ (031-core 'ยิงพื้นฐาน') ปล่อยธนู/ลูกเวทแถมออกมา · ตรวจทุกอาชีพยิงไกล ทุกสกิล ทุกจังหวะ · และโจมตีปกติยังยิง 1 นัดเหมือนเดิม */
+REG136.push(['ยิงเบิ้ล: ใช้สกิลอาชีพยิงไกลต้องไม่มีกระสุนปกติแถม · โจมตีปกติยัง 1 นัด',async()=>{const sl=ms=>new Promise(r=>setTimeout(r,ms));
+ const sv={cls:P.cls,lv:P.lv,sw:P.armor.sword,tool:P.tool,draw:P.draw,mp:P.mp,hp:P.hp,dir:P.dir,at:P.at,cd:CS.cd.slice(),step:CS.step,x:P.x,y:P.y,paused:PAUSED,d:D,csk:{},bar:{}},og=shoot;let bad=null,tag='';const got=[];
+ const idle=async()=>{/* รอจนท่าโจมตีจบจริง (เครื่องช้า เฟรมช้า) */await sl(120);for(let k=0;k<60&&P.at>=0;k++)await sl(50);await sl(150)};
+ const isBasic=(k,o)=>!!o&&!o.dv&&((k==='arrow'&&o.range===320&&o.mult===.95)||(k==='bolt'&&o.range===260&&o.mult===1));
+ try{if(D&&(D.town||D.shop))D=null;PAUSED=false;P.dead=false;P.lv=200;
+  shoot=window.shoot=function(k,o){got.push({tag,basic:isBasic(k,o)});return og.apply(this,arguments)};
+  for(const c of ['archer','sniper','mage','cleric','necro','summoner']){if(!CSKILLS[c])continue;sv.csk[c]=CSK[c]&&CSK[c].slice();sv.bar[c]=SKBAR[c]&&SKBAR[c].slice();
+   P.cls=c;P.armor.sword='cw_'+c+'3';P.tool='sword';P.draw=true;CSK[c]=CSKILLS[c].map(()=>1);SKBAR[c]=CSKILLS[c].map((_,i)=>i);
+   if(!isRng())continue;
+   tag=c+' โจมตีปกติ';P.at=-1;P.stun=P.cast=P.dash=0;await sl(200);attack(true);/* true = ข้ามการคุยกับของใกล้ตัว */await idle();
+   if(got.filter(g=>g.tag===tag&&g.basic).length!==1){bad=c+': โจมตีปกติไม่ได้ 1 นัด ('+got.filter(g=>g.tag===tag&&g.basic).length+'/'+got.filter(g=>g.tag===tag).length+')';break}
+   for(let i=0;i<CSKILLS[c].length;i++){const st=CSKILLS[c][i].steps||1;CS.step=0;
+    for(let s=0;s<st;s++){tag=c+' สกิล '+(i+1)+(st>1?'·'+(s+1):'');CS.cd[i]=0;P.mp=99999;P.hp=99999;P.stun=P.cast=P.dash=0;P.at=-1;P.shot=false;P.dir='r';useSkill(i);await sl(250);await idle()}
+    CS.step=0;CS.cd[i]=0}
+   const leak=got.filter(g=>g.tag.startsWith(c+' สกิล')&&g.basic);if(leak.length){bad='ยิงเบิ้ล '+leak[0].tag+' (มีกระสุนปกติแถม)';break}}}
+ catch(e){bad='error '+e.message}
+ finally{shoot=window.shoot=og;for(const c in sv.csk){if(sv.csk[c])CSK[c]=sv.csk[c];if(sv.bar[c])SKBAR[c]=sv.bar[c]}P.cls=sv.cls;P.lv=sv.lv;P.armor.sword=sv.sw;P.tool=sv.tool;P.draw=sv.draw;P.mp=sv.mp;P.hp=sv.hp;P.dir=sv.dir;P.at=sv.at;CS.cd=sv.cd;CS.step=sv.step;P.x=sv.x;P.y=sv.y;PAUSED=sv.paused;D=sv.d;try{recalcStats()}catch(e){}}
+ return bad}]);
