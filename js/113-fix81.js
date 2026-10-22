@@ -55,7 +55,8 @@ if(typeof fitView==='function'){fitView=function(){const w=innerWidth||640,h=inn
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
 document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&/^(=|\+|-|_|0)$/.test(e.key))e.preventDefault()},{passive:false});
-{let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<300&&!(e.target&&e.target.closest&&e.target.closest('input,textarea,select')))e.preventDefault();lt=n},{passive:false})}
+/* v5.71: ไม่กันแตะซ้ำบนปุ่ม (button/a/[onclick] มี touch-action:manipulation กันซูมอยู่แล้ว) — preventDefault ที่ touchend ทำให้ click หาย: กดปิดหน้าต่าง/รวมอัญมณีรัว ๆ ไม่ติด · tests/tap_guard_browser_test.js · Date.now ใช้วัดช่วงแตะเท่านั้น ไม่ใช่คูลดาวน์ */
+{let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<300&&!(e.target&&e.target.closest&&e.target.closest('input,textarea,select,button,a,[onclick]')))e.preventDefault();lt=n},{passive:false})}
 
 // ===================================================================== N1: 📬 กล่องจดหมาย
 const MB81={list:[],t:0,busy:0};W81.MB81=MB81;

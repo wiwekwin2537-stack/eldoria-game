@@ -15,6 +15,8 @@ function myFx10(){const e={};for(const s in P.armor){const id=P.armor[s];if(id&&
   try{if(this===NET.ws&&typeof s==='string'){if(s.startsWith('{"t":"st"')){const o=JSON.parse(s);o.fx=myFx10();if(STALL10.open)o.stl={ti:STALL10.ti,n:STALL10.items.length};s=JSON.stringify(o)}else if(s.startsWith('{"t":"hi"'))hi=true}}catch(e){}
   const r=_send.call(this,s);if(hi)setTimeout(auth10,300);return r}}
 function auth10(){try{if(!window.FM_ACCT||!CLOUD.base())return;const tok=CLOUD.tok(FM_ACCT);if(tok)ws10({t:'auth',id:FM_ACCT,token:tok,document:window.SERVER_BOOT&&SERVER_BOOT.document})}catch(e){}}
+/* v5.77: ไฟล์นี้โหลดช้ากว่าการต่อซ็อกเก็ต (มือถือ/เน็ตช้า) → hi ออกไปก่อนตัวดักด้านบนติดตั้ง จึงไม่เคยส่ง auth · ถ้าเปิดอยู่แล้วตอนโหลด ส่ง auth เองครั้งเดียว · tests/ws_auth_late_browser_test.js */
+try{if(netOk10()&&!ON10.auth)setTimeout(auth10,300)}catch(e){}
 // ---------- รับข้อความจากเซิร์ฟเวอร์ ----------
 {const _nm=netMsg;netMsg=function(d){const r=_nm(d);try{
   if(d.t==='snap'){for(const s of d.ps){const o=NET.others.get(s.id);if(o){o.fx=s.fx||null;o.stl=s.stl||null}}}
