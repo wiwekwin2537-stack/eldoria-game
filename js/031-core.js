@@ -1181,6 +1181,8 @@ function drawDragon(m,t,c){const f=Math.sin(t*5),z=-10+Math.sin(t*2)*3;ctx.trans
  ctx.fillStyle=c[2];for(const [x,y] of [[-4,-25],[2,-26],[-9,-21]]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+3,y-7);ctx.lineTo(x+5,y);ctx.fill()}
  ctx.beginPath();ctx.moveTo(14,-37);ctx.lineTo(12,-44);ctx.lineTo(17,-37);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(19,-34,2,2)}
 const MOBDRAW={beetle:drawBeetle,bat:drawBat,golem:drawGolem,wolf:drawWolf,wisp:drawWisp,dragon:drawDragon};
+/* v5.77 เกมหน่วง: เพดานป้ายชื่อมอน (ดูที่ drawZone) */
+const MOBLBL={max:40,n:0,cut:0};window.MOBLBL=MOBLBL;
 function drawMob(m,t){const c=mobCols(m),s=m.sc;
  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(m.x,m.y+1,(m.F.r+2)*s,4*s,0,0,7);ctx.fill();
  if(m.boss){const en=m.hp/m.max<.3;
@@ -1188,7 +1190,8 @@ function drawMob(m,t){const c=mobCols(m),s=m.sc;
  ctx.save();ctx.translate(Math.round(m.x),Math.round(m.y));ctx.scale(s*(m.f==='wisp'||m.f==='bat'?1:m.fx),s);
  if(m.st==='wu'&&!m.boss){const k=1+.06*Math.sin(t*40);ctx.scale(k,1/k)}MOBDRAW[m.f](m,t,c);ctx.restore();
  if(m.st==='wu'||m.st==='slamWU'||m.st==='chargeWU'||m.st==='volleyWU'){ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#000';ctx.strokeText('!',m.x,m.y-46*s);ctx.fillStyle='#ff4a4a';ctx.fillText('!',m.x,m.y-46*s)}
- if(!m.boss){const top=m.y-(m.F.fly?44:38)*s;ctx.font=(m.elite?'bold ':'')+'9px system-ui,sans-serif';ctx.textAlign='center';ctx.lineWidth=2.5;ctx.strokeStyle='#000';
+ if(!m.boss&&m._lbl===0){const top=m.y-(m.F.fly?44:38)*s;if(m.hp<m.max){ctx.fillStyle='#000a';ctx.fillRect(m.x-16,top+3,32,4);ctx.fillStyle=m.elite?'#ffb43a':'#e04a3a';ctx.fillRect(m.x-16,top+3,32*Math.max(0,m.hp/m.max),4)}}
+ else if(!m.boss){const top=m.y-(m.F.fly?44:38)*s;ctx.font=(m.elite?'bold ':'')+'9px system-ui,sans-serif';ctx.textAlign='center';ctx.lineWidth=2.5;ctx.strokeStyle='#000';
   const d=P.lv-m.L,col=m.elite?'#ffd84a':d>=5?'#9f9':d>=-2?'#fff':d>=-8?'#fb7':'#f66',tx=(m.elite?'★ ':'')+'Lv.'+m.L+' '+m.nm;ctx.strokeText(tx,m.x,top);ctx.fillStyle=col;ctx.fillText(tx,m.x,top);
   if(m.hp<m.max){ctx.fillStyle='#000a';ctx.fillRect(m.x-16,top+3,32,4);ctx.fillStyle=m.elite?'#ffb43a':'#e04a3a';ctx.fillRect(m.x-16,top+3,32*Math.max(0,m.hp/m.max),4)}}ctx.textAlign='left'}
 function drawOreZ(o){const sh=o.shake>0?Math.sin(o.shake*60)*2.5*(o.shake/.3):0,x=o.tx*T,y=o.ty*T;ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x+16,y+28,15,5,0,0,7);ctx.fill();
@@ -1212,6 +1215,10 @@ function drawZone(){const Zm=D.zone,Zd=Zm.Zd,t=performance.now()/1000;let [cx,cy
  drawGhosts();drawDrops();
  const L=[],x0=cx-48,x1=cx+vw+48,y0=cy-48,y1=cy+vh+80,inV=(x,y)=>x>x0&&x<x1&&y>y0&&y<y1;
  for(const o of Zm.ores)if(o.alive&&inV(o.x,o.y))L.push([o.y+10,()=>drawOreZ(o)]);
+ /* v5.77 เกมหน่วง: มอนบนจอเกิน MOBLBL.max ตัว → ป้ายชื่อ/เลเวลวาดเฉพาะตัวที่ใกล้ผู้เล่นที่สุด + มอนเด่น (★) · หลอดเลือดยังวาดทุกตัว · มอนไม่เกิน 40 ตัวหน้าตาเหมือนเดิม 100%
+    วัด (CPU ×4 · 200 ตัว): strokeText 213→75 ครั้ง/เฟรม · เวลาวาดลงจอ/เฟรม ลด ~3–7% (100–200 ตัว) · ตัวการหลักยังเป็นตัวมอน (เส้น/วงรี) · ใช้ทุกระดับคุณภาพ (รวมคนที่ตั้งคุณภาพเองแบบตายตัว) */
+ {const vm=[];for(const m of D.mobs)if(!m.boss&&inV(m.x,m.y)){m._lbl=1;vm.push(m)}MOBLBL.n=vm.length;MOBLBL.cut=0;
+  if(vm.length>MOBLBL.max){for(const m of vm)m._d2=(m.x-P.x)*(m.x-P.x)+(m.y-P.y)*(m.y-P.y);vm.sort((a,b)=>a._d2-b._d2);for(let i=MOBLBL.max;i<vm.length;i++)if(!vm[i].elite){vm[i]._lbl=0;MOBLBL.cut++}}}
  for(const m of D.mobs)if(inV(m.x,m.y))L.push([m.y,()=>drawMob(m,t+m.t)]);
  if(D.city2&&window.C2&&C2.depth)C2.depth(L,t,[cx,cy,cx+vw,cy+vh]);
  L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
