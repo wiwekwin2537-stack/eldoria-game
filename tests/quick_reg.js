@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   const b = await chromium.launch({ args: ['--no-sandbox', '--enable-unsafe-swiftshader'] });
   const pg = await (await b.newContext({ viewport: { width: 915, height: 412 }, isMobile: true, hasTouch: true })).newPage();
   const errs = []; pg.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-  await pg.goto('http://127.0.0.1:8787/?server=ws://127.0.0.1:8787');
+  await pg.goto('http://127.0.0.1:8787/?server=ws://127.0.0.1:8787' + (process.env.ELD_URL_EXTRA || ''));
   await pg.waitForFunction(() => !window.FM_LOADING && window.REG136, null, { timeout: 180000 }); await pg.waitForTimeout(3000);
   const bad = await pg.evaluate(async () => { /* รันแบบเดียวกับบอท QA (163-fix136): await ทีละข้อ · เปิดอมตะ · คืนค่าตัวละครหลังจบ */
     const sv = { cls: P.cls, lv: P.lv, coin: inv.coin }, god = window.GM7 && GM7.god; try { if (window.GM7) GM7.god = true } catch (e) {}
