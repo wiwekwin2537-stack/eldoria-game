@@ -40,7 +40,7 @@ function hitOre(o){const K=OREK[o.kind];
   for(let k=0;k<n;k++)addDrop(K.drop,o.tx*T+16,o.ty*T+16);
   say('ขุด'+K.n+'แตก! ได้'+(K.drop==='gem'?'เพชร':MN(K.drop))+' +'+n);gainXp(K.xp)}
  else say('ขุด'+K.n+'... ความคืบหน้า '+Math.round((1-o.hp/o.max)*100)+'%')}
-{const _u=useToolHit;useToolHit=function(){if(P.tool!=='sword'){if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}P.fa=Math.max(0,P.fa-2)}_u()}}
+{const _u=useToolHit;useToolHit=function(){if(P.tool!=='sword'){if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}P.fa=Math.max(0,P.fa-1)}_u()}}
 function itemDropIcon(type){const key=ITEMART.key(type);return ITEMART.icon(key)||(key==='ore'?matIcon('ore'):OREKEYS.includes(key)?OSPR[key]:null)}
 function drawDrops(){for(const d of drops){const px=Math.round(d.x),py=Math.round(d.y),yy=py-6-d.z,t=d.type;
   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(px,py+2,5,2,0,0,7);ctx.fill();
@@ -96,7 +96,7 @@ const bfh=gid('bfh'),bff=gid('bff');
 function buff(el,v,lowTxt,zeroTxt,okTxt){const st=v<=0?'low':v<25?'low':v<55?'mid':'ok';if(el.dataset.s!==st){el.dataset.s=st;el.className='bf '+st}
  el.querySelector('b').textContent=Math.round(v);el.querySelector('small').textContent=v<=0?zeroTxt:v<25?lowTxt:okTxt}
 function vitalsTick(dt){const running=P.mv&&isRun()&&P.dash<=0;
- if(running)P.fa-=5.5*dt;else if(P.at<0&&P.dash<=0)P.fa+=(P.mv?6:14)*(P.hu<20?.4:1)*dt;
+ if(running)P.fa-=3*dt;else if(P.at<0&&P.dash<=0)P.fa+=(P.mv?9:20)*(P.hu<20?.4:1)*dt;
  if(P.sit)P.fa+=20*dt;
  P.fa=Math.max(0,Math.min(100,P.fa));
  P.hu=Math.max(0,P.hu-dt*(HUNGER_RATE+(running?.05:0)));
@@ -1083,7 +1083,7 @@ function zMine(o){const K=OREK[o.kind];
   say('ขุด'+K.n+'แตก! ได้'+(K.drop==='gem'?'เพชร':MN(K.drop))+' +'+n);gainXp(K.xp*(1+D.zone.zi))}
  else say('ขุด'+K.n+'... ความคืบหน้า '+Math.round((1-o.hp/o.max)*100)+'%')}
 {const _u=useToolHit;useToolHit=function(){if(!(D&&D.zone))return _u();if(P.tool==='sword')return;
- if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}P.fa=Math.max(0,P.fa-2);
+ if(P.fa<=0){say('😮‍💨 เหนื่อยจนไม่มีแรงแล้ว… พักสักครู่');return}P.fa=Math.max(0,P.fa-1);
  const o=zOreTarget();if(!o)return;if(P.tool==='pick')zMine(o);else say('แร่ต้องใช้ที่ขุดแร่ (กด 3)')}}
 
 // ============ 6) เข้า/ออกโซน ============
@@ -2616,7 +2616,7 @@ openGuild=function(tab){if(tab)GT.tab=tab;qRefresh();SHOPK=null;STN.open=null;hi
   ctx.drawImage(ic,-23,-36,46,46);ctx.restore()}}
 
 // ---------- 2) สมดุลแรง (ค่าใช้แรงลดลง ฟื้นเร็วขึ้น) ----------
-DASH.fa=10;SWING_FA.sword=2;SWING_FA.spin=3;SWING_FA.tool=1.5;
+DASH.fa=6;SWING_FA.sword=1;SWING_FA.spin=1.5;SWING_FA.tool=1;
 
 // หุ่นซ้อมในลานฝึก: ตีครบ 40 ครั้ง = ความอึด (END) +1 ถาวร (สูงสุด +30)
 const TRAIN={hits:0,end:0,MAX:30,PER:40};

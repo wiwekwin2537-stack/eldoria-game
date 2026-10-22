@@ -32,7 +32,7 @@ try { const j = JSON.parse(fs.readFileSync(FILE, 'utf8')); if (j && Array.isArra
 let kvT = null;
 function save() { M.t = Date.now(); const st = { list: M.list, next: M.next, hist: M.hist, esc: M.esc, gone: M.gone, void: M.void, trlog: M.trlog, t: M.t };
   try { fs.mkdirSync(DATA, { recursive: true }); const tmp = FILE + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(st)); fs.renameSync(tmp, FILE); } catch (e) {}
-  if (H && H.ACC && H.ACC.kvSet && !kvT) kvT = setTimeout(() => { kvT = null; H.ACC.kvSet('eld2:market', Object.assign({}, st, { t: Date.now() })); }, 800); }
+  if (H && H.ACC && H.ACC.kvSet && !kvT) kvT = setTimeout(() => { kvT = null; H.ACC.kvSet('eld3:market', Object.assign({}, st, { t: Date.now() })); }, 800); }
 const day = t => new Date((t || Date.now()) + 7 * 3600e3).toISOString().slice(0, 10);
 const online = acct => { for (const p of H.players.values()) if (p.acct === acct && p.joined) return p; return null; };
 async function deliver(acct, item) { if (!acct) return false; let m = null; try { m = await H.ACC.mailAdd(acct, item); } catch (e) {}
@@ -136,7 +136,7 @@ function trMsg(p, d, now) {
   return false;
 }
 function init(h) { H = h;
-  try { if (H.ACC && H.ACC.kvGet) H.ACC.kvGet('eld2:market').then(j => { if (!j || !Array.isArray(j.list) || (j.t || 0) <= (M.t || 0)) return; Object.assign(M, j); console.log('market: restored', M.list.length, 'listings'); afterLoad(); }).catch(() => {}); } catch (e) {}
+  try { if (H.ACC && H.ACC.kvGet) H.ACC.kvGet('eld3:market').then(j => { if (!j || !Array.isArray(j.list) || (j.t || 0) <= (M.t || 0)) return; Object.assign(M, j); console.log('market: restored', M.list.length, 'listings'); afterLoad(); }).catch(() => {}); } catch (e) {}
   afterLoad();
   setInterval(() => { try { const now = Date.now(); let ch = false;
       for (const l of M.list.slice()) { if (l.hold && l.hold.until < now) l.hold = null; if (now > l.exp && !(l.hold)) { M.list.splice(M.list.indexOf(l), 1); M.gone[l.id] = { t: now, b: '' }; ch = true; deliver(l.acct, { k: 'mkret', item: l.item, why: 'หมดเวลาขาย' }); } }

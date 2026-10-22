@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('accounts.js', 'utf8');
 async function stalledStore(mode = 'fetch') {
-  const values = new Map([['eld2:lb', JSON.stringify({ old: { n: 'เพื่อน', lv: 10, k: 20 } })]]);
+  const values = new Map([['eld3:lb', JSON.stringify({ old: { n: 'เพื่อน', lv: 10, k: 20 } })]]);
   const box = { require: name => name === 'fs' ? { mkdirSync() {} } : require(name), process: { env: { UPSTASH_REDIS_REST_URL: 'https://redis.test', UPSTASH_REDIS_REST_TOKEN: 'test' } },
     __dirname: '/tmp/eld-ranking-mock', module: { exports: {} }, console: { log() {} }, AbortController,
     setInterval: () => ({ unref() {} }), clearTimeout,
@@ -18,7 +18,7 @@ async function stalledStore(mode = 'fetch') {
         values.set(k,next);return {ok:true,json:async()=>({result:1})};
       }
 
-      if (url.includes('/set/eld2:lb')) return mode === 'body' ? { ok: true, json: () => new Promise(() => {}) } : new Promise(() => {});
+      if (url.includes('/set/eld3:lb')) return mode === 'body' ? { ok: true, json: () => new Promise(() => {}) } : new Promise(() => {});
       if (url.includes('/set/')) { values.set(key, options.body); return { ok: true, json: async () => ({ result: 'OK' }) }; }
       return { ok: true, json: async () => ({ result: values.get(key) || null }) };
     } };
