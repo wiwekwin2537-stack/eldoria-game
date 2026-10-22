@@ -26,6 +26,7 @@ function fire62(a){const t=a.target&&!a.target.dead?a.target:null;if(t)P.dir=Mat
    สกิลต้องอ่านทิศจาก aimDir()/SKILLAIM46.point(i) (ตอนปล่อยนิ้ว SKILLAIM46.cast ถูกตั้ง) · เปิดทีละคลาส ตรวจครบทุกสกิลก่อนเพิ่ม */
 const AIMCFG={
  archer:{0:{range:330,width:7,spread:.34,area:false},1:()=>{const st=CS.step||0;return{range:st===0?380:st===1?340:300,width:st===0?10:st===2?14:7,spread:0,area:false}},2:{range:240,width:85,spread:0,area:true}},
+ sword:{1:()=>{const st=CS.step||0;return st===0?{range:110,width:30,spread:0,area:false}:st===2?{range:320,width:52,spread:0,area:false}:null}},
  mage:{0:null,1:()=>{const st=CS.step||0;return st===0?{range:300,width:7,spread:.32,area:false}:st===2?{range:260,width:90,spread:0,area:true}:null}}
 };
 const SKILLAIM46={active:null,cast:null,ui:null,

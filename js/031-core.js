@@ -1992,7 +1992,7 @@ useSkill=function(i){if(PAUSED||DOORA.k||P.dead)return;if(typeof FISH!=='undefin
 const SKFN={
  sword:[
   ()=>{P.jump={t:0,l:.55,land:false};P.stun=.6;sfx('dash');shake(2,.1)},
-  st=>{const v=DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.22;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);sfx('dash');P.dashHit=new Set();P.dashMult=1.4;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]})}
+  st=>{const v=(st===0&&window.SKILLAIM46&&SKILLAIM46.cast)?SKILLAIM46.cast.dv.slice():DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.22;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);sfx('dash');P.dashHit=new Set();P.dashMult=1.4;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]})}
    else if(st===1){P.at=0;P.cmb=1;P.skAt=1.6;sfx('swing');vfx('upper',P.x,P.y,.4,{dir:P.dir});eachIn(P.x+v[0]*28,P.y-10+v[1]*24,40,e=>{hurtE(e,1.6,{kb:60,stun:.5});e.air=.5})}
    else{P.at=0;P.cmb=0;sfx('swing');sfx('warp');shoot('wave',{dv:aimDir(320),sp:380,range:320,mult:2.4,pierce:99,r:26});shake(3,.15)}},
   ()=>{P.ww={t:0,l:2.6,tick:0};sfx('swing2');shake(2,.2)}],

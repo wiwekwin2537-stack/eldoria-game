@@ -180,3 +180,4 @@ REG136.push(['ยิงเบิ้ล: ใช้สกิลอาชีพย�
  catch(e){bad='error '+e.message}
  finally{shoot=window.shoot=og;for(const c in sv.csk){if(sv.csk[c])CSK[c]=sv.csk[c];if(sv.bar[c])SKBAR[c]=sv.bar[c]}P.cls=sv.cls;P.lv=sv.lv;P.armor.sword=sv.sw;P.tool=sv.tool;P.draw=sv.draw;P.mp=sv.mp;P.hp=sv.hp;P.dir=sv.dir;P.at=sv.at;CS.cd=sv.cd;CS.step=sv.step;P.x=sv.x;P.y=sv.y;PAUSED=sv.paused;D=sv.d;try{recalcStats()}catch(e){}}
  return bad}]);
+REG136.push(['ลากเล็งสกิลดาบ: ดาบสามจังหวะลากเล็งได้ (พุ่ง/คลื่นดาบ) กระทืบกับพายุแตะอย่างเดียว (v576)',()=>{const oc=P.cls,os=CS.step;try{P.cls='sword';CS.step=0;if(!SKILLAIM46.config(1))return'พุ่งฟันลากเล็งไม่ได้';CS.step=2;if(!SKILLAIM46.config(1))return'คลื่นดาบลากเล็งไม่ได้';if(SKILLAIM46.config(0)||SKILLAIM46.config(2))return'กระทืบ/พายุดาบควรแตะอย่างเดียว';return null}finally{P.cls=oc;CS.step=os}}]);
