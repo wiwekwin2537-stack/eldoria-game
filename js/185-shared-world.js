@@ -73,6 +73,10 @@ FW._t={nodeOf,applyOne,trySnap,keyOf,isDead,setDead,revive};
 /* REG136 */
 try{if(window.REG136)REG136.push(['โลกร่วมกัน: ต้นไม้/แร่ ส่ง fhit ให้เซิร์ฟเวอร์ · ล้มด้วยคำสั่งเซิร์ฟเวอร์ (fix 185)',async()=>{
  if(typeof FW.act!=='function'||typeof FW.send!=='function'||!FW._t)return 'FW ไม่ครบ';
- if(typeof hitTree!=='function'||!/FW\.act\(\)/.test(String(hitTree)))return 'hitTree ไม่ถามเซิร์ฟเวอร์';
- return null}])}catch(e){}
+ /* v5.67: ตรวจพฤติกรรมจริง — ตอนต่อเซิร์ฟ ฟันต้นไม้ต้องส่ง fhit (เดิมอ่านตัวหนังสือโค้ดชั้นนอกสุดที่ถูกห่อแล้ว จึงฟ้องผิด) */
+ const tr=(typeof trees!=='undefined'?trees:[]).find(t=>t.alive&&!t.border&&map[t.ty][t.tx]===TREE);if(!tr)return null;
+ const oa=FW.act,os=FW.send,sv={hp:tr.hp,al:tr.alive,sh:tr.shake,bar:tr.bar,fl:falling.length};let sent=0;
+ try{FW.act=()=>true;FW.send=function(k){if(k==='t')sent++};hitTree(tr)}catch(e){return 'hitTree error '+e.message}
+ finally{FW.act=oa;FW.send=os;tr.hp=sv.hp;tr.alive=sv.al;tr.shake=sv.sh;tr.bar=sv.bar;map[tr.ty][tr.tx]=TREE;falling.length=Math.min(falling.length,sv.fl)}
+ return sent?null:'hitTree ไม่ส่ง fhit ให้เซิร์ฟเวอร์'}])}catch(e){}
 }catch(e){console.warn('fix185 shared-world',e)}

@@ -24,10 +24,12 @@ window.regrow149=regrow149;
 /* REG136 */
 try{if(window.REG136)REG136.push(
  ['ต้นไม้ทุ่งหญ้าที่ตัดแล้วงอกใหม่ (fix149)',async()=>{const tr=trees.find(t=>t.alive&&!t.border&&map[t.ty][t.tx]===TREE);if(!tr)return null;
-   const sv={x:P.x,y:P.y,hp:tr.hp,fl:falling.length};let bad=null;
-   try{P.x=tr.px+400;P.y=tr.ty*T+400;tr.alive=false;tr.hp=0;map[tr.ty][tr.tx]=STUMP;tr.rg149=null;
+   const sv={x:P.x,y:P.y,hp:tr.hp,fl:falling.length},oa=window.FW&&FW.act;let bad=null;
+   /* v5.67: ตอนต่อเซิร์ฟ เซิร์ฟเวอร์คุมการงอก (tests/field_test.js) → ตรวจตัวงอกฝั่งเครื่องแบบไม่ต่อเซิร์ฟ · และตอนต่อเซิร์ฟต้องไม่งอกเอง */
+   if(oa){try{FW.act=()=>true;tr.alive=false;map[tr.ty][tr.tx]=STUMP;tr.rg149=0;regrow149(1);if(tr.alive)bad='ต่อเซิร์ฟอยู่แต่เครื่องงอกต้นไม้เอง'}finally{FW.act=oa;map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.rg149=null}if(bad)return bad}
+   try{if(oa)FW.act=()=>false;P.x=tr.px+400;P.y=tr.ty*T+400;tr.alive=false;tr.hp=0;map[tr.ty][tr.tx]=STUMP;tr.rg149=null;
     for(let i=0;i<200&&!tr.alive;i++)regrow149(1);
     if(!tr.alive||map[tr.ty][tr.tx]!==TREE||tr.hp!==tr.max)bad='ตอไม่กลับเป็นต้นไม้ภายใน 200 วิ'}
-   catch(e){bad='error '+e.message}finally{map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.hp=sv.hp;tr.rg149=null;P.x=sv.x;P.y=sv.y;falling.length=Math.min(falling.length,sv.fl)}
+   catch(e){bad='error '+e.message}finally{if(oa)FW.act=oa;map[tr.ty][tr.tx]=TREE;tr.alive=true;tr.hp=sv.hp;tr.rg149=null;P.x=sv.x;P.y=sv.y;falling.length=Math.min(falling.length,sv.fl)}
    return bad}]);}catch(e){}
 }catch(e){console.warn('fix149',e)}

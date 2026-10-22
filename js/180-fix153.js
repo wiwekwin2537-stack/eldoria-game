@@ -61,7 +61,8 @@ try{if(window.REG136)REG136.push(
     const x0=cum(P.lv,P.xp),c0=inv.coin,t0=tools(),Zd=D.zone.Zd;
     for(let i=0;i<200;i++){const q=Zd.mobs[i%Zd.mobs.length];const m=mkMob(q[0],q[1],q[2],155,P.x+20,P.y+20,{});m.my33=1;D.mobs.push(m);mobKill(m)}
     await sl(700);
-    const lv=(cum(P.lv,P.xp)-x0)/need(160),coin=inv.coin-c0,tl=tools()-t0;
+    /* v5.67: XP ทั้งเกมถูกคูณช่วงทดสอบ (XPM64 ใน fix64) → วัดเทียบค่าปกติ .65 เพื่อตรวจระบบโควตา ไม่ใช่ตัวคูณทดสอบ */
+    const lv=(cum(P.lv,P.xp)-x0)/need(160)*.65/((window.XPM64)||.65),coin=inv.coin-c0,tl=tools()-t0;
     /* ก่อนแก้: ~1.5 เลเวล · ~19,000 เหรียญ · เครื่องมือหลายชิ้น ต่อ 200 ตัว */
     if(lv>0.3)bad='XP ยังพุ่ง: ฆ่า 200 ตัวได้ '+lv.toFixed(2)+' เลเวล';
     else if(coin>6000)bad='เงินยังเฟ้อ: ฆ่า 200 ตัวได้ '+coin+' เหรียญ';

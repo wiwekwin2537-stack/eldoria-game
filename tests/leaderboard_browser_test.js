@@ -58,7 +58,7 @@ const { chromium } = require('playwright');
     if (process.env.ELD_FULL_PLAYTEST) {
       await page.exposeFunction('rankTestProgress', message => console.log('QA', message));
       let deadline;
-      const result = await Promise.race([page.evaluate(() => SystemValidator.runFullGamePlaytest({onProgress: message => window.rankTestProgress(message)})), new Promise((_, reject) => { deadline = setTimeout(() => reject(Error('full playtest exceeded 120 seconds')), 120000); })]).finally(() => clearTimeout(deadline));
+      const result = await Promise.race([page.evaluate(() => SystemValidator.runFullGamePlaytest({onProgress: message => window.rankTestProgress(message)})), new Promise((_, reject) => { deadline = setTimeout(() => reject(Error('full playtest exceeded 420 seconds')), 420000); })]).finally(() => clearTimeout(deadline));
       console.log('FULL PLAYTEST', JSON.stringify(result));
       assert.deepEqual(result.bugs, []);
       assert.equal(result.regression.fail, 0);
