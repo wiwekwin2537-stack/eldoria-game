@@ -14,7 +14,7 @@ const MA={spec:SPEC,tint:new Map(),on:true};window.MOBART578=MA;
 const hex=s=>{s=String(s||'').trim();let m=/^#([0-9a-f]{6})$/i.exec(s);if(m){const n=parseInt(m[1],16);return[n>>16&255,n>>8&255,n&255]}m=/^#([0-9a-f]{3})$/i.exec(s);if(m){const v=m[1];return[parseInt(v[0]+v[0],16),parseInt(v[1]+v[1],16),parseInt(v[2]+v[2],16)]}return null};
 const lerp=(a,b,t)=>a+(b-a)*t;
 for(const f in SPEC){const S=SPEC[f];S.img=new Image();S.ok=false;S.img.decoding='async';
- S.img.onload=()=>{try{if(!(S.img.naturalWidth>0))return;const c=document.createElement('canvas');c.width=S.img.naturalWidth;c.height=S.img.naturalHeight;const q=c.getContext('2d');q.drawImage(S.img,0,0);S.src0=q.getImageData(0,0,c.width,c.height);const d=S.src0.data,Ls=[];for(let i=0;i<d.length;i+=4){if(d[i+3]>0&&!(d[i+2]>180&&d[i]>100&&d[i+1]<110))Ls.push(.299*d[i]+.587*d[i+1]+.114*d[i+2])}Ls.sort((a,b)=>a-b);S.lo=Ls[Math.floor(Ls.length*.02)]||0;S.hi=Ls[Math.floor(Ls.length*.98)]||255;if(S.hi-S.lo<20)S.hi=S.lo+20;S.ok=true}catch(e){S.ok=false}};
+ S.img.onload=()=>{try{if(!(S.img.naturalWidth>0))return;const c=document.createElement('canvas');c.width=S.img.naturalWidth;c.height=S.img.naturalHeight;const q=c.getContext('2d');q.drawImage(S.img,0,0);S.src0=q.getImageData(0,0,c.width,c.height);const d=S.src0.data,Ls=[];for(let i=0;i<d.length;i+=4){if(d[i+3]>0&&!(d[i+2]>180&&d[i]>100&&d[i+1]<110))Ls.push(.299*d[i]+.587*d[i+1]+.114*d[i+2])}Ls.sort((a,b)=>a-b);S.lo=Ls[Math.floor(Ls.length*.02)]||0;S.hi=Ls[Math.floor(Ls.length*.98)]||255;if(S.hi-S.lo<20)S.hi=S.lo+20;S.crotch=S.cells.map((B,v)=>hipOf(d,S.src0.width,B,v,f));S.ok=true}catch(e){S.ok=false}};
  S.img.onerror=()=>{S.ok=false};S.img.src=S.src}
 /* ย้อมสีทั้งแผ่น: ความสว่าง (ตัดช่วง 2–98%) → ไล่ระหว่างสีเข้ม c[1] กับสีอ่อน c[0] · พิกเซลม่วงเรืองแสง (ดวงตา) → c[2] */
 function tinted(f,c){const S=SPEC[f],a=hex(c&&c[0]),b=hex(c&&c[1]),e=hex(c&&c[2]);if(!S.ok||!S.src0||!a||!b||!e)return null;const key=f+'|'+c[0]+c[1]+c[2];let t=MA.tint.get(key);if(t)return t;
@@ -24,6 +24,21 @@ function tinted(f,c){const S=SPEC[f],a=hex(c&&c[0]),b=hex(c&&c[1]),e=hex(c&&c[2]
   let u=((.299*r+.587*g+.114*bl)-S.lo)/span;u=u<0?0:u>1?1:u;
   o[i]=lerp(b[0],a[0],u);o[i+1]=lerp(b[1],a[1],u);o[i+2]=lerp(b[2],a[2],u);o[i+3]=al}
  t=document.createElement('canvas');t.width=W;t.height=H;t.getContext('2d').putImageData(out,0,0);if(MA.tint.size>80)MA.tint.clear();MA.tint.set(key,t);return t}
+/* ขา (v5.81): หาแนวเป้าจากช่องว่างระหว่างขาในภาพหน้า/หลัง (แถวล่างขึ้นบนที่ยังมีช่องว่างกลางตัวต่อเนื่อง) · ด้านข้าง/หาไม่เจอ = สัดส่วนคงที่ · ตัดขาออกจากตัวเป็นชิ้นแล้วขยับสลับกัน (วิธีเดียวกับหมาป่าเงา) */
+const HIPF={beetle:.62,golem:.6,skeleton:.6};
+function hipOf(d,W,B,v,f){const bx=B[0],by=B[1],bw=B[2],bh=B[3];let hip=Math.round(bh*HIPF[f]);if(f==='bat'||v===1||v===2)return hip;
+ let top=bh,run=0;for(let y=bh-1;y>=Math.round(bh*.4);y--){let gap=false,x0=Math.round(bw*.3),x1=Math.round(bw*.7),cnt=0;for(let x=x0;x<x1;x++){const i=((by+y)*W+bx+x)*4;if(d[i+3]<20)cnt++}gap=cnt>=2&&cnt<x1-x0;if(gap){top=y;run++}else if(run>0)break}
+ if(run>=Math.round(bh*.1)&&top<bh)hip=Math.max(Math.round(bh*.5),top-2);return hip}
+const LEGC=new WeakMap();
+function legsOf(f,sheet){let L=LEGC.get(sheet);if(L)return L;const S=SPEC[f];L=[];for(let v=0;v<4;v++){const B=S.cells[v],hip=S.crotch?S.crotch[v]:Math.round(B[3]*HIPF[f]),bw=B[2],bh=B[3];
+  const cv=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,w);c.height=Math.max(1,h);return c};
+  const body=cv(bw,bh),q=body.getContext('2d');q.drawImage(sheet,B[0],B[1],bw,bh,0,0,bw,bh);
+  const parts=[];const side=(v===1||v===2);
+  const cut=(x0,x1)=>{const w=x1-x0,h=bh-hip,c=cv(w,h),k=c.getContext('2d');k.drawImage(sheet,B[0]+x0,B[1]+hip,w,h,0,0,w,h);q.clearRect(x0,hip,w,h);return {c,x:x0,y:hip,w,h}};
+  if(side){const l=cut(0,bw);const dk=cv(l.w,l.h),kk=dk.getContext('2d');kk.drawImage(l.c,0,0);kk.globalCompositeOperation='source-atop';kk.fillStyle='rgba(0,0,0,.38)';kk.fillRect(0,0,l.w,l.h);l.dark=dk;parts.push(l)}
+  else{const m=Math.round(bw/2);parts.push(cut(0,m),cut(m,bw))}
+  L.push({body,parts,hip,side})}
+ LEGC.set(sheet,L);return L}
 function wrap(f){const orig=MOBDRAW[f];if(typeof orig!=='function'||orig.__art578)return;
  const fn=function(m,t,c){const S=SPEC[f];let sheet=null;try{sheet=MA.on&&S.ok?tinted(f,c):null}catch(e){sheet=null}
   if(!sheet)return orig.apply(this,arguments);
@@ -40,8 +55,20 @@ function wrap(f){const orig=MOBDRAW[f];if(typeof orig!=='function'||orig.__art57
    else{const bob=moving?-Math.abs(Math.sin(ph))*(f==='beetle'?1:1.6):Math.sin(t*2)*.5;ctx.translate(0,bob);if(moving&&f!=='beetle')ctx.rotate(Math.sin(ph)*.04);
     else if(moving)ctx.scale(1+Math.sin(ph*2)*.04,1);
     if(m.st==='wu'||m.st==='slamWU'){ctx.scale(1.05,.94)}else if(m.st==='strike'||m.st==='slam'){ctx.translate(0,-1);ctx.scale(.96,1.05)}}
-   const dy=f==='bat'?-h/2:-h;ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h);
-   if(m.hurt>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.6;ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h)}
+   const dy=f==='bat'?-h/2:-h;
+   let LG=null;if(f!=='bat'){try{LG=legsOf(f,sheet)[v]}catch(e){LG=null}}
+   const lift=f==='beetle'?1.6:f==='golem'?2.4:3.2,amp=f==='beetle'?.2:f==='golem'?.26:.42;
+   const legsDraw=(alpha)=>{const bw=B[2],lx0=-w/2;
+    if(LG.side){const P0=LG.parts[0],pv=[bw*.5,0],sw=moving?Math.sin(ph):0;
+     for(const [a,dark] of [[-sw,true],[sw,false]]){ctx.save();ctx.globalAlpha=alpha;ctx.translate(lx0+(P0.x+pv[0])*k,dy+(P0.y)*k-(moving?Math.max(0,Math.cos(ph+(dark?Math.PI:0)))*lift*.6:0));ctx.rotate(a*amp);ctx.drawImage(dark?P0.dark:P0.c,-pv[0]*k,0,P0.w*k,P0.h*k);ctx.restore()}}
+    else{LG.parts.forEach((P0,i)=>{const u=moving?Math.max(0,Math.sin(ph+(i?Math.PI:0)))*lift:0;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(P0.c,lx0+P0.x*k,dy+P0.y*k-u,P0.w*k,P0.h*k);ctx.restore()})}};
+   if(LG){if(LG.side){ctx.save();ctx.globalAlpha=1;const P0=LG.parts[0],pv=[B[2]*.5,0],sw=moving?Math.sin(ph):0;ctx.translate(-w/2+(P0.x+pv[0])*k,dy+P0.y*k-(moving?Math.max(0,Math.cos(ph+Math.PI))*lift*.6:0));ctx.rotate(-sw*amp);ctx.drawImage(P0.dark,-pv[0]*k,0,P0.w*k,P0.h*k);ctx.restore()}
+    ctx.drawImage(LG.body,-w/2,dy,w,h);
+    if(LG.side){const P0=LG.parts[0],pv=[B[2]*.5,0],sw=moving?Math.sin(ph):0;ctx.save();ctx.translate(-w/2+(P0.x+pv[0])*k,dy+P0.y*k-(moving?Math.max(0,Math.cos(ph))*lift*.6:0));ctx.rotate(sw*amp);ctx.drawImage(P0.c,-pv[0]*k,0,P0.w*k,P0.h*k);ctx.restore()}
+    else legsDraw(1);
+    if(m.hurt>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.6;ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h)}}
+   else{ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h);
+   if(m.hurt>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.6;ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h)}}
   }finally{ctx.restore()}};
  fn.__art578=1;fn.orig=orig;MOBDRAW[f]=fn}
 for(const f in SPEC)wrap(f);
@@ -51,3 +78,7 @@ if(window.REG136)REG136.push(['ภาพมอนชุด 1: ด้วง/โ�
  for(const f of need){if(!A.spec[f].ok)return f+' ภาพไม่โหลด';if(typeof MOBDRAW[f].orig!=='function')return f+' ไม่ได้ครอบตัววาดเดิม';
   const red=px(f,['#e04a3a','#5a1008','#ffff00'],true),blu=px(f,['#3a6ae0','#081a5a','#ffff00'],true),old=px(f,['#e04a3a','#5a1008','#ffff00'],false);
   if(red.n<150)return f+' วาดจากภาพไม่ขึ้น';if(!(red.r>red.b*1.25&&blu.b>blu.r*1.25))return f+' ย้อมสีไม่ตามชุดสี';if(old.n<30)return f+' ภาพพัง แต่ตัววาดเดิมไม่ขึ้น'}return null}]);
+if(window.REG136)REG136.push(['มอนภาพ: เดินแล้วขาขยับ (ขาซ้าย/ขวาไม่อยู่ที่เดิม) · ยืนนิ่งขาอยู่ที่เดิม (v581)',async()=>{const A=window.MOBART578;if(!A)return'ไม่มีระบบภาพมอน';for(let i=0;i<60&&!['golem','skeleton'].every(f=>A.spec[f].ok);i++)await new Promise(r=>setTimeout(r,100));
+ const shot=(f,v,ph,mv)=>{const c=document.createElement('canvas');c.width=c.height=120;const k=c.getContext('2d'),sv=ctx;ctx=k;try{k.translate(60,100);k.scale(2,2);MOBDRAW[f]({x:5,y:5,_ax:5,_ay:5,_av:v,_aph:ph,mv,f,fx:1,sc:1,st:'idle',hurt:0,F:{r:10}},1,['#aaa','#333','#f80'])}finally{ctx=sv}return k.getImageData(0,0,120,120).data};
+ const diff=(a,b)=>{let n=0;for(let i=3;i<a.length;i+=4)if((a[i]>40)!==(b[i]>40))n++;return n};
+ for(const f of['golem','skeleton']){if(!A.spec[f].ok)return f+' ภาพไม่โหลด';const a=shot(f,0,0,true),b=shot(f,0,1.57,true),s0=shot(f,0,0,false),s1=shot(f,0,1.57,false);if(diff(a,b)<25)return f+' เดินแล้วขาไม่ขยับ (หน้า)';if(diff(s0,s1)>0)return f+' ยืนนิ่งแต่ภาพเปลี่ยนตามเฟส';const c=shot(f,2,0,true),d=shot(f,2,1.57,true);if(diff(c,d)<25)return f+' เดินแล้วขาไม่ขยับ (ข้าง)'}return null}]);
