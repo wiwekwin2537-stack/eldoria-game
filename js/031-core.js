@@ -1007,7 +1007,7 @@ function zHurt(src,dmg,kbm,msg){if(P.iframe>0||P.hp<=0)return;noteBossFight(src)
  P.hp=Math.max(0,P.hp-dmg);P.iframe=BAL.iframe;P.stun=BAL.stun*.8;const kb=BAL.kb*(kbm||1);P.kx=nx*kb;P.ky=ny*kb;P.red=.28;P.sinceHit=0;
  for(let i=0;i<10;i++)fx.push({x:P.x,y:P.y-20,vx:(Math.random()-.5)*160,vy:-50-Math.random()*90,l:.6,c:'200,30,40'});
  dmgTxt(P.x,P.y-44,'-'+dmg,'#ff5a5a');gid('msg').textContent=(msg||'โดนโจมตี')+' เลือด -'+dmg;if(P.hp<=0)die()}
-function mobKill(m){const Zm=D.zone,Zd=Zm.Zd;sfx('splat');m.dead=true;
+function mobKill(m){const Zm=D.zone,Zd=Zm.Zd;sfx('splat');m.dead=true;try{if(window.BOOK65)BOOK65.onKill(m)}catch(e){}/* v5.71 สมุดมอนสเตอร์ นับตอนตาย (มอนถูกลบจากรายการภายใน ~50ms) */
  for(let i=0;i<(m.boss?40:12);i++)fx.push({x:m.x,y:m.y-12*m.sc,vx:(Math.random()-.5)*(m.boss?260:140),vy:-40-Math.random()*(m.boss?160:90),l:.7,c:m.boss?'255,216,74':'220,200,180'});
  const coin=Math.round((3+m.L*1.2)*(m.elite?3:1)*(m.boss?30:1));inv.coin+=coin;dmgTxt(m.x,m.y-34*m.sc,'+'+coin+' 🪙','#ffd84a',m.boss);
  for(let i=0;i<Math.min(6,2+(m.L>>4));i++)addDrop('coin',m.x,m.y);
@@ -3056,7 +3056,7 @@ const PT={a:new Set(['c0']),sel:null};
 try{const x=JSON.parse(localStorage.getItem('fm_pt')||'null');if(x&&x.a)for(const id of x.a)if(PNODES[id])PT.a.add(id)}catch(e){}
 const savePT=()=>{try{localStorage.setItem('fm_pt',JSON.stringify({a:[...PT.a]}))}catch(e){}};
 const ptTotal=()=>Math.floor((P.lv-1)*.6),ptUsed=()=>PT.a.size-1,ptFree=()=>Math.max(0,ptTotal()-ptUsed());
-let _ptx=null;function PTX(){if(_ptx)return _ptx;const o={st:{},dmg:0,crit:0,spd:0,mpr:0,skill:0,hpr:0,hp:0,dr:0,far:0,fac:0,chain:0,proj:0,mpc:0,area:0,minion:0,mdmg:0,mdur:0,cdr:0,aspd:0};for(const id of PT.a){const N=PNODES[id];if(!N)continue;for(const k in N.st||{})o.st[k]=(o.st[k]||0)+N.st[k];for(const k in N.fx||{})o[k]+=N.fx[k]}return _ptx=o}
+let _ptx=null;function PTX(){if(_ptx)return _ptx;const o={st:{},dmg:0,crit:0,spd:0,mpr:0,skill:0,hpr:0,hp:0,dr:0,far:0,fac:0,chain:0,proj:0,mpc:0,area:0,minion:0,mdmg:0,mdur:0,cdr:0,aspd:0};for(const id of PT.a){const N=PNODES[id];if(!N)continue;for(const k in N.st||{})o.st[k]=(o.st[k]||0)+N.st[k];for(const k in N.fx||{})o[k]+=N.fx[k]}try{if(window.BOOK65)BOOK65.addTo(o)}catch(e){}/* v5.71 สมุดมอนสเตอร์ js/195 */return _ptx=o}
 const ptDirty=()=>{_ptx=null;applyBonus();recalcStats();P.hp=Math.min(P.hp,BAL.hp);updPasBadge()};
 function ptCan(id){if(PT.a.has(id))return false;return PNODES[id].adj.some(a=>PT.a.has(a))}
 function ptAlloc(id){if(!PNODES[id]||!ptCan(id)){say('ต้องเชื่อมกับจุดที่อัพแล้ว');sfx('thud');return}if(ptFree()<=0){say('แต้มพาสซีฟไม่พอ — ได้เพิ่มเมื่อเลเวลอัป');sfx('thud');return}
