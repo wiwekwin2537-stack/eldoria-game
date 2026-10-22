@@ -133,3 +133,26 @@ REG136.push(['แมพป่า: ขอบเป็นหุบเขา · ใ
    const q=[i],c=[];seen[i]=1;let touch=false;while(q.length){const j=q.pop();c.push(j);const jx=j%W,jy=(j/W)|0;for(const d of [1,-1,W,-W]){const k=j+d,kx=k%W,ky=(k/W)|0;if(k<0||k>=W*H)continue;const v=K[ky][kx];if(v===4)touch=true;if(!seen[k]&&(v===1||v===3)){seen[k]=1;q.push(k)}}}
    if(!touch&&c.length<10)return id+': มีกอต้นไม้/หินเล็ก '+c.length+' ช่องกลางแมพ (เดินติด) ที่ '+x+','+y}}
  return null}]);
+
+/* v5.70: สไนเปอร์ — กระสุนปกติเป็นแสงปืน (ไม่ใช่ลูกธนู) · ใช้สกิลแล้วต้องไม่มีลูกธนูปกติแถมออกมา · ยิงคู่ (ยิงสามจังหวะ ②) สองนัดทิศเดียวกัน · กระสุนแต่ละสกิลหน้าตาไม่ซ้ำ */
+REG136.push(['สไน: แสงปืน · ไม่มีธนูแถมตอนใช้สกิล · ยิงคู่ทิศเดียว · ภาพสกิลแยกกัน',async()=>{const sl=ms=>new Promise(r=>setTimeout(r,ms));
+ const sv={cls:P.cls,lv:P.lv,sw:P.armor.sword,tool:P.tool,draw:P.draw,mp:P.mp,dir:P.dir,at:P.at,csk:CSK.sniper&&CSK.sniper.slice(),bar:SKBAR.sniper&&SKBAR.sniper.slice(),cd:CS.cd.slice(),step:CS.step,x:P.x,y:P.y,paused:PAUSED,d:D},og=shoot;let bad=null;const got=[];
+ try{P.cls='sniper';P.lv=200;P.armor.sword='cw_sniper3';P.tool='sword';P.draw=true;CSK.sniper=[1,1,1,1,1,1];SKBAR.sniper=[0,1,2,3,4,5];P.dir='r';PAUSED=false;P.dead=false;if(D&&(D.town||D.shop))D=null;/* สกิลต่อสู้ใช้ในเมืองไม่ได้ → ทดสอบในทุ่ง */
+  shoot=window.shoot=function(k,o){const n=PROJ.length,r=og.apply(this,arguments);for(let i=n;i<PROJ.length;i++)got.push({tag:window.__t70,p:PROJ[i]});return r};
+  const run=async(tag,fn,ms)=>{window.__t70=tag;P.stun=P.cast=P.dash=0;P.at=-1;P.mp=99999;fn();await sl(ms)};
+  await run('basic',()=>attack(),900);
+  CS.cd[0]=0;await run('s0',()=>useSkill(0),900);
+  CS.cd[1]=0;CS.step=0;await run('s1a',()=>useSkill(1),900);
+  CS.cd[1]=0;await run('s1b',()=>useSkill(1),900);
+  const of=t=>got.filter(g=>g.tag===t).map(g=>g.p);
+  const B=of('basic'),S0=of('s0'),S1b=of('s1b');
+  if(!B.length)bad='สไนโจมตีปกติไม่ยิง';
+  else if(!S0.some(p=>p.k==='bullet25')||!of('s1a').some(p=>p.k==='bullet25'))bad='ใช้สกิลสไนไม่ได้ (ทดสอบไม่ครบ)';
+  else if(B.some(p=>!p.gun))bad='กระสุนปกติสไนยังวาดเป็นลูกธนู';
+  else if(S0.some(p=>p.k==='arrow')||of('s1a').some(p=>p.k==='arrow')||S1b.some(p=>p.k==='arrow'))bad='ใช้สกิลแล้วมีลูกธนูปกติแถมออกมา';
+  else{const tw=S1b.filter(p=>p.k==='bullet25');if(tw.length!==2)bad='ยิงคู่ไม่ได้ 2 นัด ('+tw.length+')';
+   else if(Math.abs(Math.atan2(tw[0].vy,tw[0].vx)-Math.atan2(tw[1].vy,tw[1].vx))>.01)bad='ยิงคู่สองนัดคนละทิศ';
+   else{const looks=new Set([S0[0]&&S0[0].gun,of('s1a')[0]&&of('s1a')[0].gun,tw[0].gun,B[0].gun]);if(looks.size<4)bad='กระสุนปกติ/สกิลหน้าตาซ้ำกัน'}}}
+ catch(e){bad='error '+e.message}
+ finally{shoot=window.shoot=og;P.cls=sv.cls;P.lv=sv.lv;P.armor.sword=sv.sw;P.tool=sv.tool;P.draw=sv.draw;P.mp=sv.mp;P.dir=sv.dir;P.at=sv.at;if(sv.csk)CSK.sniper=sv.csk;if(sv.bar)SKBAR.sniper=sv.bar;CS.cd=sv.cd;CS.step=sv.step;P.x=sv.x;P.y=sv.y;PAUSED=sv.paused;D=sv.d;try{recalcStats()}catch(e){}}
+ return bad}]);

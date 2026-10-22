@@ -25,6 +25,8 @@ function add94(o){o.t0=performance.now();V94.list.push(o);if(V94.list.length>40)
 function spark94(x,y,col,n,sp,up){try{for(let k=0;k<n;k++){const a=Math.random()*6.283,v=(sp||90)*(.4+Math.random()*.6);fx.push({x:x+(Math.random()-.5)*8,y:y+(Math.random()-.5)*8,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.6-(up||0),l:.35+Math.random()*.45,c:col})}}catch(e){}}
 // เริ่มเอฟเฟกต์ของสกิล (ใช้ทั้งของเราและของผู้เล่นอื่น)
 function cast94(x,y,cls,i,dir){const I=info94(cls,i),dv=DIRV[dir]||[0,1],c=I.col;
+ /* v5.70: สไนเปอร์มีภาพกระสุนปืนของตัวเองแล้ว (fix25/fix46) — ไม่ใส่วงเวท/ลำแสงทองทั่วไปที่ทำให้ทุกสกิลหน้าตาเหมือนกัน และพุ่งตามทิศหันตัวไม่ใช่ทิศที่ลากเล็ง · เหลือแค่ออร่าบัฟ (โหมดซุ่มยิง) */
+ if(cls==='sniper'){if(I.ty==='buff')add94({k:'aura',x,y,c,dur:1.6,follow:x===P.x&&y===P.y});return I}
  add94({k:'cast',x,y,c,dur:.85});
  if(I.ty==='aoe'){add94({k:'wave',x,y,c,dur:.6,r:120});add94({k:'wave',x,y,c,dur:.85,r:170,d:.12});add94({k:'disk',x,y,c,dur:.7,r:110})}
  else if(I.ty==='line')add94({k:'beam',x,y:y-14,c,dur:.45,dx:dv[0],dy:dv[1],len:230});

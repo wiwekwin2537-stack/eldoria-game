@@ -240,7 +240,7 @@
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
 | `netMsg` | js/031-core.js:2705 | 16 ชั้น | js/031-core.js:7319 · js/040-fix9.js:19 · js/051-fix20.js:104 · js/052-fix21.js:61 · js/060-fix29.js:47 · js/060-fix29.js:91 · js/064-fix33.js:28 · js/066-fix35.js:29 · js/104-fix72.js:28 · js/113-fix81.js:89 · js/114-fix82.js:51 · js/153-fix123.js:41 · js/157-fix130.js:87 · js/160-fix133.js:2 · js/166-fix139.js:31 · js/185-shared-world.js:67 |
-| `drawOther` | js/031-core.js:2719 | 11 ชั้น | js/031-core.js:3860 · js/031-core.js:7064 · js/031-core.js:7359 · js/040-fix9.js:228 · js/051-fix20.js:105 · js/052-fix21.js:67 · js/056-fix25.js:211 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:31 · js/103-fix71.js:13 |
+| `drawOther` | js/031-core.js:2719 | 11 ชั้น | js/031-core.js:3860 · js/031-core.js:7064 · js/031-core.js:7359 · js/040-fix9.js:228 · js/051-fix20.js:105 · js/052-fix21.js:67 · js/056-fix25.js:225 · js/065-fix34.js:24 · js/066-fix35.js:47 · js/089-fix57.js:31 · js/103-fix71.js:13 |
 | `openGuild` | js/031-core.js:2393 | 2 ชั้น | js/031-core.js:2592 · js/153-fix123.js:67 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
@@ -263,11 +263,11 @@
 ## สกิล / อาชีพ / พาสซีฟ
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `useSkill` | js/029-core.js:10 | 17 ชั้น | js/031-core.js:1983 · js/031-core.js:2217 · js/031-core.js:3372 · js/031-core.js:4249 · js/031-core.js:6068 · js/031-core.js:6783 · js/032-fix1.js:67 · js/073-fix41.js:304 · js/078-fix46.js:178 · js/084-fix52.js:18 · js/084-fix52.js:19 · js/087-fix55.js:13 · js/088-fix56.js:6 · js/105-fix73.js:13 · js/123-fix91.js:16 · js/126-fix94.js:38 · js/170-fix143.js:37 |
-| `skTick` | js/029-core.js:24 | 10 ชั้น | js/031-core.js:2018 · js/031-core.js:2260 · js/031-core.js:2540 · js/031-core.js:3395 · js/056-fix25.js:127 · js/056-fix25.js:190 · js/060-fix29.js:44 · js/073-fix41.js:288 · js/075-fix43.js:10 · js/078-fix46.js:110 |
+| `useSkill` | js/029-core.js:10 | 17 ชั้น | js/031-core.js:1983 · js/031-core.js:2217 · js/031-core.js:3372 · js/031-core.js:4249 · js/031-core.js:6068 · js/031-core.js:6783 · js/032-fix1.js:67 · js/073-fix41.js:304 · js/078-fix46.js:178 · js/084-fix52.js:18 · js/084-fix52.js:19 · js/087-fix55.js:13 · js/088-fix56.js:6 · js/105-fix73.js:13 · js/123-fix91.js:16 · js/126-fix94.js:40 · js/170-fix143.js:37 |
+| `skTick` | js/029-core.js:24 | 10 ชั้น | js/031-core.js:2018 · js/031-core.js:2260 · js/031-core.js:2540 · js/031-core.js:3395 · js/056-fix25.js:127 · js/056-fix25.js:204 · js/060-fix29.js:44 · js/073-fix41.js:288 · js/075-fix43.js:10 · js/078-fix46.js:110 |
 | `castUlt` | js/031-core.js:4911 | 5 ชั้น | js/031-core.js:6300 · js/031-core.js:6786 · js/105-fix73.js:29 · js/155-fix128.js:14 · js/170-fix143.js:39 |
 | `pickClass` | js/031-core.js:2121 | 4 ชั้น | js/031-core.js:2236 · js/034-fix3.js:7 · js/035-fix4.js:7 · js/173-fix146.js:21 |
-| `openClassMenu` | js/031-core.js:2117 | 8 ชั้น | js/031-core.js:2250 · js/031-core.js:6226 · js/056-fix25.js:242 · js/058-fix27.js:41 · js/074-fix42.js:28 · js/085-fix53.js:5 · js/122-fix90.js:63 · js/173-fix146.js:26 |
+| `openClassMenu` | js/031-core.js:2117 | 8 ชั้น | js/031-core.js:2250 · js/031-core.js:6226 · js/056-fix25.js:256 · js/058-fix27.js:41 · js/074-fix42.js:28 · js/085-fix53.js:5 · js/122-fix90.js:63 · js/173-fix146.js:26 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
 - `fix25` `js/056-fix25.js` — (v4.33) — ข้อ 68 ส่วนที่ 2: 8 คลาสใหม่ (นินจา สไนเปอร์ พาลาดิน นักบวช เนโครแมนเซอร์ มังค์ อัศวินมังกร ผู้อัญเช
@@ -303,11 +303,11 @@
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
 | `attack` | js/026-core.js:1 | 14 ชั้น | js/031-core.js:802 · js/031-core.js:1700 · js/031-core.js:2016 · js/031-core.js:2644 · js/031-core.js:2871 · js/031-core.js:3737 · js/031-core.js:3748 · js/031-core.js:4165 · js/031-core.js:4213 · js/031-core.js:4248 · js/031-core.js:4496 · js/031-core.js:5493 · js/031-core.js:5817 · js/156-fix129.js:27 |
-| `shoot` | js/031-core.js:1961 | 8 ชั้น | js/031-core.js:2468 · js/031-core.js:6075 · js/036-fix5.js:22 · js/056-fix25.js:188 · js/075-fix43.js:6 · js/078-fix46.js:205 · js/105-fix73.js:17 · js/170-fix143.js:96 |
+| `shoot` | js/031-core.js:1961 | 8 ชั้น | js/031-core.js:2468 · js/031-core.js:6075 · js/036-fix5.js:22 · js/056-fix25.js:200 · js/075-fix43.js:6 · js/078-fix46.js:205 · js/105-fix73.js:17 · js/170-fix143.js:96 |
 | `aimDir` | js/031-core.js:1956 | 2 ชั้น | js/036-fix5.js:13 · js/064-fix33.js:113 |
 | `shotContact` | js/031-core.js:1958 | 0 ชั้น | — |
 | `meleeContact` | js/031-core.js:1959 | 0 ชั้น | — |
-| `hurtE` | js/031-core.js:1947 | 21 ชั้น | js/031-core.js:2539 · js/031-core.js:2993 · js/031-core.js:4666 · js/031-core.js:4901 · js/031-core.js:6074 · js/031-core.js:6301 · js/031-core.js:6721 · js/031-core.js:6798 · js/031-core.js:7352 · js/056-fix25.js:145 · js/056-fix25.js:189 · js/060-fix29.js:32 · js/062-fix31.js:27 · js/064-fix33.js:76 · js/073-fix41.js:301 · js/076-fix44.js:8 · js/078-fix46.js:153 · js/105-fix73.js:16 · js/109-fix77.js:7 · js/126-fix94.js:45 · js/155-fix128.js:15 |
+| `hurtE` | js/031-core.js:1947 | 21 ชั้น | js/031-core.js:2539 · js/031-core.js:2993 · js/031-core.js:4666 · js/031-core.js:4901 · js/031-core.js:6074 · js/031-core.js:6301 · js/031-core.js:6721 · js/031-core.js:6798 · js/031-core.js:7352 · js/056-fix25.js:145 · js/056-fix25.js:203 · js/060-fix29.js:32 · js/062-fix31.js:27 · js/064-fix33.js:76 · js/073-fix41.js:301 · js/076-fix44.js:8 · js/078-fix46.js:153 · js/105-fix73.js:16 · js/109-fix77.js:7 · js/126-fix94.js:47 · js/155-fix128.js:15 |
 | `zHurt` | js/031-core.js:1005 | 10 ชั้น | js/031-core.js:1397 · js/031-core.js:3071 · js/031-core.js:4667 · js/031-core.js:4904 · js/031-core.js:7176 · js/037-fix6.js:7 · js/064-fix33.js:72 · js/105-fix73.js:31 · js/109-fix77.js:8 · js/156-fix129.js:18 |
 | `hurtPlayer` | js/014-core.js:27 | 5 ชั้น | js/031-core.js:1396 · js/031-core.js:5672 · js/037-fix6.js:8 · js/105-fix73.js:32 · js/156-fix129.js:20 |
 | `updMob` | js/031-core.js:1025 | 10 ชั้น | js/031-core.js:1517 · js/031-core.js:2058 · js/031-core.js:3232 · js/031-core.js:3841 · js/031-core.js:3900 · js/036-fix5.js:6 · js/064-fix33.js:64 · js/082-fix50.js:6 · js/083-fix51.js:5 · js/115-fix83.js:22 |
@@ -336,7 +336,7 @@
 | `useToolHit` | js/016-core.js:52 | 6 ชั้น | js/031-core.js:43 · js/031-core.js:1085 · js/031-core.js:2633 · js/031-core.js:3746 · js/031-core.js:4161 · js/046-fix15.js:50 |
 | `hitOre` | js/016-core.js:63, js/031-core.js:34 | 3 ชั้น | js/031-core.js:1479 · js/031-core.js:2392 · js/051-fix20.js:8 |
 | `hitTree` | js/016-core.js:57 | 2 ชั้น | js/031-core.js:1478 · js/051-fix20.js:10 |
-| `toolSpr` | js/016-core.js:28 | 16 ชั้น | js/031-core.js:1448 · js/031-core.js:2103 · js/031-core.js:2455 · js/031-core.js:2649 · js/031-core.js:3020 · js/031-core.js:4169 · js/031-core.js:4527 · js/031-core.js:4741 · js/031-core.js:5254 · js/031-core.js:5519 · js/038-fix7.js:4 · js/056-fix25.js:203 · js/058-fix27.js:72 · js/090-fix58.js:77 · js/136-fix104.js:87 · js/178-fix151.js:22 |
+| `toolSpr` | js/016-core.js:28 | 16 ชั้น | js/031-core.js:1448 · js/031-core.js:2103 · js/031-core.js:2455 · js/031-core.js:2649 · js/031-core.js:3020 · js/031-core.js:4169 · js/031-core.js:4527 · js/031-core.js:4741 · js/031-core.js:5254 · js/031-core.js:5519 · js/038-fix7.js:4 · js/056-fix25.js:217 · js/058-fix27.js:72 · js/090-fix58.js:77 · js/136-fix104.js:87 · js/178-fix151.js:22 |
 | `zMine` | js/031-core.js:1078 | 4 ชั้น | js/031-core.js:1480 · js/031-core.js:2391 · js/046-fix15.js:44 · js/051-fix20.js:9 |
 
 ชุดแก้ที่เกี่ยวข้อง (จากหัวข้อ):
@@ -423,7 +423,7 @@
 ## หน้าตาตัวละคร / อาวุธในมือ / ออร่า
 | ฟังก์ชัน | ต้นฉบับ (ไฟล์:บรรทัด) | ถูกห่อทับ | ชั้นที่ห่อ (ไฟล์:บรรทัด) |
 |---|---|---|---|
-| `hero` | js/018-core.js:53 | 53 ชั้น | js/031-core.js:757 · js/031-core.js:1435 · js/031-core.js:1596 · js/031-core.js:1695 · js/031-core.js:1914 · js/031-core.js:2090 · js/031-core.js:2635 · js/031-core.js:2724 · js/031-core.js:3030 · js/031-core.js:3360 · js/031-core.js:3670 · js/031-core.js:3877 · js/031-core.js:4210 · js/031-core.js:4242 · js/031-core.js:4252 · js/031-core.js:4481 · js/031-core.js:4757 · js/031-core.js:4948 · js/031-core.js:5257 · js/031-core.js:6049 · js/031-core.js:6302 · js/031-core.js:6371 · js/031-core.js:6526 · js/031-core.js:6537 · js/038-fix7.js:56 · js/038-fix7.js:83 · js/040-fix9.js:223 · js/041-fix10.js:27 · js/041-fix10.js:54 · js/042-fix11.js:37 · js/042-fix11.js:60 · js/046-fix15.js:36 · js/047-fix16.js:42 · js/073-fix41.js:335 · js/074-fix42.js:166 · js/078-fix46.js:239 · js/087-fix55.js:73 · js/090-fix58.js:38 · js/094-fix62.js:80 · js/096-fix64.js:32 · js/102-fix70.js:9 · js/104-fix72.js:107 · js/105-fix73.js:93 · js/106-fix74.js:48 · js/108-fix76.js:59 · js/113-fix81.js:173 · js/113-fix81.js:197 · js/113-fix81.js:260 · js/118-fix86.js:8 · js/132-fix100.js:6 · js/136-fix104.js:33 · js/170-fix143.js:66 · js/177-fix150.js:14 |
+| `hero` | js/018-core.js:53 | 53 ชั้น | js/031-core.js:757 · js/031-core.js:1435 · js/031-core.js:1596 · js/031-core.js:1695 · js/031-core.js:1914 · js/031-core.js:2090 · js/031-core.js:2635 · js/031-core.js:2724 · js/031-core.js:3030 · js/031-core.js:3360 · js/031-core.js:3670 · js/031-core.js:3877 · js/031-core.js:4210 · js/031-core.js:4242 · js/031-core.js:4252 · js/031-core.js:4481 · js/031-core.js:4757 · js/031-core.js:4948 · js/031-core.js:5257 · js/031-core.js:6049 · js/031-core.js:6302 · js/031-core.js:6371 · js/031-core.js:6526 · js/031-core.js:6537 · js/038-fix7.js:56 · js/038-fix7.js:83 · js/040-fix9.js:223 · js/041-fix10.js:27 · js/041-fix10.js:54 · js/042-fix11.js:37 · js/042-fix11.js:60 · js/046-fix15.js:36 · js/047-fix16.js:42 · js/073-fix41.js:335 · js/074-fix42.js:166 · js/078-fix46.js:251 · js/087-fix55.js:73 · js/090-fix58.js:38 · js/094-fix62.js:80 · js/096-fix64.js:32 · js/102-fix70.js:9 · js/104-fix72.js:107 · js/105-fix73.js:93 · js/106-fix74.js:48 · js/108-fix76.js:59 · js/113-fix81.js:173 · js/113-fix81.js:197 · js/113-fix81.js:260 · js/118-fix86.js:8 · js/132-fix100.js:6 · js/136-fix104.js:33 · js/170-fix143.js:66 · js/177-fix150.js:14 |
 | `heroBody` | js/018-core.js:11 | 12 ชั้น | js/031-core.js:3859 · js/031-core.js:5369 · js/031-core.js:5444 · js/031-core.js:5475 · js/031-core.js:5620 · js/031-core.js:5851 · js/032-fix1.js:63 · js/040-fix9.js:235 · js/089-fix57.js:34 · js/092-fix60.js:36 · js/102-fix70.js:5 · js/170-fix143.js:31 |
 | `renderChar` | js/031-core.js:347 | 6 ชั้น | js/031-core.js:1739 · js/031-core.js:2252 · js/031-core.js:3122 · js/031-core.js:6481 · js/143-fix111.js:62 · js/155-fix128.js:53 |
 | `drawMob` | js/031-core.js:1184 | 1 ชั้น | js/031-core.js:3911 |

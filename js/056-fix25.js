@@ -80,11 +80,11 @@ const SKN25={
    else if(st===1){ef25({k:'clones',x:P.x,y:P.y,l:.5});eachIn(P.x,P.y-8,82,m=>hurtE(m,1.4,{kb:140}));sfx('swing');sfx('swing2')}
    else{ef25({k:'smoke',x:P.x,y:P.y,l:1.6});eachIn(P.x,P.y-8,90,m=>hurtE(m,2.0,{kb:200,stun:1.2}));P.iframe=Math.max(P.iframe,1.5);sfx('thud')}},
   ()=>{B25.shadow={t:0,l:2.5,tick:0};P.iframe=Math.max(P.iframe,2.6);sfx('warp')}],
- sniper:[()=>{const dv=aimDir(520);shoot('bullet25',{dv,sp:900,range:560,mult:3.0,pierce:99,r:7});P.at=0;P.cmb=0;shake(2,.1);sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})},
-  st=>{const dv=aimDir(520);P.at=0;P.cmb=0;
-   if(st===0){shoot('bullet25',{dv,sp:950,range:540,mult:2.4,r:7,crit25:1});sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})}
-   else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{const dv2=(()=>{try{return aimDir(480)}catch(e){return dv}})();/* v5.68 ยิงตามทิศตอนยิงจริง (หลังตีลังกาตัวละครหันตามเป้าแล้ว) ไม่ใช้ทิศเก่าก่อนตีลังกา */for(const o of [-.06,.06]){const a=Math.atan2(dv2[1],dv2[0])+o;shoot('bullet25',{dv:[Math.cos(a),Math.sin(a)],sp:900,range:480,mult:1.4,r:7})}sfx('thud')},180)}
-   else{shoot('bomb',{dv,sp:620,range:420,mult:2.8,aoe:90,stun:.8,r:9});sfx('thud');shake(2,.1)}},
+ sniper:[()=>{const dv=aimDir(520);shoot('bullet25',{dv,sp:900,range:560,mult:3.0,pierce:99,r:7,gun:'ap'});P.at=0;P.cmb=0;P.shot=true;/* v5.70: ท่ายิงของสกิลไม่ปล่อยกระสุนปกติแถม */shake(2,.1);sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})},
+  st=>{const dv=aimDir(520);P.at=0;P.cmb=0;P.shot=true;/* v5.70 */
+   if(st===0){shoot('bullet25',{dv,sp:950,range:540,mult:2.4,r:7,crit25:1,gun:'head'});sfx('thud');ef25({k:'muzzle',x:P.x+dv[0]*20,y:P.y-14+dv[1]*12,l:.15})}
+   else if(st===1){P.dv=[-dv[0],-dv[1]];P.dash=.2;P.dcd=.25;P.iframe=Math.max(P.iframe,.35);P.flip=.35;sfx('dash');setTimeout(()=>{const dv2=(()=>{try{return aimDir(480)}catch(e){return dv}})();/* v5.68 ยิงตามทิศตอนยิงจริง (หลังตีลังกาตัวละครหันตามเป้าแล้ว) ไม่ใช้ทิศเก่าก่อนตีลังกา */P.at=0;P.shot=true;for(const o of [-5,5]){/* v5.70: ยิงคู่ขนาน ทิศเดียวกัน (เดิมกาง ±0.06 เรเดียน เจ้าของแจ้ง 'ออกทีละ 2 ลูกคนละทิศ') */const n=PROJ.length;shoot('bullet25',{dv:dv2,sp:900,range:480,mult:1.4,r:7,gun:'twin'});const p=PROJ[n];if(p){p.x+=-dv2[1]*o;p.y+=dv2[0]*o}}sfx('thud')},180)}
+   else{shoot('bomb',{dv,sp:620,range:420,mult:2.8,aoe:90,stun:.8,r:9,gun:'he'});sfx('thud');shake(2,.1)}},
   ()=>{const dv=aimDir(320),point=window.SKILLAIM46&&SKILLAIM46.point(2);ef25({k:'barrage',x:point?point[0]:P.x+dv[0]*140,y:point?point[1]:P.y+dv[1]*140,r:95,l:3,tick:0});sfx('swing2')}],
  paladin:[()=>{ef25({k:'hammer',x:P.x,y:P.y,l:.6});eachIn(P.x,P.y-8,95,e=>hurtE(e,1.7,{kb:180,stun:1,col:'#ffe9a0'}));heal25(.1);shake(4,.25);sfx('thud');sfx('crumble')},
   st=>{const v=DIRV[P.dir];if(st===0){P.dv=v.slice();P.dash=.26;P.dcd=.3;P.iframe=Math.max(P.iframe,.3);P.dashHit=new Set();P.dashMult=1.5;vfx('slashline',P.x,P.y,.35,{dx:v[0],dy:v[1]});sfx('dash')}
@@ -174,10 +174,22 @@ function draw25(){const t=performance.now()/1000;ctx.save();
  if(B25.zen){ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(P.x,P.y-20,4,P.x,P.y-20,60);g.addColorStop(0,'rgba(255,210,120,.35)');g.addColorStop(1,'rgba(255,170,60,0)');ctx.fillStyle=g;ctx.fillRect(P.x-60,P.y-80,120,120)}
  ctx.restore()}
 // กระสุนแบบใหม่ (วาดเองแทนลูกกลมม่วงตั้งต้น)
+/* v5.70 กระสุนแสงปืนสไน — วาดในแกนทิศกระสุน (ctx ถูกหมุนแล้ว: +x = ทิศบิน) */
+const GUN70={t:['255,236,170','255,190,80',26,2.2],ap:['170,230,255','90,170,255',46,3.4],head:['255,120,110','255,60,60',34,2.6],twin:['255,226,140','255,170,60',30,2.2]};
+function gun70(p,t){ctx.globalCompositeOperation='lighter';
+ if(p.gun==='he'){/* กระสุนระเบิด: หัวกระสุนส้มเรือง + ควันไฟท้าย */for(let i=0;i<6;i++){const a=.5-i*.08;ctx.fillStyle='rgba(255,'+(140-i*12)+',40,'+a+')';ctx.beginPath();el25(-6-i*5,(Math.sin(t*40+i)*1.5),5-i*.4,3.5-i*.3,0,0,7);ctx.fill()}
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='#4a3a2a';ctx.beginPath();el25(2,0,6,3.6,0,0,7);ctx.fill();ctx.fillStyle='#ffb040';ctx.beginPath();el25(6,0,3,2.6,0,0,7);ctx.fill();return}
+ const G=GUN70[p.gun]||GUN70.t,len=G[2],w=G[3];
+ const g=ctx.createLinearGradient(-len,0,4,0);g.addColorStop(0,'rgba('+G[1]+',0)');g.addColorStop(.7,'rgba('+G[1]+',.55)');g.addColorStop(1,'rgba('+G[0]+',.95)');ctx.fillStyle=g;ctx.fillRect(-len,-w*1.6,len+4,w*3.2);
+ ctx.fillStyle='rgba(255,255,255,.95)';ctx.fillRect(-len*.55,-w*.35,len*.55+5,w*.7);ctx.beginPath();el25(5,0,3.2,w*.6,0,0,7);ctx.fill();
+ if(p.gun==='ap'){/* เจาะเกราะ: วงคลื่นกระแทกตามทาง */for(let i=0;i<3;i++){const x=-12-i*12,r=3+i*2.2;ctx.strokeStyle='rgba('+G[1]+','+(.55-i*.15)+')';ctx.lineWidth=1.4;ctx.beginPath();el25(x,0,1.6,r+Math.sin(t*30+i)*.6,0,0,7);ctx.stroke()}}
+ if(p.gun==='head'){ctx.strokeStyle='rgba(255,90,80,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(5,0,5,0,7);ctx.stroke()}}
+window.gun70=gun70;
 const MYK25=new Set(['shuri25','bullet25','holy25','soul25','bone25','palm25','dragonfist25']);
-{const _da=drawAir;drawAir=function(){const mine=[],keep=[];for(const p of PROJ)(MYK25.has(p.k)?mine:keep).push(p);const all=PROJ.slice();PROJ.length=0;PROJ.push(...keep);try{_da()}finally{PROJ.length=0;PROJ.push(...all)}
+{const _da=drawAir;drawAir=function(){const mine=[],keep=[];for(const p of PROJ)(MYK25.has(p.k)||p.gun?mine:keep).push(p);const all=PROJ.slice();PROJ.length=0;PROJ.push(...keep);try{_da()}finally{PROJ.length=0;PROJ.push(...all)}
  const t=performance.now()/1000;for(const p of mine){const a=Math.atan2(p.vy,p.vx);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(a);
   if(p.k==='shuri25'){ctx.rotate(t*20);ctx.fillStyle='#c8d0e0';ctx.strokeStyle='#2a2a3a';ctx.lineWidth=1;ctx.beginPath();for(let i=0;i<4;i++){const b=i*1.5708;ctx.lineTo(Math.cos(b)*8,Math.sin(b)*8);ctx.lineTo(Math.cos(b+.785)*2.5,Math.sin(b+.785)*2.5)}ctx.closePath();ctx.fill();ctx.stroke()}
+  else if(p.gun){gun70(p,t)}
   else if(p.k==='bullet25'){ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(-30,0,6,0);g.addColorStop(0,'rgba(255,200,80,0)');g.addColorStop(1,'rgba(255,240,180,.95)');ctx.fillStyle=g;ctx.fillRect(-30,-1.6,36,3.2);ctx.fillStyle='#fff';ctx.beginPath();el25(4,0,4,2,0,0,7);ctx.fill()}
   else if(p.k==='holy25'||p.k==='soul25'){ctx.globalCompositeOperation='lighter';const c=p.k==='holy25'?'255,245,190':'120,255,170',g=ctx.createRadialGradient(0,0,0,0,0,12);g.addColorStop(0,'#fff');g.addColorStop(.4,'rgba('+c+',.9)');g.addColorStop(1,'rgba('+c+',0)');ctx.fillStyle=g;ctx.beginPath();el25(-4,0,16,10,0,0,7);ctx.fill();if(p.k==='soul25'){ctx.fillStyle='#14102a';ctx.fillRect(-1,-3,2,2);ctx.fillRect(3,-3,2,2)}}
   else if(p.k==='bone25'){ctx.fillStyle='#e8e0d0';ctx.strokeStyle='#4a4038';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-10,-3);ctx.lineTo(-14,0);ctx.lineTo(-10,3);ctx.closePath();ctx.fill();ctx.stroke();ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(120,255,170,.35)';ctx.fillRect(-26,-4,14,8)}
@@ -185,7 +197,9 @@ const MYK25=new Set(['shuri25','bullet25','holy25','soul25','bone25','palm25','d
   ctx.restore()}
  if(!window.__IN_OTHER8)draw25()}}
 // กระสุนพิเศษตอนชน: ดูดเลือด / คริแน่นอน
-{const _sh=shoot;shoot=function(kind,o){_sh(kind,o);try{const p=PROJ[PROJ.length-1];if(p&&o){if(o.crit25)p.crit25=1;if(o.leech)p.leech=o.leech}}catch(e){}}}
+{const _sh=shoot;shoot=function(kind,o){const n=PROJ.length;_sh(kind,o);try{const p=PROJ[PROJ.length-1];if(p&&o){if(o.crit25)p.crit25=1;if(o.leech)p.leech=o.leech}
+  /* v5.70: สไนยิงกระสุนแสงปืน — p.gun บอกหน้าตา (t ปกติ · ap เจาะเกราะ · head เล็งหัว · twin ยิงคู่ · he กระสุนระเบิด) · ดาเมจ/ชนิดเดิมไม่เปลี่ยน */
+  for(let i=n;i<PROJ.length;i++){const q=PROJ[i];if(o&&o.gun)q.gun=o.gun;else if(kind==='arrow'&&P.cls==='sniper'&&!window._drawingOther){q.gun='t';try{ef25({k:'muzzle',x:q.x,y:q.y,l:.1})}catch(e){}}}}catch(e){}}}
 {const _he=hurtE;hurtE=function(e,mult,o){o=o||{};try{for(const p of PROJ){if(p.crit25&&p.hit.has(e)){p.__c=p.__c||new Set();if(!p.__c.has(e)){p.__c.add(e);o.crit=1;break}}}}catch(_){}return _he(e,mult,o)}}
 {const _st=skTick;skTick=function(dt){_st(dt);
   try{for(const p of PROJ){if(p.leech&&p.hit&&p.hit.size>(p.__n||0)){P.hp=Math.min(BAL.hp,P.hp+Math.round(clsAtk()*p.mult*p.leech*(p.hit.size-(p.__n||0))));p.__n=p.hit.size}}}catch(e){}}}
