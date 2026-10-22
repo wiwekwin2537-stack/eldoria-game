@@ -33,7 +33,10 @@ const SKIN55='#f0c8a0';
 function fist55(x,y,r,a,glove){ctx.save();ctx.globalAlpha=a;ctx.fillStyle=glove||SKIN55;ctx.strokeStyle='#3a2414';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.stroke();
  ctx.strokeStyle='rgba(60,30,10,.6)';ctx.lineWidth=1;for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x-r*.55,y+i*r*.38);ctx.lineTo(x+r*.55,y+i*r*.38);ctx.stroke()}
  ctx.fillStyle='rgba(255,255,255,.45)';ctx.beginPath();ctx.arc(x-r*.35,y-r*.4,r*.32,0,7);ctx.fill();ctx.restore()}
-function arm55(x0,y0,x1,y1,a,col){ctx.save();ctx.globalAlpha=a;ctx.lineCap='round';ctx.strokeStyle='#1a1a22';ctx.lineWidth=6.5;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.strokeStyle=col;ctx.lineWidth=4.5;ctx.stroke();ctx.restore()}
+/* v5.79 แขน 2 ท่อน: ยาวรวม 13 — ระยะไหล่→มือสั้นกว่านั้นข้อศอกจะงอ (ข้อศอกอยู่ด้านล่าง) · ยาวถึงหรือเกินเท่าเดิม = เส้นตรงเหมือนเดิม */
+function arm55(x0,y0,x1,y1,a,col){ctx.save();ctx.globalAlpha=a;ctx.lineCap='round';ctx.lineJoin='round';const dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy)||1,L=13;ctx.strokeStyle='#1a1a22';ctx.lineWidth=6.5;ctx.beginPath();ctx.moveTo(x0,y0);
+ if(d<L-.6){const h=Math.sqrt(L*L/4-d*d/4)*.8;let px=-dy/d,py=dx/d;if(py<0||(Math.abs(py)<.05&&px<0)){px=-px;py=-py}ctx.lineTo(x0+dx/2+px*h,y0+dy/2+py*h)}
+ ctx.lineTo(x1,y1);ctx.stroke();ctx.strokeStyle=col;ctx.lineWidth=4.5;ctx.stroke();ctx.restore()}
 function star55(x,y,r,a,c){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=a;ctx.strokeStyle=c||'#fff6d0';ctx.lineWidth=2;for(let i=0;i<8;i++){const an=i*Math.PI/4,r1=i%2?r*.45:r;ctx.beginPath();ctx.moveTo(x+Math.cos(an)*r*.25,y+Math.sin(an)*r*.25);ctx.lineTo(x+Math.cos(an)*r1,y+Math.sin(an)*r1);ctx.stroke()}ctx.restore()}
 function arc55(cx,cy,r,a0,a1,w,a,col){ctx.save();ctx.globalCompositeOperation='lighter';const n=10;for(let i=0;i<n;i++){const t0=a0+(a1-a0)*i/n,t1=a0+(a1-a0)*(i+1)/n;ctx.globalAlpha=a*(i+1)/n;ctx.strokeStyle=col;ctx.lineWidth=w*(i+1)/n;ctx.lineCap='round';ctx.beginPath();ctx.arc(cx,cy,r,t0,t1,a1<a0);ctx.stroke()}ctx.restore()}
 function overlay55(ox,oy){const k=POSE55.k,u=POSE55.t/POSE55.l,[dx,dy]=DV55[POSE55.dir]||[1,0],px=-dy,py=dx,x=P.x+ox,y=P.y+oy,sh=y-25,t=POSE55.t;let EC={TOP:'#262631'};try{EC=EQCOL()}catch(e){}

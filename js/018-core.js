@@ -23,14 +23,17 @@ function heroBody(){
  if(at&&d==='u')slash();
  if(!posed&&(d==='d'||side))backSword(x,by,side,f,d);
  
+ let hnd=[x+s*5*f,by-13];
  if(side){ // มองข้าง: ขาและแขนแกว่งหน้า-หลัง
   if(DP){leg(x-3,by-12,f*.95,LGB,13);leg(x-3,by-12,-f*.7,LGA,12)}else{sideLegs(x,by,f,LGA,LGB,run)}
   R(TOP,x-4.5,by-26,9,14);R(COL,x-5,by-28,10,4);drawChest(R,x,by,side,f,d);drawNeck(x,by,side,d);
   R(SK,x-6,by-40,12,12);R(BLK,x-7,by-43,14,7);R(BLK,x-7+(f<0?6:0),by-43,8,13);
   R(BLK,x-6,by-48,4,6);R(BLK,x-1,by-49,4,7);R(BLK,x+3,by-47,4,5);
   R('#111',x+3*f-1,by-36,2,3);
-  if(DP){ctx.save();ctx.translate(x-3,by-25);ctx.rotate(f*1.15);R(TOP,0,0,6,12);R(SK,0,9,6,4);ctx.restore()}else if(!posed&&!bowIdle&&!(at&&window.RNGARM7&&RNGARM7())){R(TOP,x-3+s*5*f,by-26,6,12);R(SK,x-3+s*5*f,by-15,6,4);drawArm(x-3+s*5*f,by-21);drawRing(x-3+s*5*f,by-15)}
-  if(!at){if(DP)held(x-f*10,by-19,-f*1.35);else held(x+s*5*f,by-13,f*(.9-tilt))}
+  if(DP){ctx.save();ctx.translate(x-3,by-25);ctx.rotate(f*1.15);R(TOP,0,0,6,12);R(SK,0,9,6,4);ctx.restore()}else if(!posed&&!bowIdle&&!(at&&window.RNGARM7&&RNGARM7())){/* v5.79 แขนมีข้อศอก (เจ้าของสั่ง 2026-10-23 ให้ตัวเดิมขยับข้อต่อ): ต้นแขน 6 + ปลายแขน 7 · แกว่งหน้า-หลังตามก้าว · ข้อศอกงอไปข้างหน้ามากขึ้นตอนแขนแกว่งไปหน้า · มือ(จุดถืออาวุธ) อยู่ตำแหน่งเดิมโดยประมาณ */
+   const ph=s*(run?.7:.5),t1=-ph*f,t2=t1-f*(.3+Math.max(0,ph)*(run?1.1:.8)),ex=x-6*Math.sin(t1),ey=by-26+6*Math.cos(t1),hx2=ex-7*Math.sin(t2),hy2=ey+7*Math.cos(t2);hnd=[hx2,hy2];
+   ctx.save();ctx.translate(x,by-26);ctx.rotate(t1);R(TOP,-3,0,6,7);ctx.translate(0,6);ctx.rotate(t2-t1);R(TOP,-3,0,6,7);R(SK,-3,5,6,4);ctx.restore();drawArm(hx2-3,hy2-8);drawRing(hx2-3,hy2-2)}
+  if(!at){if(DP)held(x-f*10,by-19,-f*1.35);else held(hnd[0],hnd[1],f*(.9-tilt))}
  }else{ // มองหน้า/หลัง
   const l1=DP?7:Math.max(0,s)*(run?5:3.5),l2=DP?0:Math.max(0,-s)*(run?5:3.5);
   R(LGA,x-7,by-12-l1,6,12);R(LGA,x+1,by-12-l2,6,12);kneeFront(R,x,by,l1,l2);
