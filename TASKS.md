@@ -23,7 +23,7 @@
 
 ## งานเจ้าของ v5.73 — Render เน็ตเต็ม โดนปิด → ย้ายโค้ด/ภาพไป jsDelivr (2026-10-22)
 - Render ระงับ 19:52 "Monthly Quota Exceeded" (เน็ตฟรี 5 GB) · เจ้าของไม่จ่าย $25 → รอรีเซ็ตต้นเดือน หรือผูกบัตร (จ่ายเฉพาะส่วนเกิน $0.15/GB)
-- แก้: v5.73 โหลด js/ + assets/ จาก jsDelivr ตาม tag git (ดู CLAUDE.md ข้อ 7) · **ทุกเวอร์ชันต้อง push tag**
+- แก้: v5.73 โหลด js/ + assets/ จาก jsDelivr ตามคอมมิตที่ปักหมุด · **แก้ js/assets ทุกครั้ง: commit → `bash tools/pin_cdn.sh` → push** (ดู CLAUDE.md ข้อ 7) · ลืม = ผู้เล่นได้โค้ดเก่า
 - ⚠️ ยังไม่ได้เช็กกับ jsDelivr จริง: พอ Render เปิดกลับมา ให้เปิดเกมแล้วดูใน console `ELDCDN.base` (ต้องเป็น cdn.jsdelivr.net…) และ `ELDCDN.fail` = 0 · Opus 2 ตรวจด้วย
 - ยังกินเน็ต Render: index.html · js/000–004 · ภาพหน้าโหลด loading-v543.webp (370 KB · อยู่ใน CSS) · /api
 

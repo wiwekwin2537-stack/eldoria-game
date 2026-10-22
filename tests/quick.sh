@@ -12,4 +12,7 @@ D=$(mktemp -d); DATA_DIR=$D PORT=8787 UPSTASH_REDIS_REST_URL= UPSTASH_REDIS_REST
 node tests/quick_reg.js || fail=1
 kill $S 2>/dev/null; rm -rf "$D"; sleep 1
 for t in "$@"; do if timeout 900 node "$t" >/tmp/quick_t.out 2>&1; then echo "PASS $t"; else echo "FAIL $t"; tail -4 /tmp/quick_t.out; fail=1; fi; done
+pin=$(grep -o 'eldoria-game@[0-9a-f]\{40\}' index.html | cut -d@ -f2)
+if [ -n "$pin" ] && ! git diff --quiet "$pin" HEAD -- js assets 2>/dev/null; then echo "⚠️ CDN ยังปักหมุดคอมมิตเก่า ${pin:0:7} แต่ js/ หรือ assets/ เปลี่ยนแล้ว → commit แล้วรัน bash tools/pin_cdn.sh ก่อน push"; fi
+if ! git diff --quiet HEAD -- js assets; then echo "ℹ️ ยังมี js/assets ที่ไม่ commit — commit แล้วรัน bash tools/pin_cdn.sh ก่อน push"; fi
 [ $fail = 0 ] && echo "✅ QUICK PASS" || echo "❌ QUICK FAIL"; exit $fail
