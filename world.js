@@ -9,7 +9,7 @@ try { const j = JSON.parse(fs.readFileSync(FILE, 'utf8')); if (j && Array.isArra
 // v4.71: เดิมเก็บแค่ไฟล์ในเครื่อง → Render deploy/รีสตาร์ตแล้วของประมูล (และคนชนะ) หายหมด — ตอนนี้เก็บ Upstash ด้วย (eld:world)
 let kvT = null;
 const save = () => { const st = { lots: S.lots, nextLot: S.nextLot, slot: S.wb.slot, t: Date.now() }; try { fs.mkdirSync(DATA, { recursive: true }); fs.writeFileSync(FILE, JSON.stringify(st)); } catch (e) {}
-  if (H && H.ACC && H.ACC.kvSet && !kvT) kvT = setTimeout(() => { kvT = null; H.ACC.kvSet('eld:world', { lots: S.lots, nextLot: S.nextLot, slot: S.wb.slot, t: Date.now() }); }, 800); };
+  if (H && H.ACC && H.ACC.kvSet && !kvT) kvT = setTimeout(() => { kvT = null; H.ACC.kvSet('eld2:world', { lots: S.lots, nextLot: S.nextLot, slot: S.wb.slot, t: Date.now() }); }, 800); };
 const LOOT = [
   { k: 'mount', id: 'drake', nm: '🐉 มังกรเวหาอเวจี (สัตว์ขี่บิน)', min: 60000 },
   { k: 'mount', id: 'pegasus', nm: '🪽 เพกาซัสสายฟ้า (สัตว์ขี่บิน)', min: 35000 },
@@ -47,7 +47,7 @@ function wbKill() { S.wb.on = false; S.wb.hp = 0; const list = Object.values(S.w
   H.broadcast(wbState()); H.broadcast({ t: 'alots', lots: lotsPublic() }); }
 function init(h) { H = h;
   // v4.71: โหลดสถานะโรงประมูลจาก Upstash (รอดการ deploy) — ใช้ชุดที่ใหม่กว่าไฟล์ในเครื่อง
-  try { if (H.ACC && H.ACC.kvGet) H.ACC.kvGet('eld:world').then(j => { if (!j || !Array.isArray(j.lots)) return; let loc = 0; try { loc = JSON.parse(fs.readFileSync(FILE, 'utf8')).t || 0; } catch (e) {}
+  try { if (H.ACC && H.ACC.kvGet) H.ACC.kvGet('eld2:world').then(j => { if (!j || !Array.isArray(j.lots)) return; let loc = 0; try { loc = JSON.parse(fs.readFileSync(FILE, 'utf8')).t || 0; } catch (e) {}
     if (S.lots.length && loc >= (j.t || 0)) return; const ids = new Set(S.lots.map(l => l.id)); for (const l of j.lots) if (!ids.has(l.id)) S.lots.push(l); S.nextLot = Math.max(S.nextLot, j.nextLot || 1); if (j.slot && !S.wb.slot) S.wb.slot = j.slot; console.log('world: restored', j.lots.length, 'lots'); }).catch(() => {}); } catch (e) {}
   setInterval(() => { try { const n = Date.now(), t = th(n);
       for (const h of WB_HOURS) { const slot = t.day + '@' + h;

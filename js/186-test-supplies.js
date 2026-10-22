@@ -1,5 +1,5 @@
 /* v5.34: คลังของสำหรับช่วงทดสอบ เจ้าของอนุมัติให้ผู้เล่นที่ล็อกอินรับของได้ */
-const TEST_SUPPLY={enabled:true,busy:false,pending:false,q:'',cat:'all',page:0,size:18};
+const TEST_SUPPLY={enabled:/[?&]testsupply=1/.test(location.search)&&/^(localhost|127\.)/.test(location.hostname),/* v5.80 เปิดจริง: ปิดคลังทดสอบ · เปิดได้เฉพาะเครื่องตัวเอง (localhost) ด้วย ?testsupply=1 สำหรับเทสอัตโนมัติ */busy:false,pending:false,q:'',cat:'all',page:0,size:18};
 function testSupplyCatalog(){
  const list=[];
  for(const [id,it] of Object.entries(ITEMS)){
@@ -81,3 +81,5 @@ function testSupplyRender(){
  gid('testSupplyPrev').disabled=TEST_SUPPLY.busy||TEST_SUPPLY.page===0;gid('testSupplyNext').disabled=TEST_SUPPLY.busy||TEST_SUPPLY.page>=pages-1;gid('testSupplySave').disabled=TEST_SUPPLY.busy;{const cb=gid('testSupplyCoin');if(cb)cb.disabled=TEST_SUPPLY.busy};
 }
 function openTestSupplies(){if(!TEST_SUPPLY.enabled){say('คลังทดสอบปิดอยู่');return}dlgClose(true);TEST_SUPPLY.page=0;testSupplyRender();testSupplyStatus(TEST_SUPPLY.pending?'ยังมีของที่รอบันทึก — กดบันทึกอีกครั้งก่อนออกเกม':testSupplyGuard()||'เลือกของที่ต้องการรับได้เลย');p6open(testSupplyWindow)}
+/* v5.80 เปิดจริง: คลังทดสอบปิด (TEST_SUPPLY.enabled=false) → เอา NPC คลังของทดสอบออกจากเมือง · เปิดเทสอีกครั้ง: ตั้ง enabled:true แล้วลบบรรทัดนี้ */
+if(!TEST_SUPPLY.enabled){for(let i=NPC_DATA.length-1;i>=0;i--)if(NPC_DATA[i].name==='คลังของทดสอบ')window.TS_NPC_OFF=NPC_DATA.splice(i,1)[0]}  /* เก็บตัว NPC ไว้ให้เทสเปิดคลังกลับมา: TEST_SUPPLY.enabled=true;NPC_DATA.push(TS_NPC_OFF) */

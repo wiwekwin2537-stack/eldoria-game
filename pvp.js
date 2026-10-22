@@ -7,11 +7,11 @@ let H = null;
 // ---------- เรตติ้ง (เอกสารเดียว: Upstash eld:pvp หรือ data/pvp.json) ----------
 const RT = { map: {}, dirty: false, loaded: null };
 function rtLoad() { if (RT.loaded) return RT.loaded; RT.loaded = (async () => { try {
-  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld:pvp', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) RT.map = JSON.parse(j.result) || {}; }
+  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld2:pvp', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) RT.map = JSON.parse(j.result) || {}; }
   else { const f = path.join(DATA, 'pvp.json'); if (fs.existsSync(f)) RT.map = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; }
 } catch (e) { console.log('pvpLoad', e.message); } })(); return RT.loaded; }
 async function rtFlush() { if (!RT.dirty) return; RT.dirty = false; const body = JSON.stringify(RT.map); try {
-  if (UP_URL) await fetch(UP_URL + '/set/eld:pvp', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+  if (UP_URL) await fetch(UP_URL + '/set/eld2:pvp', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
   else { fs.mkdirSync(DATA, { recursive: true }); const f = path.join(DATA, 'pvp.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
 } catch (e) { console.log('pvpFlush', e.message); RT.dirty = true; } }
 { const iv = setInterval(rtFlush, 20000); if (iv.unref) iv.unref(); }

@@ -17,12 +17,12 @@ global.fetch = async (url, options = {}) => {
   }
 
   if (u.pathname.startsWith('/get/')) {
-    if (key === 'eld:lb' && failLbRead-- > 0) return reply(503, { error: 'temporary read failure' });
+    if (key === 'eld2:lb' && failLbRead-- > 0) return reply(503, { error: 'temporary read failure' });
     return reply(200, { result: stored.get(key) ?? null });
   }
   if (u.pathname.startsWith('/set/')) {
-    if (key.startsWith('eld:acct:') && failAccountWrite-- > 0) return reply(503, { error: 'temporary account write failure' });
-    if (key === 'eld:lb' && failLbWrite-- > 0) return reply(503, { error: 'temporary leaderboard write failure' });
+    if (key.startsWith('eld2:acct:') && failAccountWrite-- > 0) return reply(503, { error: 'temporary account write failure' });
+    if (key === 'eld2:lb' && failLbWrite-- > 0) return reply(503, { error: 'temporary leaderboard write failure' });
     stored.set(key, String(options.body));
     return reply(200, { result: 'OK' });
   }
@@ -30,7 +30,7 @@ global.fetch = async (url, options = {}) => {
 };
 
 const oldRank = { n: 'ผู้เล่นเดิม', lv: 20, cls: '', fl: 0, rf: 0, rw: 0, k: 21, b: 0, w: 0, t: '', flag: 0, gm: 0, u: Date.now() };
-stored.set('eld:lb', JSON.stringify({ old: oldRank }));
+stored.set('eld2:lb', JSON.stringify({ old: oldRank }));
 const freshAccounts = () => { const p = require.resolve('../accounts'); delete require.cache[p]; return require('../accounts'); };
 
 (async () => {
