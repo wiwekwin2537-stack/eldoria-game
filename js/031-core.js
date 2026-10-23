@@ -3528,7 +3528,7 @@ function cineNext(){if(cineEl.hidden)return;CINE.i++;sfx('ui');if(CINE.i>=CINE.L
 function cineEnd(){cineEl.hidden=true;PAUSED=false;const d=CINE.done;CINE.done=null;if(d)d()}
 cineEl.onclick=e=>{if(e.target.classList.contains('cs')){cineEnd();return}cineNext()};
 addEventListener('keydown',e=>{if(cineEl.hidden)return;e.stopImmediatePropagation();if(e.key==='Escape')cineEnd();else cineNext()},true);
-function cineDraw(now){if(cineEl.hidden)return;requestAnimationFrame(cineDraw);const W=cCv.width=cCv.clientWidth,H=cCv.height=cCv.clientHeight,k=cK,t=now/1000,u=(now-CINE.t0)/1000,sc=CINE.L[CINE.i].s,cx=W/2,cy=H*.4,s=Math.min(W,H)/500;
+function cineDraw(now){if(cineEl.hidden)return;requestAnimationFrame(cineDraw);const W=cCv.width=cCv.clientWidth,H=cCv.height=cCv.clientHeight,k=cK,t=now/1000,u=Math.max(0,(now-CINE.t0)/1000)/* v5.77: rAF time can predate CINE.t0 -> negative gradient radius */,sc=CINE.L[CINE.i].s,cx=W/2,cy=H*.4,s=Math.min(W,H)/500;
  k.fillStyle='#04030a';k.fillRect(0,0,W,H);for(let i=0;i<70;i++){k.globalAlpha=.3+.5*Math.abs(Math.sin(t+i));k.fillStyle='#cfd8ff';k.fillRect((i*97.3)%W,(i*53.7)%(H*.8),1.5,1.5)}k.globalAlpha=1;
  const crystal=(x,y,r,col,a,rot)=>{k.save();k.translate(x,y);k.rotate(rot||0);k.globalAlpha=a;const g=k.createRadialGradient(0,0,0,0,0,r*3);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');k.fillStyle=g;k.fillRect(-r*3,-r*3,r*6,r*6);
   k.fillStyle='#e6fbff';k.strokeStyle='#5ec8ff';k.lineWidth=2;k.beginPath();k.moveTo(0,-r*1.5);k.lineTo(r*.7,0);k.lineTo(0,r*1.5);k.lineTo(-r*.7,0);k.closePath();k.fill();k.stroke();k.fillStyle='rgba(94,200,255,.5)';k.beginPath();k.moveTo(0,-r*1.5);k.lineTo(r*.7,0);k.lineTo(0,0);k.fill();k.restore();k.globalAlpha=1};
@@ -3644,7 +3644,7 @@ function kingTalk(){const o=D.owner,c=STCH[STORY.ch];
  if(c.free){talk(o,pick(['เอลโดเรียสงบสุขได้เพราะเจ้า ผู้กล้า','ข้าได้ยินว่าเจ้ายังท้าทายห้วงลึกอยู่เสมอ','ประตูปราสาทเปิดต้อนรับเจ้าเสมอ']),[{t:'📜 บันทึกเนื้อเรื่อง',f:()=>openJournal()},{t:'👋 ลาก่อน',c:'bye'}]);return}
  const n=chNeed();talk(o,'ภารกิจ “'+c.t.replace(/^บทที่ \d+: /,'')+'” — '+c.d+(n?' ('+Math.min(n[0],n[1])+'/'+n[1]+')':'')+' · '+pick(['ข้าเชื่อมั่นในตัวเจ้า','อย่าประมาทนะ ผู้กล้า','กลับมาเมื่อสำเร็จแล้ว']),[{t:'📜 ฟังภารกิจอีกครั้ง',stay:true,f:()=>talk(o,c.intro||c.d,[BYE])},{t:'💬 คุยเล่น',stay:true,f:()=>talk(o,pick(SHOP_DATA.hall.owner.lines),[BYE])},BYE])}
 // นับเหตุการณ์
-{const _dl=dropLoot;dropLoot=function(x,y,s){_dl(x,y,s);if(s){STORY.k.slime=(STORY.k.slime|0)+1}}}
+{const _dl=dropLoot;dropLoot=function(x,y,s){_dl(x,y,s);if(s){STORY.k.slime=(STORY.k.slime|0)+1;saveStory()/* v5.77: kill progress survives logout (saveGame does not store STORY) */}}}
 {const _mk=mobKill;mobKill=function(m){_mk(m);if(m.boss&&D&&D.zone){if(D.dg){if(D.dg>=100)STORY.f100=1}else{const id=D.zone.Zd.id;if(id&&ZBN[id])STORY.boss[id]=1}saveStory()}}}
 // ติดตามภารกิจ
 const qtEl=document.createElement('div');qtEl.id='qtrack';qtEl.hidden=true;gid('wrap').appendChild(qtEl);qtEl.onclick=()=>openJournal();
