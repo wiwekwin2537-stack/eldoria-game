@@ -1,7 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
-| `js/012-town-life.js` · `js/012-core.js` · `js/012-town-floor.js` · `js/038-fix7.js` · `js/108-fix76.js` · `js/130-fix98.js` · `SYSTEMS.md` · `js/196-monster-art.js` · `js/012-world-art.js` · `js/013-core.js` · `js/018-core.js` · `js/031-core.js` · `js/089-fix57.js` · `js/107-fix75.js` · `js/170-fix143.js` · `index.html` · `server.js` · `sw.js` · `assets/incoming/*-v585.png` · `tests/world_art_browser_test.js` · `tests/monster_run_browser_test.js` · `README.md` | ChatGPT | ลดจังหวะมอนวิ่ง และภาพทั้งเกมสไตล์เดียวกันตามคำสั่งเจ้าของ | 2026-10-23 |
+| `js/172-fix145.js` · `tests/city_art_browser_test.js` · `js/012-town-life.js` · `js/012-core.js` · `js/012-town-floor.js` · `js/038-fix7.js` · `js/108-fix76.js` · `js/130-fix98.js` · `SYSTEMS.md` · `js/196-monster-art.js` · `js/012-world-art.js` · `js/013-core.js` · `js/018-core.js` · `js/031-core.js` · `js/089-fix57.js` · `js/107-fix75.js` · `js/170-fix143.js` · `index.html` · `server.js` · `sw.js` · `assets/incoming/*-v585.png` · `tests/world_art_browser_test.js` · `tests/monster_run_browser_test.js` · `README.md` | ChatGPT | ลดจังหวะมอนวิ่ง และภาพทั้งเกมสไตล์เดียวกันตามคำสั่งเจ้าของ | 2026-10-23 |
 
 ## ✅ ภาพมอนสเตอร์วิ่ง v5.84 (ChatGPT · เจ้าของสั่ง 2026-10-23)
 - ด้วง/โกเลม/โครงกระดูก/ค้างคาว: ภาพ 8 เฟรม × 4 ทิศ รวม 128 เฟรม · ลงเกมจาก `assets/incoming/monster-*-run-20261023.png` รวม 197 KB
