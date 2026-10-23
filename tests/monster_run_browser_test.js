@@ -1,0 +1,20 @@
+/* ภาพวิ่ง v584: เปิดเกมจริง ตรวจเฟรม/ทิศ/หยุด/ภาพสำรอง และจำนวนคำสั่งวาดหลัง warm cache */
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+(async()=>{const port=process.env.ELD_TEST_PORT||'8848',base='http://127.0.0.1:'+port,dir=fs.mkdtempSync(path.join(os.tmpdir(),'eld-run-')),root=path.join(__dirname,'..');let b;const errors=[];
+const server=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:port,DATA_DIR:dir,UPSTASH_REDIS_REST_URL:'',UPSTASH_REDIS_REST_TOKEN:''},stdio:['ignore','pipe','inherit']});
+try{await new Promise(r=>server.stdout.once('data',r));b=await chromium.launch({args:['--no-sandbox','--enable-unsafe-swiftshader']});const pg=await b.newPage({viewport:{width:915,height:650}});pg.on('pageerror',e=>errors.push(e.message));
+await pg.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());await pg.goto(base+'/?server=ws://127.0.0.1:'+port,{waitUntil:'domcontentloaded'});await pg.waitForFunction(()=>window.MOBART578&&Object.values(MOBART578.spec).every(s=>s.ok&&s.atlas.ok),null,{timeout:180000});
+for(const f of['beetle','golem','bat','skeleton']){const r=await fetch(base+'/assets/incoming/monster-'+f+'-run-20261023.png');assert.match(r.headers.get('content-type'),/image\/png/);assert.ok((await r.arrayBuffer()).byteLength<100000)}
+const result=await pg.evaluate(()=>{PAUSED=true;const A=MOBART578,sv=ctx,cv=document.createElement('canvas');cv.width=400;cv.height=220;ctx=cv.getContext('2d');const out={};
+try{for(const f of Object.keys(A.spec)){const S=A.spec[f],m={x:5,y:5,_ax:5,_ay:5,_av:2,_aph:0,mv:true,st:'idle',hurt:0,fx:1};const c=['#aaa','#333','#f80'];
+ const shot=(ph,mv)=>{m.x=m._ax=5;m.y=m._ay=5;m._aph=ph;m.mv=mv;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,400,220);ctx.translate(200,180);ctx.scale(3,3);MOBDRAW[f](m,1,c);return cv.toDataURL()};
+ const hashes=new Set();for(let i=0;i<8;i++){if(f==='bat'){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,400,220);ctx.translate(200,180);ctx.scale(3,3);MOBDRAW[f](m,(i+.2)/12,c);hashes.add(cv.toDataURL())}else hashes.add(shot((i+.05)*Math.PI/4,true))}
+ const idle=f==='bat'||shot(0,false)===shot(Math.PI,false);let images=0,rotations=0,creates=0;const di=ctx.drawImage.bind(ctx),rt=ctx.rotate.bind(ctx),ce=document.createElement.bind(document);ctx.drawImage=(...a)=>{images++;di(...a)};ctx.rotate=(...a)=>{rotations++;rt(...a)};document.createElement=(...a)=>{creates++;return ce(...a)};
+ const start=performance.now();try{for(let i=0;i<200;i++)MOBDRAW[f](m,i/60,c)}finally{ctx.drawImage=di;ctx.rotate=rt;document.createElement=ce}const ms=performance.now()-start;
+ const ok=S.atlas.ok;S.atlas.ok=false;const fallback=shot(0,false);S.atlas.ok=ok;
+ const pose=(dx,dy,fx)=>A.pose(f,{x:5+dx,y:5+dy,_ax:5,_ay:5,fx,mv:true},1);out[f]={unique:hashes.size,idle,images,rotations,creates,ms,fallback:fallback.length>500,down:pose(0,1,1).row,up:pose(0,-1,1).row,right:pose(1,0,1).row,left:pose(-1,0,-1).row};}
+ const c=['#aaa','#333','#f80'];for(let i=0;i<40;i++)MOBDRAW.golem({x:0,y:0,st:'idle',hurt:0},1,['#'+(0x100000+i*123).toString(16),'#123','#abc']);out.cache={pixels:A.pixels,max:A.maxPixels};return out;
+}finally{ctx=sv}});
+console.log(JSON.stringify(result));for(const [f,r]of Object.entries(result)){if(f==='cache'){assert.ok(r.pixels<=r.max);continue}assert.ok(r.unique>=7,f+' distinct frames');assert.ok(r.idle,f+' idle');assert.equal(r.images,200,f+' one image per mob');assert.equal(r.rotations,0);assert.equal(r.creates,0);assert.ok(r.fallback);assert.equal(r.down,0);assert.equal(r.up,3);assert.equal(r.right,1);assert.equal(r.left,f==='bat'?2:1)}assert.deepEqual(errors,[]);
+console.log('PASS ภาพวิ่ง 4 ตระกูล ทิศ/เฟรม/หยุด/สำรอง/ภาระวาด/เพดานแคช');
+}finally{if(b)await b.close();server.kill();await new Promise(r=>server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exit(1)});
