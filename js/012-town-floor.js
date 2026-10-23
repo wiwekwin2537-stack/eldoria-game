@@ -2,7 +2,7 @@
 const TOWNFLOOR={state:'loading',image:new Image(),pending:[],tiles:{}};
 TOWNFLOOR.image.onload=()=>{TOWNFLOOR.state='ready';const callbacks=TOWNFLOOR.pending.splice(0);for(const fn of callbacks)fn()};
 TOWNFLOOR.image.onerror=()=>{TOWNFLOOR.state='failed';TOWNFLOOR.pending.length=0};
-TOWNFLOOR.image.src='assets/town/ground-v538.png';
+TOWNFLOOR.image.src='assets/incoming/town-ground-v585.png';
 TOWNFLOOR.tile=function(kind){if(this.tiles[kind])return this.tiles[kind];const c=document.createElement('canvas');c.width=c.height=128;const q=c.getContext('2d'),i=this.image,w=i.naturalWidth/2,h=i.naturalHeight/2;const p={stone:[0,0],grass:[1,0],earth:[0,1],marble:[1,1]}[kind];q.drawImage(i,p[0]*w,p[1]*h,w,h,0,0,128,128);return this.tiles[kind]=c};
 TOWNFLOOR.paint=function(k,rd){
  if(this.state!=='ready')return false;const make=()=>{const floor=document.createElement('canvas');floor.width=TW*T;floor.height=TH*T;const q=floor.getContext('2d'),patterns={};for(const kind of ['stone','grass','earth','marble'])patterns[kind]=q.createPattern(this.tile(kind),'repeat');

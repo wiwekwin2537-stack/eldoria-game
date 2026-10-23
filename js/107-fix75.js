@@ -51,11 +51,11 @@ function steed75(k,x,y,f,A){const M=NM75[k],K=MPAL[k],t=performance.now()/1000,g
  ctx.save();ctx.translate(x,y);ctx.scale(f*MSC,MSC);ctx.translate(-34,0);ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(34,1,42,6,0,0,7);ctx.fill();dragon75(K,A,t,g);ctx.restore()}
 // วาดด้วยท่าเดิมแต่สีของตัวเอง
 function withBase75(k,fn){const M=NM75[k];if(!M)return fn(k);const b=M.base,sp=MPAL[b],sm=MOUNTS[b];MPAL[b]=MPAL[k];MOUNTS[b]=Object.assign({},sm,{wing:M.wing||sm&&sm.wing,wing2:M.wing2||sm&&sm.wing2});try{return fn(b)}finally{MPAL[b]=sp;MOUNTS[b]=sm}}
-{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){if(!NM75[k])return _ds.apply(this,arguments);try{aura75(k,x,y,false)}catch(e){}
+{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){if(WORLDART.mount(k,x,y,f,A))return;if(!NM75[k])return _ds.apply(this,arguments);try{aura75(k,x,y,false)}catch(e){}
   if(NM75[k].dragon){try{wings10(x,y,f,false,k)}catch(e){}steed75(k,x,y,f,A)}else withBase75(k,b=>_ds.call(this,b,x,y,f,A));
   if(k==='kirin')try{ctx.save();ctx.translate(x,y);ctx.scale(f*MSC,MSC);ctx.translate(-34,0);ctx.fillStyle='#ffd23a';ctx.beginPath();ctx.moveTo(64,-68);ctx.lineTo(70,-84);ctx.lineTo(67,-67);ctx.fill();ctx.restore()}catch(e){}
   try{aura75(k,x,y,true)}catch(e){}};window.drawSteed=drawSteed}
-{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){if(!NM75[k])return _du.apply(this,arguments);if(ph===0)try{aura75(k,x,y,false)}catch(e){}const r=withBase75(k,b=>_du.call(this,b,x,y,dir,A,ph));if(ph!==0)try{aura75(k,x,y,true)}catch(e){}return r};window.drawSteedUD7=drawSteedUD7}
+{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){if(WORLDART.mount(k,x,y,dir==='l'?-1:1,A,ph,dir))return;if(!NM75[k])return _du.apply(this,arguments);if(ph===0)try{aura75(k,x,y,false)}catch(e){}const r=withBase75(k,b=>_du.call(this,b,x,y,dir,A,ph));if(ph!==0)try{aura75(k,x,y,true)}catch(e){}return r};window.drawSteedUD7=drawSteedUD7}
 {const _mp=mountParticles;mountParticles=function(k,x,y,f,A,dt){if(NM75[k])return withBase75(k,b=>_mp.call(this,b,x,y,f,A,dt));return _mp.apply(this,arguments)};window.mountParticles=mountParticles}
 // ---------- สัตว์เลี้ยง ----------
 const NP75={fox:{n:'จิ้งจอกเก้าหาง',p:25000,lv:20,st:{agi:3,int:2},d:'สัตว์เลี้ยง: หางเปลวไฟ 9 หาง · AGI+3 INT+2 · ต้อง Lv.20'},
@@ -85,5 +85,5 @@ function pet75(k,x,y,mine){const t=performance.now()/1000,mv=mine&&PET.mv,f=mine
   ctx.fillStyle='#f4f4f0';ctx.beginPath();ctx.arc(8,-12,5.5,0,7);ctx.fill();ctx.fillStyle='#1a1a20';ctx.beginPath();ctx.arc(5,-17,2,0,7);ctx.fill();ctx.beginPath();ctx.arc(11,-17,2,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(7,-12,1.6,2,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(10.5,-12,1.6,2,0,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(7,-12.6,.8,.8);ctx.fillRect(10.4,-12.6,.8,.8);
   ctx.strokeStyle='#5aa02a';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(12,-9);ctx.lineTo(16,-15);ctx.stroke();ctx.fillStyle='#7ac83a';ctx.beginPath();ctx.ellipse(16,-15,2.5,1,-.6,0,7);ctx.fill()}
  ctx.restore()}
-{const _dp=drawPet;drawPet=function(p,x,y){if(!(p&&NP75[p.k]))return _dp.apply(this,arguments);if(typeof MOUNT!=='undefined'&&MOUNT.on&&HOME.mount&&x===PET.x)return;try{pet75(p.k,x,y,x===PET.x)}catch(e){}};window.drawPet=drawPet}
+{const _dp=drawPet;drawPet=function(p,x,y){if(typeof MOUNT!=='undefined'&&MOUNT.on&&HOME.mount&&x===PET.x)return;if(WORLDART.pet(p,x,y))return;if(!(p&&NP75[p.k]))return _dp.apply(this,arguments);if(typeof MOUNT!=='undefined'&&MOUNT.on&&HOME.mount&&x===PET.x)return;try{pet75(p.k,x,y,x===PET.x)}catch(e){}};window.drawPet=drawPet}
 }catch(e){console.warn('fix75',e)}

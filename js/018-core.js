@@ -14,8 +14,8 @@ function heroBody(){
  const bowIdle=!posed&&!at&&!DPOSE&&window.Grip145&&Grip145.canIdle();
  const R=(c,a,b,w,h)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(a),Math.round(b),w,h)};
  const EC=EQCOL(),BLK='#14141a',LGA=EC.BLK,LGB=EC.LEG2,TOP=EC.TOP,COL=EC.COLLAR,SK='#f1d2b0',tilt=run?.35:0;
- const DP=DPOSE&&!at&&!posed,leg=(hx,hy,ang,col,h)=>{ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);R(col,0,0,6,h);ctx.restore()};
- const held=(hx,hy,ang)=>{if(posed||bowIdle)return;if(P.draw&&(P.tool!=='sword'||P.armor.sword))toolSpr(hx,hy,ang);R(SK,hx-3,hy-2,6,4)};
+ const DP=DPOSE&&!at&&!posed,leg=(hx,hy,ang,col,h)=>{ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(!WORLDART.part(5,0,0,6,h*.52,P.dir,col))R(col,0,0,6,h);WORLDART.part(6,0,h*.45,7,h*.55,P.dir);ctx.restore()};
+ const held=(hx,hy,ang)=>{if(posed||bowIdle)return;if(P.draw&&(P.tool!=='sword'||P.armor.sword))toolSpr(hx,hy,ang);if(!WORLDART.part(7,hx-3,hy-2,6,4))R(SK,hx-3,hy-2,6,4)};
  const slash=()=>{if(!posed)slashFx(x,by,d,side,f,TOP,held)};
  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(x,y+1,11,4,0,0,7);ctx.fill();
  if(DP){ctx.save();ctx.translate(x,y);if(side)ctx.rotate(f*.42);else ctx.scale(1,.9);ctx.translate(-x,-y)}
@@ -26,23 +26,23 @@ function heroBody(){
  let hnd=[x+s*5*f,by-13];
  if(side){ // มองข้าง: ขาและแขนแกว่งหน้า-หลัง
   if(DP){leg(x-3,by-12,f*.95,LGB,13);leg(x-3,by-12,-f*.7,LGA,12)}else{sideLegs(x,by,f,LGA,LGB,run)}
-  R(TOP,x-4.5,by-26,9,14);R(COL,x-5,by-28,10,4);drawChest(R,x,by,side,f,d);drawNeck(x,by,side,d);
-  R(SK,x-6,by-40,12,12);R(BLK,x-7,by-43,14,7);R(BLK,x-7+(f<0?6:0),by-43,8,13);
+  if(!WORLDART.part(2,x-5.5,by-29,11,18,d,TOP)){R(TOP,x-4.5,by-26,9,14);R(COL,x-5,by-28,10,4)}drawChest(R,x,by,side,f,d);drawNeck(x,by,side,d);
+  if(!WORLDART.head(x,by,d,P.look8?.g==='f',P.look8?.hair)){R(SK,x-6,by-40,12,12);R(BLK,x-7,by-43,14,7);R(BLK,x-7+(f<0?6:0),by-43,8,13);
   R(BLK,x-6,by-48,4,6);R(BLK,x-1,by-49,4,7);R(BLK,x+3,by-47,4,5);
-  R('#111',x+3*f-1,by-36,2,3);
+  R('#111',x+3*f-1,by-36,2,3);}
   if(DP){ctx.save();ctx.translate(x-3,by-25);ctx.rotate(f*1.15);R(TOP,0,0,6,12);R(SK,0,9,6,4);ctx.restore()}else if(!posed&&!bowIdle&&!(at&&window.RNGARM7&&RNGARM7())){/* v5.79 แขนมีข้อศอก (เจ้าของสั่ง 2026-10-23 ให้ตัวเดิมขยับข้อต่อ): ต้นแขน 6 + ปลายแขน 7 · แกว่งหน้า-หลังตามก้าว · ข้อศอกงอไปข้างหน้ามากขึ้นตอนแขนแกว่งไปหน้า · มือ(จุดถืออาวุธ) อยู่ตำแหน่งเดิมโดยประมาณ */
    const ph=s*(run?.7:.5),t1=-ph*f,t2=t1-f*(.3+Math.max(0,ph)*(run?1.1:.8)),ex=x-6*Math.sin(t1),ey=by-26+6*Math.cos(t1),hx2=ex-7*Math.sin(t2),hy2=ey+7*Math.cos(t2);hnd=[hx2,hy2];
-   ctx.save();ctx.translate(x,by-26);ctx.rotate(t1);R(TOP,-3,0,6,7);ctx.translate(0,6);ctx.rotate(t2-t1);R(TOP,-3,0,6,7);R(SK,-3,5,6,4);ctx.restore();drawArm(hx2-3,hy2-8);drawRing(hx2-3,hy2-2)}
+   if(!WORLDART.arm(x,by-26,ex,ey,hx2,hy2,TOP,d)){ctx.save();ctx.translate(x,by-26);ctx.rotate(t1);R(TOP,-3,0,6,7);ctx.translate(0,6);ctx.rotate(t2-t1);R(TOP,-3,0,6,7);R(SK,-3,5,6,4);ctx.restore()}WORLDART.part(7,hx2-3,hy2-2,6,4,d);drawArm(hx2-3,hy2-8);drawRing(hx2-3,hy2-2)}
   if(!at){if(DP)held(x-f*10,by-19,-f*1.35);else held(hnd[0],hnd[1],f*(.9-tilt))}
  }else{ // มองหน้า/หลัง
   const l1=DP?7:Math.max(0,s)*(run?5:3.5),l2=DP?0:Math.max(0,-s)*(run?5:3.5);
-  R(LGA,x-7,by-12-l1,6,12);R(LGA,x+1,by-12-l2,6,12);kneeFront(R,x,by,l1,l2);
-  R(TOP,x-8,by-26,16,14);R(COL,x-8,by-28,16,4);drawChest(R,x,by,side,f,d);drawNeck(x,by,side,d);
-  if(!posed&&!bowIdle&&!(at&&(d==='d'||(window.RNGARM7&&RNGARM7())))){if(DP){ctx.save();ctx.translate(x-8,by-25);ctx.rotate(.95);R(TOP,-6,0,6,12);R(SK,-6,9,6,4);ctx.restore()}else{R(TOP,x-14,by-26+s*3,6,12);R(SK,x-14,by-15+s*3,6,4);drawArm(x-14,by-21+s*3)}}
-  if(!posed&&!bowIdle&&!(at&&(d==='u'||(d==='d'&&window.CHOP6&&CHOP6())||(window.RNGARM7&&RNGARM7())))){if(DP){ctx.save();ctx.translate(x+8,by-25);ctx.rotate(-.95);R(TOP,0,0,6,12);R(SK,0,9,6,4);ctx.restore()}else{R(TOP,x+8,by-26-s*3,6,12);R(SK,x+8,by-15-s*3,6,4);drawArm(x+8,by-21-s*3);drawRing(x+8,by-15-s*3)}}
-  R(SK,x-6,by-40,12,12);R(BLK,x-7,by-43,14,d==='u'?15:6);
+  if(WORLDART.ready('hero-rig')){for(const [xx,ll]of[[x-7,l1],[x+1,l2]]){WORLDART.part(5,xx,by-13-ll,6,7,d,LGA);WORLDART.part(6,xx,by-7-ll,7,8,d)}}else{R(LGA,x-7,by-12-l1,6,12);R(LGA,x+1,by-12-l2,6,12)}kneeFront(R,x,by,l1,l2);
+  if(!WORLDART.part(2,x-8,by-29,16,18,d,TOP)){R(TOP,x-8,by-26,16,14);R(COL,x-8,by-28,16,4)}drawChest(R,x,by,side,f,d);drawNeck(x,by,side,d);
+  if(!posed&&!bowIdle&&!(at&&(d==='d'||(window.RNGARM7&&RNGARM7())))){if(DP){ctx.save();ctx.translate(x-8,by-25);ctx.rotate(.95);R(TOP,-6,0,6,12);R(SK,-6,9,6,4);ctx.restore()}else{if(!WORLDART.arm(x-11,by-26+s*3,x-11,by-20+s*3,x-11,by-13+s*3,TOP,d)){R(TOP,x-14,by-26+s*3,6,12);R(SK,x-14,by-15+s*3,6,4)}WORLDART.part(7,x-14,by-15+s*3,6,4,d);drawArm(x-14,by-21+s*3)}}
+  if(!posed&&!bowIdle&&!(at&&(d==='u'||(d==='d'&&window.CHOP6&&CHOP6())||(window.RNGARM7&&RNGARM7())))){if(DP){ctx.save();ctx.translate(x+8,by-25);ctx.rotate(-.95);R(TOP,0,0,6,12);R(SK,0,9,6,4);ctx.restore()}else{if(!WORLDART.arm(x+11,by-26-s*3,x+11,by-20-s*3,x+11,by-13-s*3,TOP,d)){R(TOP,x+8,by-26-s*3,6,12);R(SK,x+8,by-15-s*3,6,4)}WORLDART.part(7,x+8,by-15-s*3,6,4,d);drawArm(x+8,by-21-s*3);drawRing(x+8,by-15-s*3)}}
+  if(!WORLDART.head(x,by,d,P.look8?.g==='f',P.look8?.hair)){R(SK,x-6,by-40,12,12);R(BLK,x-7,by-43,14,d==='u'?15:6);
   R(BLK,x-7,by-47,4,5);R(BLK,x-2,by-48,4,6);R(BLK,x+3,by-47,4,5);
-  if(d==='d'){R('#111',x-3,by-36,2,3);R('#111',x+1,by-36,2,3)}
+  if(d==='d'){R('#111',x-3,by-36,2,3);R('#111',x+1,by-36,2,3)}}
   if(d==='d'&&!at)DP?held(x-16,by-15,-1.25):held(x-11,by-13+s*3,-.5-tilt);
  }
  if(window.hairOv8)hairOv8(R,x,by,side,f,d,at);if(!posed&&d!=='d'&&!side)backSword(x,by,side,f,d);drawHelm(R,x,by,side,f,d);eqGlitter(x,by,d,f);

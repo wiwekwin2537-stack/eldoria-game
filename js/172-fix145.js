@@ -34,7 +34,7 @@ function back145(x,by,side,f,d){if(!P.armor.sword)return false;const kd=wKind(),
  }finally{Object.assign(P,saved);ctx.restore()}return true}
 function idlePose145(d,s=0){const f=d==='l'?-1:1,side=d==='l'||d==='r';return{g:side?[f*(10+s*.7),-23+s*.4]:d==='d'?[12,-23+s*.5]:[-12,-25+s*.5],h:side?[-f*3,-13-s]:d==='d'?[-11,-13+s*2]:[11,-13-s*2],a:side?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12}}
 function canIdle145(){return P.cls==='archer'&&wKind()==='bow'&&P.draw&&P.tool==='sword'&&!!P.armor.sword&&!P.dead}
-function idle145(x,by,d,top){const q=idlePose145(d,P.mv?Math.sin(P.t):0),S=bowSh7(x,by,d,d==='l'?-1:1),gx=x+q.g[0],gy=by+q.g[1];drawBow6(gx,gy,q.a,P.tier.sword|0,0,false,.78);bowGlow145(gx,gy,q.a,.78);for(const [shoulder,hand,bend] of [[S.bow,q.g,d==='d'?1:-1],[S.dr,q.h,d==='d'?-1:1]]){swArm6(shoulder[0],shoulder[1],x+hand[0],by+hand[1],top,bend);ctx.fillStyle='#f1d2b0';ctx.fillRect(x+hand[0]-2.5,by+hand[1]-2.5,5,5)}P.tip={x:gx,y:gy,t:performance.now()}}
+function idle145(x,by,d,top){const q=idlePose145(d,P.mv?Math.sin(P.t):0),S=bowSh7(x,by,d,d==='l'?-1:1),gx=x+q.g[0],gy=by+q.g[1];drawBow6(gx,gy,q.a,P.tier.sword|0,0,false,.78);bowGlow145(gx,gy,q.a,.78);for(const [shoulder,hand,bend] of [[S.bow,q.g,d==='d'?1:-1],[S.dr,q.h,d==='d'?-1:1]]){swArm6(shoulder[0],shoulder[1],x+hand[0],by+hand[1],top,bend);if(!WORLDART.part(7,x+hand[0]-2.5,by+hand[1]-2.5,5,5,d)){ctx.fillStyle='#f1d2b0';ctx.fillRect(x+hand[0]-2.5,by+hand[1]-2.5,5,5)}}P.tip={x:gx,y:gy,t:performance.now()}}
 window.Grip145={back:back145,glow:glow145,bowGlow:bowGlow145,idlePose:idlePose145,canIdle:canIdle145,idle:idle145};
 /* REG136 */
 try{if(window.REG136)REG136.push(

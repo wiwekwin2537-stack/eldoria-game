@@ -2,7 +2,7 @@
 const ts=document.createElement('canvas');ts.width=T*6;ts.height=T;
 const g=ts.getContext('2d');
 const OREIMGS={};
-for(const k of ['stone','iron','copper','silver','gold']){const im=new Image();im.onload=()=>{try{if(window.OREICON_REFRESH)window.OREICON_REFRESH(k);if(typeof draw==='function')draw()}catch(e){}};im.src='./assets/ores/'+k+'.png';OREIMGS[k]=im}
+for(const k of ['stone','iron','copper','silver','gold']){const im=new Image();im.onload=()=>{try{if(window.OREICON_REFRESH)window.OREICON_REFRESH(k);if(typeof draw==='function')draw()}catch(e){}};im.src='./assets/incoming/ore-'+k+'-v585.png';OREIMGS[k]=im}
 function hash(x,y){let h=Math.sin(x*127.1+y*311.7)*43758.5453;return h-Math.floor(h)}
 function base(i,c1,c2){g.fillStyle=c1;g.fillRect(i*T,0,T,T);g.fillStyle=c2;
  for(let k=0;k<14;k++){g.fillRect(i*T+Math.floor(hash(i,k)*30),Math.floor(hash(k,i+9)*30),2,2)}}
@@ -10,7 +10,7 @@ base(GRASS,'#5fae4a','#4a9238');
 base(WATER,'#3a7bd5','#6aa5ee');
 base(SAND,'#e3d28f','#cdb96e');
 const oreImg=new Image();oreImg.onload=()=>{g.drawImage(oreImg,ORE*T-1,-1,T+2,T+2);if(typeof Z!=='undefined')try{draw()}catch(e){}};
-oreImg.src='./assets/ores/diamond.png';OREIMGS.diamond=oreImg;
+oreImg.src='./assets/incoming/ore-diamond-v585.png';OREIMGS.diamond=oreImg;
 base(DOOR,'#44404a','#38343e');
 g.fillStyle='#16131a';g.beginPath();g.arc(DOOR*T+16,22,10,Math.PI,0);g.fillRect(DOOR*T+6,22,20,8);g.fill();
 g.strokeStyle='#8a8594';g.lineWidth=2;g.strokeRect(DOOR*T+3,5,26,25);
@@ -30,13 +30,13 @@ const gv=(x,y)=>{const h=hash(x*1.3,y*.7);return h<.1?3:Math.floor(h*3.4)%3};
 const TREEART={image:new Image(),ready:false,failed:false,pending:[]};
 TREEART.image.onerror=()=>{TREEART.failed=true;TREEART.pending.length=0};
 TREEART.image.onload=()=>{if(!TREEART.image.naturalWidth||!TREEART.image.naturalHeight){TREEART.image.onerror();return}TREEART.ready=true;const jobs=TREEART.pending.splice(0);for(const paint of jobs)try{paint()}catch(e){console.warn('tree art',e)}};
-TREEART.image.src='./assets/trees/oak.png';
+TREEART.image.src='./assets/incoming/tree-oak-v585.png';
 /* v5.30 ทุกธีมใช้ภาพ PNG; canvas เดิมและผู้ใช้ภาพต่อได้รับการวาดใหม่เมื่อโหลดเสร็จ */
 const TREEKINDS={};
 for(const kind of ['ancient','fire','spirit']){const art={image:new Image(),ready:false,failed:false,pending:[]};TREEKINDS[kind]=art;
  art.image.onerror=()=>{art.failed=true;art.pending.length=0};
  art.image.onload=()=>{if(!art.image.naturalWidth||!art.image.naturalHeight){art.image.onerror();return}art.ready=true;for(const paint of art.pending.splice(0))paint()};
- art.image.src='./assets/trees/'+kind+'.png'}
+ art.image.src='./assets/incoming/tree-'+kind+'-v585.png'}
 function treeTheme(seed,hue){if(seed===51||(seed>=21&&seed<=24))return ['ancient',138];if(seed===52||(seed>=31&&seed<=34))return ['fire',24];if(seed===53||(seed>=41&&seed<=43))return ['spirit',270];return ['oak',105]}
 function attachTreeArt(c,seed,hue,kind){const theme=treeTheme(seed,hue),art=kind?TREEKINDS[kind]:theme[0]==='oak'?TREEART:TREEKINDS[theme[0]];
  const paint=()=>{paintTreeArt(c,seed,hue,art.image,kind?hue:theme[1]);if(c.treeWatch)for(const fn of c.treeWatch)fn()};

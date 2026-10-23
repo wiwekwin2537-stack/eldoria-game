@@ -8,7 +8,7 @@ for(const f of['beetle','golem','bat','skeleton']){const r=await fetch(base+'/as
 const result=await pg.evaluate(()=>{PAUSED=true;const A=MOBART578,sv=ctx,cv=document.createElement('canvas');cv.width=400;cv.height=220;ctx=cv.getContext('2d');const out={};
 try{for(const f of Object.keys(A.spec)){const S=A.spec[f],m={x:5,y:5,_ax:5,_ay:5,_av:2,_aph:0,mv:true,st:'idle',hurt:0,fx:1};const c=['#aaa','#333','#f80'];
  const shot=(ph,mv)=>{m.x=m._ax=5;m.y=m._ay=5;m._aph=ph;m.mv=mv;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,400,220);ctx.translate(200,180);ctx.scale(3,3);MOBDRAW[f](m,1,c);return cv.toDataURL()};
- const hashes=new Set();for(let i=0;i<8;i++){if(f==='bat'){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,400,220);ctx.translate(200,180);ctx.scale(3,3);MOBDRAW[f](m,(i+.2)/12,c);hashes.add(cv.toDataURL())}else hashes.add(shot((i+.05)*Math.PI/4,true))}
+ const hashes=new Set();for(let i=0;i<8;i++){if(f==='bat'){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,400,220);ctx.translate(200,180);ctx.scale(3,3);MOBDRAW[f](m,(i+.2)/7,c);hashes.add(cv.toDataURL())}else hashes.add(shot((i+.05)*Math.PI/4,true))}
  const idle=f==='bat'||shot(0,false)===shot(Math.PI,false);let images=0,rotations=0,creates=0;const di=ctx.drawImage.bind(ctx),rt=ctx.rotate.bind(ctx),ce=document.createElement.bind(document);ctx.drawImage=(...a)=>{images++;di(...a)};ctx.rotate=(...a)=>{rotations++;rt(...a)};document.createElement=(...a)=>{creates++;return ce(...a)};
  const start=performance.now();try{for(let i=0;i<200;i++)MOBDRAW[f](m,i/60,c)}finally{ctx.drawImage=di;ctx.rotate=rt;document.createElement=ce}const ms=performance.now()-start;
  const ok=S.atlas.ok;S.atlas.ok=false;const fallback=shot(0,false);S.atlas.ok=ok;
@@ -16,5 +16,5 @@ try{for(const f of Object.keys(A.spec)){const S=A.spec[f],m={x:5,y:5,_ax:5,_ay:5
  const c=['#aaa','#333','#f80'];for(let i=0;i<40;i++)MOBDRAW.golem({x:0,y:0,st:'idle',hurt:0},1,['#'+(0x100000+i*123).toString(16),'#123','#abc']);out.cache={pixels:A.pixels,max:A.maxPixels};return out;
 }finally{ctx=sv}});
 console.log(JSON.stringify(result));for(const [f,r]of Object.entries(result)){if(f==='cache'){assert.ok(r.pixels<=r.max);continue}assert.ok(r.unique>=7,f+' distinct frames');assert.ok(r.idle,f+' idle');assert.equal(r.images,200,f+' one image per mob');assert.equal(r.rotations,0);assert.equal(r.creates,0);assert.ok(r.fallback);assert.equal(r.down,0);assert.equal(r.up,3);assert.equal(r.right,1);assert.equal(r.left,f==='bat'?2:1)}assert.deepEqual(errors,[]);
-console.log('PASS ภาพวิ่ง 4 ตระกูล ทิศ/เฟรม/หยุด/สำรอง/ภาระวาด/เพดานแคช');
+console.log('PASS ภาพวิ่ง 14 ตระกูล ทิศ/เฟรม/หยุด/สำรอง/ภาระวาด/เพดานแคช');
 }finally{if(b)await b.close();server.kill();await new Promise(r=>server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exit(1)});

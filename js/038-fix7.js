@@ -49,8 +49,8 @@ function wings10(x,y,f,ud,k){try{const M=MOUNTS[k];if(!M||!M.fly)return;const t=
    for(let i=0;i<5;i++){const L=26-i*3.2,a=i*.2-.1;ctx.save();ctx.rotate(a);ctx.fillStyle=i%2?M.wing2:M.wing;ctx.strokeStyle='rgba(20,20,40,.5)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(L*.5,-7-i,L,-2);ctx.quadraticCurveTo(L*.55,3,0,3);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}ctx.restore()};
   if(ud){wing(-1);wing(1)}else{ctx.translate(-f*2,0);wing(-1)}
   ctx.restore()}catch(e){try{ctx.restore()}catch(_){}}}
-{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){const fl=MOUNTS[k]&&MOUNTS[k].fly;if(fl)wings10(x,y,f,false,k);_ds(k,x,y,f,A);}}
-{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){const fl=MOUNTS[k]&&MOUNTS[k].fly;if(fl&&ph===0)wings10(x,y,1,true,k);return _du(k,x,y,dir,A,ph)};window.drawSteedUD7=drawSteedUD7}
+{const _ds=drawSteed;drawSteed=function(k,x,y,f,A){if(WORLDART.mount(k,x,y,f,A))return;const fl=MOUNTS[k]&&MOUNTS[k].fly;if(fl)wings10(x,y,f,false,k);_ds(k,x,y,f,A);}}
+{const _du=drawSteedUD7;drawSteedUD7=function(k,x,y,dir,A,ph){if(WORLDART.mount(k,x,y,dir==='l'?-1:1,A,ph,dir))return;const fl=MOUNTS[k]&&MOUNTS[k].fly;if(fl&&ph===0)wings10(x,y,1,true,k);return _du(k,x,y,dir,A,ph)};window.drawSteedUD7=drawSteedUD7}
 {const _mp=mountParticles;mountParticles=function(k,x,y,f,A,dt){if(MOUNTS[k]&&MOUNTS[k].fly){if(A&&Math.random()<dt*14){rfxP(x+(Math.random()-.5)*20,y-12+Math.random()*8,(Math.random()-.5)*14,16+Math.random()*10,.7,k==='drake'?'220,90,170':'170,215,255',2,'spark')}return}return _mp(k,x,y,f,A,dt)}}
 // ลอยสูงจากพื้น + เงาที่พื้น
 {const _h=hero;hero=function(){if(!(MOUNT.on&&!P.dead&&isFly10()&&!window.__IN_OTHER8))return _h();

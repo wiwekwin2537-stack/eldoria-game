@@ -38,6 +38,7 @@ let LASTSK=0;
    for(let k=0;k<(reduced143()?4:i>=2?14:8);k++){const a=Math.random()*6.28,r0=14+Math.random()*16;rfxP(P.x+Math.cos(a)*r0,P.y+Math.sin(a)*r0*.4,0,-40-Math.random()*60,.7,CAST.rgb,1.6+Math.random()*1.4,'spark')}}}catch(e){}return r};window.useSkill=useSkill}
 {const _cu=castUlt;castUlt=function(){const was=!!ULT.cast;const r=_cu.apply(this,arguments);try{if(!was&&ULT.cast){LASTSK=now()+1500;if(window.SkillMotion57)SkillMotion57.start(P.cls==='monk'?'bigpunch':P.cls==='dragoon'?'dive':wKind()==='staff'?'castup':wKind()==='bow'?'shoot':'overhead',{ultimate:true});Object.assign(CAST,{t:0,l:1.5,rgb:rgbOf(),big:2,cls:P.cls,dir:P.dir,slot:6,x:P.x,y:P.y,scene:D})}}catch(e){}return r};window.castUlt=castUlt}
 function drawCast(){if(CAST.t>=CAST.l||CAST.scene!==D||P.dead)return;const u=phase143(CAST.t,CAST.l,CAST.big),wind=Math.min(1,u/.28),release=Math.max(0,Math.min(1,(u-.28)/.52)),fade=u<.2?u/.2:Math.max(0,(1-u)/.8),rgb=CAST.rgb,big=CAST.big===2,magic=['mage','cleric','necro','summoner'].includes(CAST.cls),ranged=CAST.cls==='archer'||CAST.cls==='sniper',v=DIRV[CAST.dir]||[1,0],ang=Math.atan2(v[1],v[0]),R=big?65:magic?32:22,t=reduced143()?0:CAST.t;
+ if(WORLDART.effect(magic||big?1:0,CAST.x,CAST.y-8,R*2.8,u,fade,ranged?ang:0))return;
  ctx.save();try{
   ctx.globalCompositeOperation='lighter';
   /* Ground contact stays readable; the brighter release grows outward instead of covering the body. */

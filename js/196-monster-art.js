@@ -1,22 +1,23 @@
-/* v5.84 ภาพวิ่ง 8 เฟรม × 4 ทิศ แทนตัด/หมุนขาจากภาพนิ่ง v581
+/* v5.85 ลดความถี่ก้าวประมาณครึ่งหนึ่งและใช้ภาพครบ 14 ตระกูล · ภาพวิ่ง 8 เฟรม × 4 ทิศ แทนตัด/หมุนขาจากภาพนิ่ง v581
    แก้ตัวรับภาพ v578 ตรงนี้ ไม่เพิ่มชั้นครอบ MOBDRAW; ไม่แตะเลือด ดาเมจ ดรอป XP หรือการชน
    ภาพวิ่งโหลดพลาดใช้ภาพนิ่ง v578; ไม่เรียกตัววาดรูปทรงเดิมในเส้นทางวาดมอนชุดนี้ */
 (function(){
 const SPEC={
- beetle:{src:'assets/monsters/beetle-v578.webp',k:.25,side:[2,1],stride:22,height:33,cells:[[13,1,93,120],[122,3,116,118],[242,3,115,118],[372,1,96,120]]},
- golem:{src:'assets/monsters/golem-v578.webp',k:.33,side:[1,2],stride:30,height:45,cells:[[2,1,97,128],[125,1,56,128],[226,1,57,128],[308,1,98,128]]},
- bat:{src:'assets/monsters/bat-v578.webp',k:.31,side:[2,1],stride:24,height:58,cells:[[2,6,144,67],[161,1,121,72],[310,1,119,72],[446,5,143,68]]},
- skeleton:{src:'assets/monsters/skeleton-v578.webp',k:.34,side:[2,1],stride:28,height:46,cells:[[2,1,70,128],[86,1,49,128],[160,1,49,128],[224,1,70,128]]}
+ beetle:{src:'assets/monsters/beetle-v578.webp',k:.25,side:[2,1],stride:52,height:33,cells:[[13,1,93,120],[122,3,116,118],[242,3,115,118],[372,1,96,120]]},
+ golem:{src:'assets/monsters/golem-v578.webp',k:.33,side:[1,2],stride:68,height:45,cells:[[2,1,97,128],[125,1,56,128],[226,1,57,128],[308,1,98,128]]},
+ bat:{src:'assets/monsters/bat-v578.webp',k:.31,side:[2,1],stride:56,height:58,cells:[[2,6,144,67],[161,1,121,72],[310,1,119,72],[446,5,143,68]]},
+ skeleton:{src:'assets/monsters/skeleton-v578.webp',k:.34,side:[2,1],stride:64,height:46,cells:[[2,1,70,128],[86,1,49,128],[160,1,49,128],[224,1,70,128]]}
 };
+for(const [f,height,stride] of [['wolf',38,98],['zombie',45,62],['drake',43,72],['wisp',36,72],['dragon',66,90],['iceq',62,80],['mushk',59,70],['fgen',61,76],['serp',61,92],['starg',67,86]])SPEC[f]={src:'assets/incoming/monster-'+f+'-v585.png',flat:true,k:1,height,stride,cells:[[0,0,64,80],[0,0,64,80],[0,0,64,80],[0,0,64,80]],side:[1,2]};
 const MA={spec:SPEC,tint:new Map(),on:true,maxPixels:4194304,pixels:0};window.MOBART578=MA;
 const hex=s=>{s=String(s||'').trim();let m=/^#([0-9a-f]{6})$/i.exec(s);if(m){const n=parseInt(m[1],16);return[n>>16&255,n>>8&255,n&255]}m=/^#([0-9a-f]{3})$/i.exec(s);if(m){const v=m[1];return[parseInt(v[0]+v[0],16),parseInt(v[1]+v[1],16),parseInt(v[2]+v[2],16)]}return null};
 function load(src,target){target.img=new Image();target.ok=false;target.img.decoding='async';
- target.img.onload=()=>{try{const W=target.img.naturalWidth,H=target.img.naturalHeight;if(!W||!H)return;if(target.run&&(W!==512||H!==320))return;
+ target.img.onload=()=>{try{const W=target.img.naturalWidth,H=target.img.naturalHeight;if(!W||!H)return;if(target.run&&(W!==512||H!==(target.flat?80:320)))return;
  const c=document.createElement('canvas');c.width=W;c.height=H;const q=c.getContext('2d',{willReadFrequently:true});q.drawImage(target.img,0,0);target.src0=q.getImageData(0,0,W,H);
  const d=target.src0.data,hist=new Uint32Array(256);let n=0;for(let i=0;i<d.length;i+=4)if(d[i+3]>40&&!(d[i+2]>180&&d[i]>100&&d[i+1]<110)){hist[Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2])]++;n++}
  let acc=0;target.lo=0;target.hi=255;for(let j=0;j<256;j++){acc+=hist[j];if(acc<n*.02)target.lo=j;if(acc<n*.98)target.hi=j+1}if(target.hi-target.lo<20)target.hi=target.lo+20;target.ok=true;
  }catch(e){target.ok=false}};target.img.onerror=()=>{target.ok=false};target.img.src=src}
-for(const f in SPEC){const S=SPEC[f];load(S.src,S);S.atlas={run:true};load('assets/incoming/monster-'+f+'-run-20261023.png',S.atlas)}
+for(const f in SPEC){const S=SPEC[f];load(S.src,S);S.atlas={run:true,flat:!!S.flat};load(S.flat?S.src:'assets/incoming/monster-'+f+'-run-20261023.png',S.atlas)}
 /* แคชแบบ LRU จำกัดพิกเซล ~16 MB; ย้อมเมื่อเจอชุดสีใหม่เท่านั้น ไม่สร้าง canvas/ตัดขาขณะวาด */
 function tinted(f,c,T){const a=hex(c&&c[0]),b=hex(c&&c[1]),e=hex(c&&c[2]);if(!T.src0||!a||!b||!e)return T.img;
  const key=f+'|'+(T.run?'run':'still')+'|'+c.join('|');let cv=MA.tint.get(key);if(cv){MA.tint.delete(key);MA.tint.set(key,cv);return cv}
@@ -25,19 +26,20 @@ function tinted(f,c,T){const a=hex(c&&c[0]),b=hex(c&&c[1]),e=hex(c&&c[2]);if(!T.
  if(bl>180&&r>100&&g<110){o[i]=e[0];o[i+1]=e[1];o[i+2]=e[2]}else{for(let j=0;j<3;j++)o[i+j]=b[j]+(a[j]-b[j])*u}o[i+3]=s[i+3]}
  cv=document.createElement('canvas');cv.width=W;cv.height=H;cv.getContext('2d').putImageData(out,0,0);
  while(MA.pixels+W*H>MA.maxPixels&&MA.tint.size){const k=MA.tint.keys().next().value,old=MA.tint.get(k);MA.pixels-=old.width*old.height;MA.tint.delete(k)}MA.tint.set(key,cv);MA.pixels+=W*H;return cv}
-function pose(f,m,t){const S=SPEC[f],fake=m.x==null||(m.x===0&&m.y===0);let v=0,phase=0,moving=false;
+function pose(f,m,t){const S=SPEC[f],fake=m.x==null||(m.x===0&&m.y===0);let v=0,phase=0,moving=false;if(fake){v=2;moving=!!m.mv;phase=moving?Math.max(0,t)*2*Math.PI*.75:0}
  if(!fake){const dx=m.x-(m._ax==null?m.x:m._ax),dy=m.y-(m._ay==null?m.y:m._ay),d=Math.hypot(dx,dy);m._ax=m.x;m._ay=m.y;
  if(d>.05&&d<40){m._av=Math.abs(dy)>Math.abs(dx)*1.3?(dy>0?0:3):2;if(Math.abs(dx)>.05)m._asx=dx>0?1:-1;m._aph=((m._aph||0)+d*2*Math.PI/S.stride)%(2*Math.PI)}
  phase=m._aph||0;moving=d>.05&&d<40||!!m.mv;v=m._av==null?2:m._av}
  /* drawMob พลิกซ้ายให้มอนบนพื้นอยู่แล้ว; ค้างคาวไม่ถูกพลิกจึงใช้แถวซ้ายจริง */
  const row=v===0?0:v===3?3:f==='bat'&&(m._asx||(m.fx<0?-1:1))<0?2:1;
- const frame=f==='bat'?Math.floor(Math.max(0,t)*12)%8:moving?Math.floor(((phase/(2*Math.PI))%1+1)%1*8):0;
+ const frame=f==='bat'?Math.floor(Math.max(0,t)*7)%8:moving?Math.floor(((phase/(2*Math.PI))%1+1)%1*8):0;
  return {v,row,frame,moving,fake}}
 MA.pose=pose;
 for(const f in SPEC){const orig=MOBDRAW[f];if(typeof orig!=='function')continue;
  const fn=function(m,t,c){const S=SPEC[f],p=pose(f,m,t),T=MA.on&&S.ok&&S.atlas.ok?S.atlas:S;
- if(!T.img.naturalWidth)return;const sheet=tinted(f,c,T);ctx.save();try{
- let B,w,h,dy;if(T.run){B=[p.frame*64,p.row*80,64,80];h=S.height;w=h*.8;dy=f==='bat'?-h-8:-h}
+ if(!T.img.naturalWidth){if(S.flat)return orig(m,t,c);return}const sheet=tinted(f,c,T);ctx.save();try{
+ let B,w,h,dy;if(T.run){B=[p.frame*64,(S.flat?0:p.row)*80,64,80];h=S.height;w=h*.8;dy=f==='bat'?-h-8:-h}
+ else if(S.flat){B=[0,0,64,80];h=S.height;w=h*.8;dy=-h}
  else{const v=p.v===2?(f==='bat'&&p.row===2?S.side[1]:S.side[0]):p.v;B=S.cells[v];w=B[2]*S.k;h=B[3]*S.k;dy=f==='bat'?-h-8:-h}
  if(m.st==='wu'||m.st==='slamWU')ctx.scale(1.05,.94);else if(m.st==='strike'||m.st==='slam')ctx.scale(.96,1.05);
  ctx.drawImage(sheet,B[0],B[1],B[2],B[3],-w/2,dy,w,h);
@@ -58,3 +60,4 @@ if(window.REG136)REG136.push(['มอนภาพ: เดินแล้วข�
 if(window.REG136)REG136.push(['มอนภาพ: 8 เฟรมตามระยะจริง · ไม่ตัดขา/เรียกวาดรูปทรง · แคชจำกัด (v584)',()=>{
  const A=window.MOBART578;if(!A)return'ไม่มีระบบภาพมอน';for(const f of['beetle','golem','skeleton']){const S=A.spec[f],m={x:5,y:5,_ax:5,_ay:5,_av:2,_aph:0,mv:true};const frames=new Set();for(let i=0;i<8;i++){frames.add(A.pose(f,m,1).frame);m.x+=S.stride/8}if(frames.size!==8)return f+' เฟรมไม่ครบ 8';m.x+=1000;if(!Number.isFinite(A.pose(f,m,1).frame))return f+' ย้ายฉากเฟรมพัง'}
  if(A.pixels>A.maxPixels)return'แคชภาพเกินเพดาน';return null}]);
+if(window.REG136)REG136.push(['ภาพหลักทั้งเกมและจังหวะขามอนช้าลง (v585)',async()=>{const A=window.WORLDART,M=window.MOBART578;if(!A||!M)return'ไม่มีระบบภาพ';for(let i=0;i<100&&!Object.keys(A.images).every(k=>A.ready(k));i++)await new Promise(r=>setTimeout(r,100));if(!Object.keys(A.images).every(k=>A.ready(k)))return'ภาพหลักโหลดไม่ครบ';if(Object.keys(M.spec).length!==14)return'ภาพมอนไม่ครบ 14 ตระกูล';if(['beetle','golem','skeleton'].some(f=>M.spec[f].stride<50))return'จังหวะก้าวยังเร็ว';if(A.cache.size>A.maxCache)return'แคชส่วนตัวละครเกินเพดาน';return null}]);
