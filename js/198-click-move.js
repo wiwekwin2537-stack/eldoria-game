@@ -2,6 +2,7 @@
    - คลิกซ้ายที่พื้น → เดินไปจุดนั้นเอง (หาทางเลี่ยงสิ่งกีดขวางแบบ BFS ด้วย hit() ตัวเดียวกับการเดินจริง)
    - คลิกซ้ายที่มอน → เดินเข้าไปใกล้แล้วตีปกติเอง จนมอนตาย (ยิงไกล = อยู่ในระยะยิง 280 และมองเห็น → ยิงทันทีไม่ต้องเดิน · ประชิด 28)
    - v5.96 คลิกประตู/ร้าน/แผง/NPC/ทางออกแมพ → เดินไปถึงแล้วกด "ใช้" ให้เอง (interact() ตัวเดียวกับปุ่ม E) · คลิก NPC = เดินตาม NPC ที่เดินอยู่
+   - v5.97 เดินหนี (กดปุ่มเดินค้าง) แล้วคลิกมอน → สายยิงไกลยิงขณะเดินหนีได้ ถ้าอยู่ในระยะ
    - v5.96 ยิง/สกิล ล็อกเป้ามอนที่คลิกเอง และตอนฟาร์มออโต้ล็อกเป้ามอนของออโต้ — ไม่วิ่งตามเมาส์ (เดิม fix5 เล็งตามเมาส์ 4 วิหลังขยับเมาส์)
    - กดปุ่มเดิน (WASD/ลูกศร) หรือคลิกจุดใหม่ = ยกเลิกทันที · เปิดฟาร์มออโต้อยู่แล้วคลิก = ปิดออโต้ ให้ผู้เล่นคุมเอง
    - มือถือ/จอสัมผัส (COARSE) ไม่เปลี่ยนอะไร · เดิมบนคอม "คลิกจอ = ฟันอยู่กับที่" (026-core/031-core) → แทนด้วยคลิกเดิน/คลิกตี
@@ -44,7 +45,9 @@ CM.use=use;
 function atk(){const si=interact;interact=function(){return false};try{attack(true)}finally{interact=si}}
 CM.tick=function(dt){CM.ix=CM.iy=0;if(!CM.goal&&!CM.tgt)return;
  if(P.dead||!titleEl.hidden){stop();return}
- if(keys.l||keys.r||keys.u||keys.d||(JOY.on&&(JOY.x||JOY.y))||(typeof AUTO!=='undefined'&&AUTO.on)){stop();return}
+ if(typeof AUTO!=='undefined'&&AUTO.on){stop();return}
+ /* v5.97 เดินหนีด้วยปุ่ม + คลิกมอน: สายยิงไกลยิงต่อขณะเดิน (ไม่แย่งการเดิน) ถ้าอยู่ในระยะ · หลุดระยะ/ประชิด/คลิกพื้น = ยกเลิกเหมือนเดิม */
+ if(keys.l||keys.r||keys.u||keys.d||(JOY.on&&(JOY.x||JOY.y))){const m=CM.tgt;if(m&&alive(m)&&isRng()&&mobs().indexOf(m)>=0&&inRange(Math.hypot(m.x-P.x,m.y-P.y),m)){if(P.at<0&&P.stun<=0){if(P.tool!=='sword'&&P.armor&&P.armor.sword){P.tool='sword';P.draw=true}atk()}CM.path=null;return}stop();return}
  let tx,ty;
  if(CM.tgt){const m=CM.tgt;if(!alive(m)||mobs().indexOf(m)<0){stop();return}
   const dx=m.x-P.x,dy=m.y-P.y,d=Math.hypot(dx,dy)||1;

@@ -26,6 +26,11 @@ const rg=await pg.evaluate(()=>{P.armor.sword='bow0';P.tool='sword';P.draw=true;
 assert.ok(rg&&rg.rng,'ทดสอบยิงไกลไม่ได้');[cx,cy]=await scr(rg.m[0],rg.m[1]-12);await pg.mouse.click(cx,cy);await pg.mouse.move(cx-300,cy+150);await sl(1800);
 const rr=await pg.evaluate(()=>{const m=D.mobs.find(m=>m.__r);return{hp:m.hp,p:[P.x,P.y],tgt:CLICK594.tgt===m}});const moved=Math.hypot(rr.p[0]-rg.p[0],rr.p[1]-rg.p[1]);console.log('ranged',JSON.stringify(rg),JSON.stringify(rr),'moved',moved|0);
 assert.ok(moved<12,'มอนอยู่ในระยะยิง แต่ยังเดินเข้าไป ('+(moved|0)+'px)');assert.ok(rr.hp<rg.hp,'คลิกมอนในระยะแล้วไม่ยิงโดน (เมาส์ชี้ที่อื่น)');
+/* 4b) เดินหนีด้วยปุ่มค้าง + คลิกมอนในระยะ → ยิงขณะเดิน (เจ้าของแจ้ง v5.96 กดยิงตอนหนีไม่ยิง) */
+const k0=await pg.evaluate(()=>{const m=D.mobs.find(m=>m.__r);CLICK594.stop();return{hp:m.hp,p:[P.x,P.y],m:[m.x,m.y],away:m.x>P.x?'ArrowLeft':'ArrowRight'}});
+await pg.keyboard.down(k0.away);await sl(120);const mm=await pg.evaluate(()=>{const m=D.mobs.find(m=>m.__r);return[m.x,m.y-12]});[cx,cy]=await scr(mm[0],mm[1]);await pg.mouse.click(cx,cy);await sl(1400);
+const k1=await pg.evaluate(()=>{const m=D.mobs.find(m=>m.__r);return{hp:m.hp,p:[P.x,P.y]}});await pg.keyboard.up(k0.away);const fled=Math.hypot(k1.p[0]-k0.p[0],k1.p[1]-k0.p[1]);console.log('kite',JSON.stringify(k0),JSON.stringify(k1),'fled',fled|0);
+assert.ok(fled>20,'กดปุ่มเดินหนีแล้วตัวไม่เดิน');assert.ok(k1.hp<k0.hp,'เดินหนีแล้วคลิกมอนในระยะ ไม่ยิง');
 /* 5) ฟาร์มออโต้: เมาส์ขยับอยู่ก็ยังเล็งมอนของออโต้ */
 const au=await pg.evaluate(()=>{CLICK594.stop();const m=D.mobs.find(m=>m.__r);AUTO.on=true;A2_110.goal={k:'mob',m,x:m.x,y:m.y};MS9.x=P.x-200;MS9.y=P.y+200;MS9.t=performance.now();const dv=aimDir(300);AUTO.on=false;A2_110.goal=null;const ex=m.x-P.x,ey=(m.y-10)-(P.y-14),ed=Math.hypot(ex,ey);return dv[0]*ex/ed+dv[1]*ey/ed});console.log('auto aim dot',au.toFixed(2));assert.ok(au>.95,'ฟาร์มออโต้ยังเล็งตามเมาส์ ไม่ใช่มอน');
 await pg.evaluate(()=>{P.armor.sword='sword0';D.mobs.forEach(m=>{if(m.__r){m.hp=0;m.dead=true}})});

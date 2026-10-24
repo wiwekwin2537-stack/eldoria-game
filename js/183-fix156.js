@@ -5,7 +5,7 @@
 try{
 let B156=false,deny156=false,done156=false,ask156=0,busy156=false,dbg156=0,vbusy156=false,vask156=0;
 window.ST156=()=>({b:B156,deny:deny156,d:done156,lv:(typeof P!=='undefined'&&P)?P.lv:null});
-const dbgSay156=m=>{try{say(m)}catch(e){}try{if(dbg156<=1&&typeof banner==='function')banner('🔍 fix156',m)}catch(e){}};
+/* v5.97 เจ้าของแจ้ง 2026-10-25: ข้อความตรวจระบบ fix156 หลุดขึ้นแชทผู้เล่น → ส่งลง console เท่านั้น · เปิดดูบนจอได้ด้วย ?debug156=1 */const dbgSay156=m=>{try{console.log(m)}catch(e){}if(!/[?&]debug156=1/.test(location.search))return;try{say(m)}catch(e){}try{if(dbg156<=1&&typeof banner==='function')banner('🔍 fix156',m)}catch(e){}};
 {const _c=CLOUD.call;CLOUD.call=async function(path){const r=await _c.apply(this,arguments);try{if(r&&r.ok&&(path==='/api/login'||path==='/api/load'||path==='/api/save')){if(r.b150)B156=true;else if(r.b150===false&&path==='/api/load')deny156=true}}catch(e){}return r}}
 const tick156=setInterval(()=>{try{if(done156)return;if(typeof P==='undefined'||!P||!P.name||P.dead||typeof FM_ACCT==='undefined'||!FM_ACCT)return;
   const t=gid('title');if(t&&t.hidden===false)return;
