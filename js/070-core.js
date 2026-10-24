@@ -8,7 +8,7 @@ function dashStep(dt){const sp=DASH.speed*dt,[vx,vy]=P.dv;P.dash-=dt;if(!hit(P.x
 function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;DT=dt;if(PAUSED||ROTP)return;
  if(SET.fps){fpsA+=(1/Math.max(dt,.001)-fpsA)*.05;if(++fpsN%15===0){FPSEL.hidden=false;FPSEL.textContent=Math.round(fpsA)+' FPS'}}else FPSEL.hidden=true;
  let ix=(keys.r?1:0)-(keys.l?1:0),iy=(keys.d?1:0)-(keys.u?1:0),am=1;
- if(JOY.on&&(JOY.x||JOY.y)){ix=JOY.x;iy=JOY.y;am=Math.min(1,Math.hypot(ix,iy))}if(!ix&&!iy&&typeof AUTO!=="undefined"&&AUTO.on&&(AUTO.ix||AUTO.iy)){ix=AUTO.ix;iy=AUTO.iy} // จอยสติ๊ก: ดันน้อยเดินช้า ดันมากเดินเต็มความเร็ว
+ if(JOY.on&&(JOY.x||JOY.y)){ix=JOY.x;iy=JOY.y;am=Math.min(1,Math.hypot(ix,iy))}if(!ix&&!iy&&typeof AUTO!=="undefined"&&AUTO.on&&(AUTO.ix||AUTO.iy)){ix=AUTO.ix;iy=AUTO.iy}if(window.CLICK594&&CLICK594.on){try{CLICK594.tick(dt)}catch(e){}if(!ix&&!iy&&(CLICK594.ix||CLICK594.iy)){ix=CLICK594.ix;iy=CLICK594.iy}}/* v595 คอม: คลิกเดิน/คลิกมอนตี (198-click-move) */ // จอยสติ๊ก: ดันน้อยเดินช้า ดันมากเดินเต็มความเร็ว
  playerTick(dt);P.dcd=Math.max(0,P.dcd-dt);
  if(DOORA.k)doorTick(dt);
  if(P.sit){if(ix||iy){P.sit=null;P.y=8.55*T}else{P.hp=Math.min(BAL.hp,P.hp+4*dt);P.mp=Math.min(BAL.mp,P.mp+3*dt)}}if(P.stun>0||DOORA.k||P.sit){ix=iy=0}
