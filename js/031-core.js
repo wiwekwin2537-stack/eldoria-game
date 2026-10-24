@@ -1823,7 +1823,7 @@ function drawStallFront(s,t){const x=s.x*T,y=s.y*T,w=2*T;ctx.fillStyle='rgba(0,0
  ctx.fillStyle='#7a4e26';ctx.fillRect(x-2,y-10,w+4,40);ctx.fillStyle='#9a6a36';ctx.fillRect(x-2,y-10,w+4,5);ctx.fillStyle='#5a3418';for(let i=1;i<8;i++)ctx.fillRect(x-2+i*8.5,y-5,1,35);
  ctx.fillStyle='#3a2410';ctx.fillRect(x-2,y+28,w+4,2);goods(s,x,y,t);
  // ป้ายราคา
- ctx.fillStyle='#f6ecd0';ctx.fillRect(x+w/2-10,y+4,20,11);ctx.strokeStyle='#5a3418';ctx.strokeRect(x+w/2-9.5,y+4.5,19,10);ctx.fillStyle='#8a2a1a';ctx.font='bold 7px system-ui';ctx.textAlign='center';ctx.fillText('🪙',x+w/2,y+12);ctx.textAlign='left';
+ ctx.fillStyle='#f6ecd0';ctx.fillRect(x+w/2-10,y+4,20,11);ctx.strokeStyle='#5a3418';ctx.strokeRect(x+w/2-9.5,y+4.5,19,10);ctx.fillStyle='#8a2a1a';/* v594 ป้ายเหรียญบนแผงวาดด้วยโค้ด (บางเครื่องไม่มีอีโมจิ 🪙 → กล่อง) */ctx.fillStyle='#ffd23a';ctx.strokeStyle='#8a5a0a';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x+w/2,y+9.5,3.4,0,7);ctx.fill();ctx.stroke();ctx.textAlign='left';
  if(stallNear()===s&&shopEl.hidden){ctx.font='bold 11px system-ui,"Noto Sans Thai",sans-serif';const tx='กด E / ⚔️ ซื้อของ',tw=ctx.measureText(tx).width+14,cx=x+w/2,cy=y+T+30+Math.sin(t*4)*2;ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(cx-tw/2,cy-13,tw,19);ctx.strokeStyle='#e8c14a';ctx.strokeRect(cx-tw/2+.5,cy-12.5,tw-1,18);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(tx,cx,cy);ctx.textAlign='left'}}
 {const _bt=buildTown;buildTown=function(){_bt();D.stalls=D.stalls.concat(STALL_DATA.map(s=>({back:s,y:s.y-1.45})))}}
 {const _ds=drawStall;drawStall=function(s,t){if(s.back)return drawStallBack(s.back,t);if(STALL_DATA.includes(s))return drawStallFront(s,t);return _ds(s,t)}}
