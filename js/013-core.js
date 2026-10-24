@@ -2,7 +2,7 @@
 const ts=document.createElement('canvas');ts.width=T*6;ts.height=T;
 const g=ts.getContext('2d');
 const OREIMGS={};
-for(const k of ['stone','iron','copper','silver','gold']){const im=new Image();im.onload=()=>{try{if(window.OREICON_REFRESH)window.OREICON_REFRESH(k);if(typeof draw==='function')draw()}catch(e){}};im.src='./assets/incoming/ore-'+k+'-v585.png';OREIMGS[k]=im}
+for(const k of ['stone','iron','copper','silver','gold']){const im=new Image();im.onload=()=>{try{if(window.OREICON_REFRESH)window.OREICON_REFRESH(k);if(typeof draw==='function')draw()}catch(e){}};im.src='./assets/ores/'+k+'.png';OREIMGS[k]=im} /* v593 เจ้าของสั่ง คืนภาพแร่เดิม */
 function hash(x,y){let h=Math.sin(x*127.1+y*311.7)*43758.5453;return h-Math.floor(h)}
 function base(i,c1,c2){g.fillStyle=c1;g.fillRect(i*T,0,T,T);g.fillStyle=c2;
  for(let k=0;k<14;k++){g.fillRect(i*T+Math.floor(hash(i,k)*30),Math.floor(hash(k,i+9)*30),2,2)}}
@@ -10,7 +10,7 @@ base(GRASS,'#5fae4a','#4a9238');
 base(WATER,'#3a7bd5','#6aa5ee');
 base(SAND,'#e3d28f','#cdb96e');
 const oreImg=new Image();oreImg.onload=()=>{g.drawImage(oreImg,ORE*T-1,-1,T+2,T+2);if(typeof Z!=='undefined')try{draw()}catch(e){}};
-oreImg.src='./assets/incoming/ore-diamond-v585.png';OREIMGS.diamond=oreImg;
+oreImg.src='./assets/ores/diamond.png';OREIMGS.diamond=oreImg;
 base(DOOR,'#44404a','#38343e');
 g.fillStyle='#16131a';g.beginPath();g.arc(DOOR*T+16,22,10,Math.PI,0);g.fillRect(DOOR*T+6,22,20,8);g.fill();
 g.strokeStyle='#8a8594';g.lineWidth=2;g.strokeRect(DOOR*T+3,5,26,25);
