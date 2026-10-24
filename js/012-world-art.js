@@ -3,7 +3,8 @@
 const WORLDART={images:{},cache:new Map(),maxCache:768,ready(k){return !!this.images[k]?.naturalWidth}};
 window.WORLDART=WORLDART;
 /* v588: เจ้าของสั่ง 2026-10-25 ตัวละครผู้เล่น+NPC กลับเป็นแบบวาดด้วยโค้ดเดิม → ไม่โหลด hero-rig / npc-*-v587 (WORLDART.part/arm/head/npc คืน false → ใช้โค้ดวาดเดิมทุกจุด) */
-for(const name of ['mounts','animals','pets-extra','world','terrain','effects','farm']){const im=new Image();im.decoding='async';im.onload=()=>{if(name==='terrain')try{if(typeof buildGround==='function'){WAVEF.length=0;buildGround()}}catch(e){}};im.src='assets/incoming/'+name+'-v585.png';WORLDART.images[name]=im}
+/* v589: เจ้าของสั่ง 2026-10-25 ลองขี่แล้วไม่สมจริง (หันหน้า/หลังยังเป็นม้าด้านข้าง · หมาป่า/พยัคฆ์หาย · ออร่าสัตว์ขี่หาย) → สัตว์ขี่กลับเป็นแบบโค้ดเดิม ไม่โหลด mounts-v585 */
+for(const name of ['animals','pets-extra','world','terrain','effects','farm']){const im=new Image();im.decoding='async';im.onload=()=>{if(name==='terrain')try{if(typeof buildGround==='function'){WAVEF.length=0;buildGround()}}catch(e){}};im.src='assets/incoming/'+name+'-v585.png';WORLDART.images[name]=im}
 WORLDART.tile=function(k,n,x,y,w,h){if(!this.ready('terrain'))return false;k.drawImage(this.images.terrain,(n%4)*128,Math.floor(n/4)*128,128,128,x,y,w,h);return true};
 /* Whole parts are tinted once and reused. Drawing never reads pixels or allocates a canvas. */
 WORLDART.partImage=function(col,dir,color){if(!this.ready('hero-rig'))return null;const row={d:0,r:1,u:2,l:3}[dir]||0,key=col+'|'+row+'|'+(color||'');let c=this.cache.get(key);if(c){this.cache.delete(key);this.cache.set(key,c);return c}
