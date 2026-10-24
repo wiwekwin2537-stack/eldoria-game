@@ -2,7 +2,8 @@
    Collision, movement, equipment, damage and skill timing remain with their original systems. */
 const WORLDART={images:{},cache:new Map(),maxCache:768,ready(k){return !!this.images[k]?.naturalWidth}};
 window.WORLDART=WORLDART;
-for(const name of ['hero-rig','mounts','animals','pets-extra','world','terrain','effects','farm']){const im=new Image();im.decoding='async';im.onload=()=>{if(name==='terrain')try{if(typeof buildGround==='function'){WAVEF.length=0;buildGround()}}catch(e){}};im.src='assets/incoming/'+name+'-v585.png';WORLDART.images[name]=im}
+/* v588: เจ้าของสั่ง 2026-10-25 ตัวละครผู้เล่น+NPC กลับเป็นแบบวาดด้วยโค้ดเดิม → ไม่โหลด hero-rig / npc-*-v587 (WORLDART.part/arm/head/npc คืน false → ใช้โค้ดวาดเดิมทุกจุด) */
+for(const name of ['mounts','animals','pets-extra','world','terrain','effects','farm']){const im=new Image();im.decoding='async';im.onload=()=>{if(name==='terrain')try{if(typeof buildGround==='function'){WAVEF.length=0;buildGround()}}catch(e){}};im.src='assets/incoming/'+name+'-v585.png';WORLDART.images[name]=im}
 WORLDART.tile=function(k,n,x,y,w,h){if(!this.ready('terrain'))return false;k.drawImage(this.images.terrain,(n%4)*128,Math.floor(n/4)*128,128,128,x,y,w,h);return true};
 /* Whole parts are tinted once and reused. Drawing never reads pixels or allocates a canvas. */
 WORLDART.partImage=function(col,dir,color){if(!this.ready('hero-rig'))return null;const row={d:0,r:1,u:2,l:3}[dir]||0,key=col+'|'+row+'|'+(color||'');let c=this.cache.get(key);if(c){this.cache.delete(key);this.cache.set(key,c);return c}
@@ -22,7 +23,6 @@ WORLDART.animal=function(a){const f=a.vx<0?-1:1,frame=a.mv?Math.floor(performanc
 WORLDART.effect=function(row,x,y,size,u,alpha=1,angle=0){if(!this.ready('effects'))return false;ctx.save();try{ctx.translate(x,y);ctx.rotate(angle);ctx.globalAlpha*=alpha;ctx.drawImage(this.images.effects,Math.min(5,Math.max(0,Math.floor(u*6)))*96,row*96,96,96,-size/2,-size/2,size,size)}finally{ctx.restore()}return true};
 /* v587: one complete NPC sprite; no rig parts or procedural face/headwear overlays. */
 WORLDART.npcRoles=['man','woman','vendor','guard','chef','farmer','wizard','king','elderman','elderwoman','merchant','smith'];
-for(const role of WORLDART.npcRoles){const im=new Image();im.decoding='async';im.src='assets/incoming/npc-'+role+'-v587.png';WORLDART.images['npc-'+role]=im}
 WORLDART.npcRole=function(n){if(n.hat==='crown')return'king';if(n.spear||n.hat==='helmet')return'guard';if(n.hat==='wizard')return'wizard';if(n.hat==='chef')return'chef';if(n.hat==='straw')return'farmer';if(n.g==='f'){if(n.age==='elder')return'elderwoman';return n.apron?'vendor':'woman'}if(n.apron)return'smith';if(n.hat==='cap'||n.hat===1)return'merchant';if(n.age==='elder'||n.cane)return'elderman';return'man'};
 WORLDART.npcReady=function(n){return this.ready('npc-'+this.npcRole(n))};
 WORLDART.npcHeight=function(n){return({guard:56,wizard:58,king:53,farmer:50})[this.npcRole(n)]||48};

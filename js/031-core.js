@@ -536,7 +536,7 @@ function drawNPC(n,t){const g=n.g||'m',age=n.age||'adult',sc=NSC[age]||1,fem=g==
    if(n.beard)R(el?'#e8e8ec':hc,x+sd*2-3,hy+8,6,5);if(n.mu)R(hc,x+sd*3-1,hy+7,4,2)}}
  ctx.restore();}
  ctx.restore();
- ctx.fillStyle='#fff';ctx.font='bold 10px system-ui,sans-serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=0;ctx.shadowOffsetY=1;ctx.shadowOffsetX=1;ctx.fillText(n.dn||n.name,x,Math.round(n.y-(whole?WORLDART.npcHeight(n):46)*sc-4));ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.textAlign='left'}
+ ctx.fillStyle='#fff';ctx.font='bold 10px system-ui,sans-serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=0;ctx.shadowOffsetY=1;ctx.shadowOffsetX=1;ctx.fillText(n.dn||n.name,x,Math.round(whole?n.y-WORLDART.npcHeight(n)*sc-4:n.y-bob-46*sc-4));ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.textAlign='left'}
 
 // ===== v2.6 : แชทระบบ (พับได้) · ชื่อตัวละคร · จอแนวนอน · เริ่มเกมแบบไม่มีของ =====
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -7403,8 +7403,8 @@ setInterval(()=>{try{if(pvpOn8()&&typeof GM7!=='undefined'&&GM7.god){GM7.god=fal
 
 // =====================================================================
 
-/* v587 regression: run after all scripts register REG136. */
-(function registerNPC587(){if(!window.REG136){setTimeout(registerNPC587,100);return}REG136.push(['NPC ภาพเต็มตัวไม่มีหัว/หน้า/หมวกซ้อน (v587)',async()=>{
- const A=window.WORLDART;if(!A?.npc)return'ไม่มีระบบภาพ NPC';for(let i=0;i<100&&!A.npcRoles.every(r=>A.ready('npc-'+r));i++)await new Promise(r=>setTimeout(r,100));if(!A.npcRoles.every(r=>A.ready('npc-'+r)))return'ภาพ NPC โหลดไม่ครบ';
- const old=ctx,cv=document.createElement('canvas');cv.width=cv.height=100;ctx=cv.getContext('2d');try{for(const extra of [{},{g:'f',apron:1},{hat:'crown'},{hat:'helmet',spear:1},{hat:'wizard'}]){let images=0,rects=0;const di=ctx.drawImage.bind(ctx),fr=ctx.fillRect.bind(ctx);ctx.drawImage=(...a)=>{images++;di(...a)};ctx.fillRect=(...a)=>{rects++;fr(...a)};try{drawNPC({name:'QA NPC',x:50,y:90,home:{x:1,y:1},dir:'d',c:'#b34a6a',h:'#57341e',...extra},0)}finally{ctx.drawImage=di;ctx.fillRect=fr}if(images!==1||rects)return'NPC ยังวาดภาพหลายชั้น '+images+'/'+rects}return null}finally{ctx=old}
-}])})();
+/* v588 regression (เจ้าของสั่ง 2026-10-25): ผู้เล่น+NPC ต้องวาดด้วยโค้ดเดิม ไม่ใช้ภาพ hero-rig / npc-*-v587 */
+(function registerNPC588(){if(!window.REG136){setTimeout(registerNPC588,100);return}REG136.push(['ตัวละครผู้เล่นและ NPC วาดด้วยโค้ดเดิม ไม่ใช้ภาพ (v588)',()=>{
+ const A=window.WORLDART;if(!A)return'ไม่มีระบบภาพ';if(Object.keys(A.images).some(k=>k==='hero-rig'||k.startsWith('npc-')))return'ยังโหลดภาพตัวละคร';
+ const old=ctx,cv=document.createElement('canvas');cv.width=cv.height=100;ctx=cv.getContext('2d');try{for(const extra of [{},{g:'f',apron:1},{hat:'crown'},{hat:'helmet',spear:1},{hat:'wizard'}]){let images=0,rects=0;const di=ctx.drawImage.bind(ctx),fr=ctx.fillRect.bind(ctx);ctx.drawImage=(...a)=>{images++;di(...a)};ctx.fillRect=(...a)=>{rects++;fr(...a)};try{drawNPC({name:'QA NPC',x:50,y:90,home:{x:1,y:1},dir:'d',c:'#b34a6a',h:'#57341e',...extra},0)}finally{ctx.drawImage=di;ctx.fillRect=fr}if(images||rects<10)return'NPC ไม่ได้วาดด้วยโค้ดเดิม '+images+'/'+rects}
+ if(A.part(2,0,0,10,10,'d')||A.head(50,90,'d'))return'ผู้เล่นยังใช้ภาพชิ้นส่วน'}finally{ctx=old}return null}])})();
