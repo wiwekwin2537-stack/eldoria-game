@@ -1,6 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
+| `js/012-world-art.js`, `js/031-core.js`, `assets/incoming/npc-*-v587.png`, `server.js`, `index.html`, `sw.js`, `tests/npc_art_browser_test.js`, `README.md`, `SYSTEMS.md` | ChatGPT | NPC ภาพเต็มตัว แก้หัว/หน้า/หมวกซ้อนกัน รวมภาพสนทนา | 2026-10-24 |
 
 ## 🛠️ v5.86 — แก้หัวบอส/คืนภาพเมือง (ChatGPT · 2026-10-24)
 - งานเตรียมในเครื่อง: `js/012-core.js`, `012-town-floor.js`, `012-town-life.js`, `130-fix98.js` คืนภาพเมืองก่อน v585; `196-monster-art.js` + ภาพ v586 แก้กรอบมอน 10 ตระกูลและมังกรความละเอียดเพิ่ม
