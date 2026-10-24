@@ -482,10 +482,12 @@ function drawNPC(n,t){const g=n.g||'m',age=n.age||'adult',sc=NSC[age]||1,fem=g==
  const SK=npcSkin(n),hc=n.h,dir=n.dir,c=n.c,c2=shadeC(c,-38),pants=n.pants||['#2a2a36','#3a2e22','#243244','#14141a'][Math.floor(hash(n.home.x,n.home.y)*3.99)];
  ctx.save();ctx.translate(x,n.y);ctx.scale(sc,sc);ctx.translate(-x,-n.y);
  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(x,n.y+1,fem?10:11,4,0,0,7);ctx.fill();
+ const whole=WORLDART.npc(n,x,n.y,t);
+ if(!whole){
  ctx.save();ctx.translate(x,n.y);ctx.transform(1,0,sway+(el?.025:0),1,0,0);ctx.translate(-x,-n.y);
  if(n.spear)R('#c9ccd6',x+15,b-52,2,52);
  const l1=Math.max(0,w)*3,l2=Math.max(0,-w)*3,a1=w*3,hy=b-(ch?39:el?38:40),hw=ch?14:12,hh=ch?14:12;
- if(!WORLDART.npcBody(n,x,b,hy,w,t)){
+ {
  // ขา / กระโปรง
  if(fem){R(SK,x-4,b-7-l1,3,7);R(SK,x+1,b-7-l2,3,7);R('#2a1a14',x-5,b-2-l1,4,2);R('#2a1a14',x,b-2-l2,4,2);
   ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x-6,b-17);ctx.lineTo(x+6,b-17);ctx.lineTo(x+(ch?8:10),b-5);ctx.lineTo(x-(ch?8:10),b-5);ctx.closePath();ctx.fill();R(c2,x-(ch?8:10),b-6,ch?16:20,2);
@@ -512,7 +514,6 @@ function drawNPC(n,t){const g=n.g||'m',age=n.age||'adult',sc=NSC[age]||1,fem=g==
   else if(hs==='bun'){R(hc,x-hw/2-1,hy,2,7);R(hc,x+hw/2-1,hy,2,7);ctx.fillStyle=hc;ctx.beginPath();ctx.arc(x,hy-6,4.5,0,7);ctx.fill();if(dir==='u')R(hc,x-hw/2-1,hy-3,hw+2,hh)}
   else if(hs==='pigtails'){R(hc,x-hw/2-1,hy,2,6);R(hc,x+hw/2-1,hy,2,6);R(hc,x-hw/2-4,hy+4,3,10);R(hc,x+hw/2+1,hy+4,3,10);R('#e8506a',x-hw/2-4,hy+3,3,2);R('#e8506a',x+hw/2+1,hy+3,3,2);if(dir==='u')R(hc,x-hw/2-1,hy-3,hw+2,hh)}}
  }
- if(WORLDART.ready('hero-rig')&&n.cane){R('#7a5430',x+(fem?11:14),b-15,2,15);R('#5a3a1c',x+(fem?10:13),b-16,4,2)}
  // หมวก
  if(n.hat==='helmet'){R('#b8b8c4',x-8,hy-5,16,8);R('#7a7a88',x-8,hy+2,16,2);R('#c0392b',x-1,hy-9,3,5)}
  else if(n.hat==='chef'){R('#fff',x-6,hy-10,12,8);R('#fff',x-8,hy-5,16,4);R('#e4e4e4',x-8,hy-2,16,1)}
@@ -533,8 +534,9 @@ function drawNPC(n,t){const g=n.g||'m',age=n.age||'adult',sc=NSC[age]||1,fem=g==
    if(n.beard)R(el?'#e8e8ec':hc,x-5,hy+8,10,5)}
   else{R('#111',x+sd*3-1,ey,2,3);if(fem){R('#111',x+sd*4,ey-1,1,1);R('#c0504a',x+sd*4,hy+9,2,1)}
    if(n.beard)R(el?'#e8e8ec':hc,x+sd*2-3,hy+8,6,5);if(n.mu)R(hc,x+sd*3-1,hy+7,4,2)}}
- ctx.restore();ctx.restore();
- ctx.fillStyle='#fff';ctx.font='bold 10px system-ui,sans-serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=0;ctx.shadowOffsetY=1;ctx.shadowOffsetX=1;ctx.fillText(n.dn||n.name,x,Math.round(n.y-bob-46*sc-4));ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.textAlign='left'}
+ ctx.restore();}
+ ctx.restore();
+ ctx.fillStyle='#fff';ctx.font='bold 10px system-ui,sans-serif';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=0;ctx.shadowOffsetY=1;ctx.shadowOffsetX=1;ctx.fillText(n.dn||n.name,x,Math.round(n.y-(whole?WORLDART.npcHeight(n):46)*sc-4));ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;ctx.textAlign='left'}
 
 // ===== v2.6 : แชทระบบ (พับได้) · ชื่อตัวละคร · จอแนวนอน · เริ่มเกมแบบไม่มีของ =====
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -2867,8 +2869,8 @@ function dlgPortrait(t){const n=DLG.n,k=dlgK;k.setTransform(1,0,0,1,0,0);k.image
  k.globalAlpha=.18;k.fillStyle='#fff';for(let i=0;i<6;i++){const a=t*.4+i*1.047;k.beginPath();k.moveTo(60,60);k.arc(60,60,100,a,a+.25);k.fill()}k.globalAlpha=1;
  if(!n||n.x==null)return;
  const o=Object.assign({},n,{x:20,y:46,mv:false,dir:'d',dn:'​',wave:DLG.typing?Math.max(n.wave||0,.5):0,bub:null});const sc=NSC&&NSC[o.age||'adult']||1,S=2.7/sc;
- const sv=ctx;ctx=k;try{k.setTransform(S,0,0,S,60-20*S,58-(46-28*sc)*S+(DLG.typing?Math.sin(t*18)*.6:0));drawNPC(o,t);
-  if(DLG.typing&&DLG.mouth>0){const hy=46-40*sc;k.fillStyle='#5a1a14';k.fillRect(19,hy+9*sc,3,1.6)}}catch(e){}finally{ctx=sv}
+ const sv=ctx;ctx=k;try{if(WORLDART.npcReady(o)){const h=WORLDART.npcHeight(o),z=124/h;k.imageSmoothingEnabled=true;k.setTransform(z,0,0,z,60-20*z,125-46*z);WORLDART.npc(o,20,46,t)}else{k.setTransform(S,0,0,S,60-20*S,58-(46-28*sc)*S+(DLG.typing?Math.sin(t*18)*.6:0));drawNPC(o,t)}
+  if(!WORLDART.npcReady(o)&&DLG.typing&&DLG.mouth>0){const hy=46-40*sc;k.fillStyle='#5a1a14';k.fillRect(19,hy+9*sc,3,1.6)}}catch(e){}finally{ctx=sv}
  k.setTransform(1,0,0,1,0,0)}
 function dlgTick(dt){if(!DLG.open)return;if(DLG.D!==D){dlgClose(true);return}P.stun=Math.max(P.stun,.06);if(typeof JOY!=='undefined'){JOY.x=JOY.y=0}
  if(DLG.typing){DLG.acc+=dt*40;const n=Math.floor(DLG.acc);if(n>DLG.shown){const prev=DLG.shown;DLG.shown=Math.min(DLG.txt.length,n);dlgEl.querySelector('.dtxt').textContent=DLG.txt.slice(0,DLG.shown);
@@ -3555,7 +3557,7 @@ function cineDraw(now){if(cineEl.hidden)return;requestAnimationFrame(cineDraw);c
  const vg=k.createRadialGradient(cx,H/2,Math.min(W,H)*.3,cx,H/2,Math.max(W,H)*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.8)');k.fillStyle=vg;k.fillRect(0,0,W,H)}
 
 // ---------------- 4) กษัตริย์ + ท้องพระโรง ----------------
-{const _dn=drawNPC;drawNPC=function(n,t){_dn(n,t);if(n.hat!=='crown')return;const sc=NSC[n.age||'adult']||1,x=Math.round(n.x),b=Math.round(n.y-(n.mv?0:Math.sin(t*1.8+n.x)*.7)),hy=b-(n.age==='elder'?38:40);
+{const _dn=drawNPC;drawNPC=function(n,t){_dn(n,t);if(n.hat!=='crown'||WORLDART.npcReady(n))return;const sc=NSC[n.age||'adult']||1,x=Math.round(n.x),b=Math.round(n.y-(n.mv?0:Math.sin(t*1.8+n.x)*.7)),hy=b-(n.age==='elder'?38:40);
   ctx.save();ctx.translate(x,n.y);ctx.scale(sc,sc);ctx.translate(-x,-n.y);
   ctx.fillStyle='#e8c14a';ctx.fillRect(x-8,b-26,16,2);ctx.fillStyle='#c0392b';ctx.fillRect(x-1,b-24,2,8);
   ctx.fillStyle='#ffd84a';ctx.strokeStyle='#7a5208';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-8,hy+1);ctx.lineTo(x-8,hy-6);ctx.lineTo(x-4,hy-2);ctx.lineTo(x,hy-9);ctx.lineTo(x+4,hy-2);ctx.lineTo(x+8,hy-6);ctx.lineTo(x+8,hy+1);ctx.closePath();ctx.fill();ctx.stroke();
@@ -7400,3 +7402,9 @@ window.openPvp8=openPvp8;
 setInterval(()=>{try{if(pvpOn8()&&typeof GM7!=='undefined'&&GM7.god){GM7.god=false;say('ปิดอมตะ GM ระหว่าง PvP')}}catch(e){}},500);
 
 // =====================================================================
+
+/* v587 regression: run after all scripts register REG136. */
+(function registerNPC587(){if(!window.REG136){setTimeout(registerNPC587,100);return}REG136.push(['NPC ภาพเต็มตัวไม่มีหัว/หน้า/หมวกซ้อน (v587)',async()=>{
+ const A=window.WORLDART;if(!A?.npc)return'ไม่มีระบบภาพ NPC';for(let i=0;i<100&&!A.npcRoles.every(r=>A.ready('npc-'+r));i++)await new Promise(r=>setTimeout(r,100));if(!A.npcRoles.every(r=>A.ready('npc-'+r)))return'ภาพ NPC โหลดไม่ครบ';
+ const old=ctx,cv=document.createElement('canvas');cv.width=cv.height=100;ctx=cv.getContext('2d');try{for(const extra of [{},{g:'f',apron:1},{hat:'crown'},{hat:'helmet',spear:1},{hat:'wizard'}]){let images=0,rects=0;const di=ctx.drawImage.bind(ctx),fr=ctx.fillRect.bind(ctx);ctx.drawImage=(...a)=>{images++;di(...a)};ctx.fillRect=(...a)=>{rects++;fr(...a)};try{drawNPC({name:'QA NPC',x:50,y:90,home:{x:1,y:1},dir:'d',c:'#b34a6a',h:'#57341e',...extra},0)}finally{ctx.drawImage=di;ctx.fillRect=fr}if(images!==1||rects)return'NPC ยังวาดภาพหลายชั้น '+images+'/'+rects}return null}finally{ctx=old}
+}])})();
