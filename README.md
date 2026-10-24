@@ -1,5 +1,17 @@
 # eldoria-game
 
+## v5.86 — แก้ภาพบอสหัวหายและคืนภาพเมืองเดิม (2026-10-24)
+- เจ้าของแจ้งหัวบอสหายและเมือง v585 ไม่สวย: คืนภาพพื้น/ร้าน/อาคาร/ของตกแต่งและตำแหน่งธงทั้งสองเมืองเป็นชุดก่อน v585 โดยไม่เปลี่ยนผัง ประตู จุดชน และระบบร้าน
+- ต้นเหตุหัวหาย: ภาพต้นฉบับวางตัวมอนล้ำช่องเท่ากัน แต่การแบ่งแอตลาส v585 ตัดตามกริด แล้วลบส่วนที่หลุดช่อง จึงเหลือหัวไม่ครบแม้ภาพโหลดผ่าน
+- จัดภาพต้นฉบับใหม่ตามตัวมอนที่เชื่อมต่อกัน (รวมผลึกแยกของ starg) ครบ 10 ตระกูล × 8 เฟรม เว้นขอบโปร่งใส รักษาอัตราส่วนและสเกลเดียวกันภายในแต่ละชุด
+- มังกรใช้ภาพใหม่ 8 เฟรมจาก built-in ImageGen สกิล imagegen, แพ็ก 128×160 ต่อเฟรมลง `assets/incoming/monster-dragon-v586.png`; อีก 9 ตระกูล `assets/incoming/monster-*-v586.png` ใช้ภาพต้นฉบับเดิมจัดกรอบใหม่ด้วย sharp
+- Prompt: same purple low-poly winged dragon; eight slow walk poses in 4×2 layout; full head/snout/wings/tail/feet in every frame; transparent background, generous cell padding, consistent scale, no text or shadows. Reference: source monster-b v585. Generated source: `exec-931891bc-7348-4933-a149-cfd82d2dc32e.png`.
+- คง stride/ความถี่ก้าว v585, ความเร็วเคลื่อนที่ สเตตัส รางวัล และข้อมูลผู้เล่น
+- เทส `tests/monster_crop_browser_test.js`: รุ่นเดิมพังเพราะจุดหัว/ดวงตามังกรหาย 7/8 เฟรม; รุ่นใหม่ตรวจ 80 เฟรมและวาดบอสจริง 8 เฟรม × ซ้าย/ขวา × ท่าต่อสู้ พร้อม REG136 ป้องกันบัคกลับมา
+- ตรวจผ่าน: quick.sh, REG136 115/115 และ browser tests 6 ชุด (monster_crop, monster_run, world_art, town_buildings, town_life, city_art)
+- เจ้าของอนุมัติให้อัปเดต GitHub แล้ว (2026-10-24); ส่งตัวแก้ที่ผ่านเทสขึ้น main เพื่อ deploy อัตโนมัติ
+
+
 ตำนานเอลโดเรีย (Eldoria Chronicles) — เกมออนไลน์ 2D บนเว็บ
 
 > 🤖 **AI ทุกตัว: อ่าน [`AGENTS.md`](AGENTS.md) ก่อนเริ่มงาน** — เจ้าของขึ้นระบบเอง AI ห้าม push/deploy เอง

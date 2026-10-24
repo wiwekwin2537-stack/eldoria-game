@@ -7,7 +7,7 @@
 try{
 const T98=T;
 /* v5.58 ภาพเมือง 2 จาก ChatGPT (ตรวจ/จัดขอบ/ทำพื้นต่อไร้รอยแล้ว) · โหลดไม่ขึ้น → ใช้ภาพวาดด้วยโค้ดเดิม · ตำแหน่งอาคาร/ประตู/ทางเดินเหมือนเดิมทุกจุด */
-const C2ART={src:{b:'assets/incoming/city-buildings-v585.png',g:'assets/incoming/city-ground-v585.png'},img:{},ok:{},started:0,
+const C2ART={src:{b:'assets/city2/buildings-v558.webp',g:'assets/city2/ground-v558.webp'},img:{},ok:{},started:0,
  BOX:{weapon:[37,168,309,328],armor:[415,140,322,356],forge:[801,139,317,357],potion:[1192,142,304,354],bank:[31,634,321,374],guild:[405,616,342,392],inn:[791,641,338,367],clock:[1182,611,324,397]},
  SHOP:{gear:'forge',potion:'potion',bank:'bank',guild:'guild',inn:'inn'},
  start(){if(this.started)return;this.started=1;for(const k in this.src){const im=new Image();im.decoding='async';im.onload=()=>{this.ok[k]=1;try{if(this.ok.b&&this.ok.g&&C2.Zm&&!C2.Zm.art558&&!(window.inC2&&inC2()))C2.Zm=null}catch(e){}};im.onerror=()=>{this.ok[k]=0};im.src=this.src[k];this.img[k]=im}},
