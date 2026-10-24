@@ -52,7 +52,7 @@ const blob=coin=>JSON.stringify({fm_save_v1:JSON.stringify({v:1,lv:1,armor:{},in
  assert.equal(finalLogin.ok,true,'metadata-only account changes also retry login');
  assert.equal(finalLogin.save,blob(25));assert.equal(finalLogin.rev,2);
  const current={id,token:finalLogin.token,protocol:2};
- const account=[...values.entries()].find(([key])=>key.startsWith('eld3:acct:'));
+ const account=[...values.entries()].find(([key])=>key.startsWith('eld4:acct:'));
  assert.equal(JSON.parse(account[1]).gem,1007,'login preserves the concurrent reward without invoking daily-login rewards');
  assert.equal((await api.mailList(id)).length,2);
  assert.equal((await api.handle('/api/load',{id,token:signedIn.token,protocol:2},'device-b')).err,'session-replaced');

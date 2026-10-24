@@ -32,8 +32,8 @@ async function accountRequest(url, options = {}) {
   new Promise((_,reject)=>{timer=setTimeout(()=>{ac.abort();reject(Error('account storage timeout'));},10000);})
  ]); } finally { clearTimeout(timer); }
 }
-const accountKey = lid => 'eld3:acct:' + fkey(lid);
-const historyKey = lid => 'eld3:history:' + fkey(lid);
+const accountKey = lid => 'eld4:acct:' + fkey(lid);
+const historyKey = lid => 'eld4:history:' + fkey(lid);
 const accountFile = lid => path.join(DATA_DIR,'acct',fkey(lid)+'.json');
 const historyFile = lid => path.join(DATA_DIR,'acct',fkey(lid)+'.history.json');
 async function dbGet(lid) {
@@ -102,7 +102,7 @@ function lbLoad() {
   const run = Promise.resolve().then(async () => {
     try {
       if (UP_URL) {
-        const j = await lbRequest(UP_URL + '/get/eld3:lb', { headers: { authorization: 'Bearer ' + UP_TOK } });
+        const j = await lbRequest(UP_URL + '/get/eld4:lb', { headers: { authorization: 'Bearer ' + UP_TOK } });
         LB.map = j.result ? JSON.parse(j.result) || {} : {};
       } else { const f = path.join(DATA_DIR, 'lb.json'); LB.map = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) || {} : {}; }
       return true;
@@ -117,7 +117,7 @@ async function lbFlush() {
       const body = JSON.stringify(LB.map);
       try {
         if (UP_URL) {
-          const j = await lbRequest(UP_URL + '/set/eld3:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+          const j = await lbRequest(UP_URL + '/set/eld4:lb', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
           if (j.result !== 'OK') throw new Error('leaderboard storage write rejected');
         } else { const f = path.join(DATA_DIR, 'lb.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
         if (JSON.stringify(LB.map) === body) LB.dirty = false;
@@ -158,11 +158,11 @@ const GD = { map: {}, idx: {}, dirty: false, loaded: null, hook: null };
 const GMAX = 30, GROLE = { leader: 3, officer: 2, member: 1 };
 function gIndex() { GD.idx = {}; for (const g of Object.values(GD.map)) for (const l in g.members) GD.idx[l] = g.id; }
 function gLoad() { if (GD.loaded) return GD.loaded; GD.loaded = (async () => { try {
-  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld3:guilds', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) GD.map = JSON.parse(j.result) || {}; }
+  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld4:guilds', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) GD.map = JSON.parse(j.result) || {}; }
   else { const f = path.join(DATA_DIR, 'guilds.json'); if (fs.existsSync(f)) GD.map = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; }
 } catch (e) { console.log('gLoad', e.message); } gIndex(); })(); return GD.loaded; }
 async function gFlush() { if (!GD.dirty) return; GD.dirty = false; const body = JSON.stringify(GD.map); try {
-  if (UP_URL) await fetch(UP_URL + '/set/eld3:guilds', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+  if (UP_URL) await fetch(UP_URL + '/set/eld4:guilds', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
   else { const f = path.join(DATA_DIR, 'guilds.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
 } catch (e) { console.log('gFlush', e.message); GD.dirty = true; } }
 { const iv = setInterval(gFlush, 15000); if (iv.unref) iv.unref(); }
@@ -223,11 +223,11 @@ const topupInfo = () => ({ pp: String(process.env.TOPUP_PROMPTPAY || '').replace
 const bkkDay = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const TQ = { map: {}, dirty: false, loaded: null }; const TOPH = { fn: null }; // v4.71 แจ้ง GM ทันทีเมื่อมีคำขอโดเนทใหม่
 function tqLoad() { if (TQ.loaded) return TQ.loaded; TQ.loaded = (async () => { try {
-  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld3:topq', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) TQ.map = JSON.parse(j.result) || {}; }
+  if (UP_URL) { const r = await fetch(UP_URL + '/get/eld4:topq', { headers: { authorization: 'Bearer ' + UP_TOK } }); const j = await r.json(); if (j && j.result) TQ.map = JSON.parse(j.result) || {}; }
   else { const f = path.join(DATA_DIR, 'topq.json'); if (fs.existsSync(f)) TQ.map = JSON.parse(fs.readFileSync(f, 'utf8')) || {}; }
 } catch (e) { console.log('tqLoad', e.message); } })(); return TQ.loaded; }
 async function tqFlush() { const body = JSON.stringify(TQ.map); try {
-  if (UP_URL) await fetch(UP_URL + '/set/eld3:topq', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
+  if (UP_URL) await fetch(UP_URL + '/set/eld4:topq', { method: 'POST', headers: { authorization: 'Bearer ' + UP_TOK }, body });
   else { const f = path.join(DATA_DIR, 'topq.json'), t = f + '.tmp'; fs.writeFileSync(t, body); fs.renameSync(t, f); }
 } catch (e) { console.log('tqFlush', e.message); } }
 function gemLog(rec, n, why) { rec.glog = (rec.glog || []).slice(-49); rec.glog.push({ t: Date.now(), n, w: String(why).slice(0, 40), b: rec.gem | 0 }); }
