@@ -1,6 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
+| `js/012-world-art.js`, `js/018-core.js`, `js/031-core.js`, `js/089-fix57.js`, `js/172-fix145.js`, `tests/npc_art_browser_test.js`, `tests/world_art_browser_test.js`, `index.html`, `sw.js`, `README.md`, `SYSTEMS.md` | ChatGPT | คืนตัวละครผู้เล่นและ NPC เป็นโค้ดเดิมตามเจ้าของสั่ง | 2026-10-24 |
 
 ## ✅ v5.87 — NPC ภาพเต็มตัว (ChatGPT · 2026-10-24)
 - สมุดบัค: NPC หน้า/หมวก/เคราซ้อน — v585 วาด body rig แยก 12–14 ชิ้น แต่ยังวาดหน้า/หมวกเดิมทับ · แก้ตัววาดใน `js/031-core.js` และ helper `js/012-world-art.js` เป็นภาพเต็มตัวครั้งเดียว รวมหน้าต่างสนทนาและพระราชา
