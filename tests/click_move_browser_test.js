@@ -1,4 +1,4 @@
-/* v5.95 คอม: คลิกพื้น = เดินไปเอง · คลิกมอน = เดินไปตีจนมอนตาย · กดปุ่มเดิน = ยกเลิก · ใช้คลิกเมาส์จริงบนจอ (เส้นทางผู้เล่น) */
+/* v5.95–5.96 คอม: คลิกพื้น = เดินไปเอง · คลิกมอน = เดินไปตีจนมอนตาย · กดปุ่มเดิน = ยกเลิก · ยิงไกลในระยะ = ยิงเลยไม่เดิน · ออโต้ไม่เล็งตามเมาส์ · ในเมืองคลิกประตูร้าน/NPC = เดินไปใช้ให้ · คลิกเมาส์จริง */
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
 (async()=>{const port='8876',base='http://127.0.0.1:'+port,dir=fs.mkdtempSync(path.join(os.tmpdir(),'eld-click-'));let b;const errors=[];const server=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:port,DATA_DIR:dir,UPSTASH_REDIS_REST_URL:'',UPSTASH_REDIS_REST_TOKEN:''},stdio:['ignore','pipe','inherit']});
 try{await new Promise(r=>server.stdout.once('data',r));for(let i=0;i<60;i++){try{await fetch(base+'/');break}catch(e){await new Promise(r=>setTimeout(r,500))}}
@@ -20,5 +20,23 @@ let dead=false;for(let k=0;k<40&&!dead;k++){await sl(250);const s=await pg.evalu
 /* 3) คลิกพื้นแล้วกดปุ่มเดิน → ยกเลิก */
 const far=await pg.evaluate(()=>[P.x+T*6,P.y]);[cx,cy]=await scr(far[0],far[1]);await pg.mouse.click(cx,cy);await sl(150);await pg.keyboard.down('ArrowUp');await sl(200);await pg.keyboard.up('ArrowUp');
 const cancel=await pg.evaluate(()=>!CLICK594.goal&&!CLICK594.tgt);assert.ok(cancel,'กดปุ่มเดินแล้วยังเดินตามคลิก');
-await pg.evaluate(()=>clearInterval(window.__god));assert.deepEqual(errors,[]);console.log('PASS คลิกเดิน · คลิกมอนตี · กดปุ่มยกเลิก');
+
+/* 4) สายยิงไกล: มอนอยู่ในระยะ → ยิงเลย ไม่เดินเข้าไป · ยิงล็อกเป้าแม้เมาส์ชี้ที่อื่น */
+const rg=await pg.evaluate(()=>{P.armor.sword='bow0';P.tool='sword';P.draw=true;const m=D.mobs.find(m=>!m.dead&&m.hp>0&&!m.boss&&!m.__t);if(!m)return null;const sx=Math.floor(P.x/T),sy=Math.floor(P.y/T);let spot=null;for(let r=6;r>=4&&!spot;r--)for(const [ax,ay] of [[r,0],[-r,0],[0,r],[0,-r]])if(!spot&&!hit((sx+ax)*T+16,(sy+ay)*T+18)&&LOS9(P.x,P.y-4,(sx+ax)*T+16,(sy+ay)*T+14))spot=[(sx+ax)*T+16,(sy+ay)*T+18];if(!spot)return null;m.x=spot[0];m.y=spot[1];m.hp=Math.max(m.hp,999);m.mhp=Math.max(m.mhp||0,999);m.spd=0;m.__r=1;return{rng:isRng(),d:Math.hypot(m.x-P.x,m.y-P.y)|0,hp:m.hp,p:[P.x,P.y],m:[m.x,m.y]}});
+assert.ok(rg&&rg.rng,'ทดสอบยิงไกลไม่ได้');[cx,cy]=await scr(rg.m[0],rg.m[1]-12);await pg.mouse.click(cx,cy);await pg.mouse.move(cx-300,cy+150);await sl(1800);
+const rr=await pg.evaluate(()=>{const m=D.mobs.find(m=>m.__r);return{hp:m.hp,p:[P.x,P.y],tgt:CLICK594.tgt===m}});const moved=Math.hypot(rr.p[0]-rg.p[0],rr.p[1]-rg.p[1]);console.log('ranged',JSON.stringify(rg),JSON.stringify(rr),'moved',moved|0);
+assert.ok(moved<12,'มอนอยู่ในระยะยิง แต่ยังเดินเข้าไป ('+(moved|0)+'px)');assert.ok(rr.hp<rg.hp,'คลิกมอนในระยะแล้วไม่ยิงโดน (เมาส์ชี้ที่อื่น)');
+/* 5) ฟาร์มออโต้: เมาส์ขยับอยู่ก็ยังเล็งมอนของออโต้ */
+const au=await pg.evaluate(()=>{CLICK594.stop();const m=D.mobs.find(m=>m.__r);AUTO.on=true;A2_110.goal={k:'mob',m,x:m.x,y:m.y};MS9.x=P.x-200;MS9.y=P.y+200;MS9.t=performance.now();const dv=aimDir(300);AUTO.on=false;A2_110.goal=null;const ex=m.x-P.x,ey=(m.y-10)-(P.y-14),ed=Math.hypot(ex,ey);return dv[0]*ex/ed+dv[1]*ey/ed});console.log('auto aim dot',au.toFixed(2));assert.ok(au>.95,'ฟาร์มออโต้ยังเล็งตามเมาส์ ไม่ใช่มอน');
+await pg.evaluate(()=>{P.armor.sword='sword0';D.mobs.forEach(m=>{if(m.__r){m.hp=0;m.dead=true}})});
+/* 6) ในเมือง: คลิกประตูร้าน → เดินไปเข้าร้านเอง */
+await pg.evaluate(async()=>{CLICK594.stop();exitD&&D&&D.zone&&exitD();await new Promise(r=>setTimeout(r,800));buildTown();placeAtSpawn();PAUSED=false;await new Promise(r=>setTimeout(r,800))});
+const door=await pg.evaluate(()=>{const L=townDoors().map(d=>({...d,dist:Math.hypot(d.cx-P.x,d.cy-P.y)})).sort((a,b)=>a.dist-b.dist);return L[0]});console.log('door',JSON.stringify(door));
+[cx,cy]=await scr(door.cx,door.cy-14);await pg.mouse.click(cx,cy);let inShop=false;for(let k=0;k<40&&!inShop;k++){await sl(250);inShop=await pg.evaluate(()=>!!(D&&D.shop)||!!(window.DOORA&&DOORA.k))}
+console.log('shop',inShop);assert.ok(inShop,'คลิกประตูร้านแล้วไม่เดินไปเปิดประตู');
+/* 7) คลิก NPC → เดินไปคุย (NPC พูด) */
+await pg.evaluate(async()=>{await new Promise(r=>setTimeout(r,3000));try{if(D&&D.shop)exitD()}catch(e){}await new Promise(r=>setTimeout(r,800));if(!(D&&D.town)){buildTown();placeAtSpawn()}try{dlgClose(true)}catch(e){}PAUSED=false});
+const np=await pg.evaluate(()=>{const L=D.npcs.filter(n=>n.lines&&n.lines.length).map(n=>({n,d:Math.hypot(n.x-P.x,n.y-P.y)})).filter(o=>o.d>50&&o.d<220).sort((a,b)=>a.d-b.d);if(!L.length)return null;const n=L[0].n;n.__c=1;n.bub=null;n.fixed=1;n.mv=false;return{x:n.x,y:n.y,name:n.name,d:L[0].d|0}});
+if(np){[cx,cy]=await scr(np.x,np.y-20);await pg.mouse.click(cx,cy);let talk=false;for(let k=0;k<40&&!talk;k++){await sl(250);talk=await pg.evaluate(()=>{const n=D.npcs.find(n=>n.__c);return !!(n&&n.bub)||(typeof DLG!=='undefined'&&DLG.open)});}console.log('npc',JSON.stringify(np),talk);assert.ok(talk,'คลิก NPC แล้วไม่เดินไปคุย')}else console.log('npc: ไม่มี NPC ใกล้พอให้ทดสอบ');
+await pg.evaluate(()=>clearInterval(window.__god));assert.deepEqual(errors,[]);console.log('PASS คลิกเดิน · คลิกมอนตี · ยกเลิก · ยิงในระยะ · ออโต้ไม่ตามเมาส์ · คลิกประตูร้าน/NPC');
 }finally{await b?.close();server.kill();await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exit(1)});
