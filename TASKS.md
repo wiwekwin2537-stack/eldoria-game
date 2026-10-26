@@ -1,6 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
+| preview3d/app.js · preview3d/index.html · preview3d/DEVELOPMENT.md · tools/legacy-movement.cjs · tests/preview3d_target_test.js · README.md · TASKS.md | ChatGPT | ตรวจเป้าทรัพยากร 3D ด้วย target เดิม | 2026-10-26 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
