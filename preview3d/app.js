@@ -11,6 +11,7 @@ async function start(){
  const camera=new T.OrthographicCamera(-20,20,15,-15,.1,260),M=createModels(T),world=new T.Group();scene.add(world);
  const sky=new T.HemisphereLight('#fff3d5','#556d4e',1.9);scene.add(sky);const sun=new T.DirectionalLight('#ffe5b8',2.5);sun.position.set(-20,42,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-50;sun.shadow.camera.right=50;sun.shadow.camera.top=50;sun.shadow.camera.bottom=-50;sun.shadow.camera.far=120;sun.shadow.normalBias=.07;scene.add(sun);
  const worldData=createWorld(data.base),walker=await createWalker(T,worldData);
+ const {createLegacyTargeting}=await import('./legacy-motion.js'),targeting=createLegacyTargeting(walker.P,worldData);
  const W=data.base.width,H=data.base.height,EW=worldData.width,EH=worldData.height,ox=W/2,oz=H/2;
  const add=(model,x,z)=>{model.position.set(x,0,z);world.add(model);return model};
  M.box(world,'#778c57',0,-.3,0,EW,.55,EH);
@@ -48,10 +49,12 @@ async function start(){
   const key=node.geometry.uuid+'|'+node.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(node);
  });
  for(const nodes of batches.values()){const first=nodes[0],batch=new T.InstancedMesh(first.geometry,first.material,nodes.length);batch.name='static-batch';nodes.forEach((n,i)=>{batch.setMatrixAt(i,n.matrixWorld);n.removeFromParent()});batch.castShadow=true;batch.receiveShadow=true;scene.add(batch)}
+ const targetMarker=new T.Mesh(new T.RingGeometry(.75,.88,32),new T.MeshBasicMaterial({color:'#ffe391',side:T.DoubleSide,depthWrite:false}));targetMarker.rotation.x=-Math.PI/2;targetMarker.visible=false;scene.add(targetMarker);
+ const targetInfo=document.getElementById('target-info');
  const view={name:'town',angle:.38,span:36,target:new T.Vector3(0,0,1),min:5,max:115};
  const views={town:{x:0,z:1,span:36,angle:.38},forest:{x:-27,z:-22,span:27,angle:.45},models:{x:-29,z:23,span:11,angle:.3},walk:{x:spawnWorld.x,z:spawnWorld.z,span:14,angle:0}};
  function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);const aspect=w/h;camera.left=-view.span*aspect/2;camera.right=view.span*aspect/2;camera.top=view.span/2;camera.bottom=-view.span/2;camera.updateProjectionMatrix()}
- function setView(name){const v=views[name];if(!v)return;view.name=name;view.target.set(v.x,0,v.z);view.span=v.span;view.angle=v.angle;walker.setEnabled(name==='walk');document.body.classList.toggle('walking',name==='walk');document.getElementById('hint').textContent=name==='walk'?'จอยหรือ WASD เพื่อเดิน · Ctrl/ปุ่มวิ่งเพื่อวิ่ง · ลากฉากเพื่อหมุนกล้อง':'ลากเพื่อหมุนมุมมอง · เลื่อนล้อเพื่อซูม';document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));resize()}
+ function setView(name){const v=views[name];if(!v)return;view.name=name;view.target.set(v.x,0,v.z);view.span=v.span;view.angle=v.angle;walker.setEnabled(name==='walk');targetInfo.hidden=name!=='walk';targetMarker.visible=false;document.body.classList.toggle('walking',name==='walk');document.getElementById('hint').textContent=name==='walk'?'จอยหรือ WASD เพื่อเดิน · Ctrl/ปุ่มวิ่งเพื่อวิ่ง · ลากฉากเพื่อหมุนกล้อง':'ลากเพื่อหมุนมุมมอง · เลื่อนล้อเพื่อซูม';document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));resize()}
  function zoom(factor){view.span=T.MathUtils.clamp(view.span*factor,view.min,view.max);resize()}
  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
  document.getElementById('plus').onclick=()=>zoom(.8);document.getElementById('minus').onclick=()=>zoom(1.25);document.getElementById('reset').onclick=()=>setView(view.name);
@@ -63,9 +66,9 @@ async function start(){
  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom(Math.exp(T.MathUtils.clamp(e.deltaY*.001,-.3,.3)))},{passive:false});
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('อุปกรณ์หยุดแสดงภาพ 3D กรุณาโหลดหน้านี้ใหม่ เกมและเซฟเดิมไม่ได้รับผลกระทบ')});
  let frames=0,last=performance.now(),timer=last;
- function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;hero.userData.pose(now*.004,view.name==='models');if(walker.enabled){walker.tick(dt,view.angle);const pos=worldData.toRender(walker.P);traveler.position.set(pos.x,0,pos.z);if(walker.P.mv)traveler.rotation.y={u:Math.PI,d:0,l:-Math.PI/2,r:Math.PI/2}[walker.P.dir];traveler.userData.pose(walker.P.t,walker.P.mv);view.target.set(pos.x,0,pos.z)}slime.scale.y=1+Math.sin(now*.002)*.07;
+ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;hero.userData.pose(now*.004,view.name==='models');if(walker.enabled){walker.tick(dt,view.angle);const pos=worldData.toRender(walker.P);traveler.position.set(pos.x,0,pos.z);if(walker.P.mv)traveler.rotation.y={u:Math.PI,d:0,l:-Math.PI/2,r:Math.PI/2}[walker.P.dir];traveler.userData.pose(walker.P.t,walker.P.mv);view.target.set(pos.x,0,pos.z)}const selected=walker.enabled?targeting.pickTarget():null;targetMarker.visible=!!selected?.o;if(selected?.o){targetMarker.position.set(selected.o.x,.12,selected.o.z);targetInfo.textContent=(selected.kind==='tree'?'ต้นไม้ · ใช้ขวาน':'แร่'+({iron:'เหล็ก',gold:'ทอง',diamond:'เพชร'}[selected.o.kind]||'')+' · ใช้ที่ขุดแร่')+' · ตรวจเป้าเท่านั้น ยังเก็บของไม่ได้'}else if(walker.enabled)targetInfo.textContent='เดินเข้าใกล้และหันหาต้นไม้หรือแร่เพื่อตรวจเป้า';slime.scale.y=1+Math.sin(now*.002)*.07;
  camera.position.set(view.target.x+Math.sin(view.angle)*45,36,view.target.z+Math.cos(view.angle)*45);camera.lookAt(view.target);renderer.render(scene,camera);frames++;if(now-timer>1500){status.textContent=`พื้นที่ ${EW} × ${EH} · ต้นแบบภาพ · ${Math.round(frames*1000/(now-timer))} FPS บนอุปกรณ์นี้`;timer=now;frames=0}requestAnimationFrame(frame)}
- window.ELDORIA3D={ready:true,scene,camera,renderer,view,setView,base:data.base,dimensions:{width:EW,height:EH,areaRatio:4},source:data.source,mode:'movement-prototype',gameplayConnected:false,movementConnected:true,walker,worldData,traveler};
+ window.ELDORIA3D={ready:true,scene,camera,renderer,view,setView,base:data.base,dimensions:{width:EW,height:EH,areaRatio:4},source:data.source,mode:'movement-prototype',gameplayConnected:false,movementConnected:true,targeting,targetMarker,walker,worldData,traveler};
  addEventListener('resize',resize);resize();status.textContent=`พร้อมแสดงภาพ · เมืองเดิม ${W} × ${H} → พื้นที่ทดลอง ${EW} × ${EH}`;requestAnimationFrame(frame);
 }
 start().catch(e=>{console.error(e);fail(e.message||'เปิดฉาก 3D ไม่สำเร็จ')});

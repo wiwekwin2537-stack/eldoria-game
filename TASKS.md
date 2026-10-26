@@ -1,7 +1,6 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
-| preview3d/app.js · preview3d/index.html · preview3d/DEVELOPMENT.md · tools/legacy-movement.cjs · tests/preview3d_target_test.js · README.md · TASKS.md | ChatGPT | ตรวจเป้าทรัพยากร 3D ด้วย target เดิม | 2026-10-26 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
@@ -663,7 +662,7 @@
 - [ ] เจ้าของยืนยันสไตล์จากตัวอย่างจริงก่อนทำโมเดลทั้งเกม
 - [ ] เชื่อมsimulationเดิมผ่านadapter: เดิน/collisionก่อน ตามด้วยinteract/combat/rewards/saveทดสอบ ห้ามสร้างสูตรซ้ำ
 - [ ] โลกกว้างฝั่งserver/ข้อมูลทดสอบ/โฮสต์คนละorigin และวัดมือถือจริง
-- จุดที่หยุดไว้: เสร็จเฉพาะฐานและต้นแบบภาพ3D ยังไม่ใช่แมพที่เดิน/ตี/เก็บของได้ ไม่มีลิงก์โฮสต์มือถือ ยังไม่ได้สำรองฐานข้อมูลจริง ไม่แตะmainหรือRender รายละเอียด preview3d/DEVELOPMENT.md
+- สถานะv0.1เป็นประวัติ; ปัจจุบันเดินและตรวจเป้าได้แล้ว โฮสต์ทดลอง https://eldoria-3d-test.onrender.com ได้รับอนุมัติแยกบริการ2D ดูจุดต่อv0.3ด้านล่าง ยังไม่ได้สำรองDBจริง
 
 
 ## จุดทำต่อ3D v0.2 (2026-10-26 · ChatGPT)
@@ -672,6 +671,16 @@
 - reuseกติกา: tools/legacy-movement.cjs อ่านmoveSlide/slideAxis/loopcollision/สูตรspจากต้นฉบับ2Dพร้อมhashตรวจ; ไม่มีแก้source2Dหรือคัดลอกbodyสูตรใหม่; walk.jsเป็นinputadapter ส่วนworld.mjsมีตำแหน่งและgridร่วมกัน
 - สมุดบัคใหม่: ช่องชนเดิมไม่มีmesh153ช่องทำให้กำแพงล่องหนใกล้spawn ผู้ตรวจอิสระพิสูจน์ก่อนแก้; เติมlegacySolidsเป็นฐานหินที่เห็นจริง ตรวจraycastผ่าน; เทส tests/preview3d_walk_test.js ตรวจจุด(-15.5,8.5) ป้องกันกลับมา
 - ผลตรวจรอบล่าสุด: QUICK PASS REG136115/115 + preview3d_browser + preview3d_walkผ่าน ผู้ตรวจอิสระผ่านWASD/joystick/cancel/blur/สะพาน/น้ำ/ขอบโลก/กล้อง; Chromium153จำลองtouch ไม่ใช่มือถือจริง
-- ข้อจำกัด: ยังไม่มีinteract/combat/rewards/inventory3D/online/save; fa/hu100 agi0 carry1เป็นneutralmovementfixture ไม่ใช่playerTickเต็ม; ไม่มีDBจริง/Render/โฮสต์มือถือถูกแตะ
+- ข้อจำกัด: ยังไม่มีinteract/combat/rewards/inventory3D/online/save; fa/hu100 agi0 carry1เป็นneutralmovementfixture ไม่ใช่playerTickเต็ม; ไม่มีDBจริงหรือบริการRender2Dถูกแตะ; เปิดโฮสต์3Dแยกแล้วตามเจ้าของอนุมัติ
 - ถัดไป: อ่านtarget/interact/useToolHit/hitTree/hitOre/canTakeและwrapperทั้งหมดตามSYSTEMS.md เขียนbehavior testsก่อนเชื่อมการใช้ของ/ทรัพยากรผ่านระบบเดิม ห้ามเพิ่มสูตรXP/รางวัลหรือจำลองกระเป๋าซ้ำ
 - รายละเอียดและวิธีเปิด: preview3d/DEVELOPMENT.md; ทุกรอบต้องบันทึกผลจริงและจุดต่อไว้ที่นี่
+
+## จุดทำต่อ3D v0.3 (2026-10-26 · ChatGPT)
+- เปิดบริการทดลองแยกตามเจ้าของอนุมัติ: https://eldoria-3d-test.onrender.com / Singapore free / feature/eldoria-3d autoDeploy; ไม่เปลี่ยนบริการ2D
+- เพิ่มวงและข้อความตรวจเป้าต้นไม้/แร่จาก DIRV/target014 และ isBorder/pickTarget016 ตัวจริงพร้อมhashpin ไม่สร้างสูตรระยะ20px/รางวัลใหม่
+- lookupทรัพยากรฉายจากfootprintเดียวกับภาพและcollision; หนึ่งresourceมีobjectเดียวแม้กินหลายtile เตรียมต่อHPโดยไม่แยกสถานะคนละช่อง
+- ผู้ตรวจอิสระตรวจBFSจากspawn: ต้นไม้69+แร่12 ทั้ง81ชิ้นมีจุดยืนไม่ชนและเลือกเป้าได้
+- ยังไม่มีฟัน/ขุด/รางวัล/กระเป๋า/ออนไลน์/เซฟ3D; หน้าUIแจ้งชัดว่าเป็นตรวจเป้าเท่านั้น ไม่อ้างว่าเก็บของได้
+- ถัดไป audit useToolHit6ชั้น hitTree2ชั้น hitOre3ชั้นร่วมกับ canTake/updWorld/quest/story และสถานะจากserverก่อนเชื่อมharvest ห้ามstubรางวัลหรือcopyสูตร
+- ตรวจรอบv0.3: QUICK PASS REG136115/115 และ preview3d_browser/preview3d_walk/preview3d_target ผ่านทั้งหมด (Chromium153/SwiftShader, viewportมือถือจำลอง ไม่ใช่มือถือจริง)
+- ผู้ตรวจอิสระbrowserผ่าน: วงตรงtree/ore, ข้อความอยู่ใน390×844, สลับโหมดซ่อน/คืน, ออกนอกเป้าซ่อน, shared entity ===, module503ไม่เปิดฉาก, pageerror0/storage0; ไม่พบblocker

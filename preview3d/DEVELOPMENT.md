@@ -1,16 +1,16 @@
-# จุดทำต่อ Eldoria 3D — ทดลองเดิน v0.2
+# จุดทำต่อ Eldoria 3D — เดินและตรวจเป้า v0.3
 
 ## เป้าหมายและฐาน
 
-เจ้าของสั่งทำต่อเนื่อง: 3Dทั้งหมด, สไตล์Eldoriaเดิม, โลกกว้างขึ้น, ไม่คัดลอกสูตรหรือเขียนทับ2D, ทดสอบก่อนส่ง เก็บ main ที่ v5.98 `da313af7cd51956b63a01d94dd5a5efbf799480a` และสาขาสำรอง `backup/eldoria-2d-v598-20261026` พัฒนาเฉพาะ `feature/eldoria-3d` / draft PR #3 ไม่ merge main หรือแก้ Render อัตโนมัติ
+เจ้าของสั่งทำต่อเนื่อง: 3Dทั้งหมด, สไตล์Eldoriaเดิม, โลกกว้างขึ้น, ไม่คัดลอกสูตรหรือเขียนทับ2D, ทดสอบก่อนส่ง เก็บ main ที่ v5.98 `da313af7cd51956b63a01d94dd5a5efbf799480a` และสาขาสำรอง `backup/eldoria-2d-v598-20261026` พัฒนาเฉพาะ `feature/eldoria-3d` / draft PR #3 ไม่ merge main หรือแก้บริการ2Dบน Render
 
 สำรองแล้วเฉพาะโค้ด/assetในGit ไม่เคยเข้าถึงหรือสำรองฐานข้อมูลจริง
 
 ## เปิดและทดสอบ
 
 - `node tools/serve-3d-preview.cjs` → `http://127.0.0.1:8790/`
-- `PREVIEW_PORT` เปลี่ยนพอร์ต; ค่าเริ่มต้น bind127.0.0.1เท่านั้น ไม่มีโฮสต์เล่นมือถือสาธารณะ
-- `ELD_CHROMIUM=<browser> bash tests/quick.sh tests/preview3d_browser_test.js tests/preview3d_walk_test.js`
+- `PREVIEW_PORT` เปลี่ยนพอร์ต; ค่าเริ่มต้น bind127.0.0.1; บริการทดลองสาธารณะ https://eldoria-3d-test.onrender.com แยกจาก2D เจ้าของอนุมัติแล้ว ใช้สาขา feature/eldoria-3d อัปเดตอัตโนมัติ
+- `ELD_CHROMIUM=<browser> bash tests/quick.sh tests/preview3d_browser_test.js tests/preview3d_walk_test.js tests/preview3d_target_test.js`
 - เบราว์เซอร์ทดสอบต้องรองรับ WebGL สำหรับเครื่องนี้ใช้Chromium153/SwiftShader ไม่ใช่มือถือจริง
 
 ## สิ่งที่ทำได้แล้ว
@@ -68,3 +68,14 @@ hostอ่านอย่างเดียวแบบallowlist ไม่import
 ## ย้อนกลับ
 
 mainยังเปิด2Dตามเดิม ปิดhost3Dหรือกลับcommitก่อนหน้าบนสาขาทดลองได้ ไม่forcepushmain และไม่คืนDBจริงจากข้อมูลทดสอบ
+
+## ตรวจเป้าทรัพยากร v0.3
+
+- ใช้ DIRV/target จาก js/014-core.js และ isBorder/pickTarget จาก js/016-core.js โดยอ่าน source จริงและตรวจ SHA256 เช่นเดียวกับ movement ไม่คัดลอกสูตรระยะ20pxหรือเลือกเป้าซ้ำ
+- ค้น target/pickTarget/isBorder ทั้ง js แล้วไม่พบ wrapper เปลี่ยนกติกาเลือกเป้าทรัพยากร (property target ของระบบอื่นไม่เกี่ยวข้อง)
+- adapter ฉาย footprint ต้นไม้/แร่ที่มองเห็นจาก world.obstacles ลง lookup map ทรัพยากรทดลอง; ช่องซ้อนกันเลือกศูนย์กลางใกล้สุดอย่างคงที่ ไม่ใช้ grid collision เป็นชนิดแร่
+- ขณะเดิน วงพื้นและข้อความแสดงวัตถุที่หันหาในระยะเดิม; ออกจากโหมดเดินซ่อนทั้งหมด ยังไม่เรียก useToolHit/hitTree/hitOre และไม่ให้ของ/XP
+- สำรวจ SYSTEMS.md หมวดตัดไม้/ขุดแร่แล้ว: useToolHit มี6ชั้น, hitOre3ชั้น, hitTree2ชั้น รวม fatigue, zone harvest, quest และ story จึงต้องเชื่อมสถานะเหล่านี้พร้อม behavior tests ก่อนเปิดเก็บของ
+- tests/preview3d_target_test.js เทียบ target กับต้นฉบับจริงครบ4ทิศและขอบtile ตรวจ fallback หันหนี ระยะที่ยืนได้จริง tree/ore วงตรงโมเดล ข้อความ และซ่อนเมื่อเปลี่ยนโหมด
+
+บริการทดสอบ Render: eldoria-3d-test / srv-dbfk3vgae00c738d17ig / Singapore / free / feature/eldoria-3d บริการ2Dและฐานข้อมูลจริงไม่ถูกเปลี่ยน การสำรองGitไม่ใช่สำรองDB
