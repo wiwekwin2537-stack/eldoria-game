@@ -1,4 +1,6 @@
 import {createModels} from './models.js';
+import {createWorld} from './world.mjs';
+import {createWalker} from './walk.js';
 const status=document.getElementById('status'),error=document.getElementById('error');
 function fail(message){error.hidden=false;error.textContent=message;status.textContent='ยังเปิดฉากไม่ได้';}
 async function start(){
@@ -8,7 +10,8 @@ async function start(){
  const scene=new T.Scene();scene.background=new T.Color('#c4d4cd');scene.fog=new T.Fog('#c4d4cd',65,155);
  const camera=new T.OrthographicCamera(-20,20,15,-15,.1,260),M=createModels(T),world=new T.Group();scene.add(world);
  const sky=new T.HemisphereLight('#fff3d5','#556d4e',1.9);scene.add(sky);const sun=new T.DirectionalLight('#ffe5b8',2.5);sun.position.set(-20,42,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-50;sun.shadow.camera.right=50;sun.shadow.camera.top=50;sun.shadow.camera.bottom=-50;sun.shadow.camera.far=120;sun.shadow.normalBias=.07;scene.add(sun);
- const W=data.base.width,H=data.base.height,EW=W*2,EH=H*2,ox=W/2,oz=H/2;
+ const worldData=createWorld(data.base),walker=await createWalker(T,worldData);
+ const W=data.base.width,H=data.base.height,EW=worldData.width,EH=worldData.height,ox=W/2,oz=H/2;
  const add=(model,x,z)=>{model.position.set(x,0,z);world.add(model);return model};
  M.box(world,'#778c57',0,-.3,0,EW,.55,EH);
  /* Old district keeps its dimensions; the added ring has real world coordinates. */
@@ -27,28 +30,28 @@ async function start(){
  const castle=add(M.building(8,5,'#547789',true),0,-11);castle.name='castle';
  add(M.fountain(),0,3);
  /* New land: woodlands, crystal outcrop, a river and a quiet roadside camp. */
- const river=M.box(world,'#639da1',EW*.34,.02,-EH*.23,8,.08,EH*.48);river.name='river';M.box(world,'#b7a27c',EW*.34,.15,-EH*.14,9,.3,2.6);
- let seed=20261026;function random(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;}
- for(let i=0;i<110;i++){const x=(random()-.5)*(EW-5),z=(random()-.5)*(EH-5);if((Math.abs(x)<ox+1&&Math.abs(z)<oz+1)||Math.abs(x)<3||Math.abs(z)<3||(x>EW*.28&&z<0))continue;const g=add(M.tree(i),x,z);g.rotation.y=random()*6.28;g.scale.setScalar(.7+random()*.5)}
- for(const [x,z]of [[-20,-14],[18,-13],[-20,11],[20,8],[-12,13],[11,13]])add(M.tree(x),x,z).scale.setScalar(.7);
+ const river=M.box(world,'#639da1',worldData.river.x,.02,worldData.river.z,worldData.river.w,.08,worldData.river.d);river.name='river';const bridge=worldData.bridge;M.box(world,'#b7a27c',bridge.x,.15,bridge.z,bridge.w,.3,bridge.d);
+ for(const t of worldData.trees){const g=add(M.tree(t.seed),t.x,t.z);g.rotation.y=t.rotation;g.scale.setScalar(t.scale)}
+ for(const b of worldData.legacySolids)M.box(world,'#aaa58d',b.x,.33,b.z,.98,.66,.98);
  const rigs=[];for(const n of data.base.npcs){if(!Number.isFinite(n.x)||!Number.isFinite(n.y))continue;const g=add(M.humanoid({top:n.name.includes('ทหาร')?'#3a5a9a':'#786c57'}),n.x-ox,n.y-oz);g.scale.setScalar(.8);g.rotation.y=.35;g.name='npc-'+n.name;rigs.push(g)}
  const modelRoot=new T.Group();modelRoot.name='model-display';modelRoot.position.set(-29,0,23);world.add(modelRoot);
  M.box(modelRoot,'#b0ac8c',0,.08,0,16,.16,8);
  const hero=M.humanoid();hero.position.set(-4,.2,1);hero.scale.setScalar(1.6);modelRoot.add(hero);rigs.push(hero);
  const tree=M.tree(4);tree.position.set(3,.16,-1);modelRoot.add(tree);for(const [i,k]of ['iron','gold','diamond'].entries()){const o=M.ore(k);o.position.set(i*2-1,.16,2);modelRoot.add(o)}
  const slime=M.slime();slime.position.set(-.7,.16,-1.8);modelRoot.add(slime);
- add(M.building(4,3,'#855a46'),-27,18);for(let i=0;i<12;i++)add(M.ore(i%2?'gold':'iron'),-32+random()*12,-24+random()*7);
+ add(M.building(4,3,'#855a46'),-27,18);for(const o of worldData.ores)add(M.ore(o.kind),o.x,o.z);
+ const traveler=add(M.humanoid(),0,0);traveler.name='controlled-player';const spawnWorld=worldData.toRender(walker.P);traveler.position.set(spawnWorld.x,0,spawnWorld.z);
  /* Batch static geometry by geometry/material; keep rigs and slime live for animation. */
  world.updateMatrixWorld(true);
- const batches=new Map(),dynamic=new Set([hero,slime]);
+ const batches=new Map(),dynamic=new Set([hero,slime,traveler]);
  world.traverse(node=>{if(!node.isMesh)return;for(let p=node;p;p=p.parent)if(dynamic.has(p))return;
   const key=node.geometry.uuid+'|'+node.material.uuid;if(!batches.has(key))batches.set(key,[]);batches.get(key).push(node);
  });
  for(const nodes of batches.values()){const first=nodes[0],batch=new T.InstancedMesh(first.geometry,first.material,nodes.length);batch.name='static-batch';nodes.forEach((n,i)=>{batch.setMatrixAt(i,n.matrixWorld);n.removeFromParent()});batch.castShadow=true;batch.receiveShadow=true;scene.add(batch)}
  const view={name:'town',angle:.38,span:36,target:new T.Vector3(0,0,1),min:5,max:115};
- const views={town:{x:0,z:1,span:36,angle:.38},forest:{x:-27,z:-22,span:27,angle:.45},models:{x:-29,z:23,span:11,angle:.3}};
+ const views={town:{x:0,z:1,span:36,angle:.38},forest:{x:-27,z:-22,span:27,angle:.45},models:{x:-29,z:23,span:11,angle:.3},walk:{x:spawnWorld.x,z:spawnWorld.z,span:14,angle:0}};
  function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);const aspect=w/h;camera.left=-view.span*aspect/2;camera.right=view.span*aspect/2;camera.top=view.span/2;camera.bottom=-view.span/2;camera.updateProjectionMatrix()}
- function setView(name){const v=views[name];if(!v)return;view.name=name;view.target.set(v.x,0,v.z);view.span=v.span;view.angle=v.angle;document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));resize()}
+ function setView(name){const v=views[name];if(!v)return;view.name=name;view.target.set(v.x,0,v.z);view.span=v.span;view.angle=v.angle;walker.setEnabled(name==='walk');document.body.classList.toggle('walking',name==='walk');document.getElementById('hint').textContent=name==='walk'?'จอยหรือ WASD เพื่อเดิน · Ctrl/ปุ่มวิ่งเพื่อวิ่ง · ลากฉากเพื่อหมุนกล้อง':'ลากเพื่อหมุนมุมมอง · เลื่อนล้อเพื่อซูม';document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));resize()}
  function zoom(factor){view.span=T.MathUtils.clamp(view.span*factor,view.min,view.max);resize()}
  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
  document.getElementById('plus').onclick=()=>zoom(.8);document.getElementById('minus').onclick=()=>zoom(1.25);document.getElementById('reset').onclick=()=>setView(view.name);
@@ -60,9 +63,9 @@ async function start(){
  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom(Math.exp(T.MathUtils.clamp(e.deltaY*.001,-.3,.3)))},{passive:false});
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('อุปกรณ์หยุดแสดงภาพ 3D กรุณาโหลดหน้านี้ใหม่ เกมและเซฟเดิมไม่ได้รับผลกระทบ')});
  let frames=0,last=performance.now(),timer=last;
- function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;hero.userData.pose(now*.004,view.name==='models');slime.scale.y=1+Math.sin(now*.002)*.07;
+ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;hero.userData.pose(now*.004,view.name==='models');if(walker.enabled){walker.tick(dt,view.angle);const pos=worldData.toRender(walker.P);traveler.position.set(pos.x,0,pos.z);if(walker.P.mv)traveler.rotation.y={u:Math.PI,d:0,l:-Math.PI/2,r:Math.PI/2}[walker.P.dir];traveler.userData.pose(walker.P.t,walker.P.mv);view.target.set(pos.x,0,pos.z)}slime.scale.y=1+Math.sin(now*.002)*.07;
  camera.position.set(view.target.x+Math.sin(view.angle)*45,36,view.target.z+Math.cos(view.angle)*45);camera.lookAt(view.target);renderer.render(scene,camera);frames++;if(now-timer>1500){status.textContent=`พื้นที่ ${EW} × ${EH} · ต้นแบบภาพ · ${Math.round(frames*1000/(now-timer))} FPS บนอุปกรณ์นี้`;timer=now;frames=0}requestAnimationFrame(frame)}
- window.ELDORIA3D={ready:true,scene,camera,renderer,view,setView,base:data.base,dimensions:{width:EW,height:EH,areaRatio:4},source:data.source,mode:'visual-prototype',gameplayConnected:false};
+ window.ELDORIA3D={ready:true,scene,camera,renderer,view,setView,base:data.base,dimensions:{width:EW,height:EH,areaRatio:4},source:data.source,mode:'movement-prototype',gameplayConnected:false,movementConnected:true,walker,worldData,traveler};
  addEventListener('resize',resize);resize();status.textContent=`พร้อมแสดงภาพ · เมืองเดิม ${W} × ${H} → พื้นที่ทดลอง ${EW} × ${EH}`;requestAnimationFrame(frame);
 }
 start().catch(e=>{console.error(e);fail(e.message||'เปิดฉาก 3D ไม่สำเร็จ')});

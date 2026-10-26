@@ -1,7 +1,6 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
-| `preview3d/` · `tools/*3d*` · `tools/legacy-movement.cjs` · `tests/preview3d*` · `README.md` · `TASKS.md` | ChatGPT | เดิน/ชนในโลก 3D ใช้กติกาเดิม สาขา feature/eldoria-3d | 2026-10-26 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
@@ -664,3 +663,14 @@
 - [ ] เชื่อมsimulationเดิมผ่านadapter: เดิน/collisionก่อน ตามด้วยinteract/combat/rewards/saveทดสอบ ห้ามสร้างสูตรซ้ำ
 - [ ] โลกกว้างฝั่งserver/ข้อมูลทดสอบ/โฮสต์คนละorigin และวัดมือถือจริง
 - จุดที่หยุดไว้: เสร็จเฉพาะฐานและต้นแบบภาพ3D ยังไม่ใช่แมพที่เดิน/ตี/เก็บของได้ ไม่มีลิงก์โฮสต์มือถือ ยังไม่ได้สำรองฐานข้อมูลจริง ไม่แตะmainหรือRender รายละเอียด preview3d/DEVELOPMENT.md
+
+
+## จุดทำต่อ3D v0.2 (2026-10-26 · ChatGPT)
+- เจ้าของสั่งทำต่อเรื่อยๆ ไม่ต้องรอสั่งทีละระบบ แต่ยังแยก feature/eldoria-3d ไม่merge/เปิดทับ2D
+- เสร็จ: เดินWASD/ลูกศร/จอย, วิ่งCtrl/ปุ่ม, กล้องตามคน, อนิเมชันขา; เดินออกเมือง44×34ไปพื้นที่88×68จริง; colliderเมือง/อาคาร/ต้นไม้/แร่/น้ำ/สะพาน/ขอบโลก
+- reuseกติกา: tools/legacy-movement.cjs อ่านmoveSlide/slideAxis/loopcollision/สูตรspจากต้นฉบับ2Dพร้อมhashตรวจ; ไม่มีแก้source2Dหรือคัดลอกbodyสูตรใหม่; walk.jsเป็นinputadapter ส่วนworld.mjsมีตำแหน่งและgridร่วมกัน
+- สมุดบัคใหม่: ช่องชนเดิมไม่มีmesh153ช่องทำให้กำแพงล่องหนใกล้spawn ผู้ตรวจอิสระพิสูจน์ก่อนแก้; เติมlegacySolidsเป็นฐานหินที่เห็นจริง ตรวจraycastผ่าน; เทส tests/preview3d_walk_test.js ตรวจจุด(-15.5,8.5) ป้องกันกลับมา
+- ผลตรวจรอบล่าสุด: QUICK PASS REG136115/115 + preview3d_browser + preview3d_walkผ่าน ผู้ตรวจอิสระผ่านWASD/joystick/cancel/blur/สะพาน/น้ำ/ขอบโลก/กล้อง; Chromium153จำลองtouch ไม่ใช่มือถือจริง
+- ข้อจำกัด: ยังไม่มีinteract/combat/rewards/inventory3D/online/save; fa/hu100 agi0 carry1เป็นneutralmovementfixture ไม่ใช่playerTickเต็ม; ไม่มีDBจริง/Render/โฮสต์มือถือถูกแตะ
+- ถัดไป: อ่านtarget/interact/useToolHit/hitTree/hitOre/canTakeและwrapperทั้งหมดตามSYSTEMS.md เขียนbehavior testsก่อนเชื่อมการใช้ของ/ทรัพยากรผ่านระบบเดิม ห้ามเพิ่มสูตรXP/รางวัลหรือจำลองกระเป๋าซ้ำ
+- รายละเอียดและวิธีเปิด: preview3d/DEVELOPMENT.md; ทุกรอบต้องบันทึกผลจริงและจุดต่อไว้ที่นี่
