@@ -8,11 +8,13 @@ import input from '../core/input.js';
 import render from '../core/render.js';
 import login from './login.js';
 import camera from '../core/camera.js';
+import world from './world.js';
 
 export default [
   input,
   render,
   login,
-  /* ← ระบบเกม (world/movement ...) ใส่ตรงนี้ */
+  world,  /* แมพ/ชน/ประตู — ต้องอยู่หลัง render (render ล้างจอ+ตั้งพิกัด) และก่อน camera (กล้องอ่าน G.scene) */
+  /* ← ระบบเกม (movement ...) ใส่ตรงนี้ */
   camera,
 ];
