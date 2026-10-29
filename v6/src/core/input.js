@@ -252,6 +252,7 @@ function getPad() {
 /* ---------- ระบบ ---------- */
 export default {
   id: 'input',
+  always: true, /* ทำงานแม้หยุดเกม — ซ่อนปุ่มตอนแนวตั้ง (CONTRACT §1) */
   init(G) {
     S.G = G;
     if (typeof document === 'undefined') return;

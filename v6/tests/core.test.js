@@ -42,4 +42,13 @@ export default [
   ['เงินผู้เล่นเริ่ม 0 (เซิร์ฟเวอร์เป็นคนให้)', () => {
     eq(createState().player.coin, 0, 'coin');
   }],
+  ['หยุดเกม: ระบบปกติไม่ update เวลาไม่เดิน แต่ระบบ always ยังทำงาน', () => {
+    const G = createState(); const order = [];
+    G.paused = true;
+    stepFrame(G, [{ id: 'a', update: () => order.push('a') }, { id: 'b', always: true, update: () => order.push('b') }], .02);
+    eq(order.join(), 'b', 'ระบบที่ทำงาน'); eq(G.time.now, 0, 'เวลา');
+    G.paused = false; G.cam.portrait = true; order.length = 0;
+    stepFrame(G, [{ id: 'a', update: () => order.push('a') }], .02);
+    eq(order.length, 0, 'จอแนวตั้งก็หยุด');
+  }],
 ];

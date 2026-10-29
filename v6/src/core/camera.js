@@ -83,6 +83,7 @@ export function ensureCam(G) {
 
 export default {
   id: 'camera',
+  always: true, /* ทำงานแม้หยุดเกม (CONTRACT §1) */
   init(G) { ensureCam(G); },
   update(G, dt) {
     const c = ensureCam(G), P = G.player, S = G.scene;

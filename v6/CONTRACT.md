@@ -16,6 +16,8 @@ export default {
 };
 ```
 - ลำดับทำงาน = ลำดับใน `src/systems/index.js` (ไฟล์เดียวที่รวมรายชื่อระบบ) · เพิ่มระบบ = เพิ่ม 1 บรรทัดในไฟล์นั้น
+- **ลำดับบังคับ** (หัวหน้าอนุมัติ 30 ต.ค.): `input` แรกสุด (สร้าง pressed/click ใหม่ต้นเฟรม · ระบบอื่นห้ามล้าง) → `render` ที่ 2 (ล้างจอ + ตั้งพิกัดวาดของแต่ละชั้น) → ระบบเกม → `camera` ท้ายสุด
+- **หยุดเกม**: `G.paused = true` หรือ `G.cam.portrait = true` → loop ไม่เรียก `update` และเวลาเกมไม่เดิน ยกเว้นระบบที่ประกาศ `always: true` (input · render · camera · login · ui) · `draw` ยังทำทุกเฟรม
 - **ห้าม import ไฟล์ระบบอื่นเพื่อแก้ค่า/ฟังก์ชันของมัน** · คุยกันผ่าน `bus` หรือฟังก์ชันที่อีกระบบ export ไว้ชัดเจน (`export function ...`) และระบุในหัวข้อ 4
 - ห้ามแก้ฟังก์ชันของโมดูลอื่นด้วยการกำหนดค่าทับ (ES modules ไม่ยอมอยู่แล้ว — ห้ามหาทางเลี่ยงผ่าน `window`)
 - ห้ามใช้ตัวแปร global (`window.xxx`) ยกเว้น `window.__G` สำหรับเทสในเบราว์เซอร์
@@ -24,8 +26,9 @@ export default {
 | ฟิลด์ | เจ้าของ (ระบบที่เขียนค่าได้) | ความหมาย |
 |---|---|---|
 | `G.player` | หลายระบบ — แต่ละฟิลด์ย่อยมีเจ้าของตามตารางล่าง | ตัวละครเรา |
-| `G.scene` | `world` | `{ id, map, w, h }` แมพปัจจุบัน |
-| `G.cam` | `core/camera` | `{ x, y, zoom:1 }` ห้ามซูม (DECISIONS) |
+| `G.scene` | `world` | `{ id, map, w, h, camOy? }` แมพปัจจุบัน · **w/h เป็น px** · camOy ไม่บังคับ (ทุ่ง .58 · ค่าเริ่ม .55 · ดัน .5 — spec01 §3) |
+| `G.cam` | `core/camera` | `{ x, y, zoom:1, vw, vh, res, portrait, shake }` ห้ามซูม (DECISIONS) · vw/vh = ขนาดโลกที่เห็น (px) · res = คุณภาพภาพ |
+| `G.paused` | `core/ui` (เมนูตั้งค่า) | true = หยุดเกม (ดู §1) |
 | `G.input` | `core/input` | สถานะปุ่มที่แปลงแล้ว (ดูหัวข้อ 5) |
 | `G.time` | `core/loop` | `{ now, dt, frame }` |
 | `G.net` | `core/net` | สถานะเชื่อมต่อ |
@@ -35,6 +38,7 @@ export default {
 - เพิ่มฟิลด์ใหม่ใน `G.player` → เพิ่มแถวในตารางนี้ (ขอหัวหน้า) พร้อมระบุเจ้าของ
 
 ## 3. ข้อมูล `src/data/*.js`
+- ค่าเครื่องยนต์ (ขนาดจอ `VIEW` · ตารางคุณภาพ `GQ` · เวลาแตะ) อยู่ `data/view.js` (หัวหน้าอนุมัติ 30 ต.ค.)
 - ไฟล์ข้อมูล export ค่าคงที่ล้วน (`export const MAPS = {...}`) ไม่มี logic · ตัวเลขเศรษฐกิจอยู่ `data/economy.js` เท่านั้น
 - ค่าที่มาจากเกมเดิม: หมายเหตุท้ายบรรทัด `/* spec01 §4 */` ชี้หัวข้อในสเปก · ค่าที่ต่างจากเกมเดิมเพราะ DECISIONS: `/* DECISIONS 2026-10-30 */`
 
@@ -53,8 +57,8 @@ export default {
 - เพิ่มอีเวนต์ใหม่ → เพิ่มแถวที่นี่ใน commit เดียวกัน
 
 ## 5. การควบคุม (core/input แปลงทุกอุปกรณ์เป็นชุดเดียว)
-`G.input = { mx, my, (ทิศเดิน −1..1) · pressed: Set(action) · held: Set(action) · click:{wx,wy}|null }`
-action: `attack dash interact skill1..skill6 ult menu bag map recall` — ระบบอ่านแค่ action ไม่อ่านคีย์ตรงๆ · ปุ่มจริงแต่ละอุปกรณ์อยู่ `data/controls.js`
+`G.input = { mx, my, (ทิศเดิน −1..1) · run (true = วิ่ง: Ctrl ค้าง / ดันจอยเกิน .92 / อนาล็อกเกิน .93) · pressed: Set(action) · held: Set(action) · click:{wx,wy}|null }` · pressed/click อยู่ 1 เฟรม
+action: `attack dash interact skill1..skill6 ult menu bag map recall skills potionHp potionMp quick1..quick4 eat mount auto status mute sheath chat back` (หัวหน้าอนุมัติเพิ่ม 30 ต.ค. · 1A-1) — ระบบอ่านแค่ action ไม่อ่านคีย์ตรงๆ · ปุ่มจริงแต่ละอุปกรณ์อยู่ `data/controls.js`
 
 ## 6. เวลา / เงิน / ของ
 - เวลาที่มีผลต่อของ/รายวัน/คูลดาวน์ข้ามวัน: `srvNow()` จาก `core/time.js` เท่านั้น

@@ -12,9 +12,10 @@ export function createState() {
     },
     scene: null,
     cam: { x: 0, y: 0, zoom: 1 },
-    input: { mx: 0, my: 0, pressed: new Set(), held: new Set(), click: null },
+    input: { mx: 0, my: 0, run: false, pressed: new Set(), held: new Set(), click: null },
     time: { now: 0, dt: 0, frame: 0 },
     net: { online: false },
     ui: { open: new Set() },
+    paused: false, /* หยุดเกม (CONTRACT §1) */
   };
 }
