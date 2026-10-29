@@ -9,12 +9,14 @@ import render from '../core/render.js';
 import login from './login.js';
 import camera from '../core/camera.js';
 import world from './world.js';
+import movement from './movement.js';
 
 export default [
   input,
   render,
   login,
   world,  /* แมพ/ชน/ประตู — ต้องอยู่หลัง render (render ล้างจอ+ตั้งพิกัด) และก่อน camera (กล้องอ่าน G.scene) */
-  /* ← ระบบเกม (movement ...) ใส่ตรงนี้ */
+  movement, /* เดิน/วิ่ง/พุ่ง/คลิกเดิน + วาดตัวละคร (1A-3) — หลัง world (ประตูแบบเดินตรวจเฟรมถัดไป) ก่อน camera */
+  /* ← ระบบเกมอื่นใส่ตรงนี้ */
   camera,
 ];
