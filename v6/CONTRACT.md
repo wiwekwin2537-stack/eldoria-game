@@ -46,6 +46,10 @@ export default {
 | `ui:open` / `ui:close` | core/ui | `{ id }` |
 | `net:status` | core/net | `{ online }` |
 | `save:request` | ใครก็ได้ | — (core/save เซฟครั้งถัดไป) |
+| `net:auth` | core/net | `{ id, name, gm }` ล็อกอินสำเร็จ (หัวหน้าอนุมัติ 30 ต.ค. · 1B) |
+| `net:kicked` | core/net | `{ reason }` ถูกเตะ/ล็อกอินที่เครื่องอื่น |
+| `save:loaded` | core/save | `{ isNew }` โหลดเซฟเสร็จ ทุกระบบได้ load() แล้ว |
+| `save:status` | core/save | `{ ok, error? }` ผลเซฟล่าสุด |
 - เพิ่มอีเวนต์ใหม่ → เพิ่มแถวที่นี่ใน commit เดียวกัน
 
 ## 5. การควบคุม (core/input แปลงทุกอุปกรณ์เป็นชุดเดียว)

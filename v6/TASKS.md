@@ -46,7 +46,7 @@
 กติกาเฟส 1: งานละ 1 คน แตะได้เฉพาะไฟล์ในช่อง · ต้องการแก้ไฟล์นอกช่อง → เขียนขอในหัวข้อ "คำขอถึงหัวหน้า" ข้างล่าง · เสร็จ → สถานะ "รอตรวจ" (ผู้ตรวจต้องไม่ใช่คนเขียน)
 
 ## 📮 คำขอถึงหัวหน้า
-- 1B ขออีเวนต์ bus ใหม่: `net:auth` · `net:kicked` · `save:loaded` · `save:status` → หัวหน้าคนใหม่อนุมัติแล้วเพิ่มใน CONTRACT §4
+- ✅ 1B อีเวนต์ `net:auth` · `net:kicked` · `save:loaded` · `save:status` — หัวหน้าคนใหม่อนุมัติ เพิ่มใน CONTRACT §4 แล้ว (30 ต.ค.)
 - **(1A-1) CONTRACT §5 เพิ่ม:** ธง `G.input.run` (true = วิ่ง: Ctrl ค้าง / ดันจอยเกิน .92 / อนาล็อก >.93) + ใส่ `run:false` ใน `createState()` (state.js) · action ใหม่ที่ใช้แล้วใน `data/controls.js`: `skills`(K หน้าสกิล) `potionHp`(H) `potionMp`(N) `quick1..quick4`(1–4) `eat`(B) `mount`(R) `auto`(O) `status`(V) `mute`(M) `sheath`(Q) `chat`(Enter) `back`(จอยเกม B ตอนมีหน้าต่างเปิด = ปิดหน้าต่างบนสุด)
 - **(1A-1) CONTRACT §1 ลำดับระบบ:** `input` แรกสุด (ย้ายปุ่มที่กดเข้า G.input — pressed/click อยู่ 1 เฟรม input สร้างใหม่ต้นเฟรม ระบบอื่นห้ามล้าง) · `render` ที่ 2 (draw ของมันล้างจอ+ตั้งพิกัดวาดทุกชั้น: ground/world/top = พิกัดโลก · ui = พิกัดจอ VW×VH) · `camera` ท้ายสุด (หลังระบบที่ขยับตัว)
 - **(1A-1) CONTRACT §2 `G.cam`** มีเพิ่ม `vw vh res portrait shake` · `G.scene.w/h` ให้เป็น **px** (กล้องคิดเป็น px) + ช่องไม่บังคับ `camOy` (ทุ่ง .58 · เมือง/ร้าน/zone .55 ค่าเริ่ม · ดัน .5 — spec01 §3)
