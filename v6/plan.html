@@ -1,0 +1,132 @@
+<title>แผนสร้างเอลโดเรีย v6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;700&family=Sarabun:wght@400;600&display=swap">
+<style>
+/* Layout: เอกสารแผนงานคอลัมน์เดียว แบบพิมพ์เขียวช่าง — แถบสถานะบน, เฟสเป็นเส้นเวลา, กฎเป็นรายการตรวจ */
+:root{
+  --bg:#f4f6f9; --paper:#ffffff; --ink:#1b2433; --muted:#5b6678; --line:#d9dfe8;
+  --accent:#b8740f; --accent-soft:#f6ead6; --ok:#2f7a4f; --ok-soft:#e1f1e7; --wait:#7a8497; --wait-soft:#eceff4;
+  --display:'Bai Jamjuree','Sarabun',system-ui,sans-serif; --body:'Sarabun',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121821; --paper:#1a2230; --ink:#e6ebf2; --muted:#9aa6b8; --line:#2c3748;
+  --accent:#e2a548; --accent-soft:#3a2d17; --ok:#6cc392; --ok-soft:#1d3428; --wait:#97a2b5; --wait-soft:#232c3a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121821; --paper:#1a2230; --ink:#e6ebf2; --muted:#9aa6b8; --line:#2c3748;
+  --accent:#e2a548; --accent-soft:#3a2d17; --ok:#6cc392; --ok-soft:#1d3428; --wait:#97a2b5; --wait-soft:#232c3a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:36px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(28px,6vw,38px)} h2{font-size:22px}
+p{margin:0}
+.eyebrow{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--accent);font-weight:700}
+.lead{color:var(--muted);max-width:62ch}
+header{display:grid;gap:10px}
+.now{background:var(--accent-soft);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:6px}
+.now b{font-family:var(--display)}
+section{display:grid;gap:14px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.fact{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:2px}
+.fact .n{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.fact .l{font-size:14px;color:var(--muted)}
+.phases{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:2px solid var(--line);margin-left:8px}
+.phase{position:relative;padding:0 0 20px 22px;display:grid;gap:4px}
+.phase::before{content:"";position:absolute;left:-8px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid var(--wait)}
+.phase.doing::before{border-color:var(--accent);background:var(--accent)}
+.ph-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ph-head h3{margin:0;font-family:var(--display);font-size:17px}
+.pill{font-size:12px;padding:1px 10px;border-radius:99px;background:var(--wait-soft);color:var(--wait);font-weight:600}
+.doing .pill{background:var(--accent-soft);color:var(--accent)}
+.phase p{color:var(--muted);font-size:15px}
+.phase .try{color:var(--ink);font-size:15px}
+.new{color:var(--accent);font-weight:600}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.rules li{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:2px}
+.rules b{font-family:var(--display)}
+.rules span{color:var(--muted);font-size:15px}
+.team{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.team div{border-top:3px solid var(--accent);background:var(--paper);padding:12px 14px;border-radius:0 0 8px 8px;display:grid;gap:4px}
+.team b{font-family:var(--display)}
+.team span{font-size:15px;color:var(--muted)}
+footer{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+code{font-size:14px;background:var(--wait-soft);padding:0 5px;border-radius:4px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">ใบงานหัวหน้างาน · อัปเดต 29 ต.ค. 2569</div>
+  <h1>เขียนเอลโดเรียใหม่ทั้งเกม</h1>
+  <p class="lead">ระบบ ตัวเลข และหน้าตาเหมือนเดิมทุกอย่าง แต่โค้ดเขียนใหม่สะอาด ไม่มีการแก้ทับกันอีก ผู้เล่นเริ่มเลเวล 1 ใหม่หมดในเกมใหม่</p>
+  <div class="now"><b>ตอนนี้: เฟส 0 กำลังทำ</b><p>ทีม 6 คนกำลังแกะว่าแต่ละระบบในเกมเดิม "สุดท้ายแล้วทำงานยังไง" เขียนเป็นสเปกสะอาด เสร็จแล้วหัวหน้างานสรุปให้เจ้าของก่อนเริ่มเขียนโค้ด</p></div>
+</header>
+
+<section>
+  <h2>ทำไมต้องเขียนใหม่</h2>
+  <div class="facts">
+    <div class="fact"><span class="n">200</span><span class="l">ไฟล์โค้ด ส่วนใหญ่เป็นไฟล์แก้ทับ</span></div>
+    <div class="fact"><span class="n">~1,070</span><span class="l">ชั้นที่ฟังก์ชันถูกห่อทับกัน</span></div>
+    <div class="fact"><span class="n">52</span><span class="l">ชั้นทับกัน แค่ในส่วนวาดตัวละคร</span></div>
+    <div class="fact"><span class="n">~400KB</span><span class="l">ใบงานกับคู่มือ ใหญ่จน AI อ่านไม่หมด</span></div>
+  </div>
+  <p>แก้ชั้นหนึ่ง อีกชั้นก็พัง AI แต่ละตัวเห็นแค่บางส่วน บัคเลยกลับมาเรื่อยๆ ซ่อมต่อไปก็ไม่จบ</p>
+</section>
+
+<section>
+  <h2>เกมเดิมระหว่างทำ</h2>
+  <p>เกมเดิมยังเปิดให้เพื่อนเล่นตามปกติ เกมใหม่สร้างในโฟลเดอร์ <code>v6/</code> และเปิดทดสอบที่ลิงก์ <code>/v6/</code> บนเซิร์ฟเวอร์เดียวกัน พอเกมใหม่ครบและผ่านเทส จึงสลับให้ทุกคนเข้าเกมใหม่</p>
+</section>
+
+<section>
+  <h2>เฟสงาน</h2>
+  <ol class="phases">
+    <li class="phase doing"><div class="ph-head"><h3>เฟส 0 · แกะสเปกระบบเดิม</h3><span class="pill">กำลังทำ</span></div>
+      <p>6 หมวด: แกนเกม · ต่อสู้ · สกิล · ไอเท็ม · ออนไลน์ · เนื้อเรื่อง</p>
+      <p class="try">เจ้าของได้: สรุประบบทั้งหมดที่เกมมี</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 1 · แกนเกม</h3><span class="pill">รอ</span></div>
+      <p>ลูปเกม · ควบคุมทั้งคีย์บอร์ด เมาส์ มือถือแนวนอน จอยเกม · แมพ/ประตู · เดิน/พุ่ง · ล็อกอิน/เซฟ</p>
+      <p class="try">เจ้าของลอง: เข้าเกม เดินในเมือง ข้ามแมพ</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 2 · ต่อสู้</h3><span class="pill">รอ</span></div>
+      <p>มอน · ดาเมจ · ตาย/ฟื้น · ดรอป · XP</p>
+      <p class="try">เจ้าของลอง: ตีมอน เก็บของ เลเวลขึ้น</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 3 · อาชีพและสกิล</h3><span class="pill">รอ</span></div>
+      <p>11 อาชีพ · สกิล 6 ช่อง + อัลติ · ต้นไม้พาสซีฟแบบ PoE<br><span class="new">ของใหม่:</span> พุ่งหลบได้จริง · คีย์สโตนเปลี่ยนสไตล์เล่น · วงแดงเตือนท่าบอส</p>
+      <p class="try">เจ้าของลอง: เลือกอาชีพ ใช้สกิล หลบท่าบอส</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 4 · ไอเท็ม</h3><span class="pill">รอ</span></div>
+      <p>กระเป๋า · ชุด · คราฟ · ตีบวก · ออป/อัญมณี · ร้าน · ขุดแร่/ตัดไม้</p>
+      <p class="try">เจ้าของลอง: ทำชุด ตีบวก ซื้อขาย</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 5 · เนื้อหาเกม</h3><span class="pill">รอ</span></div>
+      <p>ดันเจี้ยน · หอคอย · แท่นผนึก · ทุ่งสังหาร · บอสโลก · เนื้อเรื่อง/เควส/NPC · สัตว์ขี่ · แฟชั่น</p>
+      <p class="try">เจ้าของลอง: เล่นได้ครบเหมือนเกมเดิม</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 6 · ออนไลน์</h3><span class="pill">รอ</span></div>
+      <p>ปาร์ตี้ · กิลด์ · แชท · PvP · ตลาด/เทรด/ประมูล/จดหมาย · อันดับ · GM · เซิร์ฟเวอร์ใหม่สะอาด</p>
+      <p class="try">เจ้าของลอง: เล่นกับเพื่อน</p></li>
+    <li class="phase"><div class="ph-head"><h3>เฟส 7 · เทสทั้งเกมแล้วสลับ</h3><span class="pill">รอ</span></div>
+      <p>ผู้ตรวจเล่นทุกเส้นทางแบบผู้เล่นจริง แล้วสลับให้ทุกคนเข้าเกมใหม่</p>
+      <p class="try">เจ้าของได้: เปิดเกมใหม่ให้ทุกคน</p></li>
+  </ol>
+</section>
+
+<section>
+  <h2>กฎเหล็กของโค้ดใหม่</h2>
+  <ul class="rules">
+    <li><b>ห้ามแก้ทับกัน</b><span>ใช้รูปแบบโค้ดที่ภาษาไม่ยอมให้ไฟล์หนึ่งไปแก้ฟังก์ชันของอีกไฟล์ แก้บัคต้องแก้ที่ไฟล์ของระบบนั้นตรงๆ</span></li>
+    <li><b>1 ระบบ = 1 ไฟล์ = 1 คนรับผิดชอบ</b><span>หาง่าย ไม่มีสองคนแก้ระบบเดียวกัน</span></li>
+    <li><b>ตัวเลขทั้งหมดอยู่ที่เดียว</b><span>XP ดรอป เงิน อยู่ในไฟล์ข้อมูล ไม่ฝังในโค้ด ปรับสมดุลง่าย</span></li>
+    <li><b>ไฟล์ละไม่เกิน 800 บรรทัด</b><span>AI อ่านได้ทั้งไฟล์ในครั้งเดียว</span></li>
+    <li><b>ทุกระบบมีเทส คนเขียนไม่ใช่คนตรวจ</b><span>บัคที่แก้แล้วจะไม่กลับมา</span></li>
+    <li><b>ภาพตามกติกาเจ้าของ</b><span>ภาพใช้กับฉาก อาคาร พื้น ต้นไม้ ไอเท็ม ส่วนตัวละคร NPC มอน สัตว์ เอฟเฟกต์ วาดด้วยโค้ด</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>ทีม</h2>
+  <div class="team">
+    <div><b>หัวหน้างาน</b><span>แบ่งงาน ตรวจโค้ดก่อนรวม ขึ้นเว็บ รายงานเจ้าของเป็นภาษาไทย</span></div>
+    <div><b>ช่าง</b><span>รับงานทีละระบบ แตะได้เฉพาะไฟล์ที่ได้รับ</span></div>
+    <div><b>ผู้ตรวจ</b><span>เล่นแบบผู้เล่นจริง รันเทส ไม่ตรวจงานที่ตัวเองเขียน</span></div>
+  </div>
+</section>
+
+<footer>AI ตัวไหนมาทำงานต่อ อ่านแค่ <code>v6/PLAN.md</code> กับ <code>v6/TASKS.md</code> ใน GitHub ก็เริ่มงานได้ทันที</footer>
+</div>
