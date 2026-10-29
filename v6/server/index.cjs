@@ -31,6 +31,9 @@ function originOk(origin, host, allowed) {
   try { return new URL(origin).host === host; } catch (e) { return false; }
 }
 
+const INDEX_FILE = path.join(V6_DIR, 'index.html');
+const markIndex = html => html.replace(/<html\b/i, '<html data-v6-server="1"');
+
 /* หาไฟล์จริงจาก url · คืน null = ไม่ใช่ของ v6 (ให้เกมเดิมจัดการต่อ) · { code } = ตอบรหัสนั้น · { file } = เสิร์ฟไฟล์ */
 function resolveStatic(u) {
   if (u === '/v6') return { redirect: '/v6/' };
@@ -38,7 +41,7 @@ function resolveStatic(u) {
   if (!isV6 && !isAsset) return null;
   if (u.includes('\0') || u.split('/').some(s => s === '..' || s === '.')) return isV6 ? { code: 400 } : null;
   if (isV6) {
-    if (u === '/v6/' || u === '/v6/index.html') return { file: path.join(V6_DIR, 'index.html') };
+    if (u === '/v6/' || u === '/v6/index.html') return { file: INDEX_FILE };
     /* เสิร์ฟเฉพาะโค้ดเกมใน src/ (.js/.json) */
     const m = /^\/v6\/src\/([\w\-/.]+\.(?:js|json))$/.exec(u);
     if (!m) return { code: 404 };
@@ -72,6 +75,15 @@ function serveHttp(req, res) {
   const hd = { 'content-type': TYPES[path.extname(hit.file).toLowerCase()] || 'application/octet-stream', 'x-content-type-options': 'nosniff',
     'cache-control': u.startsWith('/assets/') ? 'public, max-age=3600' : 'no-cache', etag };
   if (req.headers['if-none-match'] === etag) { res.writeHead(304, hd); res.end(); return true; }
+  if (hit.file === INDEX_FILE) {
+    /* ติดป้าย data-v6-server ให้เกมรู้ว่ามีเซิร์ฟเวอร์ v6 (ws /v6ws) · เปิดผ่าน dev-server ไม่มีป้าย → เกมไม่ต่อ ws (core/net) */
+    let body;
+    try { body = Buffer.from(markIndex(fs.readFileSync(hit.file, 'utf8'))); } catch (e) { res.writeHead(500); res.end(); return true; }
+    hd['content-length'] = body.length;
+    res.writeHead(200, hd);
+    res.end(req.method === 'HEAD' ? undefined : body);
+    return true;
+  }
   hd['content-length'] = st.size;
   res.writeHead(200, hd);
   if (req.method === 'HEAD') { res.end(); return true; }
@@ -145,7 +157,7 @@ function createV6({ store, env = process.env, now = () => Date.now(), log = m =>
 let main = null;
 const get = () => (main = main || createV6());
 module.exports = {
-  createV6, resolveStatic, clientIp, WS_PATH,
+  createV6, resolveStatic, clientIp, markIndex, WS_PATH,
   http: (req, res) => serveHttp(req, res),
   attach: server => get().attach(server),
 };

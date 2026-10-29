@@ -20,6 +20,7 @@ const PVP = require('./pvp');
 const PARTY = require('./party');
 const FIELD = require('./field'); /* v5.12 โลกร่วมกัน: ต้นไม้/แร่ เซิร์ฟเวอร์ตัดสิน */
 const MARKET = require('./market'); /* v5.03 ตลาดกลาง + เทรด */
+const V6 = require('./v6/server/index.cjs'); /* v6: เกมใหม่ /v6/ + ws /v6ws (แยกจากเกมเดิม) */
 const originOk = (o, host) => { if (!o || o === 'null' || o === 'file://') return true; if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) return true; try { return new URL(o).host === host; } catch (e) { return false; } };
 const server = http.createServer((req, res) => {
   if ((req.url || '').split('?')[0] === '/api/pvptop') { res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' }); res.end(JSON.stringify({ ok: true, list: PVP.top() })); return; }
@@ -42,6 +43,7 @@ const server = http.createServer((req, res) => {
   if (/^\/assets\/(?:items\/materials-v(?:539|540)|ores\/diamond|town\/ground-v538)\.png$/.test(u)) { const assetPath=path.join(__dirname,u); if(!fs.existsSync(assetPath)){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':'image/png','x-content-type-options':'nosniff','cache-control': /-v\d+/.test(u)?'public, max-age=31536000, immutable':'public, max-age=300'});fs.createReadStream(assetPath).pipe(res);return; } /* v5.39 item atlas, diamond ore and town materials */
   if (/^\/js\/[\w.-]+\.js$/.test(u) && fs.existsSync(path.join(__dirname, u))) { res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8', 'x-content-type-options': 'nosniff', 'cache-control': 'public, max-age=300' }); fs.createReadStream(path.join(__dirname, u)).pipe(res); return; } /* v5.10: โค้ดเกมแยกเป็นไฟล์ใน js/ */
   if (f && fs.existsSync(path.join(__dirname, f[0]))) { res.writeHead(200, { 'content-type': f[1], 'x-content-type-options': 'nosniff', 'cache-control': u === '/sw.js' ? 'no-cache' : 'public, max-age=300' }); fs.createReadStream(path.join(__dirname, f[0])).pipe(res); return; }
+  if (V6.http(req, res)) return; /* v6: /v6/ และภาพ /assets/ ที่เกมเดิมไม่ได้เสิร์ฟ */
   res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' }); res.end('Eldoria online server OK — players: ' + players.size);
 });
 const clientIp = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
@@ -52,6 +54,7 @@ const wss = new WebSocketServer({ server, maxPayload: 32768, perMessageDeflate: 
     if (ALLOWED_ORIGINS.length && !sameHost && !ALLOWED_ORIGINS.includes(origin) && origin !== 'null' && origin !== 'file://') return cb(false, 403, 'origin');
     if ((ipCount.get(ip) || 0) >= MAX_PER_IP) return cb(false, 429, 'too many connections');
     cb(true); } });
+V6.attach(server); /* v6: ws path /v6ws ไปโมดูลใหม่ · path อื่นไปตัวเดิม */
 const filt = t => { let s = t; for (const w of BAD) s = s.split(w).join('*'.repeat(w.length)); return s; };
 const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 const num = (v, a, b) => { v = +v; return Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : a; };

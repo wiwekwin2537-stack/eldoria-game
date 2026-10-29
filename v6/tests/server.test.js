@@ -293,6 +293,7 @@ export default [
       eq(oldWss.clients.size, 1, 'ws เกมเดิมไม่ได้รับ /v6ws');
       const res = await new Promise(r => http.get(`http://127.0.0.1:${port}/v6/`, x => { let b = ''; x.on('data', d => b += d); x.on('end', () => r({ code: x.statusCode, b })); }));
       eq(res.code, 200, '/v6/'); truthy(res.b.includes('src/main.js'), 'หน้า v6');
+      truthy(res.b.includes('<html data-v6-server="1"'), 'ติดป้ายมีเซิร์ฟเวอร์ให้เกมต่อ ws');
       const root = await new Promise(r => http.get(`http://127.0.0.1:${port}/`, x => { let b = ''; x.on('data', d => b += d); x.on('end', () => r(b)); }));
       eq(root, 'old', 'รากยังเป็นเกมเดิม');
       o.s.close(); n.s.close();
