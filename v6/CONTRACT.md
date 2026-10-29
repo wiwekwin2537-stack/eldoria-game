@@ -35,7 +35,7 @@ export default {
 | `G.net` | `core/net` | สถานะเชื่อมต่อ |
 | `G.ui` | `core/ui` | หน้าต่างที่เปิดอยู่ |
 
-`G.player` ฟิลด์เฟส 1: `id name` (login) · `x y dir moving` (movement · px · **world เขียนได้เฉพาะตอนเปลี่ยนฉาก**) · `dash:{t,cd,iframe}` (movement) · `scene` (world) · `hp mp maxHp maxMp sp` (stats — เฟส 1 ใช้ค่าคงที่ใน data) · `lv xp` (เฟส 2) · `coin` **อ่านอย่างเดียวในเกม เซิร์ฟเวอร์เป็นคนเปลี่ยน** (DECISIONS)
+`G.player` ฟิลด์เฟส 1: `id name` (login) · `x y dir moving` (movement · px · **world เขียนได้เฉพาะตอนเปลี่ยนฉาก**) · `dash:{t,cd,iframe,dv,since,used,perfect}` `anim` (movement) · `look` `weapon` (hero อ่านอย่างเดียว · เจ้าของ = ระบบชุด/อาชีพในเฟสหลัง) · `scene` (world) · `hp mp maxHp maxMp` (stats — เฟส 1 ใช้ค่าคงที่ใน data) · `sp` แรง: **movement เป็นเจ้าของ** (หัก/ฟื้นจากเดิน วิ่ง พุ่ง · หัวหน้าตัดสิน 30 ต.ค.) ระบบอื่นขอใช้แรงผ่านฟังก์ชันของ movement · `lv xp` (เฟส 2) · `coin` **อ่านอย่างเดียวในเกม เซิร์ฟเวอร์เป็นคนเปลี่ยน** (DECISIONS)
 - เพิ่มฟิลด์ใหม่ใน `G.player` → เพิ่มแถวในตารางนี้ (ขอหัวหน้า) พร้อมระบุเจ้าของ
 
 ## 3. ข้อมูล `src/data/*.js`
@@ -51,6 +51,7 @@ export default {
 | `ui:open` / `ui:close` | core/ui | `{ id }` |
 | `net:status` | core/net | `{ online }` |
 | `save:request` | ใครก็ได้ | — (core/save เซฟครั้งถัดไป) |
+| `player:perfect-dodge` | movement | `{ x, y }` หลบพอดีจังหวะ (DECISIONS 01:20 · ผลจอช้า/สกิล +30% ระบบต่อสู้ทำ) |
 | `world:use` | world | `{ id, scene }` กด E ที่จุดใช้งานที่ไม่ใช่ประตู (เช่น คลังสินค้า) |
 | `world:blocked` | world | `{ link, lv, scene }` เข้าประตูไม่ได้ (เลเวลไม่ถึง) |
 | `net:auth` | core/net | `{ id, name, gm }` ล็อกอินสำเร็จ (หัวหน้าอนุมัติ 30 ต.ค. · 1B) |
@@ -65,6 +66,7 @@ export default {
 | `systems/world` | `hit` `tileAt` `isSolidAt` `enter` `follow` `linkNear` `getMap` `setChooser` `returnPoint` |
 | `core/camera` | `screenToWorld` `worldToScreen` `shake` `setView` |
 | `core/zsort` | `zpush` |
+| `systems/movement` | `dodge` `stopClick` `clickGoal` |
 
 ## 5. การควบคุม (core/input แปลงทุกอุปกรณ์เป็นชุดเดียว)
 `G.input = { mx, my, (ทิศเดิน −1..1) · run (true = วิ่ง: Ctrl ค้าง / ดันจอยเกิน .92 / อนาล็อกเกิน .93) · pressed: Set(action) · held: Set(action) · click:{wx,wy}|null }` · pressed/click อยู่ 1 เฟรม
