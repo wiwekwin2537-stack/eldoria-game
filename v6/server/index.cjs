@@ -159,5 +159,8 @@ const get = () => (main = main || createV6());
 module.exports = {
   createV6, resolveStatic, clientIp, markIndex, WS_PATH,
   http: (req, res) => serveHttp(req, res),
-  attach: server => get().attach(server),
+  /* ปิดไว้ก่อนจนกว่าจะตั้ง env V6_ENABLE=1 (หัวหน้า 30 ต.ค. · ผลตรวจ 1B H1/H2: กันยิง /v6ws จนเกมเดิมล่ม/เผาโควตา Upstash)
+     ปิด = ไม่แตะตัวรับ upgrade ของเกมเดิมเลย (เหมือนก่อนใส่ v6 ทุกอย่าง) · หน้า /v6/ ยังเปิดดูได้ แต่ต่อเซิร์ฟเวอร์ไม่ได้ */
+  enabled: env => (env || process.env).V6_ENABLE === '1',
+  attach: server => (module.exports.enabled() ? get().attach(server) : null),
 };

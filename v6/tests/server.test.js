@@ -299,4 +299,15 @@ export default [
       o.s.close(); n.s.close();
     } finally { v6.stop(); oldWss.close(); server.closeAllConnections?.(); await new Promise(r => server.close(r)); }
   }],
+  ['ปิด /v6ws ไว้จนกว่า V6_ENABLE=1 — ไม่แตะตัวรับ upgrade ของเกมเดิม', () => {
+    eq(V6.enabled({}), false, 'ไม่ตั้ง env = ปิด');
+    eq(V6.enabled({ V6_ENABLE: '0' }), false, '0 = ปิด');
+    eq(V6.enabled({ V6_ENABLE: '1' }), true, '1 = เปิด');
+    const saved = process.env.V6_ENABLE; delete process.env.V6_ENABLE;
+    const { EventEmitter } = require('events'); const srv = new EventEmitter(); const f = () => {};
+    srv.on('upgrade', f);
+    eq(V6.attach(srv), null, 'ไม่ attach');
+    eq(srv.listeners('upgrade').length, 1, 'ตัวรับเดิมยังอยู่'); eq(srv.listeners('upgrade')[0], f, 'ตัวเดิมตัวเดียวกัน');
+    if (saved !== undefined) process.env.V6_ENABLE = saved;
+  }],
 ];

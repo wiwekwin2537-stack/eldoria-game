@@ -51,7 +51,7 @@ const visible = (page, sel) => page.evaluate(s => { const e = document.querySele
 
 (async () => {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'v6-1b-'));
-  const env = { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, UPSTASH_REDIS_REST_URL: '', UPSTASH_REDIS_REST_TOKEN: '', GM_ALLOW_REG: '',
+  const env = { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, UPSTASH_REDIS_REST_URL: '', UPSTASH_REDIS_REST_TOKEN: '', GM_ALLOW_REG: '', V6_ENABLE: '1', /* เปิด /v6ws เฉพาะเทส (หัวหน้า 30 ต.ค.) */
     NODE_PATH: [process.env.NODE_PATH, '/opt/npm-tools/node_modules'].filter(Boolean).join(':') };
   const srv = spawn(process.execPath, ['server.js'], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
   let srvLog = ''; srv.stdout.on('data', d => srvLog += d); srv.stderr.on('data', d => srvLog += d);
