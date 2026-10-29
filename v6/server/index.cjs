@@ -80,7 +80,7 @@ function serveHttp(req, res) {
 }
 
 /* สร้างชุดเซิร์ฟเวอร์ v6 (เทสสร้างเองได้ด้วย store ในหน่วยความจำ) */
-function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m) } = {}) {
+function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m), wsLib = null } = {}) {
   store = store || fromEnv(env);
   const accounts = createAccounts({ store, env, now });
   const saves = createSaves({ store, now });
@@ -96,8 +96,9 @@ function createV6({ store, env = process.env, now = () => Date.now(), log = m =>
   }
 
   function upgrade(req, socket, head) {
-    const { WebSocketServer } = require('ws');
     if (!wss) {
+      let WebSocketServer;
+      try { ({ WebSocketServer } = wsLib || require('ws')); } catch (e) { log('[v6] ไม่มีโมดูล ws: ' + e.message); return reject(socket, 503, 'Unavailable'); } /* ไม่ให้เซิร์ฟเวอร์ทั้งตัวล้ม */
       wss = new WebSocketServer({ noServer: true, maxPayload: MAX_PAYLOAD, perMessageDeflate: false });
       pingTimer = setInterval(() => {
         for (const ws of wss.clients) { if (ws._v6dead) { ws.terminate(); continue; } ws._v6dead = true; try { ws.ping(); } catch (e) {} }
