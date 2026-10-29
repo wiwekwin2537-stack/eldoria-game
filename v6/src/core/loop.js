@@ -1,3 +1,4 @@
+import { zflush } from './zsort.js';
 /* loop — ลูปเกม: update ทุกระบบตามลำดับ แล้ววาดทีละชั้น (dt ≤ 0.05 ตามเกมเดิม · spec01 §1) */
 export const LAYERS = ['ground', 'world', 'top', 'ui'];
 export const MAX_DT = 0.05;
@@ -21,6 +22,7 @@ export function drawFrame(G, systems, ctx) {
       if (!s.draw) continue;
       try { s.draw(G, ctx, layer); } catch (e) { console.error('[draw]', s.id, layer, e); }
     }
+    zflush(ctx); /* วาดของที่ส่งเข้าคิวเรียง y ของชั้นนี้ (CONTRACT §1) */
   }
 }
 

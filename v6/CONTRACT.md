@@ -17,6 +17,7 @@ export default {
 ```
 - ลำดับทำงาน = ลำดับใน `src/systems/index.js` (ไฟล์เดียวที่รวมรายชื่อระบบ) · เพิ่มระบบ = เพิ่ม 1 บรรทัดในไฟล์นั้น
 - **ลำดับบังคับ** (หัวหน้าอนุมัติ 30 ต.ค.): `input` แรกสุด (สร้าง pressed/click ใหม่ต้นเฟรม · ระบบอื่นห้ามล้าง) → `render` ที่ 2 (ล้างจอ + ตั้งพิกัดวาดของแต่ละชั้น) → ระบบเกม → `camera` ท้ายสุด
+- **วาดเรียงหน้า-หลัง**: ของที่ต้องบังกันตามแกน y (ต้นไม้ อาคาร ตัวละคร NPC มอน) ส่งเข้าคิวในชั้น `'world'` ด้วย `zpush(y, fn)` จาก `core/zsort.js` · loop วาดคิวเรียง y หลังทุกระบบวาดชั้นนั้นเสร็จ · ห้ามแยกวาดหน้า/หลังตัวเราเอง
 - **หยุดเกม**: `G.paused = true` หรือ `G.cam.portrait = true` → loop ไม่เรียก `update` และเวลาเกมไม่เดิน ยกเว้นระบบที่ประกาศ `always: true` (input · render · camera · login · ui) · `draw` ยังทำทุกเฟรม
 - **ห้าม import ไฟล์ระบบอื่นเพื่อแก้ค่า/ฟังก์ชันของมัน** · คุยกันผ่าน `bus` หรือฟังก์ชันที่อีกระบบ export ไว้ชัดเจน (`export function ...`) และระบุในหัวข้อ 4
 - ห้ามแก้ฟังก์ชันของโมดูลอื่นด้วยการกำหนดค่าทับ (ES modules ไม่ยอมอยู่แล้ว — ห้ามหาทางเลี่ยงผ่าน `window`)
@@ -26,7 +27,7 @@ export default {
 | ฟิลด์ | เจ้าของ (ระบบที่เขียนค่าได้) | ความหมาย |
 |---|---|---|
 | `G.player` | หลายระบบ — แต่ละฟิลด์ย่อยมีเจ้าของตามตารางล่าง | ตัวละครเรา |
-| `G.scene` | `world` | `{ id, map, w, h, camOy? }` แมพปัจจุบัน · **w/h เป็น px** · camOy ไม่บังคับ (ทุ่ง .58 · ค่าเริ่ม .55 · ดัน .5 — spec01 §3) |
+| `G.scene` | `world` | `{ id, map, w, h, tw, th, floor?, kind, camOy? }` แมพปัจจุบัน · **w/h เป็น px** · tw/th = ช่อง · floor = ชั้นดัน/หอคอย · camOy ไม่บังคับ (ทุ่ง .58 · ค่าเริ่ม .55 · ดัน .5 — spec01 §3) |
 | `G.cam` | `core/camera` | `{ x, y, zoom:1, vw, vh, res, portrait, shake }` ห้ามซูม (DECISIONS) · vw/vh = ขนาดโลกที่เห็น (px) · res = คุณภาพภาพ |
 | `G.paused` | `core/ui` (เมนูตั้งค่า) | true = หยุดเกม (ดู §1) |
 | `G.input` | `core/input` | สถานะปุ่มที่แปลงแล้ว (ดูหัวข้อ 5) |
@@ -34,7 +35,7 @@ export default {
 | `G.net` | `core/net` | สถานะเชื่อมต่อ |
 | `G.ui` | `core/ui` | หน้าต่างที่เปิดอยู่ |
 
-`G.player` ฟิลด์เฟส 1: `id name` (login) · `x y dir moving` (movement · px) · `dash:{t,cd,iframe}` (movement) · `scene` (world) · `hp mp maxHp maxMp sp` (stats — เฟส 1 ใช้ค่าคงที่ใน data) · `lv xp` (เฟส 2) · `coin` **อ่านอย่างเดียวในเกม เซิร์ฟเวอร์เป็นคนเปลี่ยน** (DECISIONS)
+`G.player` ฟิลด์เฟส 1: `id name` (login) · `x y dir moving` (movement · px · **world เขียนได้เฉพาะตอนเปลี่ยนฉาก**) · `dash:{t,cd,iframe}` (movement) · `scene` (world) · `hp mp maxHp maxMp sp` (stats — เฟส 1 ใช้ค่าคงที่ใน data) · `lv xp` (เฟส 2) · `coin` **อ่านอย่างเดียวในเกม เซิร์ฟเวอร์เป็นคนเปลี่ยน** (DECISIONS)
 - เพิ่มฟิลด์ใหม่ใน `G.player` → เพิ่มแถวในตารางนี้ (ขอหัวหน้า) พร้อมระบุเจ้าของ
 
 ## 3. ข้อมูล `src/data/*.js`
@@ -50,11 +51,20 @@ export default {
 | `ui:open` / `ui:close` | core/ui | `{ id }` |
 | `net:status` | core/net | `{ online }` |
 | `save:request` | ใครก็ได้ | — (core/save เซฟครั้งถัดไป) |
+| `world:use` | world | `{ id, scene }` กด E ที่จุดใช้งานที่ไม่ใช่ประตู (เช่น คลังสินค้า) |
+| `world:blocked` | world | `{ link, lv, scene }` เข้าประตูไม่ได้ (เลเวลไม่ถึง) |
 | `net:auth` | core/net | `{ id, name, gm }` ล็อกอินสำเร็จ (หัวหน้าอนุมัติ 30 ต.ค. · 1B) |
 | `net:kicked` | core/net | `{ reason }` ถูกเตะ/ล็อกอินที่เครื่องอื่น |
 | `save:loaded` | core/save | `{ isNew }` โหลดเซฟเสร็จ ทุกระบบได้ load() แล้ว |
 | `save:status` | core/save | `{ ok, error? }` ผลเซฟล่าสุด |
 - เพิ่มอีเวนต์ใหม่ → เพิ่มแถวที่นี่ใน commit เดียวกัน
+
+## 4b. ฟังก์ชันที่ระบบ export ให้ระบบอื่นเรียก (อ่านอย่างเดียว / สั่งงาน)
+| ระบบ | ฟังก์ชัน |
+|---|---|
+| `systems/world` | `hit` `tileAt` `isSolidAt` `enter` `follow` `linkNear` `getMap` `setChooser` `returnPoint` |
+| `core/camera` | `screenToWorld` `worldToScreen` `shake` `setView` |
+| `core/zsort` | `zpush` |
 
 ## 5. การควบคุม (core/input แปลงทุกอุปกรณ์เป็นชุดเดียว)
 `G.input = { mx, my, (ทิศเดิน −1..1) · run (true = วิ่ง: Ctrl ค้าง / ดันจอยเกิน .92 / อนาล็อกเกิน .93) · pressed: Set(action) · held: Set(action) · click:{wx,wy}|null }` · pressed/click อยู่ 1 เฟรม

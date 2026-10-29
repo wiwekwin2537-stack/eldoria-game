@@ -2,6 +2,8 @@ import { on, emit, _reset } from '../src/core/bus.js';
 import { createState } from '../src/core/state.js';
 import { stepFrame, MAX_DT } from '../src/core/loop.js';
 import systems from '../src/systems/index.js';
+import { zpush, _size } from '../src/core/zsort.js';
+import { drawFrame } from '../src/core/loop.js';
 
 const eq = (a, b, m) => { if (a !== b) throw new Error(`${m}: ได้ ${a} ต้องเป็น ${b}`); };
 
@@ -50,5 +52,12 @@ export default [
     G.paused = false; G.cam.portrait = true; order.length = 0;
     stepFrame(G, [{ id: 'a', update: () => order.push('a') }], .02);
     eq(order.length, 0, 'จอแนวตั้งก็หยุด');
+  }],
+  ['คิวเรียง y: วาดจากหลังไปหน้า y เท่ากันตามลำดับส่ง และล้างทุกชั้น', () => {
+    const G = createState(); const out = [];
+    const sys = [{ id: 'a', draw: (G, ctx, l) => { if (l === 'world') { zpush(50, () => out.push('a50')); zpush(10, () => out.push('a10')); } } },
+                 { id: 'b', draw: (G, ctx, l) => { if (l === 'world') { zpush(30, () => out.push('b30')); zpush(50, () => out.push('b50')); } } }];
+    drawFrame(G, sys, {});
+    eq(out.join(), 'a10,b30,a50,b50', 'ลำดับ'); eq(_size(), 0, 'คิวว่าง');
   }],
 ];
