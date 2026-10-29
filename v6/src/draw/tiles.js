@@ -130,7 +130,10 @@ const FLOOR = {
     const L = map.look;
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       if (x >= L.sea[0] && ch(map, x, y) === '#' && y > 1 && y < map.h - 2) { k.fillStyle = (x + y) & 1 ? '#2a74aa' : '#22689c'; k.fillRect(x * T, y * T, T, T); continue; }
-      if (ch(map, x, y) !== '#' && Math.abs(y - roadY(x, L.path)) <= 1) { k.fillStyle = (hash(x, y) > .5 ? L.pathC : L.pathD); k.fillRect(x * T, y * T, T, T); }
+      if (ch(map, x, y) !== '#' && Math.abs(y - roadY(x, L.path)) <= 1) {
+        k.fillStyle = L.pathC; k.fillRect(x * T, y * T, T, T);
+        k.fillStyle = L.pathD; for (let i = 0; i < 4; i++) { const r = hash(x * 3.1 + i, y * 1.7 - i); k.fillRect(x * T + (r * 28 | 0), y * T + (r * 97 % 28 | 0), 3, 2); }
+      }
     }
     return true;
   },
@@ -140,7 +143,8 @@ const FLOOR = {
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const g = G ? String.fromCharCode(G[y * map.w + x]) : 'l';
       if (g === 's' && im) { const px = x * T, py = y * T; k.drawImage(im, px % 384, py % 384, T, T, px, py, T, T); continue; }
-      const c = C[g] || C.l; k.fillStyle = c[hash(x * 1.3, y * 2.7) > .5 ? 1 : 0]; k.fillRect(x * T, y * T, T, T);
+      const c = C[g] || C.l; k.fillStyle = c[0]; k.fillRect(x * T, y * T, T, T);
+      k.fillStyle = c[1]; for (let i = 0; i < 3; i++) { const r = hash(x * 2.3 + i, y * 1.9 - i); k.fillRect(x * T + (r * 26 | 0), y * T + (r * 89 % 26 | 0), 5, 3); }
     }
     return !!im;
   },
@@ -190,11 +194,25 @@ function natureGround(k, map, x0, y0, x1, y1) {
   }
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = ch(map, x, y), px = x * T, py = y * T, h = hash(x * 2.1, y * 1.7);
-    if (c === 'w') { k.fillStyle = L.liq ? L.liq[(x + y) & 1] : '#3a7ab0'; k.fillRect(px, py, T, T); if (h > .8) { k.fillStyle = L.liq ? L.liq[2] : '#fff'; k.fillRect(px + (h * 20 | 0), py + 10, 6, 2); } }
-    else if (c === 'p') { k.fillStyle = h > .5 ? L.path : L.pathD; k.fillRect(px + 2, py + 2, T - 4, T - 4); }
+    if (c === 'w') { /* น้ำ/ลาวา: สีเดียวต่อเนื่อง + ขอบฝั่ง + ประกายเล็ก ๆ */
+      const liq = L.liq || ['#3a7ab0', '#2a5a8a', '#c8f0ff'];
+      k.fillStyle = liq[0]; k.fillRect(px, py, T, T);
+      k.fillStyle = liq[1]; k.globalAlpha = .35; k.fillRect(px, py + (h * 16 | 0), T, 6); k.globalAlpha = 1;
+      if (h > .7) { k.fillStyle = liq[2]; k.globalAlpha = .6; k.fillRect(px + (h * 20 | 0), py + 8 + (h * 13 % 12 | 0), 7, 2); k.globalAlpha = 1; }
+      k.fillStyle = L.shore || 'rgba(0,0,0,.3)';
+      if (ch(map, x, y - 1) !== 'w') k.fillRect(px, py, T, 3);
+      if (ch(map, x, y + 1) !== 'w') k.fillRect(px, py + T - 3, T, 3);
+      if (ch(map, x - 1, y) !== 'w') k.fillRect(px, py, 3, T);
+      if (ch(map, x + 1, y) !== 'w') k.fillRect(px + T - 3, py, 3, T);
+    }
+    else if (c === 'p') { /* ทางดิน: เติมเต็มช่อง ลายจุดเล็ก ๆ */
+      k.fillStyle = L.path; k.fillRect(px, py, T, T);
+      k.fillStyle = L.pathD;
+      for (let i = 0; i < 4; i++) { const r = hash(x * 3.1 + i, y * 1.7 - i); k.fillRect(px + (r * 28 | 0), py + (r * 97 % 28 | 0), 3, 2); }
+    }
     else if (c === 'b') { k.fillStyle = '#7a5a3a'; k.fillRect(px, py, T, T); k.fillStyle = '#5a3e26'; for (let i = 4; i < T; i += 8) k.fillRect(px, py + i, T, 2); }
     else if (c === 'L') { k.fillStyle = 'rgba(0,0,0,.45)'; k.fillRect(px, py, T, T); }
-    else if (c === 'F' || c === '#') { k.fillStyle = 'rgba(0,0,0,.22)'; k.fillRect(px, py, T, T); }
+    else if (c === 'F' || c === '#') { k.fillStyle = 'rgba(0,0,0,.22)'; k.beginPath(); k.ellipse(px + 16, py + 24, 20, 10, 0, 0, 7); k.fill(); } /* เงาใต้ต้นไม้ */
     else if (c === 'r') { k.fillStyle = 'rgba(0,0,0,.25)'; k.beginPath(); k.ellipse(px + 16, py + 26, 14, 5, 0, 0, 7); k.fill(); k.fillStyle = '#7a7a82'; k.beginPath(); k.ellipse(px + 16, py + 18, 13, 11, 0, 0, 7); k.fill(); k.fillStyle = '#9a9aa4'; k.beginPath(); k.ellipse(px + 12, py + 14, 6, 4, 0, 0, 7); k.fill(); }
   }
 }
@@ -260,7 +278,7 @@ function eachTall(G, fn) {
       const t = ch(map, x, y);
       let sc2 = 0;
       if (t === 't') { const r = hash(x * 3.7 + 1, y * 5.1); sc2 = [.5, .7, .9, 1.1][r < .2 ? 0 : r < .45 ? 1 : r < .78 ? 2 : 3]; } /* ขนาดต้นไม้ทุ่ง 013:84 */
-      else if (t === 'F' || (kind === 'road' && t === '#' && x < L.sea[0] && y > 1 && y < map.h - 2)) sc2 = .85 + hash(x * 1.7, y * 3.1) * .35;
+      else if (t === 'F' || t === 'L' || (kind === 'road' && t === '#' && x < L.sea[0])) sc2 = .85 + hash(x * 1.7, y * 3.1) * .35; /* ป่าทึบ/ขอบป่า = ต้นไม้แน่น */
       else if (t === 'o' && kind !== 'terrain') sc2 = .7;
       if (!sc2) continue;
       const bx = x * T + 16 + (hash(x, y * 1.3) - .5) * 8, by = y * T + 28;

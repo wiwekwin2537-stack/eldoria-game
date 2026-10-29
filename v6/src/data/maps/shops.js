@@ -6,7 +6,7 @@ export default {
     look: { floor: 'room', shop: 'gear' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -31,7 +31,7 @@ export default {
     look: { floor: 'room', shop: 'potion' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -56,7 +56,7 @@ export default {
     look: { floor: 'room', shop: 'inn' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -81,7 +81,7 @@ export default {
     look: { floor: 'room', shop: 'skill' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -106,7 +106,7 @@ export default {
     look: { floor: 'room', shop: 'store' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -131,7 +131,7 @@ export default {
     look: { floor: 'room', shop: 'guild' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -156,7 +156,7 @@ export default {
     look: { floor: 'room', shop: 'fashion' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -181,7 +181,7 @@ export default {
     look: { floor: 'room', shop: 'bank' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
     ],
     rows: [
       '#26',
@@ -206,7 +206,7 @@ export default {
     look: { floor: 'room', shop: 'seal113' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
       { id: 'seal', on: 'use', circle: [13, 7.94, 90], menu: ['seal.thorn', 'seal.serp', 'seal.frost', 'seal.phar', 'seal.blood', 'seal.void'] }, /* แท่นผนึก (OX+8T, 7T+30) r90 145-fix113 · ลานผนึก LB62 094-fix62 */
     ],
     rows: [
@@ -232,7 +232,7 @@ export default {
     look: { floor: 'room', shop: 'hall' },
     spawn: [13, 13.4, 'u'], /* enterShop 022:39 วัด (416,428.8)px */
     links: [
-      { id: 'out', on: 'walk', box: [12, 14.5, 2, 1.5], to: '@back', at: [7, 21.5, 'd'] }, /* ชนขอบล่าง GATE → หน้าประตู (leaveShop 022:51) */
+      { id: 'out', on: 'walk', box: [12, 13.8, 2, 1.2], to: '@back', at: [7, 21.5, 'd'] }, /* แตะช่อง GATE แถวล่าง (ตัวชน y+4 ≥ 14·T) → หน้าประตู (leaveShop 022:51) */
       { id: 'dungeon', on: 'use', circle: [16.41, 9.3, 50], menu: 'dungeon', front: [16.41, 10.4, 'd'] }, /* รูปปั้นบันได DGST11 = 2·พระราชา−ALT7 (วัดในเกม 16.41,9.3) r50 042-fix11:40-41 → openDgMenu */
     ],
     rows: [
