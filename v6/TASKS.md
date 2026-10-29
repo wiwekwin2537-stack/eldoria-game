@@ -1,5 +1,20 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## 👑 ส่งต่อหัวหน้างาน (30 ต.ค. 01:10 · เจ้าของสั่ง: หัวหน้าเดิมโควตาใกล้หมด)
+- **หัวหน้างานคนใหม่ = Claude Opus 5.5 บัญชี 2** ตั้งแต่ตอนนี้ (หัวหน้าเดิมกลับมาเมื่อโควตารีเซ็ต จะอ่านไฟล์นี้แล้วช่วยต่อ ไม่แย่งงาน)
+- หน้าที่หัวหน้า: แบ่งงาน · คนเขียนห้ามตรวจงานตัวเอง · อัปเดตไฟล์นี้ · ถามเจ้าของเป็นภาษาไทยเมื่อต้องตัดสิน · push ครบก่อนหยุดทุกครั้ง
+- งานค้างของหัวหน้าเดิม:
+  1. **1B** (เซิร์ฟเวอร์/ล็อกอิน/เซฟ) ช่างของหัวหน้าเดิมทำไปบางส่วนแล้วหยุด → ดูคอลัมน์ "หยุดตรงไหน" แถว 1B แล้วทำต่อ (ห้ามเริ่มใหม่) · จุดต่อ `server.js` ถ้ายังไม่ได้ push อยู่ใน `v6/server/MOUNT.md`
+  2. **ถามเจ้าของ "ตกลง"** ตาราง "❓ รอเจ้าของตัดสิน (02/03)" ด้านล่าง (ถามแล้ว ยังไม่ได้คำตอบ) → ตอบแล้วย้ายไป `v6/DECISIONS.md`
+- **ChatGPT = ผู้ตรวจโค้ด** (ดูหัวข้อ "🔍 ChatGPT" ด้านล่าง)
+
+## 🔍 ChatGPT — ผู้ตรวจ (อ่านแค่หัวข้อนี้ + `v6/CONTRACT.md` + `v6/DECISIONS.md`)
+- ตรวจงานที่สถานะ "รอตรวจ" ในตารางเฟส 1 (ไม่ตรวจงานที่ตัวเองทำ) · เทียบโค้ดใน `v6/src/` กับ `v6/CONTRACT.md` (ห้ามห่อทับฟังก์ชัน · 1 ระบบ 1 ไฟล์ · ตัวเลขอยู่ data/) และสเปกใน `v6/spec/` ที่งานนั้นอ้าง
+- **เขียนผลเป็นไฟล์ใหม่เท่านั้น**: `v6/reviews/<งาน>-chatgpt.md` (เช่น `1A-1-chatgpt.md`): จุดที่ผิด (ไฟล์:บรรทัด · ผิดยังไง · ควรเป็นอะไร) · ระดับ หนัก/กลาง/เบา · ผล ผ่าน / ผ่านแบบมีข้อแก้ / ไม่ผ่าน
+- **ห้ามแก้หรืออัปไฟล์อื่น ห้ามอัปทั้งโปรเจกต์/ZIP ทับ** (เคยทำงานของ AI อื่นหาย) · ห้ามแตะเกมเดิม
+- หัวหน้าอ่านผลตรวจแล้วสั่งช่างแก้
+
+
 ## ✅ เฟส 0 เสร็จ (30 ต.ค.) — สเปก 6 หมวดผ่านตรวจครบ · อ่านได้ที่ `v6/spec/` · บันทึกใน `v6/CHANGELOG.md`
 
 ## ✅ เจ้าของอนุมัติแล้ว → `v6/DECISIONS.md` (12 ข้อ · 30 ต.ค.)
@@ -26,7 +41,7 @@
 | **1A-1** จอ + กล้อง + ควบคุม | **ผู้ช่วยบัญชี 2** | `src/core/{camera,input,render}.js` · `src/data/controls.js` · `src/systems/index.js` (เพิ่มบรรทัด) · `src/main.js` (ส่วน fit) · `tests/` ที่ขึ้นต้น `input`/`camera` | จอล็อกสูง 448 ไม่ซูม (spec01 §3 + DECISIONS) · คีย์บอร์ด / คลิกเดิน / ปุ่มมือถือแนวนอน / จอยเกม แปลงเป็น `G.input` ตาม CONTRACT §5 (spec01 §5) · ลบ `systems/hello.js` | 🔨 กำลังทำ (ผู้ช่วยบัญชี 2 · 30 ต.ค.) · เสร็จแล้ว: camera/input/render/controls + เทส node 27 ข้อ · ต่อไป: เทสเบราว์เซอร์ tests/browser/input.spec.js + ดูภาพแคปจอ |
 | **1A-2** แมพ + ประตู + ชน | **ผู้ช่วยบัญชี 2** (หลัง 1A-1) | `src/data/maps.js` · `src/systems/world.js` · `src/draw/tiles.js` · `tests/world*` | ทุกแมพในตาราง spec01 §4 เดินเข้าออกได้ ชนกำแพง · ออกดันกลับหน้าทางเข้า (DECISIONS) · เมือง 1 ใช้ภาพฉากเดิมตามกติกาภาพ (spec01 §10) | ว่าง |
 | **1A-3** ตัวละคร เดิน/วิ่ง/พุ่ง + วาด | **ผู้ช่วยบัญชี 2** (หลัง 1A-2) | `src/systems/movement.js` · `src/draw/hero.js` · `tests/movement*` | เดิน/วิ่ง/พุ่ง/ว่ายน้ำ ค่าตามเกมเดิม (spec01 §6) · ตัวละครวาดด้วยโค้ดหน้าตาเหมือนเดิม (spec01 §7) ตัววาดเดียว ไม่แก้ค่าผู้เล่นระหว่างวาด | ว่าง |
-| **1B** เซิร์ฟเวอร์ v6 + ล็อกอิน + เซฟ | เซสชันหัวหน้า (หลังตรวจ 02/03) | `v6/server/` · `src/core/{net,save}.js` · `src/systems/login.js` · `tests/server*` `tests/save*` + จุดต่อเล็กๆ ใน `server.js` เดิมให้เสิร์ฟ `/v6/` | สมัคร/ล็อกอิน คีย์เซฟ `eld6:` · เซิร์ฟเวอร์ถือเงิน (DECISIONS) · เปิด `/v6/` บนเว็บจริงได้ | ⏸️ หยุดกลางทาง (โควตาหมด 30 ต.ค.) · **เสร็จแล้ว (ยังไม่มีเทส):** `v6/server/store.cjs` (Upstash/ไฟล์ DATA_DIR/v6/หน่วยความจำ คีย์ `eld6:`) · `accounts.cjs` (สมัคร/ล็อกอิน scrypt · ล็อกรหัสผิด · จำกัดต่อ IP · โทเคน 90 วัน · GM_IDS/GM_ALLOW_REG) · `saves.cjs` (เซฟ `{v,seq,upd,systems,server:{coin}}` · server.* เครื่องเขียนไม่ได้ · ขนาด 256KB · 1 ครั้ง/วิ · seq ต้องเพิ่ม) · `proto.cjs` (ข้อความ ws: register/login/hello/time/load/save/logout) · `index.cjs` (เสิร์ฟ /v6/ + /assets/ · `attach(server)` แยก ws /v6ws) · จุดต่อ server.js เขียนไว้ใน `v6/server/MOUNT.md` (**ยังไม่ได้ใส่ server.js**) · **ขั้นต่อไป:** (1) `v6/server/PROTOCOL.md` ตารางข้อความ (ดูหัว proto.cjs) (2) เทส `v6/tests/server*.test.js` (ใช้ memoryStore · ถ้า require ws ไม่เจอ ใช้ NODE_PATH=/opt/npm-tools/node_modules) (3) ฝั่งเกม `src/core/net.js` `src/core/save.js` `src/systems/login.js` + บรรทัดใน systems/index.js (แผน: login.init เรียก net.connect + initSave(G, systems) · อีเวนต์ใหม่ขอหัวหน้า: `net:auth` `net:kicked` `save:loaded` `save:status`) (4) ใส่จุดต่อตาม MOUNT.md → quick.sh ✅ → push (5) เทส Playwright พอร์ต 8830 |
+| **1B** เซิร์ฟเวอร์ v6 + ล็อกอิน + เซฟ | ช่างหัวหน้าเดิม → **หัวหน้าคนใหม่รับต่อ** | `v6/server/` · `src/core/{net,save}.js` · `src/systems/login.js` · `tests/server*` `tests/save*` + จุดต่อเล็กๆ ใน `server.js` เดิมให้เสิร์ฟ `/v6/` | สมัคร/ล็อกอิน คีย์เซฟ `eld6:` · เซิร์ฟเวอร์ถือเงิน (DECISIONS) · เปิด `/v6/` บนเว็บจริงได้ | ⏸️ หยุดกลางทาง (โควตาหมด 30 ต.ค.) · **เสร็จแล้ว (ยังไม่มีเทส):** `v6/server/store.cjs` (Upstash/ไฟล์ DATA_DIR/v6/หน่วยความจำ คีย์ `eld6:`) · `accounts.cjs` (สมัคร/ล็อกอิน scrypt · ล็อกรหัสผิด · จำกัดต่อ IP · โทเคน 90 วัน · GM_IDS/GM_ALLOW_REG) · `saves.cjs` (เซฟ `{v,seq,upd,systems,server:{coin}}` · server.* เครื่องเขียนไม่ได้ · ขนาด 256KB · 1 ครั้ง/วิ · seq ต้องเพิ่ม) · `proto.cjs` (ข้อความ ws: register/login/hello/time/load/save/logout) · `index.cjs` (เสิร์ฟ /v6/ + /assets/ · `attach(server)` แยก ws /v6ws) · จุดต่อ server.js เขียนไว้ใน `v6/server/MOUNT.md` (**ยังไม่ได้ใส่ server.js**) · **ขั้นต่อไป:** (1) `v6/server/PROTOCOL.md` ตารางข้อความ (ดูหัว proto.cjs) (2) เทส `v6/tests/server*.test.js` (ใช้ memoryStore · ถ้า require ws ไม่เจอ ใช้ NODE_PATH=/opt/npm-tools/node_modules) (3) ฝั่งเกม `src/core/net.js` `src/core/save.js` `src/systems/login.js` + บรรทัดใน systems/index.js (แผน: login.init เรียก net.connect + initSave(G, systems) · อีเวนต์ใหม่ขอหัวหน้า: `net:auth` `net:kicked` `save:loaded` `save:status`) (4) ใส่จุดต่อตาม MOUNT.md → quick.sh ✅ → push (5) เทส Playwright พอร์ต 8830 |
 
 กติกาเฟส 1: งานละ 1 คน แตะได้เฉพาะไฟล์ในช่อง · ต้องการแก้ไฟล์นอกช่อง → เขียนขอในหัวข้อ "คำขอถึงหัวหน้า" ข้างล่าง · เสร็จ → สถานะ "รอตรวจ" (ผู้ตรวจต้องไม่ใช่คนเขียน)
 
@@ -34,4 +49,4 @@
 - (ว่าง)
 
 ## ⏭️ ถัดไป
-- หัวหน้าเริ่ม 1B · เฟส 2 (ต่อสู้) เริ่มเมื่อ 1A ครบ
+- 1A + 1B ผ่านตรวจ → เจ้าของลองเข้า /v6/ · เฟส 2 (ต่อสู้) เริ่มเมื่อ 1A ครบ
