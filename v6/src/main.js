@@ -2,19 +2,15 @@
 import { createState } from './core/state.js';
 import { startLoop } from './core/loop.js';
 import systems from './systems/index.js';
+import { attachCanvas } from './core/render.js';
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const G = createState();
 window.__G = G; /* สำหรับเทสในเบราว์เซอร์เท่านั้น (CONTRACT §1) */
 
-function fit() {
-  /* ชั่วคราว — core/camera (ใบงาน 1A-1) จะคุมขนาดจอ VIEW_H ตามสเปก */
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-addEventListener('resize', fit);
-fit();
+/* จอ: ขนาด canvas ล็อกสูง 448 + ปรับเมื่อหมุน/ย่อหน้าต่าง (core/render · spec01 §3) */
+attachCanvas(G, canvas);
 
 for (const s of systems) {
   try { s.init?.(G); } catch (e) { console.error('[init]', s.id, e); }
