@@ -3,13 +3,18 @@
      const V6 = require('./v6/server/index.cjs');
      ...ในตัวรับ HTTP ก่อนข้อความสุดท้าย:  if (V6.http(req, res)) return;
      ...หลังสร้าง WebSocketServer เดิม:      V6.attach(server);
-   - HTTP: เสิร์ฟ /v6/ (index.html + src/**) และ /assets/ (ภาพ) · ไม่เสิร์ฟ server/ tests/ tools/ spec/ *.md
-   - WebSocket: path /v6ws เท่านั้น (เกมเดิมใช้ path อื่นตามเดิม) */
+   - HTTP: เสิร์ฟ /v6/ (index.html + src/**) และ /assets/ (ภาพ · ยกเว้น /assets/incoming/) · ไม่เสิร์ฟ server/ tests/ tools/ spec/ *.md
+   - WebSocket: path /v6ws เท่านั้น (เกมเดิมใช้ path อื่นตามเดิม) · เปิดเมื่อ env V6_ENABLE=1
+   - กันเกมเดิมล่มเพราะ v6 (ผลตรวจ L4): ไฟล์นี้ require ส่วนอื่นใน try · V6.http / V6.attach / ตัวรับ upgrade ของ v6 ห่อ try ทุกตัว
+     → v6 พังตอนบูตหรือระหว่างทำงาน เกมเดิมยังบูตและทำงานต่อ (เทส server.limits.test.js "v6 พังตอนโหลด") */
 const fs = require('fs'), path = require('path');
-const { fromEnv } = require('./store.cjs');
-const { createAccounts } = require('./accounts.cjs');
-const { createSaves } = require('./saves.cjs');
-const { createProto } = require('./proto.cjs');
+let M = null, loadErr = null;
+try {
+  M = { ...require('./store.cjs'), ...require('./accounts.cjs'), ...require('./saves.cjs'), ...require('./proto.cjs'), ...require('./limits.cjs') };
+} catch (e) {
+  loadErr = e;
+  try { console.error('[v6] โหลดโมดูล v6 ไม่ได้ — ปิด /v6ws (เกมเดิมทำงานต่อ): ' + (e && e.stack || e)); } catch (e2) {}
+}
 
 const ROOT = path.resolve(__dirname, '..', '..'); /* รากโปรเจกต์ */
 const V6_DIR = path.join(ROOT, 'v6');
@@ -19,15 +24,39 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
   '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg' };
 const ASSET_EXT = new Set(['.png', '.webp', '.jpg', '.jpeg', '.svg', '.mp3', '.ogg', '.json']);
 
-/* IP ผู้เล่น: ตัวท้ายสุดของ x-forwarded-for (Render เติมเอง ปลอมไม่ได้ · spec05 §1.7) */
-const clientIp = req => {
+/* IP ผู้เล่น (ผลตรวจ M1) — x-forwarded-for = "ที่ผู้เล่นใส่มาเอง(ปลอมได้), ..., IP ที่พร็อกซีตัวแรกเห็น, IP ของพร็อกซีถัด ๆ ไป"
+   พร็อกซีทุกตัว "ต่อท้าย" IP ที่ตัวเองเห็น → ตัวซ้าย ๆ ปลอมได้ ต้องอ่านจากขวา
+   env V6_PROXY_HOPS:
+     - ไม่ตั้ง / 'auto' (ค่าเริ่ม · ใช้บน Render): ถ้าคนที่ต่อเข้ามาตรง ๆ (socket) เป็นเครือข่ายภายใน/Cloudflare = มาผ่านพร็อกซี
+       → ไล่จากขวาข้ามตัวที่เป็นพร็อกซี (เครือข่ายภายใน 10.x/172.16/192.168/100.64/127 · IPv6 ภายใน · ช่วง IP ของ Cloudflare)
+       แล้วใช้ตัวแรกที่ไม่ใช่พร็อกซี = ผู้เล่นจริง · ถ้า socket เป็น IP สาธารณะ (ต่อตรง ไม่ผ่านพร็อกซี) → ไม่เชื่อ header เลย
+       เหตุผล: Render บอกไม่ตรงกันว่าตัวท้ายเป็นผู้เล่นหรือพร็อกซีของ Render (community.render.com "Accessing client IPs" ·
+       feedback.render.com "Send the correct X_FORWARDED_FOR") และหน้า Render มี Cloudflare · วิธีนี้ถูกทั้งสองแบบ
+       ข้อจำกัด: ถ้าผู้โจมตียิงผ่าน Cloudflare Workers (IP ของ Cloudflare) จะปลอมตัวซ้ายได้ → ตั้งจำนวนชั้นตายตัวแทน
+     - ตัวเลข N ≥1: เชื่อพร็อกซี N ชั้นพอดี → ใช้ตัวที่ N นับจากขวา (N=1 = ตัวท้ายสุด)
+     - 0: ไม่มีพร็อกซี → ใช้ IP ของ socket (ไม่อ่าน header)
+   env V6_LOG_XFF=1 → พิมพ์ header ดิบ 5 ครั้งแรกลง log (ให้เจ้าของดูบน Render ว่าตัวไหนคือผู้เล่นจริง แล้วตั้ง V6_PROXY_HOPS) */
+function clientIp(req, env = {}) {
+  const sock = String(req.socket && req.socket.remoteAddress || '');
   const xf = String(req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean);
-  return xf.length ? xf[xf.length - 1] : String(req.socket && req.socket.remoteAddress || '');
-};
+  const mode = String(env.V6_PROXY_HOPS == null ? 'auto' : env.V6_PROXY_HOPS).trim() || 'auto';
+  const norm = ip => (M ? M.normIp(ip) : ip) || ip;
+  if (/^\d+$/.test(mode)) {
+    const n = +mode;
+    if (n === 0 || !xf.length) return norm(sock);
+    return norm(xf[Math.max(0, xf.length - n)]);
+  }
+  if (!M || !xf.length || !M.isProxyIp(sock)) return norm(sock);
+  for (let i = xf.length - 1; i >= 0; i--) if (!M.isProxyIp(xf[i])) return norm(xf[i]);
+  return norm(xf[0]);
+}
 
-function originOk(origin, host, allowed) {
-  if (!origin || origin === 'null') return true;
-  if (!allowed.length || allowed.includes(origin)) return true;
+/* Origin (ผลตรวจ M3 · ตรงกับ PROTOCOL.md): ไม่มี Origin (โปรแกรม/เทส ไม่ใช่เบราว์เซอร์) → ผ่าน
+   · โดเมนเดียวกับ host → ผ่าน · อยู่ใน ALLOWED_ORIGINS → ผ่าน · อื่น ๆ รวม 'null' (iframe sandbox/ไฟล์) → ไม่ผ่าน */
+function originOk(origin, host, allowed = []) {
+  if (!origin) return true;
+  if (allowed.includes(origin)) return true;
+  if (origin === 'null') return false;
   try { return new URL(origin).host === host; } catch (e) { return false; }
 }
 
@@ -49,7 +78,9 @@ function resolveStatic(u) {
     if (!f.startsWith(path.join(V6_DIR, 'src') + path.sep)) return { code: 404 };
     return { file: f, missing: 404 };
   }
-  /* /assets/ — เฉพาะไฟล์ภาพ/เสียงที่มีอยู่จริง · ไม่มี → ให้เกมเดิมตอบเหมือนเดิม */
+  /* /assets/ — เฉพาะไฟล์ภาพ/เสียงที่มีอยู่จริง · ไม่มี → ให้เกมเดิมตอบเหมือนเดิม
+     /assets/incoming/ = ภาพที่ยังไม่ผ่านตรวจ → v6 ไม่เสิร์ฟ (เกมเดิมเสิร์ฟเฉพาะชื่อที่ตัวเองระบุไว้เหมือนเดิม · ผลตรวจ L5) */
+  if (u.toLowerCase().startsWith('/assets/incoming/')) return null;
   if (!ASSET_EXT.has(path.extname(u).toLowerCase())) return null;
   const f = path.join(ROOT, u);
   if (!f.startsWith(path.join(ROOT, 'assets') + path.sep)) return null;
@@ -91,20 +122,28 @@ function serveHttp(req, res) {
   return true;
 }
 
-/* สร้างชุดเซิร์ฟเวอร์ v6 (เทสสร้างเองได้ด้วย store ในหน่วยความจำ) */
-function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m), wsLib = null } = {}) {
-  store = store || fromEnv(env);
-  const accounts = createAccounts({ store, env, now });
-  const saves = createSaves({ store, now });
-  const proto = createProto({ accounts, saves, now, log });
+/* สร้างชุดเซิร์ฟเวอร์ v6 (เทสสร้างเองได้ด้วย store ในหน่วยความจำ)
+   env ที่ใช้: V6_MAX_PLAYERS · MAX_PER_IP · ALLOWED_ORIGINS · V6_PROXY_HOPS · V6_LOG_XFF
+   · V6_STORE_PER_MIN (ค่าเริ่ม 120) · V6_STORE_PER_DAY (ค่าเริ่ม 4000) = งบคำสั่งที่เก็บของ v6 ทั้งหมด (กันโควตา Upstash เกมเดิม · H2) */
+function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m), wsLib = null, authTimeoutMs } = {}) {
+  if (!M) throw loadErr || new Error('v6 modules not loaded');
+  const raw = store || M.fromEnv(env);
+  store = M.budgetStore(raw, { perMin: +env.V6_STORE_PER_MIN || 120, perDay: +env.V6_STORE_PER_DAY || 4000, now, log });
+  const accounts = M.createAccounts({ store, env, now });
+  const saves = M.createSaves({ store, now });
+  const proto = M.createProto({ accounts, saves, now, log, authTimeoutMs });
   const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const MAX_CONN = +env.V6_MAX_PLAYERS || 1000, MAX_PER_IP = +env.MAX_PER_IP || 4;
   const ipCount = new Map();
-  let wss = null, pingTimer = null;
+  let wss = null, pingTimer = null, xffLogged = 0;
+  /* ล้างรายการหมดอายุทุก 5 นาที (L1) */
+  const sweep = () => { try { accounts.sweep(); saves.sweep(); proto.sweep(); } catch (e) { log('[v6] sweep: ' + e.message); } };
+  const sweepTimer = setInterval(sweep, 5 * 60 * 1000);
+  sweepTimer.unref && sweepTimer.unref();
 
   function reject(socket, code, why) {
     try { socket.write(`HTTP/1.1 ${code} ${why}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`); } catch (e) {}
-    socket.destroy();
+    try { socket.destroy(); } catch (e) {}
   }
 
   function upgrade(req, socket, head) {
@@ -117,50 +156,74 @@ function createV6({ store, env = process.env, now = () => Date.now(), log = m =>
       }, 20000);
       pingTimer.unref && pingTimer.unref();
     }
-    const ip = clientIp(req);
+    if (env.V6_LOG_XFF === '1' && xffLogged < 5) { xffLogged++; log('[v6] x-forwarded-for=' + JSON.stringify(req.headers['x-forwarded-for'] || '') + ' socket=' + (req.socket && req.socket.remoteAddress)); }
+    const ip = M.ipKey(clientIp(req, env));
     if (!originOk(req.headers.origin || '', req.headers.host || '', allowed)) return reject(socket, 403, 'Forbidden');
     if (proto.conns.size >= MAX_CONN) return reject(socket, 503, 'Full');
     if ((ipCount.get(ip) || 0) >= MAX_PER_IP) return reject(socket, 429, 'Too Many');
+    ipCount.set(ip, (ipCount.get(ip) || 0) + 1); /* นับตั้งแต่ก่อน handshake เสร็จ (กันยิง upgrade พร้อมกันหลายอันทะลุเพดาน) */
+    let counted = true;
+    const uncount = () => { if (!counted) return; counted = false; const n = (ipCount.get(ip) || 1) - 1; if (n > 0) ipCount.set(ip, n); else ipCount.delete(ip); };
+    socket.once('close', uncount);
     wss.handleUpgrade(req, socket, head, ws => {
-      ipCount.set(ip, (ipCount.get(ip) || 0) + 1);
-      const conn = { ip, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, close: (c, w) => { try { ws.close(c, w); } catch (e) {} } };
+      const conn = { ip, send: o => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); }, close: (c, w) => { try { ws.close(c, w); } catch (e) { try { ws.terminate(); } catch (e2) {} } } };
       ws.on('pong', () => { ws._v6dead = false; });
-      ws.on('message', raw => proto.message(conn, raw));
+      ws.on('message', raw => { try { proto.message(conn, raw); } catch (e) { log('[v6] message: ' + e.message); conn.close(1011, 'error'); } });
       ws.on('error', () => {});
-      ws.on('close', () => {
-        proto.closed(conn);
-        const n = (ipCount.get(ip) || 1) - 1; if (n > 0) ipCount.set(ip, n); else ipCount.delete(ip);
-      });
+      ws.on('close', () => { proto.closed(conn); uncount(); });
       proto.open(conn);
     });
   }
 
+  /* ตัวรับ upgrade ของ v6 — error ใด ๆ ปิดแค่ซ็อกเก็ตนั้น ไม่ให้หลุดไปถึง server (กันโปรเซสล่ม) */
+  function safeUpgrade(req, socket, head) {
+    try { upgrade(req, socket, head); }
+    catch (e) { log('[v6] upgrade error: ' + (e && e.message)); try { socket.destroy(); } catch (e2) {} }
+  }
+
   /* ต่อเข้ากับ http.Server ที่มี WebSocketServer ของเกมเดิมอยู่แล้ว:
-     ดึงตัวรับ upgrade เดิมออก แล้วส่ง /v6ws มาที่ v6 · path อื่นส่งให้ตัวรับเดิมเหมือนเดิมทุกอย่าง */
+     ดึงตัวรับ upgrade เดิมออก แล้วส่ง /v6ws มาที่ v6 · path อื่นส่งให้ตัวรับเดิมเหมือนเดิมทุกอย่าง
+     (เตรียมตัวรับใหม่ให้เสร็จก่อนค่อยสลับ → สลับไม่สำเร็จ ตัวรับเดิมยังอยู่ครบ) */
   function attach(server) {
     const old = server.listeners('upgrade');
-    server.removeAllListeners('upgrade');
-    server.on('upgrade', (req, socket, head) => {
-      if ((req.url || '').split('?')[0] === WS_PATH) return upgrade(req, socket, head);
+    const route = (req, socket, head) => {
+      let isV6 = false;
+      try { isV6 = String(req.url || '').split('?')[0] === WS_PATH; } catch (e) {}
+      if (isV6) return safeUpgrade(req, socket, head);
       for (const f of old) f.call(server, req, socket, head);
-    });
+    };
+    server.removeAllListeners('upgrade');
+    try { server.on('upgrade', route); }
+    catch (e) { server.removeAllListeners('upgrade'); for (const f of old) server.on('upgrade', f); throw e; }
     return api;
   }
 
-  function stop() { if (pingTimer) clearInterval(pingTimer); if (wss) for (const ws of wss.clients) ws.terminate(); }
+  function stop() { clearInterval(sweepTimer); if (pingTimer) clearInterval(pingTimer); if (wss) for (const ws of wss.clients) ws.terminate(); }
 
-  const api = { http: serveHttp, attach, upgrade, stop, accounts, saves, proto, store };
+  const api = { http: serveHttp, attach, upgrade: safeUpgrade, stop, sweep, accounts, saves, proto, store, rawStore: raw, ipCount };
   return api;
 }
 
-/* ตัวหลักที่ server.js ใช้ — สร้างครั้งแรกที่เรียก (อ่าน env ตอนนั้น) */
+/* ตัวหลักที่ server.js ใช้ — สร้างครั้งแรกที่เรียก (อ่าน env ตอนนั้น) · ทุกทางเข้าห่อ try: v6 พัง = เกมเดิมทำงานต่อ */
 let main = null;
 const get = () => (main = main || createV6());
+const safeLog = m => { try { console.error(m); } catch (e) {} };
 module.exports = {
-  createV6, resolveStatic, clientIp, markIndex, WS_PATH,
-  http: (req, res) => serveHttp(req, res),
+  createV6, resolveStatic, clientIp, originOk, markIndex, WS_PATH, MAX_PAYLOAD,
+  loadError: () => loadErr,
+  http: (req, res) => {
+    try { return serveHttp(req, res); }
+    catch (e) {
+      safeLog('[v6] http error: ' + (e && e.message));
+      if (res.headersSent) { try { res.destroy(); } catch (e2) {} return true; }
+      return false; /* ให้เกมเดิมตอบต่อเหมือนไม่มี v6 */
+    }
+  },
   /* ปิดไว้ก่อนจนกว่าจะตั้ง env V6_ENABLE=1 (หัวหน้า 30 ต.ค. · ผลตรวจ 1B H1/H2: กันยิง /v6ws จนเกมเดิมล่ม/เผาโควตา Upstash)
      ปิด = ไม่แตะตัวรับ upgrade ของเกมเดิมเลย (เหมือนก่อนใส่ v6 ทุกอย่าง) · หน้า /v6/ ยังเปิดดูได้ แต่ต่อเซิร์ฟเวอร์ไม่ได้ */
   enabled: env => (env || process.env).V6_ENABLE === '1',
-  attach: server => (module.exports.enabled() ? get().attach(server) : null),
+  attach: server => {
+    try { return module.exports.enabled() && M ? get().attach(server) : null; }
+    catch (e) { safeLog('[v6] attach ไม่สำเร็จ — ปิด /v6ws (เกมเดิมทำงานต่อ): ' + (e && e.message)); return null; }
+  },
 };

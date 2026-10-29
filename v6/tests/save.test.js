@@ -6,6 +6,12 @@ import { collect, applyLoad, createSaver, MIN_GAP_MS } from '../src/core/save.js
 import * as net from '../src/core/net.js';
 import { srvNow } from '../src/core/time.js';
 import { checkForm, viewOf, errText } from '../src/systems/login.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { memoryStore } = require('../server/store.cjs');
+const { createAccounts } = require('../server/accounts.cjs');
+const { createSaves } = require('../server/saves.cjs');
+const { createProto } = require('../server/proto.cjs');
 
 const eq = (a, b, m) => { if (a !== b) throw new Error(`${m}: ได้ ${JSON.stringify(a)} ต้องเป็น ${JSON.stringify(b)}`); };
 const truthy = (v, m) => { if (!v) throw new Error(m); };
@@ -76,12 +82,12 @@ export default [
     truthy(!JSON.stringify(s).includes('999999'), 'ห้ามส่งเงิน');
     eq(st && st.ok, true, 'save:status ok');
   }],
-  ['saver: ถี่เกินเว้น 1.1 วิ · ตอบ old → ใช้ seq เซิร์ฟเวอร์+1 · ตอบ rate → ลองใหม่ · หลุด → status offline แล้วส่งเมื่อพร้อม', async () => {
+  ['saver: ถี่เกินเว้น 1.1 วิ · ตอบ old → หยุดเซฟแล้วโหลดใหม่ (ไม่ข้าม seq ส่งทับ · H3) · ตอบ rate → ลองใหม่ · หลุด → status offline แล้วส่งเมื่อพร้อม', async () => {
     busReset();
     const G = createState(), T = fakeTimer();
-    let mode = 'ok';
+    let mode = 'ok', loadSeq = 1;
     const io = fakeIo(m => {
-      if (m.t === 'load') return { t: 'load', doc: { seq: 1, systems: {}, server: { coin: 0 } } };
+      if (m.t === 'load') return { t: 'load', doc: { seq: loadSeq, systems: { alpha: { x: 30 } }, server: { coin: 0 } } };
       if (mode === 'old') { mode = 'ok'; return { t: 'save_no', why: 'old', seq: 40 }; }
       if (mode === 'rate') { mode = 'ok'; return { t: 'save_no', why: 'rate' }; }
       if (mode === 'down') throw new Error('offline');
@@ -93,10 +99,12 @@ export default [
     G.player.x = 2; eq(await sv.save(), 'wait', 'ถี่เกิน');
     await T.run(MIN_GAP_MS);
     eq(io.sent.filter(m => m.t === 'save').length, 2, 'ส่งเมื่อครบเวลา');
-    mode = 'old'; G.player.x = 3; await T.run(MIN_GAP_MS); await sv.save();
+    mode = 'old'; loadSeq = 40; G.player.x = 3; await T.run(MIN_GAP_MS); await sv.save(); await tick();
     await T.run(MIN_GAP_MS);
     const saves = io.sent.filter(m => m.t === 'save');
-    eq(saves[saves.length - 1].seq, 41, 'seq หลัง old');
+    eq(saves.filter(m => m.systems.alpha.x === 3).length, 1, 'ของเก่า (x=3) ไม่ถูกส่งซ้ำหลัง old');
+    eq(io.sent.filter(m => m.t === 'load').length, 2, 'โหลดใหม่จากเซิร์ฟเวอร์');
+    eq(G.player.x, 30, 'ใช้ของบนเซิร์ฟเวอร์'); eq(sv.state.seq, 40, 'seq ตามเซิร์ฟเวอร์'); eq(sv.state.loaded, true, 'เซฟต่อได้');
     mode = 'rate'; G.player.x = 4; await T.run(MIN_GAP_MS); await sv.save();
     await T.run(MIN_GAP_MS);
     eq(io.sent.filter(m => m.t === 'save').pop().systems.alpha.x, 4, 'ส่งซ้ำหลัง rate');
@@ -230,5 +238,66 @@ export default [
     eq(viewOf('authing', true), 'banner', 'ต่อใหม่ระหว่างเล่น');
     eq(viewOf('kicked', true), 'kicked', 'โดนเตะ');
     eq(viewOf('nosrv', false), 'banner', 'dev-server ไม่บังจอ');
+  }],
+
+  /* ---------- 1B-f H3: เครื่องเก่าต่อใหม่ต้องไม่เขียนทับเซฟที่ใหม่กว่า (ใช้ createSaver + proto/saves จริงของเซิร์ฟเวอร์) ---------- */
+  ['H3: เครื่อง A หลุด → B เล่น+เซฟ → A ต่อใหม่ (hello) แล้วเซฟ → เซิร์ฟเวอร์ยังเป็นของ B · A โหลดของ B มาแทน', quiet(async () => {
+    busReset();
+    const c = { t: 1.8e12 }, now = () => c.t, store = memoryStore();
+    const accounts = createAccounts({ store, env: { GM_IDS: 'tiksi' }, now });
+    const proto = createProto({ accounts, saves: createSaves({ store, now }), now });
+    let ipN = 0;
+    const conn = () => { const k = { ip: '10.9.0.' + (++ipN), out: [], send(o) { this.out.push(o); }, close() { this.closedFlag = true; } }; proto.open(k); return k; };
+    const say = async (k, o) => { await proto.message(k, JSON.stringify(o)); return k.out[k.out.length - 1]; };
+    /* io ของ saver ที่คุยกับ proto จริงผ่านการเชื่อมต่อปลอม (เปลี่ยนการเชื่อมต่อได้ = ต่อใหม่) */
+    const mkIo = k => { const io = { k, n: 0 }; io.ready = () => !!io.k && !io.k.closedFlag;
+      io.request = async m => { const r = 'q' + (++io.n); await proto.message(io.k, JSON.stringify({ ...m, r })); return io.k.out.filter(x => x.r === r).pop(); };
+      io.send = m => { proto.message(io.k, JSON.stringify(m)); return true; }; return io; };
+    const sys = [{ id: 'bag', save: G => ({ who: G.player.name }), load: (G, d) => { G.player.name = d ? d.who : 'new'; } }];
+    /* A สมัคร โหลด เซฟ A1 */
+    const kA = conn(); const reg = await say(kA, { t: 'register', id: 'h3dev', pw: 'abc123' });
+    const GA = createState(), ioA = mkIo(kA), TA = fakeTimer(), A = createSaver(GA, sys, ioA, TA);
+    await A.load(); GA.player.name = 'A1'; eq(await A.save(), 'sent', 'A1'); 
+    /* A หลุด · B ล็อกอิน (เครื่องใหม่) โหลด เซฟ B2 */
+    proto.closed(kA); kA.closedFlag = true; c.t += 2000;
+    const kB = conn(); eq((await say(kB, { t: 'login', id: 'h3dev', pw: 'abc123' })).t, 'auth_ok', 'B login');
+    const GB = createState(), B = createSaver(GB, sys, mkIo(kB), fakeTimer());
+    await B.load(); eq(GB.player.name, 'A1', 'B เห็น A1');
+    GB.player.name = 'B2'; c.t += 2000; eq(await B.save(), 'sent', 'B2');
+    /* A ต่อใหม่ด้วยโทเคนเดิม (hello เตะ B) แล้วเซฟของเก่า */
+    c.t += 2000; const kA2 = conn(); eq((await say(kA2, { t: 'hello', id: 'h3dev', token: reg.token })).t, 'auth_ok', 'A hello');
+    ioA.k = kA2; GA.player.name = 'A2-stale'; TA.ms += 5000;
+    for (let i = 0; i < 4; i++) { c.t += 2000; TA.ms += 2000; await A.save(); await TA.run(2000); }
+    const k3 = conn(); await say(k3, { t: 'login', id: 'h3dev', pw: 'abc123' });
+    const doc = (await say(k3, { t: 'load', sid: 'f'.repeat(32) })).doc;
+    eq(doc.systems.bag.who, 'B2', 'เซฟบนเซิร์ฟเวอร์ต้องยังเป็นของ B (ห้ามโดนทับด้วยของเก่า)');
+    eq(GA.player.name, 'B2', 'เครื่อง A โหลดของใหม่จากเซิร์ฟเวอร์มาแทน');
+  })],
+  ['H3: เซิร์ฟเวอร์ปฏิเสธเซฟจากเซสชันที่ไม่ใช่ผู้เขียนล่าสุด (sid ไม่ตรง → replaced) แม้ seq สูงกว่า', async () => {
+    const c = { t: 1.8e12 }, now = () => c.t, store = memoryStore();
+    const saves = createSaves({ store, now });
+    const sA = 'a'.repeat(32), sB = 'b'.repeat(32);
+    await saves.load('w1', sA);
+    eq((await saves.save('w1', { seq: 1, sid: sA, systems: { x: { v: 1 } } })).ok, true, 'A เขียน');
+    await saves.load('w1', sB); c.t += 2000;
+    eq((await saves.save('w1', { seq: 99, sid: sA, systems: { x: { v: 'stale' } } })).err, 'replaced', 'A ถูกแทนที่แล้ว');
+    c.t += 2000;
+    eq((await saves.save('w1', { seq: 2, sid: sB, systems: { x: { v: 2 } } })).ok, true, 'B เขียนได้');
+    eq((await saves.load('w1', sB)).systems.x.v, 2, 'ของ B');
+  }],
+  ['saver: ตัวจับเวลาเริ่มต้นเรียก setTimeout แบบไม่ผูก this (เบราว์เซอร์ฟ้อง Illegal invocation · ต้นเหตุ login.spec พังสุ่ม)', async () => {
+    busReset();
+    const real = globalThis.setTimeout;
+    let illegal = 0;
+    globalThis.setTimeout = function (fn, ms, ...a) { if (this !== undefined && this !== globalThis) { illegal++; throw new TypeError('Illegal invocation'); } return real(fn, ms, ...a); };
+    try {
+      const G = createState();
+      const io = fakeIo(m => m.t === 'load' ? { t: 'load', doc: { seq: 1, systems: {}, server: {} } } : { t: 'save_ok', seq: m.seq });
+      const sv = createSaver(G, [sysA], io); /* ตัวจับเวลาเริ่มต้น */
+      await sv.load();
+      G.player.x = 1; await sv.save();
+      G.player.x = 2; eq(await sv.save(), 'wait', 'ถี่เกิน → รอ (เรียก later → setTimeout)');
+      eq(illegal, 0, 'ต้องไม่เรียก setTimeout ผ่าน this ของอ็อบเจกต์อื่น');
+    } finally { globalThis.setTimeout = real; }
   }],
 ];

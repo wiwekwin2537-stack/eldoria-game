@@ -19,7 +19,9 @@ function memoryStore() {
 }
 
 function fileStore(dir) {
-  fs.mkdirSync(dir, { recursive: true });
+  /* สร้างโฟลเดอร์ตอนเขียนครั้งแรก (ไม่ใช่ตอนบูต) — สร้างไม่ได้ = เซฟ v6 พัง แต่เซิร์ฟเวอร์เกมเดิมยังบูตขึ้น (ผลตรวจ L4) */
+  let made = false;
+  const ensure = async () => { if (!made) { await fs.promises.mkdir(dir, { recursive: true }); made = true; } };
   /* ชื่อไฟล์ = sha256 ของคีย์ (คีย์มีอักษรไทยได้) */
   const fp = k => path.join(dir, crypto.createHash('sha256').update(k).digest('hex').slice(0, 40) + '.json');
   return {
@@ -27,11 +29,13 @@ function fileStore(dir) {
     async get(k) { try { return await fs.promises.readFile(fp(k), 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } },
     async set(k, v) {
       /* เขียนไฟล์ชั่วคราวแล้วเปลี่ยนชื่อ — ไฟดับกลางทางไม่ทำให้เซฟครึ่งไฟล์ */
+      await ensure();
       const f = fp(k), tmp = f + '.' + process.pid + '.' + crypto.randomBytes(4).toString('hex') + '.tmp';
       await fs.promises.writeFile(tmp, String(v));
       await fs.promises.rename(tmp, f);
     },
     async create(k, v) {
+      await ensure();
       try { await fs.promises.writeFile(fp(k), String(v), { flag: 'wx' }); return true; }
       catch (e) { if (e.code === 'EEXIST') return false; throw e; }
     },

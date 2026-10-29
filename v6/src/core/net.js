@@ -112,15 +112,17 @@ export async function logout() {
 async function onWelcome(m) {
   setServerTime(m.s);
   setOnline(true);
-  retryN = 0;
   syncTime();
   if (G.net.phase === 'kicked') return;
   const a = readAcct();
-  if (!a) { setPhase('login'); return; }
+  if (!a) { retryN = 0; setPhase('login'); return; }
   setPhase('authing');
   let r;
   try { r = await request({ t: 'hello', id: a.id, token: a.token }); } catch (e) { return; } /* หลุดอีก → ต่อใหม่แล้วลองใหม่ */
-  if (r.t === 'auth_ok') return authOk(r);
+  if (r.t === 'auth_ok') { retryN = 0; return authOk(r); }
+  /* เซิร์ฟเวอร์ไม่ว่าง/ถี่เกิน (rate · busy · server) ≠ โทเคนเสีย → ไม่ลืมโทเคน · ตัดแล้วต่อใหม่ช้าลงเรื่อย ๆ (1→15 วิ) */
+  if (r.why !== 'auth') { setPhase('offline'); try { ws && ws.close(); } catch (e) {} return; }
+  retryN = 0;
   clearAcct();
   if (everAuthed) kick('auth'); /* เล่นอยู่แล้วโทเคนใช้ไม่ได้ (ออกจากระบบที่อื่น/เปลี่ยนรหัส) */
   else setPhase('login');       /* เปิดเกมใหม่ โทเคนหมดอายุ → ล็อกอินใหม่ */

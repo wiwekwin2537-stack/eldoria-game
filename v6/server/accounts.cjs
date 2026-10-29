@@ -12,6 +12,8 @@ const PW_MIN = 6, PW_MAX = 64, NAME_MAX = 14;
 const TOKEN_DAYS = 90, TOKEN_KEEP = 8;
 const FAIL_FREE = 8, LOCK_BASE_S = 20, LOCK_MAX_S = 900;
 const IP_TRIES_PER_MIN = 20; /* สมัคร+ล็อกอินรวมกัน ต่อ IP ต่อนาที */
+const FAIL_FORGET_MS = 15 * 60 * 1000; /* ผิดครั้งล่าสุดนานกว่านี้ + ไม่ล็อกอยู่ → ลืม (L1) */
+const MAP_CAP = 50000;                 /* เพดานจำนวนรายการต่อตาราง (กันหน่วยความจำโตจากไอดี/IP มั่ว) */
 const SCRYPT = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 const sha = s => crypto.createHash('sha256').update(String(s)).digest('hex');
@@ -37,9 +39,21 @@ function createAccounts({ store, env = process.env, now = () => Date.now() }) {
     return run;
   }
 
+  /* ลบรายการหมดอายุ (index.cjs เรียกเป็นระยะ · ผลตรวจ L1) */
+  function sweep() {
+    const t = now();
+    for (const [k, e] of ipTries) if (t - e.t > 60000) ipTries.delete(k);
+    for (const [k, f] of fails) if (f.until <= t && t - (f.t || 0) > FAIL_FORGET_MS) fails.delete(k);
+  }
+  /* ใส่รายการใหม่โดยไม่ให้ตารางเกินเพดาน (ล้างของหมดอายุก่อน · ยังเต็ม → ลบตัวเก่าสุด) */
+  function capPut(map, k, v) {
+    if (!map.has(k) && map.size >= MAP_CAP) { sweep(); while (map.size >= MAP_CAP) map.delete(map.keys().next().value); }
+    map.set(k, v);
+  }
+
   function ipLimited(ip) {
     const t = now(), e = ipTries.get(ip);
-    if (!e || t - e.t > 60000) { ipTries.set(ip, { n: 1, t }); return false; }
+    if (!e || t - e.t > 60000) { capPut(ipTries, ip, { n: 1, t }); return false; }
     return ++e.n > IP_TRIES_PER_MIN;
   }
 
@@ -48,10 +62,10 @@ function createAccounts({ store, env = process.env, now = () => Date.now() }) {
     return f && f.until > now() ? Math.ceil((f.until - now()) / 1000) : 0;
   }
   function addFail(lid) {
-    const f = fails.get(lid) || { n: 0, until: 0 };
-    f.n++;
+    const f = fails.get(lid) || { n: 0, until: 0, t: 0 };
+    f.n++; f.t = now();
     if (f.n >= FAIL_FREE) f.until = now() + Math.min(LOCK_MAX_S, LOCK_BASE_S * 2 ** (f.n - FAIL_FREE)) * 1000;
-    fails.set(lid, f);
+    capPut(fails, lid, f);
   }
 
   async function readRec(lid) {
@@ -129,7 +143,7 @@ function createAccounts({ store, env = process.env, now = () => Date.now() }) {
     });
   }
 
-  return { register, login, verify, logout, isGM, _fails: fails };
+  return { register, login, verify, logout, isGM, sweep, _fails: fails, _ipTries: ipTries };
 }
 
-module.exports = { createAccounts, ID_RE, PW_MIN, PW_MAX, NAME_MAX, cleanName, keyOf };
+module.exports = { MAP_CAP, FAIL_FORGET_MS, createAccounts, ID_RE, PW_MIN, PW_MAX, NAME_MAX, cleanName, keyOf };

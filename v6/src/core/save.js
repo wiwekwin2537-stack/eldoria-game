@@ -2,7 +2,10 @@
    เซฟ = { seq, systems:{ <id ระบบ>: ผลจาก save(G) } } · โหลด = เรียก load(G, data) ของทุกระบบตามลำดับใน systems/index.js
    - เงิน G.player.coin มาจาก doc.server.coin (เซิร์ฟเวอร์ถือ · เครื่องเราไม่ส่งเงินขึ้นไป · DECISIONS 2026-10-30)
    - เซฟเมื่อ: ทุก 30 วิ (ข้ามถ้าไม่มีอะไรเปลี่ยน) · อีเวนต์ save:request (รอ 0.3 วิ รวมหลายคำขอ) · ซ่อนแท็บ/ปิดหน้า
-   - เซิร์ฟเวอร์รับไม่ถี่กว่า 1 ครั้ง/วิ → เว้นห่าง ≥1.1 วิ · seq เพิ่มทุกครั้งที่ส่ง · ตอบ old → ต่อจาก seq ของเซิร์ฟเวอร์
+   - เซิร์ฟเวอร์รับไม่ถี่กว่า 1 ครั้ง/วิ → เว้นห่าง ≥1.1 วิ · seq เพิ่มทุกครั้งที่ส่ง
+   - เครื่องเก่าห้ามทับเซฟใหม่กว่า (ผลตรวจ 1B H3): ทุกการโหลดสุ่ม sid ใหม่ → เซิร์ฟเวอร์จำว่าเครื่องนี้เป็นผู้เขียนล่าสุด
+     ตอบ replaced (เครื่องอื่นโหลดไปเล่นต่อแล้ว) หรือ old (เซิร์ฟเวอร์มีเซฟใหม่กว่า) → หยุดเซฟ ทิ้งของในเครื่อง แล้วโหลดใหม่จากเซิร์ฟเวอร์
+     (ห้ามข้าม seq แล้วส่งทับ — ของที่เล่นบนเครื่องอื่นจะหาย)
    - ยังโหลดไม่เสร็จ = ห้ามเซฟ (กันเซฟตัวละครว่างทับของจริง)
    อีเวนต์: save:loaded { isNew } · save:status { ok, error? } (CONTRACT §4) */
 import { on, emit } from './bus.js';
@@ -12,6 +15,16 @@ export const AUTOSAVE_MS = 30000;
 export const MIN_GAP_MS = 1100;
 export const REQUEST_DEBOUNCE_MS = 300;
 export const RETRY_MS = 5000;
+
+/* sid ของการโหลดแต่ละครั้ง (32 ตัวฐาน 16) */
+export function newSid() {
+  const b = new Uint8Array(16);
+  try { globalThis.crypto.getRandomValues(b); } catch (e) { for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256); }
+  return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+}
+/* ตัวจับเวลาเริ่มต้น — ต้องห่อเป็นฟังก์ชัน: เรียก setTimeout ผ่าน this ของอ็อบเจกต์อื่น เบราว์เซอร์ฟ้อง "Illegal invocation"
+   (ต้นเหตุ login.spec พังสุ่ม: เกิดเฉพาะตอนเซฟถี่จนต้องรอ later()) */
+const DEFAULT_TIMER = { now: () => Date.now(), set: (fn, ms) => setTimeout(fn, ms), clear: id => clearTimeout(id) };
 
 /* ---------- ฟังก์ชันล้วน (เทสได้ใน node) ---------- */
 
@@ -42,8 +55,8 @@ export function applyLoad(G, systems, doc) {
 
 /* ตัวเซฟ (แยกจากเน็ต ให้เทสได้): io = { request(msg)→Promise, send(msg)→bool, ready()→bool }
    timer = { now, set(fn, ms)→id, clear(id) } */
-export function createSaver(G, systems, io, timer = { now: () => Date.now(), set: setTimeout, clear: clearTimeout }) {
-  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null };
+export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
+  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null, sid: '', resyncing: false, resyncs: 0 };
 
   function status(ok, error) { emit('save:status', ok ? { ok: true } : { ok: false, error }); }
   function later(ms) {
@@ -53,8 +66,10 @@ export function createSaver(G, systems, io, timer = { now: () => Date.now(), set
 
   async function load() {
     S.loaded = false;
-    const m = await io.request({ t: 'load' });
+    const sid = newSid();
+    const m = await io.request({ t: 'load', sid });
     if (!m || m.t !== 'load' || !m.doc) throw new Error((m && m.why) || 'load');
+    S.sid = sid;
     const isNew = applyLoad(G, systems, m.doc);
     S.seq = +m.doc.seq || 0;
     S.last = JSON.stringify(collect(G, systems)); /* เพิ่งโหลด = ยังไม่มีอะไรต้องเซฟ */
@@ -76,10 +91,10 @@ export function createSaver(G, systems, io, timer = { now: () => Date.now(), set
     const seq = ++S.seq;
     S.lastSent = timer.now();
     try {
-      const m = await io.request({ t: 'save', seq, systems: systemsData });
+      const m = await io.request({ t: 'save', seq, sid: S.sid, systems: systemsData });
       if (m.t === 'save_ok') { S.seq = Math.max(S.seq, +m.seq || seq); S.last = str; status(true); }
-      else if (m.why === 'old') { S.seq = Math.max(S.seq, +m.seq || 0); S.again = true; }
-      else if (m.why === 'rate') { S.again = true; }
+      else if (m.why === 'replaced' || m.why === 'old') { S.inflight = false; S.again = false; resync(m.why); return 'sent'; }
+      else if (m.why === 'rate' || m.why === 'busy') { S.again = true; }
       else { status(false, m.why || 'server'); later(RETRY_MS); }
     } catch (e) {
       status(false, 'offline'); S.again = true;
@@ -90,17 +105,31 @@ export function createSaver(G, systems, io, timer = { now: () => Date.now(), set
     return 'sent';
   }
 
+  /* เซิร์ฟเวอร์มีเซฟที่ใหม่กว่าของเครื่องนี้ → หยุดเซฟ แล้วโหลดของเซิร์ฟเวอร์มาแทน (ไม่ส่งของเก่าทับ · H3) */
+  function resync(why) {
+    S.loaded = false;
+    if (S.wait) { timer.clear(S.wait); S.wait = null; }
+    if (S.resyncing) return;
+    S.resyncing = true; S.resyncs++;
+    status(false, why);
+    const go = () => {
+      if (!io.ready()) { timer.set(go, RETRY_MS); return; }
+      load().then(() => { S.resyncing = false; }, () => timer.set(go, RETRY_MS));
+    };
+    go();
+  }
+
   /* ปิดหน้า/ซ่อนแท็บ: ส่งทันทีไม่รอคำตอบ (ไม่ดูระยะห่าง — ถ้าเซิร์ฟเวอร์ตอบ rate ก็ยังมีเซฟล่าสุดก่อนหน้า 1 วิ) */
   function flushNow() {
     if (!S.loaded || !io.ready()) return false;
     const systemsData = collect(G, systems), str = JSON.stringify(systemsData);
     if (str === S.last) return false;
-    const ok = io.send({ t: 'save', seq: ++S.seq, systems: systemsData });
+    const ok = io.send({ t: 'save', seq: ++S.seq, sid: S.sid, systems: systemsData });
     if (ok) S.lastSent = timer.now();
     return ok;
   }
 
-  return { load, save, flushNow, state: S };
+  return { load, save, flushNow, resync, state: S };
 }
 
 /* ---------- ต่อเข้ากับเกม (เรียกครั้งเดียวจาก systems/login.js หลัง net.connect) ---------- */

@@ -22,6 +22,7 @@ function mkAcc(env = {}) {
   return { c, store, acc: createAccounts({ store, env: { GM_IDS: 'tiksi,wiwekwin2537', ...env }, now: c.now }) };
 }
 let ipN = 0; const ip = () => '10.0.0.' + (++ipN);
+const SID = '5'.repeat(32); /* sid ของเครื่องทดสอบ (1B-f H3) */
 
 /* การเชื่อมต่อปลอมสำหรับ proto */
 function fakeConn(ipAddr = ip()) {
@@ -135,7 +136,7 @@ export default [
     const c = clock(), saves = createSaves({ store: memoryStore(), now: c.now });
     const d0 = await saves.load('p1');
     eq(d0.seq, 0, 'seq'); eq(d0.server.coin, 0, 'coin'); eq(JSON.stringify(d0.systems), '{}', 'systems');
-    const r = await saves.save('p1', { seq: 1, systems: { movement: { x: 5, y: 6 } } });
+    const r = await saves.save('p1', { sid: SID, seq: 1, systems: { movement: { x: 5, y: 6 } } });
     eq(r.ok, true, 'ok');
     const d1 = await saves.load('p1');
     eq(d1.systems.movement.x, 5, 'x'); eq(d1.seq, 1, 'seq'); eq(d1.v, SAVE_VERSION, 'v');
@@ -145,32 +146,33 @@ export default [
   }],
   ['เซฟ: ถี่กว่า 1 วิ → rate · seq ไม่เพิ่ม → old (ตอบ seq ล่าสุด) · seq <1/ผิดรูป → bad', async () => {
     const c = clock(), saves = createSaves({ store: memoryStore(), now: c.now });
-    eq((await saves.save('p', { seq: 1, systems: {} })).ok, true, '1');
+    eq((await saves.save('p', { sid: SID, seq: 1, systems: {} })).ok, true, '1');
     c.add(500);
-    eq((await saves.save('p', { seq: 2, systems: {} })).err, 'rate', 'ถี่');
+    eq((await saves.save('p', { sid: SID, seq: 2, systems: {} })).err, 'rate', 'ถี่');
     c.add(600);
-    const o = await saves.save('p', { seq: 1, systems: { a: 1 } });
+    const o = await saves.save('p', { sid: SID, seq: 1, systems: { a: 1 } });
     eq(o.err, 'old', 'seq เท่าเดิม'); eq(o.seq, 1, 'ตอบ seq ล่าสุด');
-    eq((await saves.save('p', { seq: 0, systems: {} })).err, 'bad', 'seq 0');
-    eq((await saves.save('p', { seq: 'x', systems: {} })).err, 'bad', 'seq ไม่ใช่เลข');
-    eq((await saves.save('p', { seq: 5, systems: [] })).err, 'bad', 'systems เป็นอาร์เรย์');
-    eq((await saves.save('p', { seq: 5, systems: { 'Bad Id': 1 } })).err, 'bad', 'ชื่อระบบผิด');
+    eq((await saves.save('p', { sid: SID, seq: 0, systems: {} })).err, 'bad', 'seq 0');
+    eq((await saves.save('p', { sid: SID, seq: 'x', systems: {} })).err, 'bad', 'seq ไม่ใช่เลข');
+    eq((await saves.save('p', { sid: SID, seq: 5, systems: [] })).err, 'bad', 'systems เป็นอาร์เรย์');
+    eq((await saves.save('p', { sid: SID, seq: 5, systems: { 'Bad Id': 1 } })).err, 'bad', 'ชื่อระบบผิด');
     const many = {}; for (let i = 0; i < 65; i++) many['s' + i] = 1;
-    eq((await saves.save('p', { seq: 5, systems: many })).err, 'bad', '>64 ระบบ');
-    eq((await saves.save('p', { seq: 7, systems: { a: 2 } })).ok, true, 'ข้ามเลขได้ (7)');
+    eq((await saves.save('p', { sid: SID, seq: 5, systems: many })).err, 'bad', '>64 ระบบ');
+    c.add(1100);
+    eq((await saves.save('p', { sid: SID, seq: 7, systems: { a: 2 } })).ok, true, 'ข้ามเลขได้ (7)');
     eq((await saves.load('p')).seq, 7, 'seq 7');
   }],
   ['เซฟ: ใหญ่เกิน 256 KB → size · พอดีขนาดผ่าน', async () => {
     const c = clock(), saves = createSaves({ store: memoryStore(), now: c.now });
-    eq((await saves.save('p', { seq: 1, systems: { big: 'x'.repeat(MAX_SAVE_CHARS) } })).err, 'size', 'ใหญ่');
-    eq((await saves.save('p', { seq: 1, systems: { big: 'x'.repeat(MAX_SAVE_CHARS - 20) } })).ok, true, 'พอดี');
+    eq((await saves.save('p', { sid: SID, seq: 1, systems: { big: 'x'.repeat(MAX_SAVE_CHARS) } })).err, 'size', 'ใหญ่');
+    eq((await saves.save('p', { sid: SID, seq: 1, systems: { big: 'x'.repeat(MAX_SAVE_CHARS - 20) } })).ok, true, 'พอดี');
   }],
   ['เงิน: เครื่องผู้เล่นเขียน server.coin ไม่ได้ · เซิร์ฟเวอร์เปลี่ยนได้ · เพดาน 99,999,999', async () => {
     const c = clock(), saves = createSaves({ store: memoryStore(), now: c.now });
     eq((await saves.updateServer('rich', s => ({ ...s, coin: 500 }))).coin, 500, 'ให้เงิน');
-    await saves.save('rich', { seq: 1, systems: { stats: { coin: 9e9 } }, server: { coin: 9e9 } });
+    await saves.save('rich', { sid: SID, seq: 1, systems: { stats: { coin: 9e9 } }, server: { coin: 9e9 } });
     c.add(1100);
-    await saves.save('rich', { seq: 2, systems: { server: { coin: 9e9 } } });
+    await saves.save('rich', { sid: SID, seq: 2, systems: { server: { coin: 9e9 } } });
     const d = await saves.load('rich');
     eq(d.server.coin, 500, 'เงินยังเท่าเดิม');
     eq((await saves.updateServer('rich', s => ({ ...s, coin: 1e12 }))).coin, COIN_MAX, 'เพดาน');
@@ -183,8 +185,8 @@ export default [
     const { proto, send, c } = mkProto();
     const k = fakeConn(); proto.open(k);
     eq(k.out[0].t, 'welcome', 'welcome'); eq(k.out[0].s, c.t, 'เวลา');
-    eq((await send(k, { t: 'load', r: 1 })).why, 'auth', 'load');
-    eq((await send(k, { t: 'save', r: 2, seq: 1, systems: {} })).why, 'auth', 'save');
+    eq((await send(k, { t: 'load', r: 1, sid: SID })).why, 'auth', 'load');
+    eq((await send(k, { t: 'save', sid: SID, r: 2, seq: 1, systems: {} })).why, 'auth', 'save');
     const t = await send(k, { t: 'time', r: 3, c: 123 });
     eq(t.t, 'time', 't'); eq(t.c, 123, 'c'); eq(t.s, c.t, 's'); eq(t.r, 3, 'r');
   }],
@@ -193,15 +195,15 @@ export default [
     const a = fakeConn(); proto.open(a);
     const reg = await send(a, { t: 'register', r: 1, id: 'proto1', pw: 'abc123', name: 'พี' });
     eq(reg.t, 'auth_ok', 'auth_ok'); eq(reg.created, true, 'created'); truthy(reg.token, 'token');
-    const l0 = await send(a, { t: 'load', r: 2 });
+    const l0 = await send(a, { t: 'load', r: 2, sid: SID });
     eq(l0.doc.seq, 0, 'ตัวใหม่');
-    const s = await send(a, { t: 'save', r: 3, seq: 1, systems: { movement: { x: 1 } } });
+    const s = await send(a, { t: 'save', sid: SID, r: 3, seq: 1, systems: { movement: { x: 1 } } });
     eq(s.t, 'save_ok', 'save_ok'); eq(s.seq, 1, 'seq');
     c.add(1500);
     const b = fakeConn(); proto.open(b);
     const h = await send(b, { t: 'hello', r: 1, id: 'proto1', token: reg.token });
     eq(h.t, 'auth_ok', 'hello'); eq(h.token, undefined, 'hello ไม่ออกโทเคนใหม่');
-    eq((await send(b, { t: 'load', r: 2 })).doc.systems.movement.x, 1, 'ของเดิม');
+    eq((await send(b, { t: 'load', r: 2, sid: SID })).doc.systems.movement.x, 1, 'ของเดิม');
     eq((await send(b, { t: 'hello', r: 3, id: 'proto1', token: 'a'.repeat(48) })).why, 'auth', 'โทเคนผิด');
   }],
   ['proto: ไอดีเดียวเข้าซ้อน → ตัวเก่าได้ dupe ถูกตัด และเซฟไม่ได้อีก', async () => {
@@ -211,7 +213,7 @@ export default [
     const b = fakeConn(); proto.open(b);
     await send(b, { t: 'hello', id: 'dupe1', token: reg.token });
     truthy(a.out.some(m => m.t === 'dupe'), 'ตัวเก่าได้ dupe');
-    eq((await send(a, { t: 'save', seq: 1, systems: {} })).why, 'auth', 'ตัวเก่าเซฟไม่ได้');
+    eq((await send(a, { t: 'save', sid: SID, seq: 1, systems: {} })).why, 'auth', 'ตัวเก่าเซฟไม่ได้');
     await new Promise(r => setTimeout(r, 350));
     eq(a.closed && a.closed.code, 4001, 'ตัวเก่าถูกปิด');
     eq(proto.sessions.get('dupe1'), b, 'เซสชันเป็นตัวใหม่');
@@ -221,10 +223,10 @@ export default [
     const a = fakeConn(); proto.open(a);
     const reg = await send(a, { t: 'register', id: 'cheat1', pw: 'abc123' });
     await saves.updateServer('cheat1', s => ({ ...s, coin: 77 }));
-    eq((await send(a, { t: 'save', seq: 1, systems: { x: 1 }, server: { coin: 99999999 } })).t, 'save_ok', 'เซฟผ่าน');
-    eq((await send(a, { t: 'load' })).doc.server.coin, 77, 'เงินเท่าเดิม');
+    eq((await send(a, { t: 'save', sid: SID, seq: 1, systems: { x: 1 }, server: { coin: 99999999 } })).t, 'save_ok', 'เซฟผ่าน');
+    eq((await send(a, { t: 'load', sid: SID })).doc.server.coin, 77, 'เงินเท่าเดิม');
     eq((await send(a, { t: 'logout', r: 9 })).t, 'bye', 'bye');
-    eq((await send(a, { t: 'load' })).why, 'auth', 'ออกแล้ว load ไม่ได้');
+    eq((await send(a, { t: 'load', sid: SID })).why, 'auth', 'ออกแล้ว load ไม่ได้');
     const b = fakeConn(); proto.open(b);
     eq((await send(b, { t: 'hello', id: 'cheat1', token: reg.token })).why, 'auth', 'โทเคนเดิมใช้ไม่ได้');
   }],
@@ -240,9 +242,9 @@ export default [
     for (let i = 0; i < 6; i++) await proto.message(a, '{');
     eq(a.closed && a.closed.why, 'bad', 'ตัดหลัง 10');
     const b = fakeConn(); proto.open(b);
-    for (let i = 0; i < MSG_PER_SEC; i++) proto.message(b, JSON.stringify({ t: 'time' }));
+    for (let i = 0; i < MSG_PER_SEC; i++) await proto.message(b, JSON.stringify({ t: 'time' }));
     eq(b.closed, null, 'ยังไม่ตัดที่ 30');
-    proto.message(b, JSON.stringify({ t: 'time' }));
+    await proto.message(b, JSON.stringify({ t: 'time' }));
     eq(b.closed && b.closed.why, 'rate', 'ตัดที่ 31');
   }],
 
@@ -262,9 +264,26 @@ export default [
     eq(R('/assets/x.txt'), null, 'นามสกุลอื่น');
     eq(R('/assets/nope.png').missing, null, 'ไม่มีไฟล์ → เกมเดิมตอบ');
   }],
-  ['IP ผู้เล่น = ตัวท้ายของ x-forwarded-for (ปลอมตัวหน้าไม่ได้)', () => {
-    eq(V6.clientIp({ headers: { 'x-forwarded-for': '1.1.1.1, 9.9.9.9' }, socket: {} }), '9.9.9.9', 'ตัวท้าย');
-    eq(V6.clientIp({ headers: {}, socket: { remoteAddress: '5.5.5.5' } }), '5.5.5.5', 'ไม่มี header');
+  ['IP ผู้เล่น (M1): ค่าเริ่ม auto ข้ามพร็อกซีภายใน/Cloudflare จากขวา · ตัวซ้ายปลอมไม่ได้ · ต่อตรงไม่เชื่อ header · V6_PROXY_HOPS ตั้งชั้นได้', () => {
+    const R = (xff, sock, env = {}) => V6.clientIp({ headers: xff == null ? {} : { 'x-forwarded-for': xff }, socket: { remoteAddress: sock } }, env);
+    /* Render แบบ "ต่อท้าย IP พร็อกซีของตัวเอง": ผู้เล่น 9.9.9.9 · ตัวท้ายเป็นพร็อกซีภายใน → ได้ผู้เล่น */
+    eq(R('9.9.9.9, 10.1.2.3', '10.0.0.5'), '9.9.9.9', 'ข้ามพร็อกซีภายในตัวท้าย');
+    /* ผ่าน Cloudflare + พร็อกซีภายใน */
+    eq(R('9.9.9.9, 162.158.1.2, 10.1.2.3', '10.0.0.5'), '9.9.9.9', 'ข้าม Cloudflare');
+    /* ผู้เล่นใส่ header ปลอมมาเอง → ตัวซ้ายถูกข้าม */
+    eq(R('6.6.6.6, 9.9.9.9', '10.0.0.5'), '9.9.9.9', 'ปลอมตัวซ้ายไม่ได้');
+    eq(R('6.6.6.6, 9.9.9.9, 10.0.0.7', '::ffff:10.0.0.5'), '9.9.9.9', 'socket แบบ ::ffff:');
+    /* Render แบบ "ตัวท้าย = ผู้เล่น" ก็ได้ผลถูก */
+    eq(R('1.1.1.1, 9.9.9.9', '10.0.0.5'), '9.9.9.9', 'ตัวท้ายเป็นผู้เล่น');
+    /* ต่อตรง (socket เป็น IP สาธารณะ) → ไม่เชื่อ header */
+    eq(R('1.2.3.4', '5.5.5.5'), '5.5.5.5', 'ต่อตรง ไม่เชื่อ header');
+    eq(R(null, '5.5.5.5'), '5.5.5.5', 'ไม่มี header');
+    eq(R('2001:db8::1, 10.0.0.9', '10.0.0.5'), '2001:db8:0:0:0:0:0:1', 'IPv6');
+    /* ตั้งจำนวนชั้นเอง */
+    eq(R('6.6.6.6, 9.9.9.9, 8.8.4.4', '10.0.0.5', { V6_PROXY_HOPS: '1' }), '8.8.4.4', 'HOPS=1 ตัวท้าย');
+    eq(R('6.6.6.6, 9.9.9.9, 8.8.4.4', '10.0.0.5', { V6_PROXY_HOPS: '2' }), '9.9.9.9', 'HOPS=2');
+    eq(R('9.9.9.9', '10.0.0.5', { V6_PROXY_HOPS: '3' }), '9.9.9.9', 'HOPS เกินความยาว → ตัวแรก');
+    eq(R('9.9.9.9', '10.0.0.5', { V6_PROXY_HOPS: '0' }), '10.0.0.5', 'HOPS=0 ไม่อ่าน header');
   }],
 
   /* ---------- ต่อ ws จริง: /v6ws ไป v6 · path อื่นไปตัวเดิม (จำลอง server.js) ---------- */
@@ -288,7 +307,7 @@ export default [
       eq(JSON.parse(await next(n)).t, 'welcome', 'v6 welcome');
       n.s.send(JSON.stringify({ t: 'register', id: 'wsreal1', pw: 'abc123' }));
       eq(JSON.parse(await next(n, 2)).t, 'auth_ok', 'สมัคร');
-      n.s.send(JSON.stringify({ t: 'save', seq: 1, systems: { a: { b: 1 } } }));
+      n.s.send(JSON.stringify({ t: 'save', sid: SID, seq: 1, systems: { a: { b: 1 } } }));
       eq(JSON.parse(await next(n, 3)).t, 'save_ok', 'เซฟ');
       eq(oldWss.clients.size, 1, 'ws เกมเดิมไม่ได้รับ /v6ws');
       const res = await new Promise(r => http.get(`http://127.0.0.1:${port}/v6/`, x => { let b = ''; x.on('data', d => b += d); x.on('end', () => r({ code: x.statusCode, b })); }));
@@ -297,7 +316,7 @@ export default [
       const root = await new Promise(r => http.get(`http://127.0.0.1:${port}/`, x => { let b = ''; x.on('data', d => b += d); x.on('end', () => r(b)); }));
       eq(root, 'old', 'รากยังเป็นเกมเดิม');
       o.s.close(); n.s.close();
-    } finally { v6.stop(); oldWss.close(); server.closeAllConnections?.(); await new Promise(r => server.close(r)); }
+    } finally { v6.stop(); for (const c of oldWss.clients) c.terminate(); oldWss.close(); server.closeAllConnections?.(); await new Promise(r => server.close(r)); }
   }],
   ['ปิด /v6ws ไว้จนกว่า V6_ENABLE=1 — ไม่แตะตัวรับ upgrade ของเกมเดิม', () => {
     eq(V6.enabled({}), false, 'ไม่ตั้ง env = ปิด');
