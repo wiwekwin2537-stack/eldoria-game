@@ -53,7 +53,7 @@ export const JOY = {
 export const ACT_BOX = { w: 220, h: 236, margin: 6 };
 export const ACT_BUTTONS = [
   { id: 'atk',   action: 'attack', size: 68, r: 6,   b: 6,   icon: '⚔️' },
-  { id: 'dashb', action: 'dash',   size: 44, r: 83,  b: 6,   icon: '💨' },
+  { id: 'dashb', action: 'dash',   size: 44, r: 83,  b: 4,   icon: '💨' }, /* วัดจริง (782,358) */
   { id: 'sk1',   action: 'skill1', size: 48, r: 80,  b: 61,  icon: '1' },
   { id: 'sk2',   action: 'skill2', size: 48, r: 54,  b: 112, icon: '2' },
   { id: 'sk3',   action: 'skill3', size: 48, r: 2,   b: 78,  icon: '3' },
