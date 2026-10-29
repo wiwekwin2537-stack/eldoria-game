@@ -34,13 +34,15 @@ export const ACTION_KEYS = {
 
 /* จอยบนจอ (มือถือแนวนอน) · spec01 §5 */
 export const JOY = {
-  mode: 'float',      /* float = เกิดตรงที่แตะ · fixed = อยู่มุมซ้ายล่าง */
+  mode: 'float',      /* float = เกิดตรงที่แตะ · fixed = อยู่มุมล่าง */
+  side: 'left',       /* ค่าเริ่ม joySide: left | right (010:8 · ตั้งได้ setJoySide) */
+  run: true,          /* ค่าเริ่ม joyRun: ดันเกิน runAt = วิ่ง (010:8 · ปิดได้ setJoyRun) */
   size: 140,          /* px เส้นผ่านศูนย์กลาง (ตั้งได้ 80–170) */
   sizeMin: 80, sizeMax: 170,
   opacity: .75,
   deadzone: .14,
   runAt: .92,         /* ดันเกินนี้ = วิ่ง */
-  zoneW: .42, zoneH: .66, /* พื้นที่จอย ซ้ายล่าง (สัดส่วนจอ) */
+  zoneW: .42, zoneH: .66, /* พื้นที่จอย มุมล่างฝั่ง side (สัดส่วนจอ) · บวกขอบ safe-area ของ iPhone */
   knob: .44,          /* ขนาดปุ่มกลาง เทียบ size */
   fixedMargin: 14,    /* แบบ fixed ห่างขอบ */
   fixedGrab: 1.7,     /* แบบ fixed แตะไกลจากกลางเกิน R×นี้ = ไม่จับ */
@@ -49,7 +51,7 @@ export const JOY = {
 };
 
 /* ปุ่มขวาล่าง (มือถือ) · ผังหน้าเดียว 6 สกิล (fix41 v5.14) · วัดที่ 915×412 (spec01 §5)
-   r/b = ห่างขอบขวา/ล่างของกล่อง · กล่อง 220×236 ห่างขอบจอ 6px */
+   r/b = ห่างขอบขวา/ล่างของกล่อง · กล่อง 220×236 ห่างขอบจอ 6px + env(safe-area-inset-right/bottom) */
 export const ACT_BOX = { w: 220, h: 236, margin: 6 };
 export const ACT_BUTTONS = [
   { id: 'atk',   action: 'attack', size: 68, r: 6,   b: 6,   icon: '⚔️' },

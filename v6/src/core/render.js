@@ -2,17 +2,10 @@
    ระบบนี้ต้องอยู่ก่อนระบบที่วาดอื่นๆ ใน systems/index.js เพราะ draw() ของมันตั้ง setTransform ให้ทุกชั้น:
    ground/world/top = พิกัดโลก (px) · ui = พิกัดจอ (หน่วย VW×VH ไม่ต้องคูณ RES) */
 import { viewSize, setView, ensureCam } from './camera.js';
+import { GQ, GQ_ORDER, GQ_AUTO } from '../data/view.js';
 
-/* คุณภาพภาพ (spec01 §3 · ใช้ GQ อย่างเดียว ไม่ใช้ SET.res — บัคเดิม) · ค่าทับ 031:3850 แล้ว
-   res = ความละเอียด canvas ต่อ 1 px โลก · fx = เพดานอนุภาค · dust · mm = มินิแมพวาดทุก n เฟรม (ระบบอื่นอ่าน) */
-export const GQ = {
-  low:   { res: .6,  fx: 30,  dust: .25, mm: 10 },
-  med:   { res: .85, fx: 110, dust: .6,  mm: 4 },
-  high:  { res: 1.5, fx: 240, dust: 1,   mm: 2 },
-  ultra: { res: 2.2, fx: 500, dust: 1,   mm: 1 },
-};
-export const GQ_ORDER = ['low', 'med', 'high', 'ultra'];
-export const GQ_AUTO = { every: 3, fpsLow: 42, rounds: 2 }; /* วัดทุก 3 วิ · FPS<42 สองรอบติด → ลด 1 ขั้น */
+/* ตาราง GQ / ลำดับ / ค่าลดอัตโนมัติ อยู่ data/view.js (CONTRACT §3) · ส่งต่อให้ไฟล์ที่ import จากที่นี่ */
+export { GQ, GQ_ORDER, GQ_AUTO };
 const BG = '#1b2433';
 
 /* เดาคุณภาพจากเครื่อง (gqGuess 031:2683) */
@@ -32,13 +25,34 @@ export function isCoarse() {
   try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; }
 }
 
-const R = { canvas: null, G: null, level: 'high', auto: true, fr: 0, t0: 0, lowN: 0, rot: null };
+/* ตัววัด FPS (ฟังก์ชันล้วน เทสได้ใน node) — นับจาก rAF ของตัวเอง ไม่ใช่ dt ของเกม (dt ถูกตัดเพดาน .05 + ลูปอาจจำกัด 30 FPS)
+   fpsTick(m, ห่างจากเฟรมก่อน ms, ข้าม?, เป้า FPS) → true = ควรลดคุณภาพ 1 ขั้น
+   ข้าม = หยุดเกม/แท็บซ่อน/หมุนจอ · เฟรมห่างเกิน gapMs ไม่นับ (031:2697 gqMon)
+   เกณฑ์ = min(fpsLow, min(เป้า, ความเร็วจอ) × capRatio) → เครื่องจำกัด 30 FPS ที่เดินนิ่ง 30 ไม่ถูกลด */
+export function createFpsMon() { return { iv: [], t: 0, lowN: 0, fps: 0, peak: 0, limit: 0 }; }
+export function fpsTick(m, dtMs, skip, target = 60, cfg = GQ_AUTO) {
+  if (skip || !(dtMs > 0) || dtMs > cfg.gapMs) return false;
+  m.iv.push(dtMs); m.t += dtMs;
+  if (m.t < cfg.every) return false;
+  const n = m.iv.length, sorted = m.iv.slice().sort((a, b) => a - b);
+  m.fps = n * 1000 / m.t;
+  m.peak = 1000 / sorted[Math.floor((n - 1) * cfg.fastPct)];
+  m.limit = Math.min(cfg.fpsLow, Math.min(target, m.peak) * cfg.capRatio);
+  m.iv.length = 0; m.t = 0;
+  if (m.fps < m.limit) m.lowN++; else m.lowN = 0;
+  if (m.lowN >= cfg.rounds) { m.lowN = 0; return true; }
+  return false;
+}
+
+const R = { canvas: null, G: null, level: 'high', auto: true, mon: createFpsMon(), fpsCap: 60, rot: null, rotOn: null };
 
 /* main.js เรียกครั้งเดียว: ผูก canvas + ปรับขนาดเมื่อหน้าต่างเปลี่ยน */
 export function attachCanvas(G, canvas) {
   R.canvas = canvas; R.G = G;
   ensureCam(G);
   R.level = guessQuality(isCoarse(), navigator.hardwareConcurrency || 4, navigator.deviceMemory || 4);
+  R.fpsCap = isCoarse() ? 30 : 60; /* เป้า FPS ค่าเริ่ม มือถือ 30 / คอม 60 (spec01 §1 · 031:3845) — ตั้งใหม่ด้วย setFpsCap */
+  startFpsMon();
   addEventListener('resize', () => fit());
   addEventListener('orientationchange', () => setTimeout(fit, 50));
   /* มือถือ: แตะครั้งแรกขอเต็มจอ (031:595) */
@@ -55,7 +69,9 @@ export function setQuality(level, auto = false) {
   R.level = level; R.auto = auto;
   fit();
 }
-export function quality() { return { level: R.level, ...GQ[R.level] }; }
+export function quality() { return { level: R.level, auto: R.auto, fps: R.mon.fps, ...GQ[R.level] }; }
+/* เป้า FPS (30/60) — หน้าตั้งค่า/loop เรียกเมื่อผู้เล่นเปลี่ยน · ใช้คิดเกณฑ์ลดคุณภาพ */
+export function setFpsCap(n) { if (n === 30 || n === 60) R.fpsCap = n; }
 
 export function fit() {
   const G = R.G, cv = R.canvas;
@@ -70,6 +86,23 @@ export function fit() {
   const portrait = h > w && isCoarse();
   setView(G, VW, VH, res, portrait);
   showRotate(portrait);
+}
+
+/* rAF แยกของตัวเอง (เหมือน gqMon เดิม) — วัดความเร็วจอจริง ไม่ขึ้นกับลูปเกม */
+function startFpsMon() {
+  let last = 0;
+  const tick = now => {
+    requestAnimationFrame(tick);
+    const dt = last ? now - last : 0;
+    last = now;
+    if (!R.auto) return;
+    const G = R.G, skip = document.hidden || !!(G && (G.paused || (G.cam && G.cam.portrait)));
+    if (fpsTick(R.mon, dt, skip, R.fpsCap)) {
+      const i = GQ_ORDER.indexOf(R.level);
+      if (i > 0) { R.level = GQ_ORDER[i - 1]; fit(); }
+    }
+  };
+  requestAnimationFrame(tick);
 }
 
 /* มือถือแนวตั้ง → "หมุนจอ" (spec01 §3 #rot) · ระหว่างนี้ core/input ส่งปุ่มว่าง (หยุดเกมจริงรอหัวหน้าเพิ่มใน loop) */
@@ -88,25 +121,14 @@ function showRotate(on) {
     ui.appendChild(d);
     R.rot = d;
   }
+  if (R.rotOn === on) return; /* แตะ DOM เฉพาะตอนเปลี่ยน */
+  R.rotOn = on;
   R.rot.style.display = on ? 'flex' : 'none';
 }
 
-/* ลดคุณภาพอัตโนมัติเมื่อเครื่องช้า */
-function autoQuality(dt) {
-  if (!R.auto) return;
-  R.fr++; R.t0 += dt;
-  if (R.t0 < GQ_AUTO.every) return;
-  const fps = R.fr / R.t0;
-  R.fr = 0; R.t0 = 0;
-  if (fps < GQ_AUTO.fpsLow) R.lowN++; else R.lowN = 0;
-  const i = GQ_ORDER.indexOf(R.level);
-  if (R.lowN >= GQ_AUTO.rounds && i > 0) { R.lowN = 0; R.level = GQ_ORDER[i - 1]; fit(); }
-}
-
-
 export default {
   id: 'render',
-  update(G, dt) { autoQuality(dt); },
+  always: true, /* ไม่มี update แล้ว (วัด FPS ด้วย rAF ของตัวเอง) · ใส่ไว้ตาม CONTRACT §1 */
   draw(G, ctx, layer) {
     const c = G.cam, res = c.res || 1;
     if (layer === 'ui') { ctx.setTransform(res, 0, 0, res, 0, 0); return; }

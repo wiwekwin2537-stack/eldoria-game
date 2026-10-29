@@ -2,14 +2,10 @@
    spec01 §3: ล็อกความสูงโลก 448 ทุกเครื่อง (fix81) · ห้ามซูม (DECISIONS 2026-10-30)
    G.cam = { x, y, zoom:1, vw, vh, res, portrait, shake }  (x,y = มุมซ้ายบนของจอในโลก px) */
 import { VIEW_H } from '../config.js';
+import { VIEW } from '../data/view.js';
 
-/* ค่ากล้อง (spec01 §3) — ขอหัวหน้าย้ายไป data/ (ดู TASKS คำขอ) */
-export const VIEW = {
-  ratioMin: 1.2, ratioMax: 2.4, /* VW = clamp(VH×w/h, VH×1.2, VH×2.4) */
-  portraitW: 360,               /* จอแนวตั้ง: ล็อกความกว้างแทน */
-  follow: 9,                    /* กล้องลื่น a = 1-exp(-9·dt) */
-  oy: .55,                      /* ตัวละครอยู่ที่ 55% ความสูงจอ (เมือง/ร้าน/zone) · world ใส่ G.scene.camOy ได้ (ทุ่ง .58 ดัน .5) */
-};
+/* ค่ากล้องอยู่ data/view.js (CONTRACT §3) · ส่งต่อ VIEW ให้ไฟล์ที่ import จากที่นี่ */
+export { VIEW };
 
 /* ขนาดโลกที่เห็น (หน่วยโลก px) จากขนาดหน้าต่าง CSS — fitView ของ fix81 */
 export function viewSize(w, h) {
