@@ -1,5 +1,5 @@
 /* Code checks for updates; artwork is reused locally without delaying display. */
-const C='eldoria-v201';
+const C='eldoria-v202';
 const IMAGES='eldoria-images-v1';
 const CORE=['./','index.html','manifest.webmanifest'];
 const IMAGE_LIMIT=128;
@@ -23,7 +23,7 @@ self.addEventListener('activate',event=>{event.waitUntil((async()=>{
 self.addEventListener('message',event=>{if(event.data==='skip')self.skipWaiting()});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
- if(request.method!=='GET'||url.origin!==location.origin||url.pathname.startsWith('/api/'))return;
+ if(request.method!=='GET'||url.origin!==location.origin||url.pathname.startsWith('/api/')||url.pathname==='/v6'||url.pathname.startsWith('/v6/'))return; /* v6 ไม่ผ่านแคชเกมเดิม */
  if(isImage(url)){
   /* Register lifetime work synchronously, so background revalidation can finish. */
   const result=(async()=>{

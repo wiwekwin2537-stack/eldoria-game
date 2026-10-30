@@ -20,7 +20,7 @@ const PVP = require('./pvp');
 const PARTY = require('./party');
 const FIELD = require('./field'); /* v5.12 โลกร่วมกัน: ต้นไม้/แร่ เซิร์ฟเวอร์ตัดสิน */
 const MARKET = require('./market'); /* v5.03 ตลาดกลาง + เทรด */
-const V6 = require('./v6/server/index.cjs'); /* v6: เกมใหม่ /v6/ + ws /v6ws (แยกจากเกมเดิม) */
+let V6; try { V6 = require('./v6/server/index.cjs'); } catch (e) { console.error('[v6] โหลดไม่ได้ เกมเดิมทำงานต่อ:', e && e.message); V6 = { http: () => false, attach: () => null }; } /* v6: เกมใหม่ /v6/ + ws /v6ws (แยกจากเกมเดิม) · v6 พัง/ไฟล์หาย เกมเดิมยังบูต */
 const originOk = (o, host) => { if (!o || o === 'null' || o === 'file://') return true; if (!ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(o)) return true; try { return new URL(o).host === host; } catch (e) { return false; } };
 const server = http.createServer((req, res) => {
   if ((req.url || '').split('?')[0] === '/api/pvptop') { res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' }); res.end(JSON.stringify({ ok: true, list: PVP.top() })); return; }
