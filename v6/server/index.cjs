@@ -136,6 +136,7 @@ function serveHttp(req, res) {
 function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m), wsLib = null, authTimeoutMs } = {}) {
   if (!M) throw loadErr || new Error('v6 modules not loaded');
   const raw = store || M.fromEnv(env);
+  if (!store) log('[v6] ที่เก็บ=' + raw.kind + (raw.kind === 'file' ? ' (⚠️ Render ลบไฟล์ทุก deploy — บัญชี/เซฟ v6 จะหาย)' : '')); /* หัวหน้า 30 ต.ค.: เช็กบนเว็บจริงว่าใช้ Upstash */
   store = M.budgetStore(raw, { perMin: +env.V6_STORE_PER_MIN || 120, perDay: +env.V6_STORE_PER_DAY || 4000, now, log });
   const accounts = M.createAccounts({ store, env, now });
   const saves = M.createSaves({ store, now, cacheBytes: (+env.V6_SAVE_CACHE_MB > 0 ? +env.V6_SAVE_CACHE_MB : 32) * 1048576 }); /* 1B-g N1 */
