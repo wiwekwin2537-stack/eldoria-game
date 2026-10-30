@@ -8,6 +8,18 @@ import { T } from '../src/config.js';
 const eq = (a, b, m) => { if (a !== b) throw new Error(`${m}: ได้ ${a} ต้องเป็น ${b}`); };
 const ok = (v, m) => { if (!v) throw new Error(m); };
 function fresh() { _reset(); world._reset(); const G = createState(); world.init(G); return G; }
+/* ค่าที่ผู้ตรวจวัดจากเกมเดิม (เปิดเกมเดิมในเครื่อง · v6/reviews/1A-2-claude-review.md M3/L2/L3) — ห้ามคำนวณจากข้อมูล v6 */
+const OLD = {
+  doors: { /* D.doors (cx,cy) ช่อง → ปลายทาง · ware = บ้านพักชาวเมือง ไม่เปลี่ยนฉาก */
+    gear: [5.5, 16, 'shop.gear'], potion: [16.5, 28, 'shop.potion'], inn: [37.5, 16, 'shop.inn'], skill: [11.5, 16, 'shop.skill'],
+    store: [31.5, 16, 'shop.store'], guild: [26.5, 28, 'shop.guild'], fashion: [38.5, 28, 'shop.fashion'], bank: [32.5, 28, 'shop.bank'],
+    ware: [32.5, 7, null], seal113: [11.5, 8, 'shop.seal113'],
+  },
+  round: 1992574, /* [ชั้น, w, h, จุดเกิด x, y, ลายนิ้วมือผัง, ช่องพื้น, ห้องบอส x, y] — ผู้ตรวจยืนยันผังตรงเกมเดิมทุกช่อง */
+  dungeon: [[1, 70, 52, 33.5, 41.5, 'ac0396d7', 990, 36, 12], [25, 84, 62, 52.5, 43.5, '50b81146', 1285, 18, 15], [60, 98, 72, 46.5, 59.5, 'f1fa1a8', 2213, 12, 13]],
+  pillars: [['volcano', 10, 8], ['shadow', 9, 9]],
+};
+const fnv = g => { let h = 2166136261; for (const b of g) { h ^= b; h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); };
 const tiles = (x, y) => [x / T, y / T].map(v => +v.toFixed(2)).join(',');
 
 /* รายชื่อปลายทางของ link (รวมเมนู) */
@@ -208,9 +220,66 @@ export default [
     for (const s of alt.menu) ok(getMap(s), 'มีลาน ' + s);
     for (const id of ['arena', 'duel', 'wboss']) { enter('town', null, G); G.player.x = 10 * T; G.player.y = 20 * T; follow({ to: id }, G); eq(G.scene.id, id, id); follow(G.scene.map.links.find(l => l.id === 'exit'), G); eq(G.scene.id + '@' + tiles(G.player.x, G.player.y), 'town@10,20', 'กลับที่เดิมจาก ' + id); }
   }],
-  ['คลังสินค้า: กด E ไม่เปลี่ยนฉาก ส่ง world:use (เกมเดิมเปิดหน้าต่างคลัง)', () => {
+  ['บ้านพักชาวเมือง (ประตู ware เดิม 32.5,7): กด E ไม่เปลี่ยนฉาก ส่ง world:use {id:"lodge"} (ป้าจันทร์ 164-fix137:10–16 · บทพูดทำเฟสหลัง)', () => {
     const G = fresh(); const ev = []; on('world:use', e => ev.push(e));
-    const w = getMap('town').links.find(l => l.id === 'ware'); eq(follow(w, G), false, 'ไม่เปลี่ยนฉาก'); eq(G.scene.id, 'town', 'ยังอยู่เมือง'); eq(ev[0].id, 'ware', 'อีเวนต์');
+    const town = getMap('town');
+    ok(!town.links.some(l => l.use === 'ware' || l.id === 'ware'), 'เมือง 1 ไม่มี "คลังสินค้า" แล้ว (fix137 เปลี่ยนเป็นบ้านพัก · ฝากของที่ธนาคาร)');
+    const w = town.links.find(l => l.id === 'lodge'); ok(w, 'มีประตูบ้านพัก');
+    G.player.x = OLD.doors.ware[0] * T; G.player.y = OLD.doors.ware[1] * T + 10;
+    eq(linkNear(G) && linkNear(G).id, 'lodge', 'ยืนหน้าประตูเดิมของ ware');
+    G.input.pressed = new Set(['interact']); world.update(G, .05); G.input.pressed = new Set();
+    eq(G.scene.id, 'town', 'ไม่เปลี่ยนฉาก'); eq(ev.length, 1, 'ส่งอีเวนต์ 1 ครั้ง'); eq(ev[0].id, 'lodge', 'id อีเวนต์'); eq(ev[0].scene, 'town', 'scene');
+  }],
+  /* ---------- ค่าที่วัดจากเกมเดิม (ผลตรวจ 1A-2 M3 · v6/reviews/1A-2-claude-review.md) — เทสต้องพังถ้าข้อมูลแมพเลื่อน/ผิด ---------- */
+  ['เกมเดิม: ประตูร้าน 10 บาน D.doors (cx,cy) + doorNear |dx|<30 · cy−4<y<cy+30 · ปลายทาง · กลับมายืน (cx, cy+24)', () => {
+    const G = fresh(), town = getMap('town');
+    for (const [id, [cx, cy, to]] of Object.entries(OLD.doors)) {
+      const lid = id === 'ware' ? 'lodge' : id, d = town.links.find(l => l.id === lid);
+      ok(d, 'ไม่มีประตู ' + lid);
+      if (to) eq(d.to, to, 'ปลายทางประตู ' + lid); else eq(d.to, undefined, lid + ' ไม่เปลี่ยนฉาก');
+      const want = [cx - 30 / T, cy - 4 / T, 60 / T, 34 / T];
+      for (let i = 0; i < 4; i++) ok(Math.abs(d.box[i] - want[i]) < .011, `กรอบประตู ${lid}[${i}] = ${d.box[i]} เกมเดิม ${want[i].toFixed(3)}`);
+      if (to) eq(d.front && d.front[0] + ',' + d.front[1], cx + ',' + (cy + .75), 'ยืนหน้าประตู ' + lid);
+      /* ยืนจริงในกรอบ doorNear ของเกมเดิม → ต้องเจอประตูนี้ · นอกกรอบ → ไม่เจอ */
+      enter('town', null, G);
+      for (const [dx, dy, hitIt] of [[0, 10, 1], [-28, 0, 1], [28, 28, 1], [0, -2, 1], [31, 10, 0], [-31, 10, 0], [0, -6, 0], [0, 31, 0]]) {
+        G.player.x = cx * T + dx; G.player.y = cy * T + dy;
+        const n = linkNear(G); eq(!!(n && n.id === lid), !!hitIt, `ประตู ${lid} ที่ (${dx},${dy}) px`);
+      }
+    }
+  }],
+  ['เกมเดิม: ท้องพระโรง (22,9.4) r40 กด E ที่ (22,10.2) เข้าได้ · หอคอย (38.5,8) r48 · รูปปั้นลงดัน (16.40625,9.3) r50', () => {
+    const G = fresh(), town = getMap('town');
+    const near = (x, y, id, want, m) => { G.player.x = x; G.player.y = y; const n = linkNear(G); eq(!!(n && n.id === id), want, m); };
+    const hall = town.links.find(l => l.id === 'hall'); eq(hall.circle.join(), '22,9.4,40', 'วงประตูท้องพระโรง');
+    near(22 * T, 10.2 * T, 'hall', true, 'ยืน (22,10.2) กด E ได้'); near(22 * T, 9.4 * T + 41, 'hall', false, 'ห่าง 41 px ไม่ได้');
+    G.player.x = 22 * T; G.player.y = 10.2 * T; G.input.pressed = new Set(['interact']); world.update(G, .05); G.input.pressed = new Set();
+    eq(G.scene.id, 'shop.hall', 'เข้าท้องพระโรงจากจุดที่วัดในเกมเดิม'); eq(tiles(G.player.x, G.player.y), '13,13.4', 'จุดเกิดท้องพระโรง');
+    const st = getMap('shop.hall').links.find(l => l.id === 'dungeon');
+    ok(Math.abs(st.circle[0] - 16.40625) < .01 && st.circle[1] === 9.3 && st.circle[2] === 50, 'รูปปั้น ' + st.circle);
+    near(16.40625 * T, 9.3 * T + 49, 'dungeon', true, 'รูปปั้นห่าง 49 px กด E ได้'); near(16.40625 * T + 51, 9.3 * T, 'dungeon', false, 'ห่าง 51 px ไม่ได้');
+    enter('town', null, G);
+    const tw = town.links.find(l => l.id === 'tower'); eq(tw.circle.join(), '38.5,8,48', 'วงหอคอย');
+  }],
+  ['เกมเดิม: ดันเจี้ยนรอบ 1992574 ชั้น 1/25/60 ผังตรงเกมเดิมทุกช่อง (ลายนิ้วมือ) + จุดเกิด + วงเวทออก', () => {
+    for (const [f, w, h, sx, sy, fp, floor, ax, ay] of OLD.dungeon) {
+      const m = genDungeon(f, OLD.round);
+      eq(m.w + '×' + m.h, w + '×' + h, 'ขนาดชั้น ' + f);
+      eq(m.spawn[0] + ',' + m.spawn[1], sx + ',' + sy, 'จุดเกิดชั้น ' + f);
+      eq(fnv(m.grid), fp, 'ผังชั้น ' + f + ' (ลายนิ้วมือ FNV-1a ของตาราง)');
+      eq([...m.grid].filter(b => b === 46).length, floor, 'จำนวนช่องพื้นชั้น ' + f);
+      eq(m.arena.x + ',' + m.arena.y, ax + ',' + ay, 'ห้องบอสชั้น ' + f);
+      eq(m.links[0].circle.join(), [sx, sy + 3, 40].join(), 'วงเวทออก (ent.x, ent.y+2) r40 ชั้น ' + f);
+    }
+  }],
+  ['เกมเดิม: จุดเกิดหอคอย (15,20.5) · เสาประตูมิติในป่าชน (zHit 046-fix15:42 ±12px) ภูเขาไฟ (10,8) · เงามืด (9,9)', () => {
+    const t = getMap('tower'); eq(t.spawn[0] + ',' + t.spawn[1], '15,20.5', 'จุดเกิดหอคอย');
+    const G = fresh(); follow(getMap('town').links.find(l => l.id === 'tower'), G); eq(tiles(G.player.x, G.player.y), '15,20.5', 'เข้าหอคอยแล้วยืน');
+    for (const [id, x, y] of OLD.pillars) {
+      const m = getMap(id); eq(tileAt(x, y, m), '#', `${id} เสาประตูมิติ (${x},${y})`);
+      ok(hit((x + .5) * T, (y + .5) * T, null, m), `${id} เดินทะลุเสาไม่ได้`);
+      const g = m.links.find(l => l.id === 'gate'); ok(!hit(g.front[0] * T, g.front[1] * T, null, m), `${id} ยืนหน้าประตูได้`);
+    }
   }],
   ['เซฟ/โหลด: ฉากถาวรกลับที่เดิม · ดันเจี้ยนกลับหน้าทางเข้า · ไม่มีเซฟ = เมือง', () => {
     let G = fresh(); enter('iron', null, G);

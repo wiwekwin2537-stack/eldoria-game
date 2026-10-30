@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """แปลงผลดึงข้อมูลแมพจากเกมเดิม (dump*.json) → v6/src/data/maps/*.js"""
-import json, re, os, math
-X = '/tmp/claude-0/x/'
-OUT = '/home/claude/eldoria-game/v6/src/data/maps/'
+import json, re, os, math, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+# ผลดึง dump*.json: ส่งโฟลเดอร์เป็นอาร์กิวเมนต์แรก หรือ env EXTRACT_DIR (ค่าเริ่ม = โฟลเดอร์นี้) · ผลลง v6/src/data/maps/ ของ repo เดียวกับสคริปต์
+X = os.path.join(sys.argv[1] if len(sys.argv) > 1 else os.environ.get('EXTRACT_DIR', HERE), '')
+OUT = os.path.join(HERE, '..', '..', 'src', 'data', 'maps', '')
 os.makedirs(OUT, exist_ok=True)
 d1 = json.load(open(X + 'dump.json'))
 d3 = json.load(open(X + 'dump3.json'))
@@ -224,7 +226,7 @@ def main():
         cx, cy = dr['cx'], dr['cy']
         to = 'use:ware' if dr['id'] == 'ware' else f"'shop.{dr['id']}'"
         if dr['id'] == 'ware':
-            links.append(f"      {{ id: 'ware', on: 'use', box: [{num((cx-30)/T)}, {num((cy-4)/T)}, {num(60/T)}, {num(34/T)}], use: 'ware' }}, /* คลังสินค้า: เกมเดิมเปิดหน้าต่างคลัง ไม่เข้าห้อง (วัดแล้ว enterShop('ware') ไม่เปลี่ยนฉาก) */")
+            links.append(f"      {{ id: 'lodge', on: 'use', box: [{num((cx-30)/T)}, {num((cy-4)/T)}, {num(60/T)}, {num(34/T)}], use: 'lodge' }}, /* บ้านพักชาวเมือง (ประตู D.doors.ware เดิม ({cx},{cy})px): กด E → ป้าจันทร์คุย \"ฝากของไปที่ธนาคาร\" ไม่เข้าห้อง (164-fix137:10–16) · world ส่ง world:use {{id:'lodge'}} · บทพูดทำในเฟส NPC */")
         else:
             links.append(f"      {{ id: '{dr['id']}', on: 'use', box: [{num((cx-30)/T)}, {num((cy-4)/T)}, {num(60/T)}, {num(34/T)}], to: 'shop.{dr['id']}', at: [13, 13.4, 'u'], front: [{num(cx/T)}, {num((cy+24)/T)}, 'd'] }}, /* doorNear 020 ({cx},{cy})px |dx|<30 · กลับ (cx,cy+24) */")
     g, p = town()
@@ -324,6 +326,9 @@ export const TOWN_ART = {{
             for x, ch in enumerate(r):
                 walk = K[y][x] in '.pbo'
                 assert walk == (ch == '0') or K[y][x] == 'o', (zi, x, y, ch, K[y][x])
+        if z['gate15']:  # เสาประตูมิติชน: zHit 046-fix15:42 |x-gx|<12 · gy-10<y<gy+6 → ช่องที่ฐานเสาอยู่ (ผลตรวจ 1A-2 L3)
+            gx, gy = int(z['gate15']['x'] // T), int(z['gate15']['y'] // T)
+            K[gy][gx] = '#'
         rows = [''.join(r) for r in K]
         e = z['ent']; big = z['W'] == 88
         S = d3['NAT16'][z['id']]
@@ -365,7 +370,7 @@ export const TOWN_ART = {{
     sp_js = []
     ex = lambda v: f"{{ id: 'exit', on: 'use', circle: [{v['ent']['x']+.5}, {v['ent']['y']+2.5}, 40], to: '@back' }}, /* วงเวท → ปุ่มออกของแมพนั้น (fix147) → จุดที่เข้ามา (RET81) */"
     v = sp['tower']
-    sp_js.append(special('tower', 'tower', 'หอคอยบอส', 'tower', [15.5, 20.5, 'u'], [ex(v)], {'floor': 'zone', 'pal': {'fl': ['#2a2438', '#262033', '#221d2e'], 'top': '#3a3150', 'face': '#2a2438', 'edge': '#141020', 'ac': '#8a6aff', 'vd': '#0c0a12'}, 'floors': d1['TW10PAL']}, 'buildTower10 039-fix8 · 30×24 · TW10.PAL สีตามชั้น · หอคอยนิรันดร์ end92 ใช้แมพเดียวกัน'))
+    sp_js.append(special('tower', 'tower', 'หอคอยบอส', 'tower', [15, 20.5, 'u'], [ex(v)], {'floor': 'zone', 'pal': {'fl': ['#2a2438', '#262033', '#221d2e'], 'top': '#3a3150', 'face': '#2a2438', 'edge': '#141020', 'ac': '#8a6aff', 'vd': '#0c0a12'}, 'floors': d1['TW10PAL']}, 'buildTower10 039-fix8 · 30×24 · TW10.PAL สีตามชั้น · หอคอยนิรันดร์ end92 ใช้แมพเดียวกัน'))
     v = sp['mk']
     def mkfix(rows):
         for y in (0, 1):

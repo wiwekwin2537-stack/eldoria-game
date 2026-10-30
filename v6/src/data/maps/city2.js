@@ -13,7 +13,7 @@ export default {
       { id: 'dg2', on: 'use', circle: [42, 5.225, 44], to: 'dg96c', lv: 170, front: [42, 6.6, 'd'] }, /* portalPos95 127-fix95:151 · ดันเมือง 2 (DG96) */
       { id: 'dg3', on: 'use', circle: [46, 5.225, 44], to: 'dg96d', lv: 180, front: [46, 6.6, 'd'] }, /* portalPos95 127-fix95:151 · ดันเมือง 2 (DG96) */
       { id: 'dg4', on: 'use', circle: [50, 5.225, 44], to: 'dg96e', lv: 190, front: [50, 6.6, 'd'] }, /* portalPos95 127-fix95:151 · ดันเมือง 2 (DG96) */
-      { id: 'ware', on: 'use', circle: [37, 17.25, 40], use: 'ware' }, /* คลังสินค้าท่าเรือ (หน้าต่างคลัง) */
+      { id: 'ware', on: 'use', circle: [37, 17.25, 40], use: 'ware' }, /* ป้าย 'คลังสินค้าท่าเรืออัสตรา' (131-fix99:17) แต่เกมเดิม fix137 ดัก enterShop('ware') ทุกเมือง → ขึ้นบทป้าจันทร์บ้านพักเมือง 1 · ยังไม่ตัดสิน (ขอหัวหน้า) */
       { id: 'fashion', on: 'use', circle: [46.5, 17.25, 40], to: 'shop.fashion', at: [13, 13.4, 'u'], front: [46.5, 18, 'd'] }, /* ประตูร้าน C2.doors (ห้องเสื้อมาดามเซเรน่า) near95 r40 */
       { id: 'potion', on: 'use', circle: [32.5, 22.25, 40], to: 'shop.potion', at: [13, 13.4, 'u'], front: [32.5, 23, 'd'] }, /* ประตูร้าน C2.doors (ร้านยาวารีสมุนไพร) near95 r40 */
       { id: 'inn', on: 'use', circle: [51, 22.25, 40], to: 'shop.inn', at: [13, 13.4, 'u'], front: [51, 23, 'd'] }, /* ประตูร้าน C2.doors (โรงเตี๊ยมสมอทองคำ) near95 r40 */

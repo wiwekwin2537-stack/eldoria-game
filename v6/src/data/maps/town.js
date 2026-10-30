@@ -21,7 +21,7 @@ export default {
       { id: 'guild', on: 'use', box: [25.56, 27.88, 1.88, 1.06], to: 'shop.guild', at: [13, 13.4, 'u'], front: [26.5, 28.75, 'd'] }, /* doorNear 020 (848,896)px |dx|<30 · กลับ (cx,cy+24) */
       { id: 'fashion', on: 'use', box: [37.56, 27.88, 1.88, 1.06], to: 'shop.fashion', at: [13, 13.4, 'u'], front: [38.5, 28.75, 'd'] }, /* doorNear 020 (1232,896)px |dx|<30 · กลับ (cx,cy+24) */
       { id: 'bank', on: 'use', box: [31.56, 27.88, 1.88, 1.06], to: 'shop.bank', at: [13, 13.4, 'u'], front: [32.5, 28.75, 'd'] }, /* doorNear 020 (1040,896)px |dx|<30 · กลับ (cx,cy+24) */
-      { id: 'ware', on: 'use', box: [31.56, 6.88, 1.88, 1.06], use: 'ware' }, /* คลังสินค้า: เกมเดิมเปิดหน้าต่างคลัง ไม่เข้าห้อง (วัดแล้ว enterShop('ware') ไม่เปลี่ยนฉาก) */
+      { id: 'lodge', on: 'use', box: [31.56, 6.88, 1.88, 1.06], use: 'lodge' }, /* บ้านพักชาวเมือง (ประตู D.doors.ware เดิม (1040,224)px): กด E → ป้าจันทร์คุย "ฝากของไปที่ธนาคาร" ไม่เข้าห้อง (164-fix137:10–16) · world ส่ง world:use {id:'lodge'} · บทพูดทำในเฟส NPC */
       { id: 'seal113', on: 'use', box: [10.56, 7.88, 1.88, 1.06], to: 'shop.seal113', at: [13, 13.4, 'u'], front: [11.5, 8.75, 'd'] }, /* doorNear 020 (368,256)px |dx|<30 · กลับ (cx,cy+24) */
     ],
     rows: [
