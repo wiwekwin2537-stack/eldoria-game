@@ -153,6 +153,9 @@ async function headDiff(page, x, y, name) {
 
     console.log('— คืนหน่วยความจำเฉพาะฉากที่ไม่ได้อยู่ (ผลตรวจ M4)');
     await go(page, 'field', [50, 22, 'l']); await wait(1500);
+    /* 1Y: ภาพเป็น ImageBitmap · จับภาพพื้นทุ่งไว้ ดูว่าถูก close() ตอนคืน (bitmap ที่ปิดแล้ว width = 0) */
+    const bm = await page.evaluate(async () => { const t = await import('/v6/src/draw/tiles.js'); const { TERRAIN } = await import('/v6/src/data/art.js'); window.__bm = t.peekImage ? t.peekImage(TERRAIN.src) : null; return { kind: window.__bm && window.__bm.constructor.name, w: window.__bm && window.__bm.width, n: t.cacheInfo().bitmaps }; });
+    ok(bm.kind === 'ImageBitmap' && bm.w > 0 && bm.n >= 2, 'ภาพฉากเก็บเป็น ImageBitmap (1Y)', JSON.stringify(bm));
     await go(page, 'town', [22, 17, 'd']); await wait(2000);
     let groundReq = 0; const onReq = r => { if (/ground-v538/.test(r.url())) groundReq++; }; page.on('request', onReq);
     await page.evaluate(() => { window.__G.time.now += 60; }); /* ยืนในเมืองเกิน 45 วิ (เลื่อนนาฬิกาเกม แทนรอจริง) */
@@ -160,18 +163,27 @@ async function headDiff(page, x, y, name) {
     let ci = await page.evaluate(async () => (await import('/v6/src/draw/tiles.js')).cacheInfo());
     ok(Array.isArray(ci.srcs) && ci.srcs.some(s => /ground-v538/.test(s)), 'ภาพพื้นเมืองยังอยู่หลังยืน 60 วิ', JSON.stringify(ci.srcs));
     ok(Array.isArray(ci.srcs) && !ci.srcs.some(s => /terrain-v585/.test(s)), 'ภาพพื้นทุ่ง (ฉากที่ไม่ได้อยู่) คืนแล้ว', JSON.stringify(ci.srcs));
+    const closed = await page.evaluate(() => window.__bm && window.__bm.width === 0 && window.__bm.height === 0);
+    ok(closed, 'ภาพพื้นทุ่งที่คืน → bitmap.close() แล้ว (width 0 · คืนหน่วยความจำทันที · 1Y)');
     ok(Array.isArray(ci.chunkScenes) && ci.chunkScenes.every(s => s === 'town'), 'แผ่นพื้นเหลือแต่ของเมือง', JSON.stringify(ci.chunkScenes));
     await go(page, 'town', [40, 30, 'd']); await wait(800); await go(page, 'town', [3, 3, 'd']); await wait(800);
     page.off('request', onReq);
     ok(groundReq === 0, 'เดินไปมุมเมืองหลังยืนนาน → ไม่โหลดภาพพื้นใหม่', 'คำขอ ' + groundReq);
 
-    console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9) · ครั้งแรกของหน้า (ภาพยังไม่โหลด) · มัธยฐาน 3 รอบ หน้าใหม่ทุกรอบ');
-    /* 1Z: เดิมวัดครั้งเดียวในหน้าที่ยืนมา 60 วิ (ภาพเมือง 2 ถูกคืนแล้ว = วาปครั้งแรก) → 65–75 ms ปกติ แต่เคยได้ 121 ms ตอนเครื่องมีงานอื่น
-       วัดแล้ว: ช่วงค้างอยู่ที่เฟรมที่ 5–6 หลังวาป = ตอนภาพ 1536×1024 (3 ภาพ) โหลดเสร็จ → วาดครั้งแรก/ส่งขึ้นการ์ดจอ + สร้างแผ่นพื้นใหม่ (54–70 ms)
-       ไม่ใช่ตอน enter (≤1 ms) · วาปซ้ำตอนภาพอยู่ในแคช ~20 ms · เกณฑ์ <100 ms เท่าเดิม แต่ใช้มัธยฐาน 3 รอบ (กันเครื่องเทสถูกแย่ง CPU ครั้งเดียว) */
-    for (const id of ['city2', 'grove', 'dg:60']) {
+    console.log('— เตรียมภาพเมือง 2 ตอนเดินใกล้เรือ (1Y)');
+    await go(page, 'road', [60, 12.5, 'r']); await wait(800);
+    const far = await page.evaluate(async () => (await import('/v6/src/draw/tiles.js')).cacheInfo().srcs.filter(s => /city2\//.test(s)).length);
+    await go(page, 'road', [107, 12.5, 'r']); await wait(2500);
+    const near = await page.evaluate(async () => { const t = await import('/v6/src/draw/tiles.js'); const { MAPS } = await import('/v6/src/data/maps.js'); if (!t.sceneImages) return { want: 0, ready: 0 }; const want = t.sceneImages(MAPS.city2), r = t.cacheInfo().ready; return { want: want.length, ready: want.filter(s => r.includes(s)).length }; });
+    ok(far === 0 && near.want >= 4 && near.ready === near.want, 'ไกลเรือ = ไม่โหลดภาพเมือง 2 · ใกล้เรือ = ภาพเมือง 2 ถอดรหัสพร้อมก่อนวาป', JSON.stringify({ far, near }));
+
+    console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9 · 1Y) · ครั้งแรกของหน้า (ภาพยังไม่โหลด) · หน้าใหม่ทุกรอบ');
+    /* 1Z: ช่วงค้างอยู่ที่เฟรมที่ 5–6 หลังวาป = ตอนภาพ 1536×1024 (3 ภาพ) โหลดเสร็จ → วาดครั้งแรก (<img> + decode ยังถอดรหัส/ส่งขึ้นการ์ดจอในเฟรม 42–53 ms ต่อภาพ)
+       1Y: ภาพเป็น ImageBitmap (ถอดรหัสนอกเฟรม) → วาดครั้งแรก ~0.3 ms · วัดในเครื่องช่าง 7 รอบ: ก่อน มัธยฐาน 112 สูงสุด 133 ms → หลัง มัธยฐาน 26 สูงสุด 34 ms
+       เกณฑ์เมือง 2 (5 รอบ): มัธยฐาน <50 ms และทุกรอบ <100 ms · grove/ดัน 60 (ไม่มีภาพใหญ่) มัธยฐาน 3 รอบ <100 ms เท่าเดิม */
+    for (const [id, n] of [['city2', 5], ['grove', 3], ['dg:60', 3]]) {
       const runs = [];
-      for (let k = 0; k < 3; k++) {
+      for (let k = 0; k < n; k++) {
         const c2 = await browser.newContext({ viewport: { width: 1366, height: 768 } });
         const p2 = await c2.newPage();
         await p2.goto(`http://127.0.0.1:${port}/v6/`);
@@ -182,15 +194,16 @@ async function headDiff(page, x, y, name) {
           const w = await import('/v6/src/systems/world.js');
           const ts = []; let last = performance.now();
           w.enter(id); last = performance.now();
-          for (let i = 0; i < 40; i++) { await new Promise(r => requestAnimationFrame(r)); const n = performance.now(); ts.push(n - last); last = n; }
+          for (let i = 0; i < 60; i++) { await new Promise(r => requestAnimationFrame(r)); const n = performance.now(); ts.push(n - last); last = n; }
           return Math.max(...ts);
         }, id);
         runs.push(r);
         await c2.close();
       }
-      const med = [...runs].sort((a, b) => a - b)[1];
-      console.log(`    ${id}: เฟรมนานสุดแต่ละรอบ ${runs.map(v => v.toFixed(0)).join(' / ')} ms · มัธยฐาน ${med.toFixed(0)} ms`);
-      ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน 3 รอบ <100 ms · ก่อนแก้ 1A-2f city2 107–132 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
+      const srt = [...runs].sort((a, b) => a - b), med = srt[srt.length >> 1], max = srt[srt.length - 1];
+      console.log(`    ${id}: เฟรมนานสุดแต่ละรอบ ${runs.map(v => v.toFixed(0)).join(' / ')} ms · มัธยฐาน ${med.toFixed(0)} · สูงสุด ${max.toFixed(0)} ms`);
+      if (id === 'city2') ok(med < 50 && max < 100, `วาปเข้าเมือง 2 ครั้งแรก ${n} รอบ: มัธยฐาน <50 ms และทุกรอบ <100 ms (ก่อน 1Y มัธยฐาน 112 · สูงสุด 133)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
+      else ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน ${n} รอบ <100 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
     }
 
     if (LONG) {

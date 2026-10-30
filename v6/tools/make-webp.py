@@ -6,9 +6,15 @@
    - ช่องโปร่งใส (alpha) เก็บแบบไม่เสียคุณภาพทุกภาพ (alpha_quality=100) → ขอบอาคาร/ต้นไม้คมเท่าเดิม
    - เลือกคุณภาพต่อภาพ (วัดแล้ว · ดูตาราง) · ภาพ PNG จานสี (ต้นไม้) = แบบไม่เสียคุณภาพ (เล็กกว่า PNG เดิมอยู่แล้ว)
    - ภาพที่ v6 ใช้ทั้งหมดอยู่ในตารางนี้ · ชื่อปลายทางคือชื่อที่ data/art.js · data/maps/town.js · city2.js อ้าง
-   - ตรวจ: ทุกภาพเปิดได้ ขนาดตรงตาราง · พิมพ์ขนาดก่อน/หลัง"""
+   - ตรวจ: ทุกภาพเปิดได้ ขนาดตรงตาราง · พิมพ์ขนาดก่อน/หลัง
+   - ⚠️ รุ่นที่ใช้สร้างภาพที่ commit อยู่: Pillow 12.3.0 · libwebp 1.6.0 (ผลตรวจ 1A-4 L5)
+     "ผลเหมือนเดิม" จริงเฉพาะรุ่นนี้ · รุ่นอื่นได้ไบต์ต่าง → git เก็บภาพใหม่ทั้ง ~3.9 MB อีกรอบ
+     → รันใหม่เฉพาะเมื่อภาพต้นฉบับเปลี่ยน/เพิ่มภาพ · สคริปต์เตือนถ้ารุ่นไม่ตรง · รันหนึ่งรอบ >2 นาที (method=6)"""
 import os, sys
-from PIL import Image
+import PIL
+from PIL import Image, features
+
+BUILT_WITH = {'Pillow': '12.3.0', 'libwebp': '1.6.0'}  # รุ่นที่สร้างภาพใน v6/assets/ (ดูหัวไฟล์)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OUT = os.path.join(ROOT, 'v6', 'assets')
@@ -65,7 +71,15 @@ def convert(src, dst, how):
     return im.size
 
 
+def check_versions():
+    now = {'Pillow': PIL.__version__, 'libwebp': features.version('webp')}
+    if now != BUILT_WITH:
+        print(f'⚠️ รุ่นไม่ตรงกับที่สร้างภาพเดิม: ตอนนี้ {now} · เดิม {BUILT_WITH} → ไบต์ภาพจะต่างจากที่ commit (ภาพทั้งชุดเปลี่ยน)')
+    return now
+
+
 def main():
+    check_versions()
     tot_a = tot_b = 0
     bad = 0
     print(f'{"ภาพ":44} {"เดิม":>9} {"ใหม่":>9}  ขนาด')

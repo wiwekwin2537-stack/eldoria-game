@@ -3,12 +3,16 @@
    - คืนหน่วยความจำ (fix157): เฉพาะแผ่น/ภาพของฉากที่ไม่ได้อยู่ และไม่ได้ใช้เกิน 45 วิ · ฉากปัจจุบันไม่คืน (ยืนในเมืองนานแล้วพื้นไม่ต้องโหลดใหม่ · ผลตรวจ 1A-2 M4)
    - สร้างแผ่นพื้นไม่เกิน ~BUILD_MS ต่อเฟรม (แผ่นที่ตัวละครยืนก่อน) → วาปเข้าแมพใหญ่ไม่ค้างเฟรมยาว (ผลตรวจ L9)
    - ภาพโหลดตอนต้องใช้เท่านั้น ไม่ฝัง base64 · ภาพยังไม่มา = วาดสีแทน แล้ววาดใหม่เมื่อภาพมาถึง
+   - ภาพเก็บเป็น ImageBitmap (fetch → blob → createImageBitmap · งาน 1Y): ถอดรหัสนอกเฟรมเสร็จก่อนใช้ → วาดครั้งแรก ~0.3 ms
+     (เดิม <img> + decode() วาดภาพ 1536×1024 ครั้งแรก 42–53 ms · คำขอ 1Z) · เบราว์เซอร์ที่ไม่มี createImageBitmap (Safari เก่า) ใช้ <img> + decode() แบบเดิม
+     คืนภาพ = bitmap.close() (คืนหน่วยความจำทันที ไม่รอเก็บขยะ)
+   - เดินใกล้ประตู/วงเวท (PRE_PX) → โหลด+ถอดรหัสภาพของฉากปลายทางไว้ก่อน (ไม่สร้างแผ่นพื้น) · ไม่ได้เข้า = คืนตามกติกา 45 วิ เหมือนภาพอื่น
    - กติกาภาพ (spec01 §10): ใช้ภาพเฉพาะ พื้น · อาคาร · ต้นไม้ · ของตกแต่งฉาก — อย่างอื่นวาดด้วยโค้ด
    - ของสูง (อาคาร ต้นไม้ เสาไฟ หลังคา): ส่งเข้าคิวกลาง zpush(ฐาน y, fn) ในชั้น 'world' (CONTRACT §1) → เรียงหน้า-หลังรวมกับตัวละคร/NPC/มอน
      ต้นไม้ที่อยู่หน้าและบังตัวเรา → โปร่ง (คิดตอนวาดใน fn) · หลังคาอาคารวาดซ้ำที่ฐานแนวหลังคา → เดินหลังอาคาร หลังคาบังตัว
    - ชื่อภาพ/สี อยู่ data/art.js (CONTRACT §3) */
 import { T } from '../config.js';
-import { WORLD, TOWN_FLOOR, TOWN_ART, CITY2_ART, ROOM } from '../data/maps.js';
+import { WORLD, MAPS, TOWN_FLOOR, TOWN_ART, CITY2_ART, ROOM } from '../data/maps.js';
 import { zpush } from '../core/zsort.js';
 import { TREE_SRC, TERRAIN, TREE, COLORS } from '../data/art.js';
 import { hash, vn } from '../core/rand.js'; /* ไม่ import วนกับ world แล้ว (หัวหน้า 30 ต.ค.) */
@@ -16,27 +20,48 @@ import { hash, vn } from '../core/rand.js'; /* ไม่ import วนกับ 
 const CH = WORLD.chunk;
 const BUILD_MS = 8;      /* ms ต่อเฟรมที่ยอมใช้สร้างแผ่นพื้น (อย่างน้อย 1 แผ่นเสมอ) */
 
-const IMG = new Map();   /* src → { img, ok, bad, used, scenes:Set } */
+const PRE_PX = 160;      /* px — ระยะจากประตู/วงเวทที่เริ่มเตรียมภาพของฉากปลายทาง (5 ช่อง) */
+
+const IMG = new Map();   /* src → { img (ImageBitmap หรือ <img>), ok, bad, gone, used, scenes:Set } */
 const CHUNK = new Map(); /* 'ฉาก|cx,cy' → { cv, used, miss, scene } */
 let clock = 0, lastSweep = 0, curScene = null;
 
 /* ---------- ภาพ ---------- */
 function url(src) { return new URL('../../../' + src, import.meta.url).href; }
-export function image(src) {
+/* ภาพพร้อมวาดของ src (null = ยังไม่มา) · scene = ฉากที่ใช้ภาพนี้ (เตรียมล่วงหน้าส่ง null = ยังไม่ผูกฉาก) */
+export function image(src, scene = curScene) {
   let e = IMG.get(src);
-  if (!e) {
-    e = { img: new Image(), ok: false, bad: false, used: clock, scenes: new Set() };
-    e.img.decoding = 'async';
-    /* ถอดรหัสภาพก่อนใช้ (decode) → วาดครั้งแรกไม่ค้างเฟรม · เบราว์เซอร์ที่ไม่มี decode ใช้ได้ทันที */
-    const ready = () => { e.ok = e.img.naturalWidth > 0; dropMissing(); };
-    e.img.onload = () => { if (e.img.decode) e.img.decode().then(ready, ready); else ready(); };
-    e.img.onerror = () => { e.bad = true; };
-    e.img.src = url(src);
-    IMG.set(src, e);
-  }
+  if (!e) { e = { img: null, ok: false, bad: false, gone: false, used: clock, scenes: new Set() }; IMG.set(src, e); load(e, src); }
   e.used = clock;
-  if (curScene) e.scenes.add(curScene);
+  if (scene) e.scenes.add(scene);
   return e.ok ? e.img : null;
+}
+const canBitmap = () => typeof createImageBitmap === 'function' && typeof fetch === 'function' && typeof Blob === 'function';
+function load(e, src) {
+  const done = im => {
+    if (e.gone) { release(im); return; } /* ถูกคืนระหว่างโหลด → ทิ้งเลย */
+    e.img = im; e.ok = imgW(im) > 0; dropMissing();
+  };
+  const viaImg = () => {
+    if (e.gone) return;
+    const im = new Image(); im.decoding = 'async'; e.el = im;
+    /* ถอดรหัสก่อนใช้ (decode) · เบราว์เซอร์ที่ไม่มี decode ใช้ได้ทันที */
+    im.onload = () => { if (im.decode) im.decode().then(() => done(im), () => done(im)); else done(im); };
+    im.onerror = () => { e.bad = true; };
+    im.src = url(src);
+  };
+  if (!canBitmap()) { viaImg(); return; }
+  fetch(url(src)).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); }).then(
+    b => createImageBitmap(b).then(done, viaImg), /* ถอดรหัส blob ไม่ได้ (เบราว์เซอร์เก่า) → <img> */
+    () => { e.bad = true; });                      /* โหลดไม่ได้ (404/เน็ต) → ไม่ลองซ้ำ (ไม่ยิงคำขอซ้ำ) */
+}
+/* ขนาดภาพ: ImageBitmap มี width/height · <img> ใช้ naturalWidth (ไม่ขึ้นกับขนาดที่แสดง) */
+const imgW = im => im.naturalWidth || im.width || 0, imgH = im => im.naturalHeight || im.height || 0;
+function release(im) { if (im && typeof im.close === 'function') im.close(); }
+function drop(e) {
+  e.gone = true; e.ok = false;
+  release(e.img); e.img = null;
+  if (e.el) { e.el.onload = e.el.onerror = null; e.el.src = ''; e.el = null; }
 }
 function dropMissing() { for (const [k, c] of CHUNK) if (c.miss) { free(c); CHUNK.delete(k); } }
 function free(c) { c.cv.width = c.cv.height = 0; }
@@ -47,10 +72,43 @@ function sweep() {
   lastSweep = clock;
   const ttl = WORLD.artTtl;
   for (const [k, c] of CHUNK) if (c.scene !== curScene && clock - c.used > ttl) { free(c); CHUNK.delete(k); }
-  for (const [k, e] of IMG) if (!e.scenes.has(curScene) && clock - e.used > ttl) { e.img.onload = e.img.onerror = null; e.img.src = ''; IMG.delete(k); }
+  for (const [k, e] of IMG) if (!e.scenes.has(curScene) && clock - e.used > ttl) { drop(e); IMG.delete(k); }
 }
 export function cacheInfo() { /* เทส */
-  return { chunks: CHUNK.size, images: IMG.size, clock, scene: curScene, srcs: [...IMG.keys()], chunkScenes: [...new Set([...CHUNK.values()].map(c => c.scene))] };
+  return {
+    chunks: CHUNK.size, images: IMG.size, clock, scene: curScene, srcs: [...IMG.keys()], chunkScenes: [...new Set([...CHUNK.values()].map(c => c.scene))],
+    ready: [...IMG].filter(([, e]) => e.ok).map(([k]) => k),
+    bitmaps: [...IMG.values()].filter(e => e.ok && typeof e.img.close === 'function').length,
+  };
+}
+export function _reset() { for (const e of IMG.values()) drop(e); IMG.clear(); for (const c of CHUNK.values()) free(c); CHUNK.clear(); FADE.clear(); fadeScene = fadeAt = null; lastSweep = 0; } /* เทส */
+export function peekImage(src) { const e = IMG.get(src); return e ? e.img : null; } /* เทส: ภาพที่เก็บอยู่ (ไม่นับว่าใช้) */
+
+/* ---------- เตรียมภาพฉากถัดไป ---------- */
+/* ภาพทั้งหมดที่ฉาก map ใช้ (ตามชนิดพื้น/ต้นไม้/ภาพอาคาร) */
+export function sceneImages(map) {
+  const L = (map && map.look) || {}, out = new Set();
+  if (L.floor === 'terrain' || (L.floor === 'zone' || !L.floor) && L.tile != null) out.add(TERRAIN.src);
+  if (L.floor === 'terrain' || L.floor === 'nature' || L.floor === 'road') out.add(TREE_SRC[L.tree || L.trees] || TREE_SRC.oak);
+  if (L.floor === 'town') out.add(TOWN_FLOOR.src);
+  if (L.floor === 'city2') out.add(CITY2_ART.street);
+  const art = artOf(map);
+  if (art) for (const s of art.src) out.add(s);
+  return [...out];
+}
+function linkDist(l, x, y) { /* ระยะ px จากจุด (x,y) ถึงขอบประตู/วงเวท */
+  if (l.box) { const b = l.box, dx = Math.max(b[0] * T - x, 0, x - (b[0] + b[2]) * T), dy = Math.max(b[1] * T - y, 0, y - (b[1] + b[3]) * T); return Math.hypot(dx, dy); }
+  if (l.circle) return Math.max(0, Math.hypot(x - l.circle[0] * T, y - l.circle[1] * T) - l.circle[2]);
+  return Infinity;
+}
+/* ตัวละครอยู่ใกล้ทางไปฉากที่มีภาพ → ขอภาพของฉากนั้นไว้ก่อน (ภาพที่มีอยู่แล้ว = แค่ต่อเวลา used) */
+function prefetch(G) {
+  const P = G.player;
+  for (const l of G.scene.map.links || []) {
+    const to = typeof l.to === 'string' && MAPS[l.to];
+    if (!to || l.to === G.scene.id || linkDist(l, P.x, P.y) > PRE_PX) continue;
+    for (const s of sceneImages(to)) image(s, null);
+  }
 }
 
 /* ---------- สีช่วย ---------- */
@@ -94,7 +152,7 @@ const FLOOR = {
     let pat = null;
     if (im) {
       pat = {};
-      const w = im.naturalWidth / 2, h = im.naturalHeight / 2;
+      const w = imgW(im) / 2, h = imgH(im) / 2;
       for (const [kind, q] of Object.entries(F.quad)) {
         const c = document.createElement('canvas'); c.width = c.height = F.size;
         c.getContext('2d').drawImage(im, q[0] * w, q[1] * h, w, h, 0, 0, F.size, F.size);
@@ -282,7 +340,7 @@ function treeAt(k, src, bx, by, sc, alpha, ang) {
   if (!im) { k.fillStyle = TREE.missing; k.beginPath(); k.ellipse(bx, by - h * .6, w * .4, h * .35, 0, 0, 7); k.fill(); return; }
   const tf = alpha < 1 || ang;
   if (tf) { k.save(); if (alpha < 1) k.globalAlpha = alpha; if (ang) { k.translate(bx, by); k.rotate(ang); k.translate(-bx, -by); } } /* โยกรอบโคนต้น */
-  k.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, bx - w / 2, by - h * TREE.lift, w, h);
+  k.drawImage(im, 0, 0, imgW(im), imgH(im), bx - w / 2, by - h * TREE.lift, w, h);
   if (tf) k.restore();
 }
 /* มุมโยกของต้นไม้ช่อง (x,y) ตามชนิด (TREE.sway) · ไม่มีชนิด = ไม่โยก */
@@ -325,20 +383,23 @@ function eachTall(G, fn) {
 }
 
 /* ส่งของสูงทุกชิ้นในจอเข้าคิวกลาง zpush(ฐาน y) — ตัวละคร/NPC/มอน ส่ง y เท้าเข้าคิวเดียวกัน → บังกันถูกทุกตัว (CONTRACT §1)
-   ต้นไม้ (fade): ถ้าอยู่หน้าและบังกรอบตัวเรา (กว้าง ±TREE.body.hw · สูง TREE.body.top จากเท้า · ผลตรวจ 1A-2f N2) และตัวอยู่หลังฐาน
+   ต้นไม้ (fade): ถ้าตัวเราอยู่หลังฐาน · เท้าต่ำกว่ายอดภาพ · ห่างกลางต้นซ้าย-ขวาไม่เกิน TREE.crown×กว้างภาพ + TREE.body.hw
+     (= 34·sc + 8 เท่าเกมเดิม 016-core:70 · ต้นปกติ sc 1 → ±42 px · ผลตรวจ 1A-4 L3)
      → ค่อย ๆ จางลงจนทึบเหลือ TREE.fade · ออกจากหลังต้นไม้ → ค่อย ๆ กลับทึบ (ตัวนับต่อต้น เก็บใน tiles ไม่ใช่ G · เกมเดิม 016-core:71 + 024-core:35)
+     อัตราจาง 1−exp(−dt·TREE.fadeRate) → จางเท่ากันทุก FPS (เกมเดิม min(1, dt·10): 30 FPS จางเร็วกว่า 60 FPS ~11% · ผลตรวจ 1A-4 L4)
    หลังคา: วาดซ้ำที่ฐานแนวหลังคา → ตัวที่ยืนหลังแนวนี้ถูกหลังคาบัง · ตัวที่อยู่หน้าวาดทับ (TOWNART.bind roof) */
 const FADE = new Map(); /* 'ฐาน y,x' → ระดับจาง 0..1 (เฉพาะต้นที่กำลังจาง/กลับทึบ · ล้างเมื่อเปลี่ยนฉาก) */
 let fadeAt = null, fadeScene = null;
 export function treeCovers(P, base, rect) { /* ต้นไม้ (กรอบภาพ rect · ฐาน base) บังกรอบตัวละครที่ยืนข้างหลังไหม */
-  const B = TREE.body;
-  return P.y < base && P.x + B.hw > rect[0] && P.x - B.hw < rect[0] + rect[2] && P.y > rect[1] && P.y - B.top < rect[1] + rect[3];
+  const B = TREE.body, half = rect[2] * TREE.crown + B.hw;
+  /* เงื่อนไขหัว (เท้า−B.top < ขอบล่างภาพ): ต้นไม้ทุกต้นตอนนี้ขอบล่างภาพ ≈ ฐาน และเช็ก 'อยู่หลังฐาน' แล้ว → จริงเสมอ (ดู TREE.body ใน data/art.js) */
+  return P.y < base && Math.abs(P.x - (rect[0] + rect[2] / 2)) < half && P.y > rect[1] && P.y - B.top < rect[1] + rect[3];
 }
 function pushTall(G) {
   const P = G.player;
   if (fadeScene !== G.scene.id) { FADE.clear(); fadeScene = G.scene.id; fadeAt = null; }
   const dt = fadeAt == null ? 0 : Math.max(0, Math.min(.25, clock - fadeAt)); fadeAt = clock; /* หยุดเกม = เวลาไม่เดิน = ไม่จางต่อ */
-  const step = Math.min(1, dt * TREE.fadeRate);
+  const step = 1 - Math.exp(-dt * TREE.fadeRate); /* ไม่ขึ้นกับ FPS (ผลตรวจ 1A-4 L4) */
   eachTall(G, (base, draw, rect, fade) => {
     let a = 1;
     if (fade && rect) {
@@ -357,7 +418,7 @@ export function drawLayer(G, ctx, layer) {
   if (typeof document === 'undefined') return;
   clock = G.time ? G.time.now : clock;
   curScene = G.scene.id;
-  if (layer === 'ground') { drawGround(G, ctx); drawLinks(G, ctx); sweep(); }
+  if (layer === 'ground') { drawGround(G, ctx); drawLinks(G, ctx); prefetch(G); sweep(); }
   else if (layer === 'world') pushTall(G);
 }
 

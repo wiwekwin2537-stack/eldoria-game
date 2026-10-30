@@ -89,15 +89,37 @@ export default [
     G.player.y = 269; /* หยุดเกม: เวลาเกมไม่เดิน (G.time.now เท่าเดิม) → ไม่จางต่อ */
     ok(tree()[0].alpha > .99 && tree()[0].alpha > .99, 'เวลาไม่เดิน → ไม่จาง');
   })],
-  ['เช็กบังใช้กรอบตัวละคร ไม่ใช่แค่เท้า: เท้าอยู่นอกกรอบต้นไม้ไม่เกิน 10 px แต่ตัว/หัวทับภาพ → นับว่าบัง (ผลตรวจ 1A-2f N2)', () => {
-    const rect = [396, 199, 72, 90], base = 290;
+  ['เช็กบังใช้กรอบตัวละคร ไม่ใช่แค่เท้า: เท้าอยู่นอกพุ่ม (34·sc) แต่ตัวทับ → นับว่าบัง (ผลตรวจ 1A-2f N2 · ระยะตามเกมเดิม 1A-4 L3)', () => {
+    const rect = [396, 199, 72, 90], base = 290; /* ต้นไม้เมือง sc .9 → พุ่ม ±30.6 · บังเมื่อห่างกลาง < 30.6 + 8 = 38.6 */
     ok(treeCovers({ x: 432, y: 269 }, base, rect), 'ยืนกลางต้นไม้ข้างหลัง');
-    ok(treeCovers({ x: 390, y: 269 }, base, rect), 'เท้าเลยขอบซ้าย 6 px แต่แขน/ตัวทับต้นไม้ → บัง');
-    ok(treeCovers({ x: 474, y: 269 }, base, rect), 'เท้าเลยขอบขวา 6 px → บัง');
-    ok(!treeCovers({ x: 380, y: 269 }, base, rect), 'ห่างขอบ 16 px (เกินครึ่งตัว 10) → ไม่บัง');
+    ok(treeCovers({ x: 394, y: 269 }, base, rect), 'เท้าเลยขอบพุ่มซ้าย 7 px แต่แขน/ตัวทับต้นไม้ → บัง');
+    ok(treeCovers({ x: 470, y: 269 }, base, rect), 'เท้าเลยขอบพุ่มขวา 7 px → บัง');
+    ok(!treeCovers({ x: 380, y: 269 }, base, rect), 'ห่างกลาง 52 px → ไม่บัง');
     ok(!treeCovers({ x: 432, y: 300 }, base, rect), 'ยืนหน้าฐานต้นไม้ → ไม่บัง');
     ok(!treeCovers({ x: 432, y: 195 }, base, rect), 'เท้าอยู่เหนือยอดต้นไม้ → ต้นไม้ไม่ทับตัว');
   }],
+  ['ระยะซ้าย-ขวาที่ต้นไม้จาง = 34·sc + 8 เท่าเกมเดิม (016-core:70 · ต้นปกติ ±42 px · ผลตรวจ 1A-4 L3 · เดิม v6 ±50)', () => {
+    for (const sc of [1, .9, .5, 1.1]) {
+      const by = 600, cx = 500, w = TREE.w * sc, h = TREE.h * sc * TREE.lift, rect = [cx - w / 2, by - h, w, h], r = 34 * sc + 8, y = by - 10;
+      ok(treeCovers({ x: cx - r + .1, y }, by, rect) && treeCovers({ x: cx + r - .1, y }, by, rect), `sc ${sc}: ห่าง ${(r - .1).toFixed(1)} px → บัง`);
+      ok(!treeCovers({ x: cx - r - .1, y }, by, rect) && !treeCovers({ x: cx + r + .1, y }, by, rect), `sc ${sc}: ห่าง ${(r + .1).toFixed(1)} px → ไม่บัง`);
+    }
+    const w = TREE.w, rect = [460, 600 - 92, w, 92];
+    ok(!treeCovers({ x: 500 + 45, y: 590 }, 600, rect), 'ต้นปกติ ห่าง 45 px (เกมเดิมไม่จาง) → ไม่บัง');
+  }],
+  ['ต้นไม้จางเท่ากันทุก FPS: 30 vs 60 FPS หลัง 0.3 วิ ทึบต่างกันไม่เกิน 1% (1−exp(−dt·10) · ผลตรวจ 1A-4 L4)', () => withDom(() => {
+    const G = scene('town', [13.5, 8.4, 'd']); /* ต้นไม้เมือง (396,199) ฐาน 290 */
+    const alphaAt = dt => { const log = [], ctx = fakeCtx(log); G.time.now += dt; drawLayer(G, ctx, 'world'); zflush(ctx); return log.find(e => /tree-/.test(e.src || '') && Math.abs(e.dy - 199) < 1).alpha; };
+    const run = fps => {
+      G.player.y = 320; for (let i = 0; i < 120; i++) alphaAt(1 / 30); /* ยืนหน้าต้นจนทึบเต็ม */
+      G.player.y = 269; let a; for (let i = 0; i < Math.round(.3 * fps); i++) a = alphaAt(1 / fps);
+      return a;
+    };
+    const a30 = run(30), a60 = run(60), a144 = run(144);
+    ok(a30 < .9 && a60 < .9, `จางจริง (30 FPS ${a30.toFixed(4)} · 60 FPS ${a60.toFixed(4)})`);
+    ok(Math.abs(a30 - a60) / a60 < .01, `30 vs 60 FPS ต่าง ${(Math.abs(a30 - a60) / a60 * 100).toFixed(2)}% (ต้อง <1%)`);
+    ok(Math.abs(a144 - a60) / a60 < .01, `144 vs 60 FPS ต่าง ${(Math.abs(a144 - a60) / a60 * 100).toFixed(2)}%`);
+  })],
   ['ต้นไม้ทุ่งโยกเบา ๆ รอบโคนต้น (มุม ≤ .012 เรเดียน · เปลี่ยนตามเวลา · 024-core:34) · อาคาร/ต้นไม้เมืองไม่หมุน', () => withDom(() => {
     const G = scene('field', [20, 20, 'd']);
     const rots = () => { const log = [], ctx = fakeCtx(log); drawLayer(G, ctx, 'world'); zflush(ctx); return log.filter(e => 'rot' in e).map(e => e.rot); };
