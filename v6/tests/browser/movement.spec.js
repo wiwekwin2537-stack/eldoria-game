@@ -1,9 +1,11 @@
 /* เทสเบราว์เซอร์ 1A-3 (เดิน/วิ่ง/พุ่ง/คลิกเดิน/จอยมือถือ + วาดตัวละคร) · รัน: node v6/tests/browser/movement.spec.js
    เปิด dev-server พอร์ตว่าง → /v6/ ใน Chromium จริง → กดปุ่มจริง (คีย์บอร์ด/เมาส์/สัมผัส) แบบผู้เล่น
-   แคปจอ → /tmp/v6-1a3-*.png (ไม่เก็บในโปรเจกต์) */
+   แคปจอ → โฟลเดอร์ชั่วคราวของรอบนี้ (mkdtemp · ไม่เก็บในโปรเจกต์ ไม่ชนกับ AI อื่นที่รันพร้อมกัน · ผลตรวจ 1A-2f N5) */
 import { createRequire } from 'module';
 import { spawn } from 'child_process';
 import net from 'net';
+import os from 'os';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,14 +37,15 @@ async function walkTo(page, tx, ty, ms = 8000) {
   await wait(60);
   return pos(page);
 }
-async function shot(page, name) { const p = `/tmp/v6-1a3-${name}.png`; await page.screenshot({ path: p }); return p; }
+const SHOTS = fs.mkdtempSync(path.join(os.tmpdir(), 'v6-1a3-'));
+async function shot(page, name) { const p = path.join(SHOTS, name + '.png'); await page.screenshot({ path: p }); return p; }
 /* แคปเฉพาะรอบตัวละคร (ใช้เทียบกับเกมเดิม) */
 async function heroShot(page, name) {
   const r = await page.evaluate(() => {
     const G = window.__G, c = document.getElementById('c').getBoundingClientRect(), k = c.height / G.cam.vh;
     return { x: c.left + (G.player.x - G.cam.x) * k, y: c.top + (G.player.y - G.cam.y) * k, k };
   });
-  const p = `/tmp/v6-1a3-hero-${name}.png`;
+  const p = path.join(SHOTS, 'hero-' + name + '.png');
   await page.screenshot({ path: p, clip: { x: r.x - 40 * r.k, y: r.y - 70 * r.k, width: 80 * r.k, height: 85 * r.k } });
   return p;
 }

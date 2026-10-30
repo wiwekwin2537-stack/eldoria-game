@@ -1,14 +1,14 @@
 /* ภาพและสีที่ตัววาดฉาก (draw/tiles.js) ใช้ — ตารางข้อมูลล้วน (CONTRACT §3 · ผลตรวจ 1A-2 L6)
    ภาพอาคาร/พื้นเมือง 1 และเมือง 2 อยู่ใน data/maps/town.js · city2.js (TOWN_FLOOR · TOWN_ART · CITY2_ART)
-   ภาพยังอยู่ assets/incoming/ — ย้ายเมื่อทำงาน 1A-4 (webp) แล้วแก้พาธที่นี่ที่เดียว */
+   ภาพทั้งหมดของ v6 อยู่ v6/assets/ (webp · สร้างด้วย v6/tools/make-webp.py จากภาพเกมเดิม · งาน 1A-4) — ไม่โหลดจาก assets/incoming/ */
 
 /* ภาพต้นไม้ 4 แบบ TREEART 013:30 · ป่าเลือกด้วย look.tree / look.trees */
 export const TREE_SRC = {
-  oak: 'assets/incoming/tree-oak-v585.png', ancient: 'assets/incoming/tree-ancient-v585.png',
-  fire: 'assets/incoming/tree-fire-v585.png', spirit: 'assets/incoming/tree-spirit-v585.png',
+  oak: 'v6/assets/world/tree-oak-v585.webp', ancient: 'v6/assets/world/tree-ancient-v585.webp',
+  fire: 'v6/assets/world/tree-fire-v585.webp', spirit: 'v6/assets/world/tree-spirit-v585.webp',
 };
 /* ภาพช่องพื้น 4×4 ช่อง ช่องละ 128 px (WORLDART.tile 012-world-art) */
-export const TERRAIN = { src: 'assets/incoming/terrain-v585.png', cell: 128, cols: 4 };
+export const TERRAIN = { src: 'v6/assets/world/terrain-v585.webp', cell: 128, cols: 4 };
 
 /* ต้นไม้: ขนาดภาพที่ scale 1 (px) · ฐานอยู่ที่ (ช่อง·T+16, ช่อง·T+28) · ต้นไม้ทุ่ง 4 ขนาด 013:84 */
 export const TREE = {
@@ -16,7 +16,13 @@ export const TREE = {
   fieldScale: [.5, .7, .9, 1.1], fieldCut: [.2, .45, .78],
   forest: [.85, .35],          /* ป่าทึบ: .85 + สุ่ม×.35 */
   ore: .7,                     /* ต้นไม้ให้ตัด ('o' ในป่า) */
-  fade: .4,                    /* ต้นไม้ที่อยู่หน้าและบังตัวละคร → โปร่ง (spec01 §3) */
+  fade: .4,                    /* ต้นไม้ที่อยู่หน้าและบังตัวละคร → ทึบเหลือ .4 (spec01 §3 · เกมเดิม 1-.6×fade 024-core:35) */
+  fadeRate: 10,                /* ค่อย ๆ จาง/กลับทึบ: fade += (เป้า−fade)×min(1, dt×10) ต่อเฟรม (updWorld 016-core:71) */
+  body: { hw: 10, top: 48 },   /* กรอบตัวละครที่ใช้เช็กว่าต้นไม้บัง: กว้าง ±10 px จากเท้า · สูง 48 px (เกมเดิมใช้หัว P.y−48 016-core:70 · ผลตรวจ 1A-2f N2) */
+  sway: {                      /* ต้นไม้โยก: มุม (เรเดียน) = amp × sin(เวลา×speed + x×kx + y×ky) หมุนรอบโคนต้น */
+    field: { amp: .012, speed: 1.25, kx: .7, ky: .4 }, /* ต้นไม้ทุ่ง drawTree 024-core:34 */
+    ore: { amp: .01, speed: 1.2, kx: 1, ky: 0 },       /* ต้นไม้ให้ตัดในป่า drawOreZ 048-fix17:185 */
+  },                           /* ป่าทึบ (F/L) เกมเดิมวาดติดพื้น ไม่โยก → v6 ไม่โยกเหมือนกัน */
   missing: 'rgba(30,70,30,.9)',/* ภาพยังไม่มา */
 };
 

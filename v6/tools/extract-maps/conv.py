@@ -164,9 +164,31 @@ def city2():
     props.sort(key=lambda p: p[0])
     return ground, props
 
+# ภาพเกมเดิม → ภาพ webp ของ v6 (สร้างด้วย v6/tools/make-webp.py · งาน 1A-4) — ไฟล์ข้อมูลที่เขียนออกอ้างภาพ v6 เสมอ
+V6_ART = {
+    'assets/town/ground-v538.png': 'v6/assets/town/ground-v538.webp',
+    'assets/town/landmarks.png': 'v6/assets/town/landmarks.webp',
+    'assets/town/shops.png': 'v6/assets/town/shops.webp',
+    'assets/town/props-v560.webp': 'v6/assets/town/props-v560.webp',
+    'assets/town/details-v560.webp': 'v6/assets/town/details-v560.webp',
+    'assets/town/houses-v560.webp': 'v6/assets/town/houses-v560.webp',
+    'assets/town/goddess-v562.webp': 'v6/assets/town/goddess-v562.webp',
+    'assets/city2/houses-v560.webp': 'v6/assets/city2/houses-v560.webp',
+    'assets/city2/remaining-v560.webp': 'v6/assets/city2/remaining-v560.webp',
+    'assets/city2/buildings-v558.webp': 'v6/assets/city2/buildings-v558.webp',
+    'assets/city2/ground-v558.webp': 'v6/assets/city2/ground-v558.webp',
+    'assets/incoming/terrain-v585.png': 'v6/assets/world/terrain-v585.webp',
+    'assets/incoming/tree-oak-v585.png': 'v6/assets/world/tree-oak-v585.webp',
+    'assets/incoming/tree-ancient-v585.png': 'v6/assets/world/tree-ancient-v585.webp',
+    'assets/incoming/tree-fire-v585.png': 'v6/assets/world/tree-fire-v585.webp',
+    'assets/incoming/tree-spirit-v585.png': 'v6/assets/world/tree-spirit-v585.webp',
+}
+_V6_RE = re.compile(r"(['\"])(" + '|'.join(re.escape(k) for k in V6_ART) + r")\1")
+
 def write(name, header, body):
-    open(OUT + name, 'w').write(header + body)
-    print('wrote', name, len(header + body), 'bytes', (header + body).count('\n'), 'lines')
+    text = _V6_RE.sub(lambda m: m.group(1) + V6_ART[m.group(2)] + m.group(1), header + body)
+    open(OUT + name, 'w').write(text)
+    print('wrote', name, len(text), 'bytes', text.count('\n'), 'lines')
 
 HEAD = '/* ข้อมูลแมพ (สร้างจากเกมเดิมด้วยเครื่องมือดึงข้อมูล · ห้ามมีโค้ดคำนวณ · CONTRACT §3)\n   แถว = RLE: ตัวอักษรช่อง + จำนวนซ้ำ (ไม่มีเลข = 1 ช่อง) · ความหมายตัวอักษร: data/maps.js TILE */\n'
 
@@ -427,7 +449,7 @@ export const TOWN_ART = {{
 }};
 """
     # ---------- เขียนไฟล์ ----------
-    srcjs = 'const SRC = ' + js(srcs) + '; /* ภาพจาก assets/ ของเกมเดิม (กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */\n'
+    srcjs = 'const SRC = ' + js(srcs) + '; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */\n'
     write('field.js', HEAD, 'export default {\n' + field + '};\n')
     write('town.js', HEAD + srcjs, 'export default {\n' + town_js + '};\n\n' + floor + '\n' + art_js)
     write('shops.js', HEAD, 'export default {\n' + ''.join(shop_js) + '};\n')

@@ -276,14 +276,17 @@ function groundGrid(map) { /* แถวชนิดพื้นเมือง 2
 }
 
 /* ---------- ของสูงเรียงตาม y ---------- */
-function treeAt(k, src, bx, by, sc, alpha) {
+function treeAt(k, src, bx, by, sc, alpha, ang) {
   const im = image(src);
   const w = TREE.w * sc, h = TREE.h * sc;
   if (!im) { k.fillStyle = TREE.missing; k.beginPath(); k.ellipse(bx, by - h * .6, w * .4, h * .35, 0, 0, 7); k.fill(); return; }
-  if (alpha < 1) { k.save(); k.globalAlpha = alpha; }
+  const tf = alpha < 1 || ang;
+  if (tf) { k.save(); if (alpha < 1) k.globalAlpha = alpha; if (ang) { k.translate(bx, by); k.rotate(ang); k.translate(-bx, -by); } } /* โยกรอบโคนต้น */
   k.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, bx - w / 2, by - h * TREE.lift, w, h);
-  if (alpha < 1) k.restore();
+  if (tf) k.restore();
 }
+/* มุมโยกของต้นไม้ช่อง (x,y) ตามชนิด (TREE.sway) · ไม่มีชนิด = ไม่โยก */
+function swayAt(kind, x, y) { const s = kind && TREE.sway[kind]; return s ? s.amp * Math.sin(clock * s.speed + x * s.kx + y * s.ky) : 0; }
 /* เรียกทุกของสูงที่อยู่ในจอ: fn(ฐาน y, วาด(k, โปร่ง)) */
 function eachTall(G, fn) {
   const sc = G.scene, map = sc.map, c = G.cam, L = map.look || {};
@@ -293,13 +296,14 @@ function eachTall(G, fn) {
     const src = TREE_SRC[L.tree || L.trees] || TREE_SRC.oak;
     for (let y = Math.max(0, y0); y <= Math.min(map.h - 1, y1); y++) for (let x = Math.max(0, x0); x <= Math.min(map.w - 1, x1); x++) {
       const t = ch(map, x, y);
-      let sc2 = 0;
-      if (t === 't') { const r = hash(x * 3.7 + 1, y * 5.1), q = TREE.fieldCut; sc2 = TREE.fieldScale[r < q[0] ? 0 : r < q[1] ? 1 : r < q[2] ? 2 : 3]; } /* ขนาดต้นไม้ทุ่ง 013:84 */
+      let sc2 = 0, sw = null;
+      if (t === 't') { const r = hash(x * 3.7 + 1, y * 5.1), q = TREE.fieldCut; sc2 = TREE.fieldScale[r < q[0] ? 0 : r < q[1] ? 1 : r < q[2] ? 2 : 3]; sw = 'field'; } /* ขนาดต้นไม้ทุ่ง 013:84 */
       else if (t === 'F' || t === 'L' || (kind === 'road' && t === '#' && x < L.sea[0])) sc2 = TREE.forest[0] + hash(x * 1.7, y * 3.1) * TREE.forest[1]; /* ป่าทึบ/ขอบป่า = ต้นไม้แน่น */
-      else if (t === 'o' && kind !== 'terrain') sc2 = TREE.ore;
+      else if (t === 'o' && kind !== 'terrain') { sc2 = TREE.ore; sw = 'ore'; }
       if (!sc2) continue;
       const bx = x * T + 16 + (hash(x, y * 1.3) - .5) * TREE.jitter, by = y * T + TREE.baseY, tw = TREE.w * sc2, th = TREE.h * sc2 * TREE.lift;
-      fn(by, (k, a) => treeAt(k, src, bx, by, sc2, a), [bx - tw / 2, by - th, tw, th], true);
+      const ang = swayAt(sw, x, y);
+      fn(by, (k, a) => treeAt(k, src, bx, by, sc2, a, ang), [bx - tw / 2, by - th, tw, th], true);
     }
   }
   const art = artOf(map);
@@ -312,7 +316,7 @@ function eachTall(G, fn) {
     }
     if (art.roof) for (const o of art.ground) { /* หลังคาอาคาร: วาดซ้ำทับตัวละครเมื่อเดินอยู่หลังอาคาร (TOWNART.bind roof) */
       const s = art.src[o[0]];
-      if (!art.roof.srcs.includes(s) || art.roof.skip.some(q => s.endsWith('landmarks.png') && Math.abs(q[0] - o[1]) < 2 && Math.abs(q[1] - o[2]) < 2)) continue;
+      if (!art.roof.srcs.includes(s) || art.roof.skip.some(q => /landmarks\./.test(s) && Math.abs(q[0] - o[1]) < 2 && Math.abs(q[1] - o[2]) < 2)) continue;
       if (!hits(o, X0, Y0, X1, Y1)) continue;
       const band = o[8] * art.roof.part, base = o[6] + band;
       fn(base, k => { k.save(); k.beginPath(); k.rect(o[5], o[6], o[7], band); k.clip(); op(k, art.src, o); k.restore(); }, null, false);
@@ -321,15 +325,30 @@ function eachTall(G, fn) {
 }
 
 /* ส่งของสูงทุกชิ้นในจอเข้าคิวกลาง zpush(ฐาน y) — ตัวละคร/NPC/มอน ส่ง y เท้าเข้าคิวเดียวกัน → บังกันถูกทุกตัว (CONTRACT §1)
-   ต้นไม้ (fade): ตอนวาด ถ้าอยู่หน้าและบังตัวเรา (ตัวอยู่ในกรอบภาพ และอยู่หลังฐาน) → โปร่ง TREE.fade (spec01 §3)
+   ต้นไม้ (fade): ถ้าอยู่หน้าและบังกรอบตัวเรา (กว้าง ±TREE.body.hw · สูง TREE.body.top จากเท้า · ผลตรวจ 1A-2f N2) และตัวอยู่หลังฐาน
+     → ค่อย ๆ จางลงจนทึบเหลือ TREE.fade · ออกจากหลังต้นไม้ → ค่อย ๆ กลับทึบ (ตัวนับต่อต้น เก็บใน tiles ไม่ใช่ G · เกมเดิม 016-core:71 + 024-core:35)
    หลังคา: วาดซ้ำที่ฐานแนวหลังคา → ตัวที่ยืนหลังแนวนี้ถูกหลังคาบัง · ตัวที่อยู่หน้าวาดทับ (TOWNART.bind roof) */
+const FADE = new Map(); /* 'ฐาน y,x' → ระดับจาง 0..1 (เฉพาะต้นที่กำลังจาง/กลับทึบ · ล้างเมื่อเปลี่ยนฉาก) */
+let fadeAt = null, fadeScene = null;
+export function treeCovers(P, base, rect) { /* ต้นไม้ (กรอบภาพ rect · ฐาน base) บังกรอบตัวละครที่ยืนข้างหลังไหม */
+  const B = TREE.body;
+  return P.y < base && P.x + B.hw > rect[0] && P.x - B.hw < rect[0] + rect[2] && P.y > rect[1] && P.y - B.top < rect[1] + rect[3];
+}
 function pushTall(G) {
+  const P = G.player;
+  if (fadeScene !== G.scene.id) { FADE.clear(); fadeScene = G.scene.id; fadeAt = null; }
+  const dt = fadeAt == null ? 0 : Math.max(0, Math.min(.25, clock - fadeAt)); fadeAt = clock; /* หยุดเกม = เวลาไม่เดิน = ไม่จางต่อ */
+  const step = Math.min(1, dt * TREE.fadeRate);
   eachTall(G, (base, draw, rect, fade) => {
-    zpush(base, k => {
-      const P = G.player;
-      const a = fade && rect && P.y < base && P.x > rect[0] && P.x < rect[0] + rect[2] && P.y > rect[1] ? TREE.fade : 1;
-      draw(k, a);
-    });
+    let a = 1;
+    if (fade && rect) {
+      const key = base + ',' + Math.round(rect[0]), on = treeCovers(P, base, rect);
+      let f = FADE.get(key) || 0;
+      f += ((on ? 1 : 0) - f) * step;
+      if (!on && f < .005) FADE.delete(key); else FADE.set(key, f);
+      a = 1 - (1 - TREE.fade) * f;
+    }
+    zpush(base, k => draw(k, a));
   });
 }
 

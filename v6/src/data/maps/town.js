@@ -1,6 +1,6 @@
 /* ข้อมูลแมพ (สร้างจากเกมเดิมด้วยเครื่องมือดึงข้อมูล · ห้ามมีโค้ดคำนวณ · CONTRACT §3)
    แถว = RLE: ตัวอักษรช่อง + จำนวนซ้ำ (ไม่มีเลข = 1 ช่อง) · ความหมายตัวอักษร: data/maps.js TILE */
-const SRC = ["assets/town/props-v560.webp","assets/town/landmarks.png","assets/town/details-v560.webp","assets/town/houses-v560.webp","assets/town/shops.png","assets/incoming/tree-oak-v585.png","assets/town/goddess-v562.webp","assets/city2/houses-v560.webp","assets/city2/remaining-v560.webp","assets/city2/buildings-v558.webp"]; /* ภาพจาก assets/ ของเกมเดิม (กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
+const SRC = ["v6/assets/town/props-v560.webp","v6/assets/town/landmarks.webp","v6/assets/town/details-v560.webp","v6/assets/town/houses-v560.webp","v6/assets/town/shops.webp","v6/assets/world/tree-oak-v585.webp","v6/assets/town/goddess-v562.webp","v6/assets/city2/houses-v560.webp","v6/assets/city2/remaining-v560.webp","v6/assets/city2/buildings-v558.webp"]; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
 export default {
   town: {
     n: 'เมืองเอลโดเรีย', kind: 'town', w: 44, h: 34, camOy: .55, /* TW/TH 010 */
@@ -65,7 +65,7 @@ export default {
 
 export const TOWN_FLOOR = {
   /* TOWNFLOOR.paint (012-town-floor) · ถนน road() ใน buildTown 031:1331 · ภาพ 4 ส่วน (stone grass / earth marble) */
-  src: 'assets/town/ground-v538.png', size: 128,
+  src: 'v6/assets/town/ground-v538.webp', size: 128,
   quad: { stone: [0, 0], grass: [1, 0], earth: [0, 1], marble: [1, 1] },
   roads: [[0, 16, 44, 2], [15, 10, 14, 14], [21, 9, 2, 1], [21, 24, 2, 4], [2, 28, 40, 2], [32, 30, 2, 3]], /* + ประตูใต้ fix76 */
   earth: [30, 19, 11, 5], marble: [3, 18, 9, 9],
@@ -316,5 +316,5 @@ export const TOWN_ART = {
     [1026,[[5,0,0,256,320,1196.0,935.0,72.0,90.0,[1196.0,935.0,72.0,90.0]]]],
     [1032,[[2,24,40,341,465,670.0,960.0,68.0,62.0]]],
   ],
-  roof: { part: .296, srcs: ['assets/town/shops.png', 'assets/town/houses-v560.webp', 'assets/town/landmarks.png'], skip: [[19, 2], [1132, 726], [1138, 492], [600, 478], [1020, 774]] }, /* ส่วนหลังคาบังตัวละคร: TOWNART.bind roof=h·(1.42-1)/1.42 · ข้ามปราสาท/ลานวิหาร/หอคอย (ไม่มีหลังคา) */
+  roof: { part: .296, srcs: ['v6/assets/town/shops.webp', 'v6/assets/town/houses-v560.webp', 'v6/assets/town/landmarks.webp'], skip: [[19, 2], [1132, 726], [1138, 492], [600, 478], [1020, 774]] }, /* ส่วนหลังคาบังตัวละคร: TOWNART.bind roof=h·(1.42-1)/1.42 · ข้ามปราสาท/ลานวิหาร/หอคอย (ไม่มีหลังคา) */
 };

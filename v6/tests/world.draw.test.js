@@ -1,7 +1,7 @@
 /* เทสลำดับวาดของสูง (draw/tiles ผ่าน core/zsort · CONTRACT §1 · ผลตรวจ 1A-2 M2)
    รันใน Node ด้วย document/Image ปลอม · ctx ปลอมจดลำดับภาพที่วาด → เช็กว่าต้นไม้/อาคาร/หลังคา เรียงรวมกับตัวละครอื่น (NPC/มอน) ตาม y */
 import world, { enter } from '../src/systems/world.js';
-import { drawLayer } from '../src/draw/tiles.js';
+import { drawLayer, treeCovers } from '../src/draw/tiles.js';
 import { zpush, zflush, _size } from '../src/core/zsort.js';
 import { TOWN_ART } from '../src/data/maps.js';
 import { TREE } from '../src/data/art.js';
@@ -18,6 +18,7 @@ function fakeCtx(log) {
   return new Proxy({}, {
     get(_, k) {
       if (k === 'drawImage') return (im, ...a) => log.push({ src: im.src, dy: a.length >= 8 ? a[5] : a[1], alpha });
+      if (k === 'rotate') return r => log.push({ rot: r });
       if (k === 'save') return () => st.push(alpha);
       if (k === 'restore') return () => { alpha = st.pop() ?? 1; };
       if (k === 'globalAlpha') return alpha;
@@ -65,17 +66,48 @@ export default [
     drawLayer(G, ctx, 'world');
     zpush(318, () => log.push({ src: 'BEHIND' })); zpush(330, () => log.push({ src: 'FRONT' }));
     zflush(ctx);
-    const shop = TOWN_ART.src.findIndex(s => /shops\.png/.test(s)); ok(shop >= 0, 'มีภาพร้าน');
-    const roof = log.map((e, k) => [e, k]).filter(([e]) => /shops\.png/.test(e.src || '') && Math.abs(e.dy - 239) < 1);
+    const shop = TOWN_ART.src.findIndex(s => /shops\./.test(s)); ok(shop >= 0, 'มีภาพร้าน');
+    const roof = log.map((e, k) => [e, k]).filter(([e]) => /shops\./.test(e.src || '') && Math.abs(e.dy - 239) < 1);
     ok(roof.length >= 1, 'วาดหลังคาร้านอาวุธ (y 239) ' + roof.length);
     const b = log.findIndex(e => e.src === 'BEHIND'), f = log.findIndex(e => e.src === 'FRONT');
     ok(roof.every(([, k]) => k > b), 'หลังคาวาดทับตัวที่อยู่หลังแนว'); ok(roof.every(([, k]) => k < f), 'ตัวที่อยู่หน้าแนววาดทับหลังคา');
   })],
-  ['ต้นไม้หน้าตัวเรา (ตัวเราอยู่ในกรอบภาพ หลังฐาน) โปร่ง .4 · ต้นไม้อื่นทึบ', () => withDom(() => {
-    const G = scene('town', [13.5, 8.4, 'd']), log = [], ctx = fakeCtx(log); /* ต้นไม้เมือง (396,199,72,90) ฐาน 290 · ตัวเรา (432,269) */
-    drawLayer(G, ctx, 'world'); zflush(ctx);
-    const t = log.filter(e => /tree-/.test(e.src || '') && Math.abs(e.dy - 199) < 1);
-    ok(t.length === 1, 'เจอต้นไม้ (396,199) ' + t.length); eq(t[0].alpha, TREE.fade, 'ต้นไม้หน้าตัวโปร่ง');
+  ['ต้นไม้หน้าตัวเรา (ตัวเราอยู่ในกรอบภาพ หลังฐาน) ค่อย ๆ จางจนเหลือ .4 · ออกมาแล้วค่อย ๆ กลับทึบ · ต้นไม้อื่นทึบ (ผลตรวจ 1A-2f N1)', () => withDom(() => {
+    const G = scene('town', [13.5, 8.4, 'd']); /* ต้นไม้เมือง (396,199,72,90) ฐาน 290 · ตัวเรา (432,269) */
+    const tree = () => { const log = [], ctx = fakeCtx(log); drawLayer(G, ctx, 'world'); zflush(ctx); return log.filter(e => /tree-/.test(e.src || '') && Math.abs(e.dy - 199) < 1); };
+    const frames = n => { let t; for (let i = 0; i < n; i++) { G.time.now += 1 / 30; t = tree(); } return t; };
+    G.player.y = 320; frames(5); G.player.y = 269; /* เริ่มจากยืนหน้าต้นไม้ (ทึบ) แล้วเดินเข้าไปหลังต้น */
+    const a1 = frames(1)[0].alpha, a3 = frames(2)[0].alpha;
+    ok(a1 < 1 && a1 > a3 && a3 > TREE.fade + .05, `ค่อย ๆ จาง ไม่โปร่งทันที (เฟรม 1 = ${a1.toFixed(3)} · เฟรม 3 = ${a3.toFixed(3)})`);
+    const t = frames(30);
+    ok(t.length === 1, 'เจอต้นไม้ (396,199) ' + t.length); ok(Math.abs(t[0].alpha - TREE.fade) < .01, 'จางจนเหลือ .4 · ได้ ' + t[0].alpha);
+    const log = [], ctx = fakeCtx(log); drawLayer(G, ctx, 'world'); zflush(ctx);
     ok(log.filter(e => /tree-/.test(e.src || '') && Math.abs(e.dy - 199) >= 1).every(e => e.alpha === 1), 'ต้นไม้อื่นทึบ');
+    G.player.y = 320; /* เดินออกมาหน้าต้นไม้ */
+    const b1 = frames(1)[0].alpha; ok(b1 > TREE.fade && b1 < 1, 'ออกมาแล้วค่อย ๆ กลับทึบ ' + b1.toFixed(3));
+    ok(Math.abs(frames(30)[0].alpha - 1) < .01, 'กลับทึบเต็ม');
+    G.player.y = 269; /* หยุดเกม: เวลาเกมไม่เดิน (G.time.now เท่าเดิม) → ไม่จางต่อ */
+    ok(tree()[0].alpha > .99 && tree()[0].alpha > .99, 'เวลาไม่เดิน → ไม่จาง');
+  })],
+  ['เช็กบังใช้กรอบตัวละคร ไม่ใช่แค่เท้า: เท้าอยู่นอกกรอบต้นไม้ไม่เกิน 10 px แต่ตัว/หัวทับภาพ → นับว่าบัง (ผลตรวจ 1A-2f N2)', () => {
+    const rect = [396, 199, 72, 90], base = 290;
+    ok(treeCovers({ x: 432, y: 269 }, base, rect), 'ยืนกลางต้นไม้ข้างหลัง');
+    ok(treeCovers({ x: 390, y: 269 }, base, rect), 'เท้าเลยขอบซ้าย 6 px แต่แขน/ตัวทับต้นไม้ → บัง');
+    ok(treeCovers({ x: 474, y: 269 }, base, rect), 'เท้าเลยขอบขวา 6 px → บัง');
+    ok(!treeCovers({ x: 380, y: 269 }, base, rect), 'ห่างขอบ 16 px (เกินครึ่งตัว 10) → ไม่บัง');
+    ok(!treeCovers({ x: 432, y: 300 }, base, rect), 'ยืนหน้าฐานต้นไม้ → ไม่บัง');
+    ok(!treeCovers({ x: 432, y: 195 }, base, rect), 'เท้าอยู่เหนือยอดต้นไม้ → ต้นไม้ไม่ทับตัว');
+  }],
+  ['ต้นไม้ทุ่งโยกเบา ๆ รอบโคนต้น (มุม ≤ .012 เรเดียน · เปลี่ยนตามเวลา · 024-core:34) · อาคาร/ต้นไม้เมืองไม่หมุน', () => withDom(() => {
+    const G = scene('field', [20, 20, 'd']);
+    const rots = () => { const log = [], ctx = fakeCtx(log); drawLayer(G, ctx, 'world'); zflush(ctx); return log.filter(e => 'rot' in e).map(e => e.rot); };
+    G.player.y = -9999;
+    const r1 = rots(); G.time.now += .7; const r2 = rots();
+    ok(r1.length > 3, 'ต้นไม้ทุ่งหมุน (โยก) ' + r1.length);
+    ok(r1.every(r => Math.abs(r) <= TREE.sway.field.amp + 1e-9), 'มุมโยกไม่เกิน amp');
+    ok(r1.some((r, i) => Math.abs(r - r2[i]) > 1e-4), 'มุมเปลี่ยนตามเวลา');
+    const T2 = scene('town', [12, 12, 'd']); T2.player.y = -9999;
+    const log = [], ctx = fakeCtx(log); drawLayer(T2, ctx, 'world'); zflush(ctx);
+    eq(log.filter(e => 'rot' in e).length, 0, 'เมือง 1 ไม่หมุนอะไร');
   })],
 ];

@@ -1,6 +1,6 @@
 /* ข้อมูลแมพ (สร้างจากเกมเดิมด้วยเครื่องมือดึงข้อมูล · ห้ามมีโค้ดคำนวณ · CONTRACT §3)
    แถว = RLE: ตัวอักษรช่อง + จำนวนซ้ำ (ไม่มีเลข = 1 ช่อง) · ความหมายตัวอักษร: data/maps.js TILE */
-const SRC = ["assets/town/props-v560.webp","assets/town/landmarks.png","assets/town/details-v560.webp","assets/town/houses-v560.webp","assets/town/shops.png","assets/incoming/tree-oak-v585.png","assets/town/goddess-v562.webp","assets/city2/houses-v560.webp","assets/city2/remaining-v560.webp","assets/city2/buildings-v558.webp"]; /* ภาพจาก assets/ ของเกมเดิม (กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
+const SRC = ["v6/assets/town/props-v560.webp","v6/assets/town/landmarks.webp","v6/assets/town/details-v560.webp","v6/assets/town/houses-v560.webp","v6/assets/town/shops.webp","v6/assets/world/tree-oak-v585.webp","v6/assets/town/goddess-v562.webp","v6/assets/city2/houses-v560.webp","v6/assets/city2/remaining-v560.webp","v6/assets/city2/buildings-v558.webp"]; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
 export default {
   city2: {
     n: 'นครวารีอัสตรา', kind: 'town', w: 84, h: 64, camOy: .55, lv: 150, /* C2 127-fix95:8 · ผัง build98 130-fix98 */
@@ -160,7 +160,7 @@ export default {
 
 export const CITY2_ART = {
   src: SRC,
-  street: 'assets/city2/ground-v558.webp', /* ถนน: ตัดภาพ 384×384 ตามตำแหน่ง px%384 (build98 130-fix98:117) */
+  street: 'v6/assets/city2/ground-v558.webp', /* ถนน: ตัดภาพ 384×384 ตามตำแหน่ง px%384 (build98 130-fix98:117) */
   colors: { '~': ['#22689c', '#2a74aa'], P: ['#d8cfc0', '#cfc5b4'], l: ['#6a8a4a', '#62824a'], b: ['#8a6a44', '#7a5c3a'], p: ['#b8a888', '#ae9e7e'], g: ['#5a8a42', '#527e3c'], d: ['#7a5a3a', '#6e5034'] }, /* สีแทนลายพื้นที่วาดด้วยโค้ด */
   ground: [
     [0,406,443,341,231,2400,832,64,64],
