@@ -164,20 +164,25 @@ async function openGame(browser, url, opts, init) {
       window.requestAnimationFrame = cb => raf(function f(t) { if (ok(t)) cb(t); else raf(f); });
     };
 
-    console.log('— 1A-1f คุณภาพอัตโนมัติ (คอม · จำกัด 30 FPS แบบโหมดประหยัดแบต vs กระตุกจริง)');
+    console.log('— 1A-1g คุณภาพอัตโนมัติ (เทียบเป้า FPS: เป้า 30 นิ่ง 30 · เป้า 60 ช้าสม่ำเสมอ 30 · เป้า 60 กระตุก)');
     {
-      const [A, B] = await Promise.all([
+      const SET30 = page => page.evaluate(async () => { (await import('/v6/src/core/render.js')).setFpsCap(30); });
+      const [A, B, C] = await Promise.all([
         openGame(browser, url, { viewport: { width: 1366, height: 768 } }, `(${THROTTLE})([1000/30])`),
         openGame(browser, url, { viewport: { width: 1366, height: 768 } }, `(${THROTTLE})([1000/60, 50])`),
+        openGame(browser, url, { viewport: { width: 1366, height: 768 } }, `(${THROTTLE})([1000/30])`),
       ]);
-      const r0 = await Promise.all([A.page, B.page].map(p => p.evaluate(() => window.__G.cam.res)));
+      await SET30(A.page); /* ผู้เล่น/loop ตั้งเป้า 30 (เหมือนมือถือค่าเริ่ม) · C ไม่ตั้ง = คอมเป้า 60 */
+      const pages = [A.page, B.page, C.page];
+      const r0 = await Promise.all(pages.map(p => p.evaluate(() => window.__G.cam.res)));
       await wait(8500);
-      const r1 = await Promise.all([A.page, B.page].map(p => p.evaluate(() => window.__G.cam.res)));
-      const fpsA = await A.page.evaluate(() => { const t = []; return new Promise(r => { const f = n => { t.push(n); if (t.length < 31) requestAnimationFrame(f); else r(30000 / (t[30] - t[0])); }; requestAnimationFrame(f); }); });
-      ok(fpsA > 26 && fpsA < 34, 'เครื่องทดสอบ A เดินที่ ~30 FPS จริง', fpsA.toFixed(1));
-      ok(r1[0] === r0[0], 'จำกัด 30 FPS นิ่ง 8.5 วิ → ไม่ลดคุณภาพ (30 = เป้ามือถือ spec01 §1)', `${r0[0]} → ${r1[0]}`);
-      ok(r1[1] < r0[1], 'กระตุกเฉลี่ย ~30 บนจอ 60Hz → ลดคุณภาพ 1 ขั้น (เหมือนเกมเดิม)', `${r0[1]} → ${r1[1]}`);
-      await A.ctx.close(); await B.ctx.close();
+      const r1 = await Promise.all(pages.map(p => p.evaluate(() => window.__G.cam.res)));
+      const fps = await Promise.all([A.page, C.page].map(p => p.evaluate(() => { const t = []; return new Promise(r => { const f = n => { t.push(n); if (t.length < 31) requestAnimationFrame(f); else r(30000 / (t[30] - t[0])); }; requestAnimationFrame(f); }); })));
+      ok(fps.every(f => f > 26 && f < 34), 'เครื่องทดสอบ A/C เดินที่ ~30 FPS จริง', fps.map(f => f.toFixed(1)).join(' '));
+      ok(r1[0] === r0[0], 'เป้า 30 · นิ่ง 30 FPS 8.5 วิ → ไม่ลดคุณภาพ (30 = เป้า spec01 §1)', `${r0[0]} → ${r1[0]}`);
+      ok(r1[1] < r0[1], 'เป้า 60 · กระตุกเฉลี่ย ~30 → ลดคุณภาพ 1 ขั้น (เหมือนเกมเดิม)', `${r0[1]} → ${r1[1]}`);
+      ok(r1[2] < r0[2], 'เป้า 60 (คอม) · ช้าสม่ำเสมอ 30 FPS → ลดคุณภาพ 1 ขั้น (1A-1g N1)', `${r0[2]} → ${r1[2]}`);
+      await A.ctx.close(); await B.ctx.close(); await C.ctx.close();
     }
 
     console.log('— 1A-1f คอม: ปุ่ม/กันซูม/คลิกหลายจุด');
@@ -208,6 +213,26 @@ async function openGame(browser, url, opts, init) {
       await wait(80);
       ok(await page.evaluate(() => window.__G.input.mx) === 0, 'กด D ค้าง → pagehide → หยุดเดิน');
       await page.keyboard.up('KeyD');
+
+      /* 1A-1g N3: กดปุ่ม/คลิกแล้วออกจากหน้าภายในเฟรมเดียว → ตอนกลับมาต้องไม่ทำงาน */
+      for (const how of ['visibilitychange', 'pagehide', 'blur']) {
+        await page.evaluate(() => { window.__seen.length = 0; window.__clicks.length = 0; });
+        await page.evaluate(how => {
+          const k = (t, code) => dispatchEvent(new KeyboardEvent(t, { code, key: 'x', bubbles: true, cancelable: true }));
+          k('keydown', 'KeyJ'); k('keyup', 'KeyJ');
+          document.getElementById('c').dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', button: 0, clientX: 600, clientY: 400, bubbles: true }));
+          if (how === 'visibilitychange') { Object.defineProperty(document, 'hidden', { value: true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); delete document.hidden; }
+          else if (how === 'pagehide') dispatchEvent(new PageTransitionEvent('pagehide'));
+          else dispatchEvent(new Event('blur'));
+        }, how);
+        await wait(150);
+        const r = await page.evaluate(() => ({ atk: window.__seen.filter(a => a === 'attack').length, clicks: window.__clicks.length }));
+        ok(r.atk === 0 && r.clicks === 0, `กด J + คลิก แล้ว ${how} ในเฟรมเดียว → กลับมาไม่ตี ไม่คลิกเดิน`, JSON.stringify(r));
+      }
+      /* กลับมาแล้วกดใหม่ต้องใช้ได้ปกติ */
+      await page.evaluate(() => { window.__seen.length = 0; });
+      await page.keyboard.press('KeyJ'); await wait(100);
+      ok(await page.evaluate(() => window.__seen.filter(a => a === 'attack').length) === 1, 'หลังกลับมา กด J ใหม่ → ตีได้ปกติ');
 
       /* กด/ปล่อยภายในเฟรมเดียว */
       await page.evaluate(() => { window.__seen.length = 0; window.__mx.length = 0; });

@@ -28,16 +28,15 @@ export function isCoarse() {
 /* ตัววัด FPS (ฟังก์ชันล้วน เทสได้ใน node) — นับจาก rAF ของตัวเอง ไม่ใช่ dt ของเกม (dt ถูกตัดเพดาน .05 + ลูปอาจจำกัด 30 FPS)
    fpsTick(m, ห่างจากเฟรมก่อน ms, ข้าม?, เป้า FPS) → true = ควรลดคุณภาพ 1 ขั้น
    ข้าม = หยุดเกม/แท็บซ่อน/หมุนจอ · เฟรมห่างเกิน gapMs ไม่นับ (031:2697 gqMon)
-   เกณฑ์ = min(fpsLow, min(เป้า, ความเร็วจอ) × capRatio) → เครื่องจำกัด 30 FPS ที่เดินนิ่ง 30 ไม่ถูกลด */
-export function createFpsMon() { return { iv: [], t: 0, lowN: 0, fps: 0, peak: 0, limit: 0 }; }
+   เกณฑ์ = min(fpsLow, เป้า × capRatio) — เทียบกับเป้า FPS ตรงๆ (1A-1g N1: เลิกเดาความเร็วจอจาก "เฟรมเร็วสุด"
+   ซึ่งทำให้เครื่องที่ช้าสม่ำเสมอ 30/20 FPS ไม่ถูกลดเลย) → เป้า 60: ต่ำกว่า 42 ลด · เป้า 30 (มือถือ): ต่ำกว่า 21 ลด */
+export function createFpsMon() { return { iv: [], t: 0, lowN: 0, fps: 0, limit: 0 }; }
 export function fpsTick(m, dtMs, skip, target = 60, cfg = GQ_AUTO) {
   if (skip || !(dtMs > 0) || dtMs > cfg.gapMs) return false;
   m.iv.push(dtMs); m.t += dtMs;
   if (m.t < cfg.every) return false;
-  const n = m.iv.length, sorted = m.iv.slice().sort((a, b) => a - b);
-  m.fps = n * 1000 / m.t;
-  m.peak = 1000 / sorted[Math.floor((n - 1) * cfg.fastPct)];
-  m.limit = Math.min(cfg.fpsLow, Math.min(target, m.peak) * cfg.capRatio);
+  m.fps = m.iv.length * 1000 / m.t;
+  m.limit = Math.min(cfg.fpsLow, (target > 0 ? target : 60) * cfg.capRatio);
   m.iv.length = 0; m.t = 0;
   if (m.fps < m.limit) m.lowN++; else m.lowN = 0;
   if (m.lowN >= cfg.rounds) { m.lowN = 0; return true; }

@@ -141,8 +141,10 @@ const S = {
 };
 
 function typing(t) { return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); }
+/* ออกจากหน้า: ปล่อยปุ่มค้าง + ทิ้งปุ่ม/คลิกที่กดไว้แต่เฟรมยังไม่ได้อ่าน (ไม่ให้ทำงานตอนกลับมา · 1A-1g N3) */
 function releaseAll() {
   heldClear(S.keys); heldClear(S.touchHeld);
+  S.queue.length = 0; S.click = null;
   stopJoy();
 }
 

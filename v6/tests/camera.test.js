@@ -77,12 +77,42 @@ export default [
     eq(GQ.low.grass, false, 'low หญ้า'); eq(GQ.med.grass, true, 'med หญ้า');
     eq(GQ.low.grade, false, 'low grade'); eq(GQ.med.grade, false, 'med grade'); eq(GQ.high.grade, true, 'high grade'); eq(GQ.ultra.grade, true, 'ultra grade');
   }],
-  ['ลดคุณภาพอัตโนมัติ: เครื่องจำกัด 30 FPS เดินนิ่ง 30 → ไม่ลด (20 วิ)', () => {
-    for (const target of [60, 30]) {
-      const m = createFpsMon(); let down = 0;
-      for (let i = 0; i < 600; i++) down += fpsTick(m, 1000 / 30 + (i % 3 - 1) * .4, false, target) ? 1 : 0;
-      eq(down, 0, 'เป้า ' + target);
+  ['ลดคุณภาพอัตโนมัติ: เป้า 30 (มือถือ) เดินนิ่ง 30 → ไม่ลด (20 วิ)', () => {
+    const m = createFpsMon(); let down = 0;
+    for (let i = 0; i < 600; i++) down += fpsTick(m, 1000 / 30 + (i % 3 - 1) * .4, false, 30) ? 1 : 0;
+    eq(down, 0, 'เป้า 30');
+  }],
+  /* 1A-1g N1: เทียบกับเป้า ไม่ใช่ "เฟรมเร็วสุด" — โค้ดเดิมช้าสม่ำเสมอไม่ลดเลย */
+  ['ลดคุณภาพอัตโนมัติ: เป้า 60 แต่ช้าสม่ำเสมอ 30 / 40 / 20 FPS → ลด 1 ขั้นที่ ~6 วิ (2 รอบ × 3 วิ)', () => {
+    for (const fps of [30, 40, 20]) {
+      const m = createFpsMon(); let t = 0, at = 0;
+      for (let i = 0; i < 2000 && !at; i++) { const dt = 1000 / fps + (i % 3 - 1) * .3; t += dt; if (fpsTick(m, dt, false, 60)) at = t; }
+      if (!(at > 5900 && at < 6200)) throw new Error(fps + ' FPS ลดที่ ' + Math.round(at) + ' ms (ต้อง ~6000)');
     }
+  }],
+  ['ลดคุณภาพอัตโนมัติ: เป้า 60 ลื่น 60 / จอ 120Hz / 45 FPS → ไม่ลด (20 วิ)', () => {
+    for (const fps of [60, 120, 45]) {
+      const m = createFpsMon(); let down = 0;
+      for (let i = 0; i < fps * 20; i++) down += fpsTick(m, 1000 / fps + (i % 3 - 1) * .3, false, 60) ? 1 : 0;
+      eq(down, 0, fps + ' FPS');
+    }
+  }],
+  ['ลดคุณภาพอัตโนมัติ: เป้า 30 แต่ช้าสม่ำเสมอ 20 FPS → ลด · 25 FPS → ไม่ลด (เกณฑ์ 21)', () => {
+    let m = createFpsMon(), down = 0;
+    for (let i = 0; i < 400; i++) down += fpsTick(m, 50, false, 30) ? 1 : 0;
+    if (!down) throw new Error('20 FPS ไม่ลด');
+    m = createFpsMon(); down = 0;
+    for (let i = 0; i < 500; i++) down += fpsTick(m, 40, false, 30) ? 1 : 0;
+    eq(down, 0, '25 FPS');
+  }],
+  ['ลดคุณภาพอัตโนมัติ: กระตุกสลับเร็ว-ช้าที่เป้า 30 แต่เฉลี่ยเกิน 21 → ไม่ลด · ช้า 1 รอบแล้วกลับลื่น → ไม่ลด (ต้อง 2 รอบติด)', () => {
+    let m = createFpsMon(), down = 0;
+    for (let i = 0; i < 600; i++) down += fpsTick(m, i % 2 ? 1000 / 30 : 50, false, 30) ? 1 : 0; /* เฉลี่ย 24 */
+    eq(down, 0, 'สลับ 33/50 ms');
+    m = createFpsMon(); down = 0;
+    for (let i = 0; i < 100; i++) down += fpsTick(m, 1000 / 30, false, 60) ? 1 : 0; /* 3.3 วิ ช้า */
+    for (let i = 0; i < 600; i++) down += fpsTick(m, 1000 / 60, false, 60) ? 1 : 0;
+    eq(down, 0, 'ช้า 1 รอบ');
   }],
   ['ลดคุณภาพอัตโนมัติ: จอ 60Hz แต่กระตุกเฉลี่ย ~30 FPS → ลด 1 ขั้นภายใน ~6 วิ (เหมือนเกมเดิม)', () => {
     const m = createFpsMon(); let t = 0, at = 0;

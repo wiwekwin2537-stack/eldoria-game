@@ -14,6 +14,7 @@ import { T } from '../src/config.js';
 const { step, startDash, pathTo, unstick, moveBy, clickTick } = _test;
 
 const ok = (v, m) => { if (!v) throw new Error(m); };
+const eq18 = () => ok(CLICK.stuckSpeed === 18, 'CLICK.stuckSpeed ต้องเป็น 18 px/วิ (หัวหน้าตัดสิน 1A-1g) ได้ ' + CLICK.stuckSpeed);
 const near = (a, b, e, m) => { if (!(Math.abs(a - b) <= e)) throw new Error(`${m}: ได้ ${a} ต้องเป็น ${b} ±${e}`); };
 
 /* แมพทดสอบ: '.' พื้น '#' กำแพง '~' น้ำ · ขอบเป็นกำแพง */
@@ -208,6 +209,50 @@ export default [
     ok(G.player.x > 8 * T, 'ทุ่งหญ้าต้องเดินลงน้ำได้');
     G = fresh(rows, 'town'); G.player.x = 6 * T; key(G, 1, 0); run(G, 1);
     ok(G.player.x < 8 * T, 'ในเมืองน้ำต้องขวาง');
+  }],
+  /* 1A-1g: ตัวนับ "ติด" วัดเป็นความเร็ว (< CLICK.stuckSpeed px/วิ) ไม่ขึ้นกับ FPS · โค้ดเดิม .3 px/เฟรม พังที่ 144/360 Hz + ว่ายน้ำแรงหมด */
+  ['คลิกเดิน: เกณฑ์ติด CLICK.stuckSpeed = 18 px/วิ (หัวหน้าตัดสิน 1A-1g · = .3 px/เฟรมที่ 60 FPS)', () => { eq18(); }],
+  ['คลิกเดิน: เดินปกติที่ 30/60/144/360 Hz ไม่นับว่าติด (เดินถึงไกล 3 วิ จุดหมายยังอยู่)', () => {
+    for (const hz of [30, 60, 144, 360]) {
+      const G = fresh(); key(G, 0, 0); G.input.click = { wx: 36 * T + 16, wy: 5 * T + 16 };
+      const x0 = G.player.x; let maxStk = 0;
+      run(G, 3, 1 / hz, () => { maxStk = Math.max(maxStk, _test.clickState().stk); });
+      ok(clickGoal(), hz + ' Hz: คลิกเดินหยุดเองทั้งที่เดินอยู่ (ถูกนับว่าติด) x=' + (G.player.x - x0).toFixed(1));
+      near(G.player.x - x0, MOVE.walk * 3, 3, hz + ' Hz ระยะเดิน 3 วิ');
+      ok(maxStk <= 1 / hz + 1e-9, hz + ' Hz: ตัวนับติดขึ้นถึง ' + maxStk.toFixed(3) + ' วิ (ต้องไม่เกิน 1 เฟรมแรก)');
+    }
+  }],
+  ['คลิกเดิน: ว่ายน้ำแรงหมด (~35 px/วิ) ที่ 60/120/144/360 Hz ไม่นับว่าติด', () => {
+    const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 3) + '~'.repeat(34) + r.slice(37) : r);
+    const slow = MOVE.walk * SWIM.mul * MOVE.tiredMul;
+    ok(slow > 18 * 1.5 && slow < 40, 'ความเร็วว่ายแรงหมด ' + slow);
+    for (const hz of [60, 120, 144, 360]) {
+      const G = fresh(rows, 'field'); key(G, 0, 0); G.input.click = { wx: 30 * T + 16, wy: 5 * T + 16 };
+      const x0 = G.player.x; let maxStk = 0;
+      run(G, 3, 1 / hz, G => { G.player.sp = 0; maxStk = Math.max(maxStk, _test.clickState().stk); });
+      ok(G.player.anim.swim, hz + ' Hz: ต้องอยู่ในน้ำ');
+      ok(clickGoal(), hz + ' Hz: ว่ายช้าแล้วคลิกเดินหยุดเอง (ถูกนับว่าติด) x=' + (G.player.x - x0).toFixed(1));
+      near(G.player.x - x0, slow * 3, 2, hz + ' Hz ระยะว่าย 3 วิ');
+      ok(maxStk <= 1 / hz + 1e-9, hz + ' Hz: ตัวนับติดขึ้นถึง ' + maxStk.toFixed(3) + ' วิ');
+    }
+  }],
+  ['คลิกเดิน: ชนกำแพงที่ 30/60/144/360 Hz → นับติด · ไกล > 72 px หยุดที่ ~1.2 วิ · ใกล้ < 72 px ใช้ที่ ~.5 วิ', () => {
+    /* กำแพงทึบแนวตั้ง x=10 (ไม่มีช่อง) → BFS ไปได้แค่ช่องติดกำแพง แล้วเดินตรงเข้ากำแพง */
+    const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 10) + '#' + r.slice(11) : r);
+    for (const hz of [30, 60, 144, 360]) for (const [tx, rule] of [[16, CLICK.stuckRepath], [11, CLICK.stuckUse]]) {
+      const G = fresh(rows, 'town'); G.player.x = 7 * T + 16; key(G, 0, 0);
+      G.input.click = { wx: tx * T + 16, wy: 5 * T + 16 };
+      let lastX = G.player.x, still = -1, end = -1, t = 0;
+      const dt = 1 / hz;
+      for (let i = 0; i < hz * 5 && end < 0; i++) {
+        step(G, dt); G.input.click = null; t += dt;
+        if (G.player.x !== lastX) { lastX = G.player.x; still = -1; } else if (still < 0) still = t - dt;
+        if (!clickGoal()) end = t;
+      }
+      ok(end > 0, hz + ' Hz: ชนกำแพงแล้วคลิกเดินไม่หยุด (ไม่นับติด) tx=' + tx);
+      ok(G.player.x > 9 * T + 16, hz + ' Hz: ต้องเดินไปถึงกำแพงก่อน x=' + G.player.x);
+      near(end - still, rule, 2 / hz + .02, hz + ' Hz tx=' + tx + ' เวลาตั้งแต่ติดจนหยุด/ใช้');
+    }
   }],
   ['คลิกเดิน: BFS อ้อมกำแพงไปถึงประตูแบบเดิน → เปลี่ยนฉาก', () => {
     /* กำแพงแนวตั้ง x=10 มีช่องว่างที่ y=15 · ประตูเดิน (box) ที่ (14,5) → town */

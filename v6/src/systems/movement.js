@@ -17,7 +17,7 @@ import { drawHero, heroView } from '../draw/hero.js';
 const DIRV = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
 
 /* สถานะคลิกเดิน (ไม่เซฟ) */
-const C = { goal: null, path: null, repath: 0, stk: 0, lx: 0, ly: 0 };
+const C = { goal: null, path: null, repath: 0, stk: 0, lx: 0, ly: 0, ldt: 0 }; /* ldt = dt ของเฟรมที่ขยับ lx,ly → ความเร็ว */
 let offEnter = null;
 
 /* ---------- ช่วยเหลือ ---------- */
@@ -134,12 +134,12 @@ export function dodge(G) {
 }
 
 /* ---------- คลิกเดิน (198-click-move · spec01 §5) ---------- */
-export function stopClick() { C.goal = C.path = null; C.stk = 0; C.repath = 0; }
+export function stopClick() { C.goal = C.path = null; C.stk = 0; C.repath = 0; C.ldt = 0; }
 export function clickGoal() { return C.goal ? { ...C.goal, path: C.path ? C.path.map(p => [...p]) : null } : null; }
 function setClick(G, wx, wy) {
   stopClick();
   C.goal = { x: wx, y: wy };
-  C.lx = G.player.x; C.ly = G.player.y;
+  C.lx = G.player.x; C.ly = G.player.y; C.ldt = 0;
 }
 function inBox(tx, ty, b) { const x = tx + .5, y = ty + .5; return x >= b[0] && x < b[0] + b[2] && y >= b[1] && y < b[1] + b[3]; }
 /* ช่องนี้อยู่ในประตูแบบเดิน (เปลี่ยนฉากทันที) — คลิกเดินไม่ผ่าน ยกเว้นคลิกที่ประตูนั้นเอง (เกมเดิมไม่เดินเข้า TOWNGATE) */
@@ -196,13 +196,15 @@ function clickTick(G, dt) {
   while (p.length && Math.floor(P.x / T) === p[0][0] && Math.floor(P.y / T) === p[0][1]) p.shift();
   const nx = p.length ? p[0][0] * T + CLICK.cell[0] : tx, ny = p.length ? p[0][1] * T + CLICK.cell[1] : ty;
   /* ติดอยู่กับที่นาน → ใช้ตรงนี้ / หาทางใหม่ / หยุด (spec01 §5) */
-  const mv = Math.hypot(P.x - C.lx, P.y - C.ly);
-  C.lx = P.x; C.ly = P.y;
+  /* วัดเป็นความเร็ว px/วิ (ระยะที่ขยับในเฟรมก่อน ÷ dt ของเฟรมนั้น) ไม่ใช่ px/เฟรม → จอ 30/60/144/360 Hz ผลเท่ากัน (1A-1g)
+     เฟรมแรกหลังคลิกยังไม่มีเฟรมก่อน → หารด้วย dt นี้ (ระยะ 0 = นับติด 1 เฟรมแบบเดิม) */
+  const spd = Math.hypot(P.x - C.lx, P.y - C.ly) / (C.ldt > 0 ? C.ldt : dt || 1);
+  C.lx = P.x; C.ly = P.y; C.ldt = dt;
   /* มึน: ล้างตัวนับติด ไม่เดิน (จุดหมายยังอยู่ เดินต่อเมื่อหายมึน) · ตอนตี/ตอนพุ่ง: ไม่นับติด — แบบเกมเดิม 198-click-move.js:64
      (เกมเดิม `if(P.stun>0…){CM.stk=0;return}` · นับเฉพาะ `P.at<0` ไม่งั้นล้าง) */
   if (P.stun > 0) { C.stk = 0; return null; }
   const atk = P.at >= 0 && P.at !== null && P.at !== undefined;
-  if (mv < CLICK.stuckMove && !atk && !(P.dash.t > 0)) {
+  if (spd < CLICK.stuckSpeed && !atk && !(P.dash.t > 0)) {
     C.stk += dt;
     if (C.stk > CLICK.stuckUse && !p.length && Math.hypot(tx - P.x, ty - P.y) < CLICK.useNear) { useHere(G); return null; }
     if (C.stk > CLICK.stuckRepath) {
