@@ -2,6 +2,10 @@ import { zflush } from './zsort.js';
 /* loop — ลูปเกม: update ทุกระบบตามลำดับ แล้ววาดทีละชั้น (dt ≤ 0.05 ตามเกมเดิม · spec01 §1) */
 export const LAYERS = ['ground', 'world', 'top', 'ui'];
 export const MAX_DT = 0.05;
+export const CAP30_MS = 30;
+let capOf = () => 60;
+/* render ตั้งตัวอ่านเป้า FPS ให้ (ไม่ import render ตรง กันวน) */
+export function setCapSource(fn) { capOf = fn; }
 
 export function stepFrame(G, systems, dt) {
   /* หยุดเกม (เมนู/จอแนวตั้ง) → เวลาเกมไม่เดิน · เรียกเฉพาะระบบ always (CONTRACT §1) */
@@ -29,6 +33,8 @@ export function drawFrame(G, systems, ctx) {
 export function startLoop(G, systems, ctx, { beforeFrame, afterFrame } = {}) {
   let last = performance.now();
   function frame(now) {
+    /* จำกัด 30 FPS: ข้ามเฟรมที่ห่างจากเฟรมที่ทำล่าสุด < 30ms แบบเกมเดิม (spec01 §1 · 031:3848) · เป้ามาจาก core/render */
+    if (capOf() === 30 && now - last < CAP30_MS) { requestAnimationFrame(frame); return; }
     const dt = (now - last) / 1000;
     last = now;
     beforeFrame?.(G);

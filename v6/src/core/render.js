@@ -71,6 +71,7 @@ export function setQuality(level, auto = false) {
 export function quality() { return { level: R.level, auto: R.auto, fps: R.mon.fps, ...GQ[R.level] }; }
 /* เป้า FPS (30/60) — หน้าตั้งค่า/loop เรียกเมื่อผู้เล่นเปลี่ยน · ใช้คิดเกณฑ์ลดคุณภาพ */
 export function setFpsCap(n) { if (n === 30 || n === 60) R.fpsCap = n; }
+export function fpsCap() { return R.fpsCap; } /* loop ใช้จำกัดเฟรมจริง (หัวหน้า 30 ต.ค.) */
 
 export function fit() {
   const G = R.G, cv = R.canvas;

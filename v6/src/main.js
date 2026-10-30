@@ -1,8 +1,8 @@
 /* main — เริ่มเกม: สร้าง G → init ทุกระบบ → เริ่มลูป */
 import { createState } from './core/state.js';
-import { startLoop } from './core/loop.js';
+import { startLoop, setCapSource } from './core/loop.js';
 import systems from './systems/index.js';
-import { attachCanvas } from './core/render.js';
+import { attachCanvas, fpsCap } from './core/render.js';
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -15,4 +15,5 @@ attachCanvas(G, canvas);
 for (const s of systems) {
   try { s.init?.(G); } catch (e) { console.error('[init]', s.id, e); }
 }
+setCapSource(fpsCap); /* มือถือจำกัด 30 FPS จริง ตามเป้าที่ render ใช้วัดคุณภาพ (หัวหน้า 30 ต.ค.) */
 startLoop(G, systems, ctx);
