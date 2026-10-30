@@ -65,6 +65,8 @@ export default {
 |---|---|
 | `systems/world` | `hit` `tileAt` `isSolidAt` `enter` `follow` `linkNear` `getMap` `setChooser` `returnPoint` |
 | `core/camera` | `screenToWorld` `worldToScreen` `shake` `setView` |
+| `core/render` | `setQuality` `quality` `setFpsCap` |
+| `core/input` | `setRunKey` `setJoySide` `setJoyRun` `joySettings` |
 | `core/zsort` | `zpush` |
 | `systems/movement` | `dodge` `stopClick` `clickGoal` |
 
