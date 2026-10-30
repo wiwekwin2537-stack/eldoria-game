@@ -1,7 +1,8 @@
 /* เทสจอ/กล้อง (core/camera + ส่วนคำนวณของ core/render) — spec01 §3 */
 import { viewSize, camTarget, stepCam, snap, screenToWorld, worldToScreen, VIEW } from '../src/core/camera.js';
 import camera from '../src/core/camera.js';
-import { guessQuality, fitBox, GQ } from '../src/core/render.js';
+import { guessQuality, fitBox, GQ, createFpsMon, fpsTick } from '../src/core/render.js';
+import * as VIEWDATA from '../src/data/view.js';
 import { createState } from '../src/core/state.js';
 
 const eq = (a, b, m) => { if (a !== b) throw new Error(`${m}: ได้ ${a} ต้องเป็น ${b}`); };
@@ -66,5 +67,38 @@ export default [
   ['canvas พอดีหน้าต่างไม่ยืดภาพ (กว้างเกิน 2.4 = ขอบดำ)', () => {
     const b = fitBox(3000, 400, 1075, 448);
     eq(b.ch, 400, 'สูงเต็ม'); eq(b.cw, Math.round(1075 * 400 / 448), 'กว้างตามสัดส่วน'); eq(b.left, Math.floor((3000 - b.cw) / 2), 'กึ่งกลาง');
+  }],
+  /* ---- 1A-1f (แก้ตามผลตรวจ) ---- */
+  ['ค่าจอ/คุณภาพ/เวลาแตะ อยู่ data/view.js (CONTRACT §3) และ core ใช้ชุดเดียวกัน', () => {
+    eq(VIEWDATA.VIEW, VIEW, 'VIEW'); eq(VIEWDATA.GQ, GQ, 'GQ'); eq(VIEWDATA.DOUBLE_TAP_MS, 300, 'แตะซ้ำ 300ms');
+  }],
+  ['GQ ตรงเกมเดิม: mm high 3 / ultra 2 · low ปิดหญ้า · low/med ปิด grade (031:2680)', () => {
+    eq(GQ.high.mm, 3, 'high mm'); eq(GQ.ultra.mm, 2, 'ultra mm'); eq(GQ.low.mm, 10, 'low mm'); eq(GQ.med.mm, 4, 'med mm');
+    eq(GQ.low.grass, false, 'low หญ้า'); eq(GQ.med.grass, true, 'med หญ้า');
+    eq(GQ.low.grade, false, 'low grade'); eq(GQ.med.grade, false, 'med grade'); eq(GQ.high.grade, true, 'high grade'); eq(GQ.ultra.grade, true, 'ultra grade');
+  }],
+  ['ลดคุณภาพอัตโนมัติ: เครื่องจำกัด 30 FPS เดินนิ่ง 30 → ไม่ลด (20 วิ)', () => {
+    for (const target of [60, 30]) {
+      const m = createFpsMon(); let down = 0;
+      for (let i = 0; i < 600; i++) down += fpsTick(m, 1000 / 30 + (i % 3 - 1) * .4, false, target) ? 1 : 0;
+      eq(down, 0, 'เป้า ' + target);
+    }
+  }],
+  ['ลดคุณภาพอัตโนมัติ: จอ 60Hz แต่กระตุกเฉลี่ย ~30 FPS → ลด 1 ขั้นภายใน ~6 วิ (เหมือนเกมเดิม)', () => {
+    const m = createFpsMon(); let t = 0, at = 0;
+    for (let i = 0; i < 2000 && !at; i++) { const dt = i % 2 ? 1000 / 60 : 50; t += dt; if (fpsTick(m, dt, false, 60)) at = t; }
+    if (!(at > 5000 && at < 7000)) throw new Error('ลดที่ ' + at + ' ms');
+  }],
+  ['ลดคุณภาพอัตโนมัติ: เครื่องจำกัด 30 ที่ช้าจริง (~15 FPS กระตุก) → ยังลดได้', () => {
+    const m = createFpsMon(); let down = 0;
+    for (let i = 0; i < 600; i++) down += fpsTick(m, i % 2 ? 1000 / 30 : 100, false, 30) ? 1 : 0;
+    if (!down) throw new Error('ไม่ลด');
+  }],
+  ['ลดคุณภาพอัตโนมัติ: ช่วงหยุดเกม/แท็บซ่อน (skip) และเฟรมห่าง >250ms ไม่นับ', () => {
+    const m = createFpsMon(); let down = 0;
+    for (let i = 0; i < 600; i++) down += fpsTick(m, 100, true, 60) ? 1 : 0;      /* หยุดเกม: 10 FPS แต่ข้าม */
+    for (let i = 0; i < 100; i++) down += fpsTick(m, 400, false, 60) ? 1 : 0;     /* สลับแท็บ/สะดุด */
+    for (let i = 0; i < 600; i++) down += fpsTick(m, 1000 / 60, false, 60) ? 1 : 0; /* กลับมาลื่น */
+    eq(down, 0, 'ไม่ลด'); eq(m.iv.length < 200, true, 'ไม่เก็บเฟรมที่ข้าม');
   }],
 ];

@@ -174,7 +174,7 @@ function bindKeyboard() {
   let lt = 0;
   document.addEventListener('touchend', e => { /* แตะซ้ำ <DOUBLE_TAP_MS นอกปุ่ม = กันซูม (วัดช่วงแตะ ไม่ใช่คูลดาวน์) */
     const n = performance.now();
-    if (n - lt < DOUBLE_TAP_MS && !(e.target && e.target.closest && e.target.closest('input,textarea,select,button,a,[data-act]'))) e.preventDefault();
+    if (e.cancelable && n - lt < DOUBLE_TAP_MS && !(e.target && e.target.closest && e.target.closest('input,textarea,select,button,a,[data-act]'))) e.preventDefault();
     lt = n;
   }, { passive: false });
 }
@@ -264,6 +264,7 @@ function buildTouchUI() {
   hint.textContent = JOY.hint;
   const base = css(div('joybase', zone), {
     position: 'absolute', width: JOY.size + 'px', height: JOY.size + 'px', borderRadius: '50%', display: 'none',
+    boxSizing: 'border-box', /* ขอบ 4px อยู่ในขนาด → กลางวงที่เห็น = จุดกลางที่คิดทิศ (เดิมเลื่อน 4px) */
     border: '4px solid rgba(255,255,255,.45)', background: 'rgba(20,24,36,.35)', opacity: JOY.opacity, pointerEvents: 'none',
   });
   const knob = css(div('joyknob', base), {

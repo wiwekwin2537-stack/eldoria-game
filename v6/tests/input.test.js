@@ -1,5 +1,5 @@
 /* เทสการควบคุม (core/input + data/controls) — CONTRACT §5 · spec01 §5 */
-import { keyMove, keyAction, isRunKey, joyVector, joyCenter, readPad } from '../src/core/input.js';
+import { keyMove, keyAction, isRunKey, joyVector, joyCenter, readPad, isZoomKey, takePressed, createHeld, heldDown, heldUp, heldFrame, heldClear } from '../src/core/input.js';
 import input from '../src/core/input.js';
 import { ACTION_KEYS, JOY, ACT_BUTTONS, PAD_BUTTONS } from '../src/data/controls.js';
 import { createState } from '../src/core/state.js';
@@ -92,5 +92,47 @@ export default [
     input.update(G, .016);
     eq(G.input.mx, 0, 'mx'); eq(G.input.pressed.size, 0, 'pressed'); eq(G.input.click, null, 'click'); eq(G.input.run, false, 'run');
     eq(G.input.pressed !== before, true, 'Set ใหม่');
+  }],
+  /* ---- 1A-1f (แก้ตามผลตรวจ) ---- */
+  ['กันซูม Ctrl ± 0 ใช้ e.code — แป้นไทย (ช ข จ) ก็กันได้ · ไม่มี Ctrl = ไม่กัน', () => {
+    eq(isZoomKey({ ctrlKey: true, code: 'Equal', key: 'ช' }), true, 'Ctrl+= แป้นไทย');
+    eq(isZoomKey({ ctrlKey: true, code: 'Minus', key: 'ข' }), true, 'Ctrl+- แป้นไทย');
+    eq(isZoomKey({ metaKey: true, code: 'Digit0', key: 'จ' }), true, '⌘+0 แป้นไทย');
+    eq(isZoomKey({ ctrlKey: true, code: 'NumpadAdd', key: '+' }), true, 'Numpad +');
+    eq(isZoomKey({ ctrlKey: false, code: 'Equal', key: '=' }), false, 'ไม่มี Ctrl');
+    eq(isZoomKey({ ctrlKey: true, code: 'KeyW', key: 'w' }), false, 'Ctrl+W ไม่ใช่ซูม');
+  }],
+  ['กด J 3 ครั้งก่อนเฟรมถัดไป → attack 3 เฟรมติดกัน (ไม่รวมเหลือ 1)', () => {
+    const q = ['attack', 'attack', 'dash', 'attack'];
+    eq([...takePressed(q)].join(), 'attack,dash', 'เฟรม 1');
+    eq([...takePressed(q)].join(), 'attack', 'เฟรม 2');
+    eq([...takePressed(q)].join(), 'attack', 'เฟรม 3');
+    eq(takePressed(q).size, 0, 'เฟรม 4 ว่าง');
+  }],
+  ['แตะปุ่มเดินสั้นกว่า 1 เฟรม → ยังค้าง 1 เฟรม (เดิน 1 ก้าว) แล้วหาย', () => {
+    const h = createHeld();
+    heldDown(h, 'KeyD'); heldUp(h, 'KeyD');
+    eq(heldFrame(h).has('KeyD'), true, 'เฟรมแรกเห็น');
+    eq(heldFrame(h).has('KeyD'), false, 'เฟรมถัดไปหาย');
+    eq(keyMove(new Set(['KeyD'])).mx, 1, 'เดินขวา');
+  }],
+  ['กดค้างที่เฟรมเห็นแล้ว ปล่อย = หายทันทีเฟรมถัดไป (ไม่ค้างเกิน)', () => {
+    const h = createHeld();
+    heldDown(h, 'KeyD'); heldFrame(h); heldUp(h, 'KeyD');
+    eq(heldFrame(h).size, 0, 'ปล่อยแล้ว');
+  }],
+  ['สองนิ้วกดปุ่มเดียว: ยกนิ้วแรก → ยังค้าง · ยกครบ → ปล่อย', () => {
+    const h = createHeld();
+    heldDown(h, 'attack', 1); heldDown(h, 'attack', 2); heldFrame(h);
+    heldUp(h, 'attack', 1);
+    eq(heldFrame(h).has('attack'), true, 'ยังมีนิ้วที่ 2');
+    heldUp(h, 'attack', 2);
+    eq(heldFrame(h).has('attack'), false, 'ยกครบ');
+    heldDown(h, 'dash', 3); heldClear(h); eq(heldFrame(h).size, 0, 'ล้างทั้งหมด (blur/ซ่อนแท็บ)');
+  }],
+  ['ตั้งค่า joyRun ปิด → ดันจอยสุดไม่วิ่ง (ค่าเริ่มเปิด · joySide ค่าเริ่มซ้าย)', () => {
+    eq(JOY.run, true, 'ค่าเริ่ม joyRun'); eq(JOY.side, 'left', 'ค่าเริ่ม joySide');
+    eq(joyVector(0, -140, 70, JOY, false).run, false, 'ปิดวิ่ง');
+    eq(joyVector(0, -140, 70, JOY, true).run, true, 'เปิดวิ่ง');
   }],
 ];
