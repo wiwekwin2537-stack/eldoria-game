@@ -116,12 +116,15 @@ const rgb = a => 'rgb(' + (a[0] | 0) + ',' + (a[1] | 0) + ',' + (a[2] | 0) + ')'
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 function ch(map, x, y) { return x < 0 || y < 0 || x >= map.w || y >= map.h ? '#' : String.fromCharCode(map.grid[y * map.w + x]); }
 
+/* ย่อภาพคุณภาพสูง: ImageBitmap ถูกย่อแบบหยาบถ้าไม่ตั้ง (ผลตรวจ 1Y M1 · หัวหน้า 30 ต.ค.) */
+function hq(k) { if (k.imageSmoothingQuality !== 'high') { k.imageSmoothingEnabled = true; k.imageSmoothingQuality = 'high'; } }
+
 /* ---------- ภาพจากตารางข้อมูล [ภาพ, sx,sy,sw,sh, dx,dy,dw,dh, กรอบตัด?] ---------- */
 function op(k, src, o) {
   const im = image(src[o[0]]);
   if (!im) return false;
   if (o[9]) { k.save(); k.beginPath(); k.rect(o[9][0], o[9][1], o[9][2], o[9][3]); k.clip(); }
-  k.drawImage(im, o[1], o[2], o[3], o[4], o[5], o[6], o[7], o[8]);
+  hq(k); k.drawImage(im, o[1], o[2], o[3], o[4], o[5], o[6], o[7], o[8]);
   if (o[9]) k.restore();
   return true;
 }
@@ -155,7 +158,7 @@ const FLOOR = {
       const w = imgW(im) / 2, h = imgH(im) / 2;
       for (const [kind, q] of Object.entries(F.quad)) {
         const c = document.createElement('canvas'); c.width = c.height = F.size;
-        c.getContext('2d').drawImage(im, q[0] * w, q[1] * h, w, h, 0, 0, F.size, F.size);
+        { const g2 = c.getContext('2d'); hq(g2); g2.drawImage(im, q[0] * w, q[1] * h, w, h, 0, 0, F.size, F.size); }
         pat[kind] = k.createPattern(c, 'repeat');
       }
     }
@@ -340,7 +343,7 @@ function treeAt(k, src, bx, by, sc, alpha, ang) {
   if (!im) { k.fillStyle = TREE.missing; k.beginPath(); k.ellipse(bx, by - h * .6, w * .4, h * .35, 0, 0, 7); k.fill(); return; }
   const tf = alpha < 1 || ang;
   if (tf) { k.save(); if (alpha < 1) k.globalAlpha = alpha; if (ang) { k.translate(bx, by); k.rotate(ang); k.translate(-bx, -by); } } /* โยกรอบโคนต้น */
-  k.drawImage(im, 0, 0, imgW(im), imgH(im), bx - w / 2, by - h * TREE.lift, w, h);
+  hq(k); k.drawImage(im, 0, 0, imgW(im), imgH(im), bx - w / 2, by - h * TREE.lift, w, h);
   if (tf) k.restore();
 }
 /* มุมโยกของต้นไม้ช่อง (x,y) ตามชนิด (TREE.sway) · ไม่มีชนิด = ไม่โยก */
