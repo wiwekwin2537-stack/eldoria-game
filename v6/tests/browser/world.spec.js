@@ -1,9 +1,12 @@
 /* เทสเบราว์เซอร์ 1A-2 (แมพ/ประตู/วาดฉาก) · รัน: node v6/tests/browser/world.spec.js [--long]
    เปิด dev-server พอร์ตว่าง → /v6/ ใน Chromium จริง → เข้าแมพต่าง ๆ ผ่านฟังก์ชันของ world (ยังไม่มีระบบเดิน 1A-3)
-   กด E จริงที่หน้าประตูร้าน · แคปจอ → /tmp/v6-1a2-*.png (ไม่เก็บในโปรเจกต์) · --long = รอ 50 วิ เช็กคืนหน่วยความจำ 45 วิ */
+   กด E จริงที่หน้าประตูร้าน · แคปจอ → โฟลเดอร์ชั่วคราวของรอบนี้ (mkdtemp · ไม่เก็บในโปรเจกต์ ไม่ชนกับ AI อื่น) · --long = รอ 50 วิ เช็กคืนหน่วยความจำ 45 วิ
+   1A-2f: บังหน้า-หลังผ่าน zpush (หลังคา/ต้นไม้ vs ตัวละคร · เทียบพิกเซล) · ยืนในเมืองเกิน 45 วิ พื้นไม่โหลดใหม่ (M4) · เวลาเฟรมตอนวาป (L9) */
 import { createRequire } from 'module';
 import { spawn } from 'child_process';
 import net from 'net';
+import os from 'os';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -35,7 +38,30 @@ async function painted(page) {
     return { frac: n / (d.length / 4 / 97), cols: cols.size };
   });
 }
-async function shot(page, name) { const p = `/tmp/v6-1a2-${name}.png`; await page.screenshot({ path: p }); return p; }
+const SHOTS = fs.mkdtempSync(path.join(os.tmpdir(), 'v6-1a2-'));
+async function shot(page, name) { const p = path.join(SHOTS, name + '.png'); await page.screenshot({ path: p }); return p; }
+/* ยืนที่ (x,y) px แบบหยุดเกม (เวลา/อนิเมชันไม่เดิน) แล้วอ่านพิกเซลบริเวณลำตัว ตอนเสื้อแดง/เสื้อเขียว → ต่างกันเท่าไร
+   ลำตัวถูกของอื่นบังมิด = ต่างกัน ~0 · ตัวอยู่บนสุด = ต่างกันมาก · ถูกบังแบบโปร่ง = อยู่ระหว่างกลาง */
+async function headDiff(page, x, y, name) {
+  /* วางตัวก่อนแล้วรอกล้องตามให้นิ่ง (กล้องไม่ขยับตอนหยุดเกม) → ค่อยหยุดเกม */
+  await page.evaluate(([x, y]) => { const G = window.__G; G.player.x = x; G.player.y = y; G.player.moving = false; G.player.dir = 'd'; G.player.look = { top: '#ff0000' }; }, [x, y]);
+  await wait(1500);
+  await page.evaluate(([x, y]) => { const G = window.__G; G.paused = true; G.player.x = x; G.player.y = y; G.player.dir = 'd'; }, [x, y]);
+  await wait(300);
+  const grab = () => page.evaluate(([x, y]) => {
+    const G = window.__G, c = document.getElementById('c'), k = c.getContext('2d'), s = c.width / G.cam.vw;
+    const sx = Math.round((x - 5 - G.cam.x) * s), sy = Math.round((y - 19 - G.cam.y) * s), w = Math.round(10 * s), h = Math.round(9 * s);
+    if (sx < 0 || sy < 0 || sx + w > c.width || sy + h > c.height) throw new Error('หัวตัวละครอยู่นอกจอ ' + [sx, sy]);
+    return Array.from(k.getImageData(sx, sy, w, h).data);
+  }, [x, y]);
+  const a = await grab();
+  if (name) console.log('    รูป', await shot(page, name));
+  await page.evaluate(() => { window.__G.player.look = { top: '#00ff00' }; }); await wait(250);
+  const b = await grab();
+  await page.evaluate(() => { window.__G.paused = false; delete window.__G.player.look; });
+  let d = 0; for (let i = 0; i < a.length; i += 4) d += Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]);
+  return d / (a.length / 4);
+}
 
 (async () => {
   const port = await freePort();
@@ -116,6 +142,42 @@ async function shot(page, name) { const p = `/tmp/v6-1a2-${name}.png`; await pag
     const imgs = await page.evaluate(() => performance.getEntriesByType('resource').filter(e => /assets\//.test(e.name)).map(e => e.name.replace(/^.*assets\//, '') + ' ' + Math.round((e.encodedBodySize || e.transferSize || 0) / 1024) + 'KB'));
     console.log('    ภาพที่โหลด', imgs.length, imgs.join(' · '));
     ok(!imgs.some(n => /base64|data:/.test(n)), 'ไม่มีภาพ base64');
+
+    console.log('— บังหน้า-หลัง (zpush · ผลตรวจ M2): ร้านอาวุธ หลังคาฐาน y=320 · ต้นไม้ (396,199) ฐาน 290');
+    await go(page, 'town', [5.5, 17, 'u']); await wait(1500);
+    const roofBehind = await headDiff(page, 176, 318, 'occl-roof-behind'), roofFront = await headDiff(page, 176, 545, 'occl-roof-front');
+    ok(roofBehind < roofFront * .05 && roofFront > 50, 'เดินหลังร้านอาวุธ → หลังคาบังตัว · ยืนหน้าร้าน → ตัวอยู่บน', `หลัง ${roofBehind.toFixed(1)} · หน้า ${roofFront.toFixed(1)}`);
+    const treeBehind = await headDiff(page, 432, 272, 'occl-tree-behind'), treeFront = await headDiff(page, 432, 300, 'occl-tree-front');
+    console.log(`    ต้นไม้: หลัง ${treeBehind.toFixed(1)} · หน้า ${treeFront.toFixed(1)}`);
+    ok(treeBehind > treeFront * .2 && treeBehind < treeFront * .85, 'อยู่หลังต้นไม้ → ต้นไม้ทับแบบโปร่ง (ยังเห็นตัว) · อยู่หน้า → ตัวทับต้นไม้', `หลัง ${treeBehind.toFixed(1)} · หน้า ${treeFront.toFixed(1)}`);
+
+    console.log('— คืนหน่วยความจำเฉพาะฉากที่ไม่ได้อยู่ (ผลตรวจ M4)');
+    await go(page, 'field', [50, 22, 'l']); await wait(1500);
+    await go(page, 'town', [22, 17, 'd']); await wait(2000);
+    let groundReq = 0; const onReq = r => { if (/ground-v538/.test(r.url())) groundReq++; }; page.on('request', onReq);
+    await page.evaluate(() => { window.__G.time.now += 60; }); /* ยืนในเมืองเกิน 45 วิ (เลื่อนนาฬิกาเกม แทนรอจริง) */
+    await wait(600);
+    let ci = await page.evaluate(async () => (await import('/v6/src/draw/tiles.js')).cacheInfo());
+    ok(Array.isArray(ci.srcs) && ci.srcs.some(s => /ground-v538/.test(s)), 'ภาพพื้นเมืองยังอยู่หลังยืน 60 วิ', JSON.stringify(ci.srcs));
+    ok(Array.isArray(ci.srcs) && !ci.srcs.some(s => /terrain-v585/.test(s)), 'ภาพพื้นทุ่ง (ฉากที่ไม่ได้อยู่) คืนแล้ว', JSON.stringify(ci.srcs));
+    ok(Array.isArray(ci.chunkScenes) && ci.chunkScenes.every(s => s === 'town'), 'แผ่นพื้นเหลือแต่ของเมือง', JSON.stringify(ci.chunkScenes));
+    await go(page, 'town', [40, 30, 'd']); await wait(800); await go(page, 'town', [3, 3, 'd']); await wait(800);
+    page.off('request', onReq);
+    ok(groundReq === 0, 'เดินไปมุมเมืองหลังยืนนาน → ไม่โหลดภาพพื้นใหม่', 'คำขอ ' + groundReq);
+
+    console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9)');
+    for (const id of ['city2', 'grove', 'dg:60']) {
+      const r = await page.evaluate(async id => {
+        const w = await import('/v6/src/systems/world.js');
+        const ts = []; let last = performance.now();
+        w.enter('town', [22, 17, 'd']); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        w.enter(id); last = performance.now();
+        for (let i = 0; i < 30; i++) { await new Promise(r => requestAnimationFrame(r)); const n = performance.now(); ts.push(n - last); last = n; }
+        return { max: Math.max(...ts), p50: ts.sort((a, b) => a - b)[15] };
+      }, id);
+      console.log(`    ${id}: เฟรมนานสุด ${r.max.toFixed(0)} ms · กลาง ${r.p50.toFixed(0)} ms`);
+      ok(r.max < 100, `วาปเข้า ${id} ไม่ค้างเฟรมยาว (<100 ms · ก่อนแก้ city2 107–132 ms)`, r.max.toFixed(0) + ' ms');
+    }
 
     if (LONG) {
       console.log('— รอ 50 วิ: แมพที่ไม่ได้อยู่เกิน 45 วิ คืนหน่วยความจำ');

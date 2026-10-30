@@ -1,50 +1,57 @@
 /* tiles — วาดฉาก: พื้น → (ระบบอื่นวาดตัวละคร) → ของสูงเรียงตาม y (spec01 §3 ลำดับชั้น)
-   - พื้นวาดเป็นแผ่น 512×512 px เก็บไว้ (ไม่สร้างภาพทั้งแมพ · มือถือไม่กินหน่วยความจำ) · แผ่น/ภาพที่ไม่ได้ใช้เกิน 45 วิ คืนหน่วยความจำ (fix157)
+   - พื้นวาดเป็นแผ่น 512×512 px เก็บไว้ (ไม่สร้างภาพทั้งแมพ · มือถือไม่กินหน่วยความจำ)
+   - คืนหน่วยความจำ (fix157): เฉพาะแผ่น/ภาพของฉากที่ไม่ได้อยู่ และไม่ได้ใช้เกิน 45 วิ · ฉากปัจจุบันไม่คืน (ยืนในเมืองนานแล้วพื้นไม่ต้องโหลดใหม่ · ผลตรวจ 1A-2 M4)
+   - สร้างแผ่นพื้นไม่เกิน ~BUILD_MS ต่อเฟรม (แผ่นที่ตัวละครยืนก่อน) → วาปเข้าแมพใหญ่ไม่ค้างเฟรมยาว (ผลตรวจ L9)
    - ภาพโหลดตอนต้องใช้เท่านั้น ไม่ฝัง base64 · ภาพยังไม่มา = วาดสีแทน แล้ววาดใหม่เมื่อภาพมาถึง
    - กติกาภาพ (spec01 §10): ใช้ภาพเฉพาะ พื้น · อาคาร · ต้นไม้ · ของตกแต่งฉาก — อย่างอื่นวาดด้วยโค้ด
-   - ของสูง (อาคาร ต้นไม้ เสาไฟ): ฐานอยู่เหนือตัวเรา → วาดชั้น 'world' (ก่อนตัวละคร) · ฐานอยู่ใต้ตัวเรา → ชั้น 'top' (บังตัวละคร) */
+   - ของสูง (อาคาร ต้นไม้ เสาไฟ หลังคา): ส่งเข้าคิวกลาง zpush(ฐาน y, fn) ในชั้น 'world' (CONTRACT §1) → เรียงหน้า-หลังรวมกับตัวละคร/NPC/มอน
+     ต้นไม้ที่อยู่หน้าและบังตัวเรา → โปร่ง (คิดตอนวาดใน fn) · หลังคาอาคารวาดซ้ำที่ฐานแนวหลังคา → เดินหลังอาคาร หลังคาบังตัว
+   - ชื่อภาพ/สี อยู่ data/art.js (CONTRACT §3) */
 import { T } from '../config.js';
 import { WORLD, TOWN_FLOOR, TOWN_ART, CITY2_ART, ROOM } from '../data/maps.js';
-import { hash, vn } from '../systems/world.js';
+import { zpush } from '../core/zsort.js';
+import { TREE_SRC, TERRAIN, TREE, COLORS } from '../data/art.js';
+import { hash, vn } from '../systems/world.js'; /* (import วนกับ world · ทำงานได้ · ขอหัวหน้าย้ายไป core/rand.js — ผลตรวจ L6) */
 
 const CH = WORLD.chunk;
-const TREE_SRC = {
-  oak: 'assets/incoming/tree-oak-v585.png', ancient: 'assets/incoming/tree-ancient-v585.png',
-  fire: 'assets/incoming/tree-fire-v585.png', spirit: 'assets/incoming/tree-spirit-v585.png',
-}; /* TREEART 013:30 */
-const TERRAIN = 'assets/incoming/terrain-v585.png'; /* WORLDART.tile 012-world-art */
+const BUILD_MS = 8;      /* ms ต่อเฟรมที่ยอมใช้สร้างแผ่นพื้น (อย่างน้อย 1 แผ่นเสมอ) */
 
-const IMG = new Map();   /* src → { img, ok, bad, used } */
-const CHUNK = new Map(); /* 'ฉาก|cx,cy' → { cv, used, miss } */
-let clock = 0, lastSweep = 0;
+const IMG = new Map();   /* src → { img, ok, bad, used, scenes:Set } */
+const CHUNK = new Map(); /* 'ฉาก|cx,cy' → { cv, used, miss, scene } */
+let clock = 0, lastSweep = 0, curScene = null;
 
 /* ---------- ภาพ ---------- */
 function url(src) { return new URL('../../../' + src, import.meta.url).href; }
 export function image(src) {
   let e = IMG.get(src);
   if (!e) {
-    e = { img: new Image(), ok: false, bad: false, used: clock };
+    e = { img: new Image(), ok: false, bad: false, used: clock, scenes: new Set() };
     e.img.decoding = 'async';
-    e.img.onload = () => { e.ok = e.img.naturalWidth > 0; dropMissing(); };
+    /* ถอดรหัสภาพก่อนใช้ (decode) → วาดครั้งแรกไม่ค้างเฟรม · เบราว์เซอร์ที่ไม่มี decode ใช้ได้ทันที */
+    const ready = () => { e.ok = e.img.naturalWidth > 0; dropMissing(); };
+    e.img.onload = () => { if (e.img.decode) e.img.decode().then(ready, ready); else ready(); };
     e.img.onerror = () => { e.bad = true; };
     e.img.src = url(src);
     IMG.set(src, e);
   }
   e.used = clock;
+  if (curScene) e.scenes.add(curScene);
   return e.ok ? e.img : null;
 }
 function dropMissing() { for (const [k, c] of CHUNK) if (c.miss) { free(c); CHUNK.delete(k); } }
 function free(c) { c.cv.width = c.cv.height = 0; }
 
-/* คืนหน่วยความจำ: แผ่นพื้น/ภาพที่ไม่ได้ใช้เกิน artTtl วิ */
+/* คืนหน่วยความจำ: แผ่นพื้น/ภาพของฉากที่ไม่ได้อยู่ และไม่ได้ใช้เกิน artTtl วิ (fix157 คืนเฉพาะแมพที่ไม่ได้อยู่) */
 function sweep() {
-  if (clock - lastSweep < 5) return;
+  if (Math.abs(clock - lastSweep) < 5) return;
   lastSweep = clock;
   const ttl = WORLD.artTtl;
-  for (const [k, c] of CHUNK) if (clock - c.used > ttl) { free(c); CHUNK.delete(k); }
-  for (const [k, e] of IMG) if (clock - e.used > ttl) { e.img.onload = e.img.onerror = null; e.img.src = ''; IMG.delete(k); }
+  for (const [k, c] of CHUNK) if (c.scene !== curScene && clock - c.used > ttl) { free(c); CHUNK.delete(k); }
+  for (const [k, e] of IMG) if (!e.scenes.has(curScene) && clock - e.used > ttl) { e.img.onload = e.img.onerror = null; e.img.src = ''; IMG.delete(k); }
 }
-export function cacheInfo() { return { chunks: CHUNK.size, images: IMG.size, clock }; } /* เทส */
+export function cacheInfo() { /* เทส */
+  return { chunks: CHUNK.size, images: IMG.size, clock, scene: curScene, srcs: [...IMG.keys()], chunkScenes: [...new Set([...CHUNK.values()].map(c => c.scene))] };
+}
 
 /* ---------- สีช่วย ---------- */
 const rgb = a => 'rgb(' + (a[0] | 0) + ',' + (a[1] | 0) + ',' + (a[2] | 0) + ')';
@@ -66,15 +73,15 @@ const hits = (o, x0, y0, x1, y1) => o[5] < x1 && o[5] + o[7] > x0 && o[6] < y1 &
 const FLOOR = {
   /* ทุ่ง: ช่องจากภาพ terrain (buildGround 031:818) */
   terrain(k, map, x0, y0, x1, y1) {
-    const im = image(TERRAIN), L = map.look.tiles;
+    const im = image(TERRAIN.src), L = map.look.tiles, C = COLORS.terrain;
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const c = ch(map, x, y), n = L[c] ?? 0;
-      if (im) k.drawImage(im, (n % 4) * 128, Math.floor(n / 4) * 128, 128, 128, x * T, y * T, T, T);
-      else { k.fillStyle = c === '~' ? '#3a7ab0' : c === ':' ? '#d8c890' : '#5a9a48'; k.fillRect(x * T, y * T, T, T); }
+      if (im) terrainCell(k, im, n, x * T, y * T);
+      else { k.fillStyle = c === '~' ? C.water : c === ':' ? C.sand : C.grass; k.fillRect(x * T, y * T, T, T); }
       if (c === 'W') { /* หินวาร์ป (วาดด้วยโค้ด) */
         const cx = x * T + 16, cy = y * T + 18;
-        k.fillStyle = '#6a6a7a'; k.beginPath(); k.ellipse(cx, cy, 12, 9, 0, 0, 7); k.fill();
-        k.fillStyle = '#9ad8ff'; k.beginPath(); k.ellipse(cx, cy - 2, 6, 4, 0, 0, 7); k.fill();
+        k.fillStyle = COLORS.warp.stone; k.beginPath(); k.ellipse(cx, cy, 12, 9, 0, 0, 7); k.fill();
+        k.fillStyle = COLORS.warp.glow; k.beginPath(); k.ellipse(cx, cy - 2, 6, 4, 0, 0, 7); k.fill();
       }
     }
     return !!im;
@@ -96,7 +103,7 @@ const FLOOR = {
     }
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const kind = inR(x, y, F.marble) ? 'marble' : inR(x, y, F.earth) ? 'earth' : road(x, y) ? 'stone' : 'grass';
-      k.fillStyle = pat ? pat[kind] : { stone: '#a89a86', grass: '#5a8a3e', earth: '#8a6a44', marble: '#d8d4cc' }[kind];
+      k.fillStyle = pat ? pat[kind] : COLORS.town[kind];
       k.fillRect(x * T, y * T, T, T);
     }
     k.fillStyle = F.edge; /* ขอบหินตามถนน */
@@ -129,7 +136,7 @@ const FLOOR = {
     natureGround(k, map, x0, y0, x1, y1);
     const L = map.look;
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      if (x >= L.sea[0] && ch(map, x, y) === '#' && y > 1 && y < map.h - 2) { k.fillStyle = (x + y) & 1 ? '#2a74aa' : '#22689c'; k.fillRect(x * T, y * T, T, T); continue; }
+      if (x >= L.sea[0] && ch(map, x, y) === '#' && y > 1 && y < map.h - 2) { k.fillStyle = COLORS.sea[(x + y) & 1 ? 0 : 1]; k.fillRect(x * T, y * T, T, T); continue; }
       if (ch(map, x, y) !== '#' && Math.abs(y - roadY(x, L.path)) <= 1) {
         k.fillStyle = L.pathC; k.fillRect(x * T, y * T, T, T);
         k.fillStyle = L.pathD; for (let i = 0; i < 4; i++) { const r = hash(x * 3.1 + i, y * 1.7 - i); k.fillRect(x * T + (r * 28 | 0), y * T + (r * 97 % 28 | 0), 3, 2); }
@@ -154,29 +161,31 @@ function roadY(x, p) { /* roadY 171-fix144 · sm = smoothstep */
   return Math.round(p.y + p.amp * sm((x - p.x0) / p.ramp) * sm((p.x1 - x) / p.ramp) * Math.sin(x / p.period));
 }
 
+function terrainCell(k, im, n, px, py) { const S = TERRAIN.cell, C = TERRAIN.cols; k.drawImage(im, (n % C) * S, Math.floor(n / C) * S, S, S, px, py, T, T); }
+
 function zoneTiles(k, map, x0, y0, x1, y1, p, tile) {
-  const im = tile != null ? image(TERRAIN) : null, solid = c => c === '#';
-  k.fillStyle = p.vd || '#000'; k.fillRect(x0 * T, y0 * T, (x1 - x0 + 1) * T, (y1 - y0 + 1) * T);
+  const im = tile != null ? image(TERRAIN.src) : null, solid = c => c === '#', Z = COLORS.zone;
+  k.fillStyle = p.vd || Z.void; k.fillRect(x0 * T, y0 * T, (x1 - x0 + 1) * T, (y1 - y0 + 1) * T);
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = ch(map, x, y), px = x * T, py = y * T, h = hash(x * 1.3, y * 2.7);
     if (!solid(c)) {
-      if (im) k.drawImage(im, (tile % 4) * 128, Math.floor(tile / 4) * 128, 128, 128, px, py, T, T);
+      if (im) terrainCell(k, im, tile, px, py);
       else { k.fillStyle = p.fl[Math.floor(h * p.fl.length) % p.fl.length]; k.fillRect(px, py, T, T); }
-      k.fillStyle = 'rgba(0,0,0,.08)'; k.fillRect(px + (h * 20 | 0), py + (h * 97 % 20 | 0), 6, 4);
-      k.fillStyle = 'rgba(255,255,255,.05)'; k.fillRect(px + ((h * 53) % 24 | 0), py + ((h * 31) % 24 | 0), 4, 3);
+      k.fillStyle = Z.dirt; k.fillRect(px + (h * 20 | 0), py + (h * 97 % 20 | 0), 6, 4);
+      k.fillStyle = Z.shine; k.fillRect(px + ((h * 53) % 24 | 0), py + ((h * 31) % 24 | 0), 4, 3);
       if (c === 'o') { /* แร่ (วาดแบบง่าย · ระบบขุดแร่เฟส 4 วาดเอง) */
-        k.fillStyle = '#5a5a66'; k.beginPath(); k.ellipse(px + 16, py + 20, 11, 8, 0, 0, 7); k.fill();
-        k.fillStyle = p.ac || '#c8c8d8'; k.fillRect(px + 12, py + 15, 4, 3); k.fillRect(px + 18, py + 19, 3, 3);
+        k.fillStyle = COLORS.ore.rock; k.beginPath(); k.ellipse(px + 16, py + 20, 11, 8, 0, 0, 7); k.fill();
+        k.fillStyle = p.ac || COLORS.ore.fleck; k.fillRect(px + 12, py + 15, 4, 3); k.fillRect(px + 18, py + 19, 3, 3);
       }
       continue;
     }
     const below = !solid(ch(map, x, y + 1)) && y + 1 < map.h;
     k.fillStyle = p.top; k.fillRect(px, py, T, T);
-    k.fillStyle = 'rgba(255,255,255,.06)'; k.fillRect(px + 2 + (h * 12 | 0), py + 3, 10, 6);
+    k.fillStyle = Z.topShine; k.fillRect(px + 2 + (h * 12 | 0), py + 3, 10, 6);
     if (below) {
       k.fillStyle = p.face; k.fillRect(px, py + T - 12, T, 12);
       k.fillStyle = p.edge; k.fillRect(px, py + T - 12, T, 2);
-      k.fillStyle = 'rgba(0,0,0,.35)'; k.fillRect(px, py + T, T, 5);
+      k.fillStyle = Z.drop; k.fillRect(px, py + T, T, 5);
     }
     if (y > 0 && !solid(ch(map, x, y - 1))) { k.fillStyle = p.edge; k.fillRect(px, py, T, 2); }
     if (!solid(ch(map, x - 1, y))) { k.fillStyle = p.edge; k.fillRect(px, py, 2, T); }
@@ -195,11 +204,11 @@ function natureGround(k, map, x0, y0, x1, y1) {
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     const c = ch(map, x, y), px = x * T, py = y * T, h = hash(x * 2.1, y * 1.7);
     if (c === 'w') { /* น้ำ/ลาวา: สีเดียวต่อเนื่อง + ขอบฝั่ง + ประกายเล็ก ๆ */
-      const liq = L.liq || ['#3a7ab0', '#2a5a8a', '#c8f0ff'];
+      const liq = L.liq || COLORS.liquid;
       k.fillStyle = liq[0]; k.fillRect(px, py, T, T);
       k.fillStyle = liq[1]; k.globalAlpha = .35; k.fillRect(px, py + (h * 16 | 0), T, 6); k.globalAlpha = 1;
       if (h > .7) { k.fillStyle = liq[2]; k.globalAlpha = .6; k.fillRect(px + (h * 20 | 0), py + 8 + (h * 13 % 12 | 0), 7, 2); k.globalAlpha = 1; }
-      k.fillStyle = L.shore || 'rgba(0,0,0,.3)';
+      k.fillStyle = L.shore || COLORS.shore;
       if (ch(map, x, y - 1) !== 'w') k.fillRect(px, py, T, 3);
       if (ch(map, x, y + 1) !== 'w') k.fillRect(px, py + T - 3, T, 3);
       if (ch(map, x - 1, y) !== 'w') k.fillRect(px, py, 3, T);
@@ -210,10 +219,10 @@ function natureGround(k, map, x0, y0, x1, y1) {
       k.fillStyle = L.pathD;
       for (let i = 0; i < 4; i++) { const r = hash(x * 3.1 + i, y * 1.7 - i); k.fillRect(px + (r * 28 | 0), py + (r * 97 % 28 | 0), 3, 2); }
     }
-    else if (c === 'b') { k.fillStyle = '#7a5a3a'; k.fillRect(px, py, T, T); k.fillStyle = '#5a3e26'; for (let i = 4; i < T; i += 8) k.fillRect(px, py + i, T, 2); }
-    else if (c === 'L') { k.fillStyle = 'rgba(0,0,0,.45)'; k.fillRect(px, py, T, T); }
-    else if (c === 'F' || c === '#') { k.fillStyle = 'rgba(0,0,0,.22)'; k.beginPath(); k.ellipse(px + 16, py + 24, 20, 10, 0, 0, 7); k.fill(); } /* เงาใต้ต้นไม้ */
-    else if (c === 'r') { k.fillStyle = 'rgba(0,0,0,.25)'; k.beginPath(); k.ellipse(px + 16, py + 26, 14, 5, 0, 0, 7); k.fill(); k.fillStyle = '#7a7a82'; k.beginPath(); k.ellipse(px + 16, py + 18, 13, 11, 0, 0, 7); k.fill(); k.fillStyle = '#9a9aa4'; k.beginPath(); k.ellipse(px + 12, py + 14, 6, 4, 0, 0, 7); k.fill(); }
+    else if (c === 'b') { k.fillStyle = COLORS.bridge[0]; k.fillRect(px, py, T, T); k.fillStyle = COLORS.bridge[1]; for (let i = 4; i < T; i += 8) k.fillRect(px, py + i, T, 2); }
+    else if (c === 'L') { k.fillStyle = COLORS.cliff; k.fillRect(px, py, T, T); }
+    else if (c === 'F' || c === '#') { k.fillStyle = COLORS.treeShadow; k.beginPath(); k.ellipse(px + 16, py + 24, 20, 10, 0, 0, 7); k.fill(); } /* เงาใต้ต้นไม้ */
+    else if (c === 'r') { const R = COLORS.rock; k.fillStyle = R.shadow; k.beginPath(); k.ellipse(px + 16, py + 26, 14, 5, 0, 0, 7); k.fill(); k.fillStyle = R.body; k.beginPath(); k.ellipse(px + 16, py + 18, 13, 11, 0, 0, 7); k.fill(); k.fillStyle = R.light; k.beginPath(); k.ellipse(px + 12, py + 14, 6, 4, 0, 0, 7); k.fill(); }
   }
 }
 
@@ -233,25 +242,33 @@ function buildChunk(sc, cx, cy) {
     const X0 = cx * CH, Y0 = cy * CH;
     for (const o of art.ground) if (hits(o, X0, Y0, X0 + CH, Y0 + CH)) ok = op(k, art.src, o) && ok;
   }
-  return { cv, used: clock, miss: !ok };
+  return { cv, used: clock, miss: !ok, scene: sc.id };
 }
 function artOf(map) { return map.look && map.look.art === 'town' ? TOWN_ART : map.look && map.look.art === 'city2' ? CITY2_ART : null; }
 
 function drawGround(G, ctx) {
   const sc = G.scene, c = G.cam, map = sc.map;
   if (map.look && map.look.floor === 'city2' && !map.groundGrid && map.ground) map.groundGrid = groundGrid(map);
-  ctx.fillStyle = (map.look && map.look.pal && map.look.pal.vd) || '#0b0f16';
+  ctx.fillStyle = (map.look && map.look.pal && map.look.pal.vd) || COLORS.bg;
   ctx.fillRect(c.x, c.y, c.vw, c.vh);
   const cx0 = Math.max(0, Math.floor(c.x / CH)), cy0 = Math.max(0, Math.floor(c.y / CH));
   const cx1 = Math.min(Math.ceil(sc.w / CH) - 1, Math.floor((c.x + c.vw) / CH)), cy1 = Math.min(Math.ceil(sc.h / CH) - 1, Math.floor((c.y + c.vh) / CH));
+  /* แผ่นที่ยังไม่มี: สร้างแผ่นใกล้ตัวละครก่อน หยุดเมื่อเกินงบเวลาของเฟรม (เฟรมถัดไปสร้างต่อ · ระหว่างนั้นเห็นสีพื้นของแมพ) */
+  const P = G.player, pcx = P.x / CH, pcy = P.y / CH, todo = [];
+  for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) if (!CHUNK.has(chunkKey(sc, cx, cy))) todo.push([cx, cy]);
+  if (todo.length) {
+    todo.sort((a, b) => Math.hypot(a[0] + .5 - pcx, a[1] + .5 - pcy) - Math.hypot(b[0] + .5 - pcx, b[1] + .5 - pcy));
+    const t0 = now();
+    for (const [cx, cy] of todo) { CHUNK.set(chunkKey(sc, cx, cy), buildChunk(sc, cx, cy)); if (now() - t0 > BUILD_MS) break; }
+  }
   for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
-    const key = chunkKey(sc, cx, cy);
-    let chk = CHUNK.get(key);
-    if (!chk) { chk = buildChunk(sc, cx, cy); CHUNK.set(key, chk); }
+    const chk = CHUNK.get(chunkKey(sc, cx, cy));
+    if (!chk) continue;
     chk.used = clock;
     ctx.drawImage(chk.cv, cx * CH, cy * CH);
   }
 }
+const now = () => (typeof performance !== 'undefined' ? performance.now() : 0); /* วัดงบเวลาวาดเท่านั้น (ไม่ใช่เวลาเกม) */
 function groundGrid(map) { /* แถวชนิดพื้นเมือง 2 (RLE) → ตาราง */
   const g = new Uint8Array(map.w * map.h);
   map.ground.forEach((r, y) => { let s = ''; for (const m of r.matchAll(/(\D)(\d*)/g)) s += m[1].repeat(m[2] ? +m[2] : 1); for (let x = 0; x < map.w; x++) g[y * map.w + x] = s.charCodeAt(x); });
@@ -261,10 +278,10 @@ function groundGrid(map) { /* แถวชนิดพื้นเมือง 2
 /* ---------- ของสูงเรียงตาม y ---------- */
 function treeAt(k, src, bx, by, sc, alpha) {
   const im = image(src);
-  const w = 80 * sc, h = 100 * sc;
-  if (!im) { k.fillStyle = 'rgba(30,70,30,.9)'; k.beginPath(); k.ellipse(bx, by - h * .6, w * .4, h * .35, 0, 0, 7); k.fill(); return; }
+  const w = TREE.w * sc, h = TREE.h * sc;
+  if (!im) { k.fillStyle = TREE.missing; k.beginPath(); k.ellipse(bx, by - h * .6, w * .4, h * .35, 0, 0, 7); k.fill(); return; }
   if (alpha < 1) { k.save(); k.globalAlpha = alpha; }
-  k.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, bx - w / 2, by - h * .92, w, h);
+  k.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, bx - w / 2, by - h * TREE.lift, w, h);
   if (alpha < 1) k.restore();
 }
 /* เรียกทุกของสูงที่อยู่ในจอ: fn(ฐาน y, วาด(k, โปร่ง)) */
@@ -277,12 +294,12 @@ function eachTall(G, fn) {
     for (let y = Math.max(0, y0); y <= Math.min(map.h - 1, y1); y++) for (let x = Math.max(0, x0); x <= Math.min(map.w - 1, x1); x++) {
       const t = ch(map, x, y);
       let sc2 = 0;
-      if (t === 't') { const r = hash(x * 3.7 + 1, y * 5.1); sc2 = [.5, .7, .9, 1.1][r < .2 ? 0 : r < .45 ? 1 : r < .78 ? 2 : 3]; } /* ขนาดต้นไม้ทุ่ง 013:84 */
-      else if (t === 'F' || t === 'L' || (kind === 'road' && t === '#' && x < L.sea[0])) sc2 = .85 + hash(x * 1.7, y * 3.1) * .35; /* ป่าทึบ/ขอบป่า = ต้นไม้แน่น */
-      else if (t === 'o' && kind !== 'terrain') sc2 = .7;
+      if (t === 't') { const r = hash(x * 3.7 + 1, y * 5.1), q = TREE.fieldCut; sc2 = TREE.fieldScale[r < q[0] ? 0 : r < q[1] ? 1 : r < q[2] ? 2 : 3]; } /* ขนาดต้นไม้ทุ่ง 013:84 */
+      else if (t === 'F' || t === 'L' || (kind === 'road' && t === '#' && x < L.sea[0])) sc2 = TREE.forest[0] + hash(x * 1.7, y * 3.1) * TREE.forest[1]; /* ป่าทึบ/ขอบป่า = ต้นไม้แน่น */
+      else if (t === 'o' && kind !== 'terrain') sc2 = TREE.ore;
       if (!sc2) continue;
-      const bx = x * T + 16 + (hash(x, y * 1.3) - .5) * 8, by = y * T + 28;
-      fn(by, (k, a) => treeAt(k, src, bx, by, sc2, a), [bx - 40 * sc2, by - 92 * sc2, 80 * sc2, 92 * sc2], true);
+      const bx = x * T + 16 + (hash(x, y * 1.3) - .5) * TREE.jitter, by = y * T + TREE.baseY, tw = TREE.w * sc2, th = TREE.h * sc2 * TREE.lift;
+      fn(by, (k, a) => treeAt(k, src, bx, by, sc2, a), [bx - tw / 2, by - th, tw, th], true);
     }
   }
   const art = artOf(map);
@@ -298,31 +315,31 @@ function eachTall(G, fn) {
       if (!art.roof.srcs.includes(s) || art.roof.skip.some(q => s.endsWith('landmarks.png') && Math.abs(q[0] - o[1]) < 2 && Math.abs(q[1] - o[2]) < 2)) continue;
       if (!hits(o, X0, Y0, X1, Y1)) continue;
       const band = o[8] * art.roof.part, base = o[6] + band;
-      fn(base, k => { k.save(); k.beginPath(); k.rect(o[5], o[6], o[7], band); k.clip(); op(k, art.src, o); k.restore(); }, null, false, true);
+      fn(base, k => { k.save(); k.beginPath(); k.rect(o[5], o[6], o[7], band); k.clip(); op(k, art.src, o); k.restore(); }, null, false);
     }
   }
 }
 
-function drawTall(G, ctx, front) {
-  const P = G.player, list = [];
-  eachTall(G, (base, draw, rect, fade, roofOnly) => {
-    if (roofOnly) { if (front && base > P.y) list.push([base, draw, 1]); return; }
-    if ((base > P.y) !== front) return;
-    /* ต้นไม้หน้าตัวละครจางลง (alpha 1-.6) เมื่อบังตัว (spec01 §3) */
-    const a = front && fade && rect && P.x > rect[0] && P.x < rect[0] + rect[2] && P.y > rect[1] && P.y < base ? .4 : 1;
-    list.push([base, draw, a]);
+/* ส่งของสูงทุกชิ้นในจอเข้าคิวกลาง zpush(ฐาน y) — ตัวละคร/NPC/มอน ส่ง y เท้าเข้าคิวเดียวกัน → บังกันถูกทุกตัว (CONTRACT §1)
+   ต้นไม้ (fade): ตอนวาด ถ้าอยู่หน้าและบังตัวเรา (ตัวอยู่ในกรอบภาพ และอยู่หลังฐาน) → โปร่ง TREE.fade (spec01 §3)
+   หลังคา: วาดซ้ำที่ฐานแนวหลังคา → ตัวที่ยืนหลังแนวนี้ถูกหลังคาบัง · ตัวที่อยู่หน้าวาดทับ (TOWNART.bind roof) */
+function pushTall(G) {
+  eachTall(G, (base, draw, rect, fade) => {
+    zpush(base, k => {
+      const P = G.player;
+      const a = fade && rect && P.y < base && P.x > rect[0] && P.x < rect[0] + rect[2] && P.y > rect[1] ? TREE.fade : 1;
+      draw(k, a);
+    });
   });
-  list.sort((a, b) => a[0] - b[0]);
-  for (const [, draw, a] of list) draw(ctx, a);
 }
 
 /* ---------- จุดเข้า: world.draw เรียกทุกชั้น ---------- */
 export function drawLayer(G, ctx, layer) {
   if (typeof document === 'undefined') return;
   clock = G.time ? G.time.now : clock;
+  curScene = G.scene.id;
   if (layer === 'ground') { drawGround(G, ctx); drawLinks(G, ctx); sweep(); }
-  else if (layer === 'world') drawTall(G, ctx, false);
-  else if (layer === 'top') drawTall(G, ctx, true);
+  else if (layer === 'world') pushTall(G);
 }
 
 /* วงเวท/ประตูที่กดได้ (วาดด้วยโค้ด · ลำดับชั้น: พื้น → ประตู) */
@@ -331,7 +348,7 @@ function drawLinks(G, ctx) {
   for (const l of G.scene.map.links || []) {
     if (!l.circle || l.on !== 'use') continue;
     const x = l.circle[0] * T, y = l.circle[1] * T;
-    const back = l.to === '@back', col = back ? '230,255,240' : l.menu ? '200,160,255' : '255,220,140';
+    const back = l.to === '@back', L = COLORS.link, col = back ? L.back : l.menu ? L.menu : L.door;
     const g = ctx.createRadialGradient(x, y, 2, x, y, 30);
     g.addColorStop(0, `rgba(${col},${.55 + .25 * Math.sin(t * 3)})`); g.addColorStop(1, `rgba(${col},0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, 30, 14, 0, 0, 7); ctx.fill();
