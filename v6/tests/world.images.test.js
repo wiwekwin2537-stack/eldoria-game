@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import world, { enter } from '../src/systems/world.js';
 import * as tiles from '../src/draw/tiles.js';
+import { zflush } from '../src/core/zsort.js';
 import { TERRAIN } from '../src/data/art.js';
 import { CITY2_ART, MAPS } from '../src/data/maps.js';
 import { createState } from '../src/core/state.js';
@@ -46,6 +47,18 @@ const info = () => tiles.cacheInfo();
 const peek = s => (tiles.peekImage ? tiles.peekImage(s) : null);
 
 export default [
+  ['1X (ผลตรวจ 1Z L1): ทุกภาพที่โค้ด v6 อ้าง (src/ · make-webp.py) ชื่อมีเลขเวอร์ชัน -vN และมีไฟล์จริง (แคช 7 วัน → แก้ภาพต้องเปลี่ยนชื่อ)', () => {
+    const V6 = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'), refs = new Set();
+    (function walk(d) { for (const f of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, f.name);
+      if (f.isDirectory()) walk(p); else if (/\.(js|json|html)$/.test(f.name)) for (const m of fs.readFileSync(p, 'utf8').matchAll(/v6\/assets\/[\w\-/.]+\.(?:webp|png)/g)) refs.add(m[0]);
+    } })(path.join(V6, 'src'));
+    for (const m of fs.readFileSync(path.join(V6, 'tools', 'make-webp.py'), 'utf8').matchAll(/'([\w\-]+\/[\w\-.]+\.webp)'/g)) refs.add('v6/assets/' + m[1]);
+    ok(refs.size >= 16, 'พบภาพที่อ้าง ' + refs.size);
+    const noVer = [...refs].filter(r => !/-v\d+\.(?:webp|png)$/.test(r)), missing = [...refs].filter(r => !fs.existsSync(path.join(V6, '..', r)));
+    ok(!noVer.length, 'ชื่อไม่มีเลขเวอร์ชัน: ' + noVer.join(', '));
+    ok(!missing.length, 'ไม่มีไฟล์: ' + missing.join(', '));
+  }],
   ['ภาพฉากโหลดเป็น ImageBitmap (fetch → createImageBitmap) ไม่ใช้ <img> · วาดครั้งแรกไม่ต้องถอดรหัสในเฟรม (คำขอ 1Z)', () => withBrowser('bitmap', async st => {
     const G = scene('field', [20, 20, 'd']);
     draw(G); await ticks();
@@ -98,10 +111,71 @@ export default [
     G.player.x = 60 * 32; G.time.now += 50; draw(G); G.time.now += 6; draw(G);
     ok(!want.some(s => info().srcs.includes(s)), 'เดินออกห่างเกิน 45 วิ → คืนภาพเมือง 2 ' + info().srcs.join());
   })],
+  ['1X (ผลตรวจ 1Y L3): โหลดภาพพลาดครั้งแรก (เน็ตสะดุด) → ลองใหม่หลัง 2 วิ แล้วได้ภาพ · ก่อนถึงเวลาไม่ยิงซ้ำ · 404 ถาวรยิงแค่ 4 ครั้ง (2·5·15 วิ แล้วเลิก)', () => withBrowser('bitmap', async st => {
+    const real = globalThis.fetch, n = {};
+    globalThis.fetch = async u => { u = String(u); n[u] = (n[u] || 0) + 1;
+      if (/terrain-v585/.test(u) && n[u] === 1) throw new TypeError('network'); /* พลาดครั้งแรกครั้งเดียว */
+      if (/tree-\w+-v585/.test(u)) return { ok: false, status: 404 };         /* ต้นไม้ 404 ตลอด */
+      return real(u); };
+    const cnt = re => Object.entries(n).filter(([u]) => re.test(u)).reduce((a, [, c]) => a + c, 0);
+    const G = scene('field', [20, 20, 'd']);
+    const at = async t => { G.time.now = t; draw(G); const k = ctx(); tiles.drawLayer(G, k, 'world'); zflush(k); await ticks(); };
+    await at(1);
+    ok(!peek(TERRAIN.src), 'ครั้งแรกพลาด → ยังไม่มีภาพ');
+    await at(2); await at(2.9);
+    ok(cnt(/terrain-v585/) === 1, 'ยังไม่ถึง 2 วิ ห้ามยิงซ้ำ ได้ ' + cnt(/terrain-v585/));
+    await at(3.1); await at(3.2);
+    ok(cnt(/terrain-v585/) === 2, 'ครบ 2 วิ → ลองใหม่ 1 ครั้ง ได้ ' + cnt(/terrain-v585/));
+    ok(peek(TERRAIN.src) && peek(TERRAIN.src).width === 256, 'ลองใหม่แล้วได้ภาพพื้นทุ่ง');
+    ok(info().ready.includes(TERRAIN.src), 'ภาพพื้นพร้อมวาด (แผ่นพื้นที่วาดสีแทนถูกสร้างใหม่)');
+    for (let t = 3.5; t < 120; t += .5) await at(t);
+    const trees = Object.entries(n).filter(([u]) => /tree-/.test(u));
+    ok(trees.length >= 1 && trees.every(([, c]) => c === 4), '404 ถาวร: ยิงครั้งแรก + ลองใหม่ 3 ครั้ง = 4 ต่อภาพ ได้ ' + JSON.stringify(trees.map(([u, c]) => u.split('/').pop() + ':' + c)));
+  })],
+  ['1X (ผลตรวจ 1Y L5): sceneImages() จำผลต่อแมพ — เรียกซ้ำได้อาร์เรย์เดิม (ยืนใกล้ประตูไม่สร้างรายการใหม่ทุกเฟรม) · แก้ไม่ได้', () => {
+    for (const id of ['city2', 'town', 'field', 'road', 'mist']) {
+      const a = tiles.sceneImages(MAPS[id]), b = tiles.sceneImages(MAPS[id]);
+      ok(a === b, id + ': ต้องได้อาร์เรย์เดิม'); ok(Object.isFrozen(a), id + ': แช่แข็ง');
+    }
+    ok(tiles.sceneImages(MAPS.city2).length >= 4, 'รายการเมือง 2 ครบ');
+  }],
+  ['1X (ผลตรวจ 1Y M1): ภาพที่วาดย่อ/ขยายทุกครั้ง (พื้น · อาคาร · ต้นไม้ · ช่องทุ่ง) ctx ต้องตั้ง imageSmoothingQuality = high (ค่าเริ่มของ canvas = low → ย่อหยาบ)', () => withBrowser('bitmap', async () => {
+    const bad = [], seen = new Set();
+    const spy = () => { /* canvas ปลอม: เก็บค่า smoothing + save/restore เหมือนจริง · จด drawImage ที่ย่อ/ขยายตอน quality ≠ high */
+      let S = { imageSmoothingEnabled: true, imageSmoothingQuality: 'low', globalAlpha: 1 }; const stack = [];
+      return new Proxy({}, {
+        get(_, k) {
+          if (k in S) return S[k];
+          if (k === 'save') return () => stack.push({ ...S });
+          if (k === 'restore') return () => { if (stack.length) S = stack.pop(); };
+          if (k === 'drawImage') return (im, ...a) => {
+            if (!im || typeof im.close !== 'function') return; /* แผ่นพื้นที่สร้างเอง (canvas) วาด 1:1 */
+            const [sw, sh, dw, dh] = a.length >= 8 ? [a[2], a[3], a[6], a[7]] : a.length >= 4 ? [im.width, im.height, a[2], a[3]] : [1, 1, 1, 1];
+            if (Math.abs(sw - dw) < .01 && Math.abs(sh - dh) < .01) return;
+            seen.add(im.src);
+            if (!(S.imageSmoothingEnabled && S.imageSmoothingQuality === 'high')) bad.push(String(im.src).split('/').pop() + ' ' + sw + '→' + dw);
+          };
+          if (k === 'createPattern' || k === 'createRadialGradient' || k === 'createLinearGradient') return () => ({ addColorStop: () => {} });
+          return () => {};
+        },
+        set(_, k, v) { if (k in S) S[k] = v; return true; },
+      });
+    };
+    globalThis.document = { createElement: () => { const c = { width: 0, height: 0, _k: null }; c.getContext = () => c._k || (c._k = spy()); return c; } };
+    for (const [id, at] of [['field', [20, 20, 'd']], ['town', [22, 17, 'd']], ['city2', null], ['road', null], ['mist', null]]) {
+      const G = scene(id, at);
+      for (let i = 0; i < 3; i++) { G.time.now += .1; const k = spy(); tiles.drawLayer(G, k, 'ground'); tiles.drawLayer(G, k, 'world'); zflush(k); await ticks(); }
+    }
+    ok(seen.size >= 4, 'ต้องเจอภาพที่วาดย่อหลายแบบ ' + [...seen].join());
+    ok(!bad.length, 'วาดย่อ/ขยายตอน quality ไม่ใช่ high: ' + [...new Set(bad)].slice(0, 6).join(' · '));
+  })],
   ['make-webp.py จดรุ่น Pillow/libwebp ที่ใช้สร้างภาพ และเตือนเมื่อรุ่นไม่ตรง (ผลตรวจ 1A-4 L5)', () => {
     const src = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'tools', 'make-webp.py'), 'utf8');
     const head = src.slice(0, 1500);
     ok(/Pillow 12\.3\.0/.test(head) && /libwebp 1\.6\.0/.test(head), 'หัวไฟล์ต้องมี Pillow 12.3.0 · libwebp 1.6.0');
     ok(/features\.version\(['"]webp['"]\)/.test(src) && /PIL\.__version__|__version__/.test(src), 'สคริปต์เช็กรุ่นตอนรัน');
+    /* 1X (ผลตรวจ 1Y L4): บรรทัดแรกที่บอก "ผลเหมือนเดิมทุกครั้ง" ต้องบอกเงื่อนไขรุ่นในบรรทัดเดียวกัน (ไม่ขัดกับคำเตือนด้านล่าง) */
+    const first = src.split('\n').find(l => /ผลเหมือนเดิม/.test(l));
+    ok(first && /เฉพาะ Pillow 12\.3\.0 \/ libwebp 1\.6\.0/.test(first), 'บรรทัด "ผลเหมือนเดิม" ต้องบอก (เฉพาะ Pillow 12.3.0 / libwebp 1.6.0): ' + first);
   }],
 ];

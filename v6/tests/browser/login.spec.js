@@ -1,6 +1,6 @@
 /* เทสเบราว์เซอร์ 1B (ล็อกอิน/เซฟผ่านเซิร์ฟเวอร์จริงของเกมเดิม + จุดต่อ v6) · รัน: node v6/tests/browser/login.spec.js
    เปิด `node server.js` (เกมเดิม + v6) พอร์ต 8830 · DATA_DIR ชั่วคราว · ไม่ใช้ Upstash จริง · ไอดีทดสอบสุ่ม
-   ต้องมี ws + playwright (เครื่องนี้: NODE_PATH=/opt/npm-tools/node_modules) · รูปแคปจอ → /tmp/v6-1b-*.png */
+   ต้องมี ws + playwright (เครื่องนี้: NODE_PATH=/opt/npm-tools/node_modules) · รูปแคปจอ → โฟลเดอร์ชั่วคราว $TMPDIR/v6-1b-XXXX/ (หรือ V6_SHOT_DIR) */
 import { createRequire } from 'module';
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -20,7 +20,8 @@ const BASE = `http://127.0.0.1:${PORT}`;
 let pass = 0, fail = 0;
 const ok = (cond, name, info = '') => { if (cond) { pass++; console.log('  ✅', name); } else { fail++; console.log('  ❌', name, info); } };
 const wait = ms => new Promise(r => setTimeout(r, ms));
-const shot = async (page, n) => { const f = `/tmp/v6-1b-${n}.png`; await page.screenshot({ path: f }); console.log('     รูป', f); };
+const SHOTS = process.env.V6_SHOT_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'v6-1b-')); /* รูปแคปแยกโฟลเดอร์ต่อรอบ (รันพร้อมกันไม่ทับกัน) */
+const shot = async (page, n) => { const f = path.join(SHOTS, `${n}.png`); await page.screenshot({ path: f }); console.log('     รูป', f); };
 
 /* ws ตรง (ไม่ผ่านเบราว์เซอร์) → ข้อความแรก หรือคำตอบของลำดับข้อความ */
 function wsTalk(p, msgs = []) {
@@ -84,6 +85,8 @@ const visible = (page, sel) => page.evaluate(s => { const e = document.querySele
     const town = A.assets.filter(a => /\/town\/.+\.webp/.test(a.u));
     ok(town.length > 0 && town.every(a => a.s === 200 && a.t === 'image/webp') && A.assets.every(a => a.s === 200 || a.s === 304),
       'ภาพเมือง /v6/assets/town/*.webp ได้ 200 image/webp จาก server.js จริง', JSON.stringify(A.assets.slice(0, 4)));
+    /* 1X (ผลตรวจ 1Z F1): ฟอร์มถูกสร้างใน login.update() เฟรมเกมถัดไปหลัง phase=login → รอให้แสดงจริงก่อนเช็ก (เดิมเช็กทันที พังสุ่ม 2/5) */
+    await A.page.waitForFunction(() => { const e = document.querySelector('#lg-id'); return !!e && e.offsetParent !== null; }, null, { timeout: 10000 }).catch(() => {});
     ok(await visible(A.page, '#lg-id'), 'เห็นฟอร์มล็อกอิน');
     await shot(A.page, '1-login');
     await A.page.click('button[data-mode="register"]');

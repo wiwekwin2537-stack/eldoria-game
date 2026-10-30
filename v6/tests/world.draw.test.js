@@ -17,7 +17,7 @@ function fakeCtx(log) {
   const noop = () => {};
   return new Proxy({}, {
     get(_, k) {
-      if (k === 'drawImage') return (im, ...a) => log.push({ src: im.src, dy: a.length >= 8 ? a[5] : a[1], alpha });
+      if (k === 'drawImage') return (im, ...a) => log.push({ src: im.src, sx: a.length >= 8 ? a[0] : null, dy: a.length >= 8 ? a[5] : a[1], alpha });
       if (k === 'rotate') return r => log.push({ rot: r });
       if (k === 'save') return () => st.push(alpha);
       if (k === 'restore') return () => { alpha = st.pop() ?? 1; };
@@ -66,11 +66,20 @@ export default [
     drawLayer(G, ctx, 'world');
     zpush(318, () => log.push({ src: 'BEHIND' })); zpush(330, () => log.push({ src: 'FRONT' }));
     zflush(ctx);
-    const shop = TOWN_ART.src.findIndex(s => /shops\./.test(s)); ok(shop >= 0, 'มีภาพร้าน');
-    const roof = log.map((e, k) => [e, k]).filter(([e]) => /shops\./.test(e.src || '') && Math.abs(e.dy - 239) < 1);
+    const shop = TOWN_ART.src.findIndex(s => /shops(-v\d+)?\./.test(s)); ok(shop >= 0, 'มีภาพร้าน');
+    const roof = log.map((e, k) => [e, k]).filter(([e]) => /shops(-v\d+)?\./.test(e.src || '') && Math.abs(e.dy - 239) < 1);
     ok(roof.length >= 1, 'วาดหลังคาร้านอาวุธ (y 239) ' + roof.length);
     const b = log.findIndex(e => e.src === 'BEHIND'), f = log.findIndex(e => e.src === 'FRONT');
     ok(roof.every(([, k]) => k > b), 'หลังคาวาดทับตัวที่อยู่หลังแนว'); ok(roof.every(([, k]) => k < f), 'ตัวที่อยู่หน้าแนววาดทับหลังคา');
+  })],
+  ['1X (ผลตรวจ 1Z L1 · ชื่อภาพมีเลขเวอร์ชัน): ปราสาท/ลานวิหาร/หอคอย (roof.skip ของ landmarks) ไม่วาดหลังคาทับ · อาคาร landmarks อื่นยังมีหลังคา', () => withDom(() => {
+    const land = TOWN_ART.src.findIndex(s => /\/landmarks(-v\d+)?\./.test(s)); ok(land >= 0, 'มีภาพ landmarks');
+    const roofs = (at, o) => { const G = scene('town', at), log = [], ctx = fakeCtx(log); drawLayer(G, ctx, 'world'); zflush(ctx);
+      return log.filter(e => String(e.src).endsWith(TOWN_ART.src[land].slice(3)) && e.sx === o[1] && Math.abs(e.dy - o[6]) < .01).length; };
+    const castle = TOWN_ART.ground.find(o => o[0] === land && o[1] === 19 && o[2] === 2); ok(castle, 'มีปราสาท (19,2)');
+    eq(roofs([(castle[5] + castle[7] / 2) / 32, (castle[6] + castle[8] + 40) / 32, 'u'], castle), 0, 'ปราสาทต้องไม่มีหลังคาวาดทับ');
+    const hall = TOWN_ART.ground.find(o => o[0] === land && o[1] === 570); ok(hall, 'มีอาคาร landmarks ที่มีหลังคา');
+    ok(roofs([(hall[5] + hall[7] / 2) / 32, (hall[6] + hall[8] + 40) / 32, 'u'], hall) >= 1, 'อาคารที่มีหลังคาต้องวาดหลังคา');
   })],
   ['ต้นไม้หน้าตัวเรา (ตัวเราอยู่ในกรอบภาพ หลังฐาน) ค่อย ๆ จางจนเหลือ .4 · ออกมาแล้วค่อย ๆ กลับทึบ · ต้นไม้อื่นทึบ (ผลตรวจ 1A-2f N1)', () => withDom(() => {
     const G = scene('town', [13.5, 8.4, 'd']); /* ต้นไม้เมือง (396,199,72,90) ฐาน 290 · ตัวเรา (432,269) */

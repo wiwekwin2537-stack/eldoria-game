@@ -71,12 +71,13 @@ function resolveStatic(u) {
   if (u.includes('\0') || u.split('/').some(s => s === '..' || s === '.')) return isV6 ? { code: 400 } : null;
   if (isV6) {
     if (u === '/v6/' || u === '/v6/index.html') return { file: INDEX_FILE };
-    /* ภาพของ v6 (งาน 1A-4 · สร้างด้วย tools/make-webp.py) — webp/png เท่านั้น · ชื่อไฟล์มีเลขเวอร์ชัน → แคช 7 วันได้ */
+    /* ภาพของ v6 (งาน 1A-4 · สร้างด้วย tools/make-webp.py) — webp/png เท่านั้น
+       ชื่อมีเลขเวอร์ชัน (…-v123.webp) → แคช 7 วัน (แก้ภาพ = ชื่อใหม่) · ไม่มีเลข → no-cache (ถาม ETag ทุกครั้ง · กันผู้เล่นเห็นภาพเก่า 7 วัน · ผลตรวจ 1Z L1) */
     const a = /^\/v6\/assets\/([\w\-/.]+\.(?:webp|png))$/.exec(u);
     if (a) {
       const f = path.join(V6_DIR, 'assets', a[1]);
       if (!f.startsWith(path.join(V6_DIR, 'assets') + path.sep)) return { code: 404 };
-      return { file: f, missing: 404, cache: 'public, max-age=604800' };
+      return { file: f, missing: 404, cache: /-v\d+\.(?:webp|png)$/.test(a[1]) ? 'public, max-age=604800' : 'no-cache' };
     }
     /* เสิร์ฟเฉพาะโค้ดเกมใน src/ (.js/.json) */
     const m = /^\/v6\/src\/([\w\-/.]+\.(?:js|json))$/.exec(u);

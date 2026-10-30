@@ -22,7 +22,9 @@ const BUILD_MS = 8;      /* ms ต่อเฟรมที่ยอมใช้�
 
 const PRE_PX = 160;      /* px — ระยะจากประตู/วงเวทที่เริ่มเตรียมภาพของฉากปลายทาง (5 ช่อง) */
 
-const IMG = new Map();   /* src → { img (ImageBitmap หรือ <img>), ok, bad, gone, used, scenes:Set } */
+const RETRY_S = [2, 5, 15]; /* วิ — โหลดภาพไม่ได้ (เน็ตมือถือสะดุด/404) → ลองใหม่หลัง 2 · 5 · 15 วิ แล้วเลิก (ผลตรวจ 1Y L3 · 404 จริงยิงแค่ 4 ครั้ง) */
+
+const IMG = new Map();   /* src → { img (ImageBitmap หรือ <img>), ok, bad, fails, retryAt, gone, used, scenes:Set } */
 const CHUNK = new Map(); /* 'ฉาก|cx,cy' → { cv, used, miss, scene } */
 let clock = 0, lastSweep = 0, curScene = null;
 
@@ -31,7 +33,7 @@ function url(src) { return new URL('../../../' + src, import.meta.url).href; }
 /* ภาพพร้อมวาดของ src (null = ยังไม่มา) · scene = ฉากที่ใช้ภาพนี้ (เตรียมล่วงหน้าส่ง null = ยังไม่ผูกฉาก) */
 export function image(src, scene = curScene) {
   let e = IMG.get(src);
-  if (!e) { e = { img: null, ok: false, bad: false, gone: false, used: clock, scenes: new Set() }; IMG.set(src, e); load(e, src); }
+  if (!e) { e = { src, img: null, ok: false, bad: false, fails: 0, retryAt: 0, gone: false, used: clock, scenes: new Set() }; IMG.set(src, e); load(e, src); }
   e.used = clock;
   if (scene) e.scenes.add(scene);
   return e.ok ? e.img : null;
@@ -47,13 +49,31 @@ function load(e, src) {
     const im = new Image(); im.decoding = 'async'; e.el = im;
     /* ถอดรหัสก่อนใช้ (decode) · เบราว์เซอร์ที่ไม่มี decode ใช้ได้ทันที */
     im.onload = () => { if (im.decode) im.decode().then(() => done(im), () => done(im)); else done(im); };
-    im.onerror = () => { e.bad = true; };
+    im.onerror = () => fail(e);
     im.src = url(src);
   };
   if (!canBitmap()) { viaImg(); return; }
   fetch(url(src)).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); }).then(
     b => createImageBitmap(b).then(done, viaImg), /* ถอดรหัส blob ไม่ได้ (เบราว์เซอร์เก่า) → <img> */
-    () => { e.bad = true; });                      /* โหลดไม่ได้ (404/เน็ต) → ไม่ลองซ้ำ (ไม่ยิงคำขอซ้ำ) */
+    () => fail(e));                                /* โหลดไม่ได้ (404/เน็ต) → ลองใหม่แบบเว้นช่วง (fail) */
+}
+/* โหลดพลาด: ลองใหม่หลัง RETRY_S[ครั้งที่พลาด] วิ (นับจากเวลาเกม clock · retry() ทุกเฟรม) · ครบ 3 ครั้งแล้วเลิก = สีแทนภาพ
+   (เดิมพลาดครั้งเดียว = bad ถาวร → ยืนในเมืองเห็นแต่สีพื้นแทนอาคารจนออกฉากเกิน 45 วิ · ผลตรวจ 1Y L3)
+   ลองใหม่เฉพาะภาพที่ยังใช้อยู่ (ฉากปัจจุบัน หรือเพิ่งขอไม่เกิน artTtl) · ได้ภาพแล้ว dropMissing() สร้างแผ่นพื้นที่วาดสีแทนใหม่ */
+const BAD = new Set(); /* entry ที่รอลองใหม่ (ว่าง = retry() ไม่ทำอะไร) */
+function fail(e) {
+  if (e.gone) return;
+  e.bad = true; e.fails++;
+  if (e.fails <= RETRY_S.length) { e.retryAt = clock + RETRY_S[e.fails - 1]; BAD.add(e); }
+}
+function retry() {
+  if (!BAD.size) return;
+  for (const e of BAD) {
+    if (e.gone) { BAD.delete(e); continue; }
+    if (clock < e.retryAt) continue;
+    if (!e.scenes.has(curScene) && clock - e.used > WORLD.artTtl) continue; /* ไม่มีใครใช้ตอนนี้ → ยังไม่ยิง (กลับมาใช้ = ลองต่อ · sweep คืน = ออกจากรายการ) */
+    BAD.delete(e); e.bad = false; load(e, e.src);
+  }
 }
 /* ขนาดภาพ: ImageBitmap มี width/height · <img> ใช้ naturalWidth (ไม่ขึ้นกับขนาดที่แสดง) */
 const imgW = im => im.naturalWidth || im.width || 0, imgH = im => im.naturalHeight || im.height || 0;
@@ -81,12 +101,22 @@ export function cacheInfo() { /* เทส */
     bitmaps: [...IMG.values()].filter(e => e.ok && typeof e.img.close === 'function').length,
   };
 }
-export function _reset() { for (const e of IMG.values()) drop(e); IMG.clear(); for (const c of CHUNK.values()) free(c); CHUNK.clear(); FADE.clear(); fadeScene = fadeAt = null; lastSweep = 0; } /* เทส */
+export function _reset() { for (const e of IMG.values()) drop(e); IMG.clear(); BAD.clear(); for (const c of CHUNK.values()) free(c); CHUNK.clear(); FADE.clear(); fadeScene = fadeAt = null; lastSweep = 0; } /* เทส */
 export function peekImage(src) { const e = IMG.get(src); return e ? e.img : null; } /* เทส: ภาพที่เก็บอยู่ (ไม่นับว่าใช้) */
 
 /* ---------- เตรียมภาพฉากถัดไป ---------- */
-/* ภาพทั้งหมดที่ฉาก map ใช้ (ตามชนิดพื้น/ต้นไม้/ภาพอาคาร) */
+/* ภาพทั้งหมดที่ฉาก map ใช้ (ตามชนิดพื้น/ต้นไม้/ภาพอาคาร) · จำผลต่อแมพ (แมพไม่เปลี่ยน · prefetch เรียกทุกเฟรมตอนยืนใกล้ประตู · ผลตรวจ 1Y L5)
+   คืนอาร์เรย์เดิมทุกครั้ง (แช่แข็ง ห้ามแก้) */
+const SCENE_IMG = new WeakMap();
 export function sceneImages(map) {
+  if (map && typeof map === 'object') {
+    let a = SCENE_IMG.get(map);
+    if (!a) { a = Object.freeze(listSceneImages(map)); SCENE_IMG.set(map, a); }
+    return a;
+  }
+  return listSceneImages(map);
+}
+function listSceneImages(map) {
   const L = (map && map.look) || {}, out = new Set();
   if (L.floor === 'terrain' || (L.floor === 'zone' || !L.floor) && L.tile != null) out.add(TERRAIN.src);
   if (L.floor === 'terrain' || L.floor === 'nature' || L.floor === 'road') out.add(TREE_SRC[L.tree || L.trees] || TREE_SRC.oak);
@@ -222,7 +252,8 @@ function roadY(x, p) { /* roadY 171-fix144 · sm = smoothstep */
   return Math.round(p.y + p.amp * sm((x - p.x0) / p.ramp) * sm((p.x1 - x) / p.ramp) * Math.sin(x / p.period));
 }
 
-function terrainCell(k, im, n, px, py) { const S = TERRAIN.cell, C = TERRAIN.cols; k.drawImage(im, (n % C) * S, Math.floor(n / C) * S, S, S, px, py, T, T); }
+/* ช่องพื้น 128 → 32 px (ย่อ 4 เท่า) · hq: ไม่ตั้ง = ย่อหยาบ (ช่องที่ 4 ของ M1 ที่ยังขาด · เทส 1X spy canvas) */
+function terrainCell(k, im, n, px, py) { const S = TERRAIN.cell, C = TERRAIN.cols; hq(k); k.drawImage(im, (n % C) * S, Math.floor(n / C) * S, S, S, px, py, T, T); }
 
 function zoneTiles(k, map, x0, y0, x1, y1, p, tile) {
   const im = tile != null ? image(TERRAIN.src) : null, solid = c => c === '#', Z = COLORS.zone;
@@ -377,7 +408,7 @@ function eachTall(G, fn) {
     }
     if (art.roof) for (const o of art.ground) { /* หลังคาอาคาร: วาดซ้ำทับตัวละครเมื่อเดินอยู่หลังอาคาร (TOWNART.bind roof) */
       const s = art.src[o[0]];
-      if (!art.roof.srcs.includes(s) || art.roof.skip.some(q => /landmarks\./.test(s) && Math.abs(q[0] - o[1]) < 2 && Math.abs(q[1] - o[2]) < 2)) continue;
+      if (!art.roof.srcs.includes(s) || art.roof.skip.some(q => /\/landmarks(-v\d+)?\./.test(s) && Math.abs(q[0] - o[1]) < 2 && Math.abs(q[1] - o[2]) < 2)) continue;
       if (!hits(o, X0, Y0, X1, Y1)) continue;
       const band = o[8] * art.roof.part, base = o[6] + band;
       fn(base, k => { k.save(); k.beginPath(); k.rect(o[5], o[6], o[7], band); k.clip(); op(k, art.src, o); k.restore(); }, null, false);
@@ -421,7 +452,7 @@ export function drawLayer(G, ctx, layer) {
   if (typeof document === 'undefined') return;
   clock = G.time ? G.time.now : clock;
   curScene = G.scene.id;
-  if (layer === 'ground') { drawGround(G, ctx); drawLinks(G, ctx); prefetch(G); sweep(); }
+  if (layer === 'ground') { retry(); drawGround(G, ctx); drawLinks(G, ctx); prefetch(G); sweep(); }
   else if (layer === 'world') pushTall(G);
 }
 

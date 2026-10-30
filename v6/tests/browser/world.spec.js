@@ -206,6 +206,37 @@ async function headDiff(page, x, y, name) {
       else ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน ${n} รอบ <100 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
     }
 
+    console.log('— เปิดเกม 2 วิแรก: เฟรมนานสุด (ผลตรวจ 1Z L3 · 1Y L1) · หน้าใหม่ 5 รอบ (แคชว่าง)');
+    /* วัดช่วงห่างระหว่าง rAF ของหน้า ตั้งแต่เฟรมแรกของเกม (G.time.frame ≥ 1) ถึง +2 วิ — ตรงกับที่ผู้เล่นเห็นตอนเข้าเกม
+       1X วัดในเครื่องช่าง (เครื่องว่าง 14 หน้า): สูงสุดต่อหน้า 33–50 ms · ไม่มี long task · เฟรมเกม 20–38 ms ช่วง 300 ms แรก (สร้างแผ่นพื้น + วาดแผ่นใหม่ครั้งแรก)
+       ค้าง ~116 ms (ผลตรวจ 1Y L1) เกิดเฉพาะตอนเครื่องมีงานอื่นแย่ง CPU (ช่างรัน login.spec พร้อมกัน → long task 115 ms 1 ใน 8 หน้า) ไม่ใช่โค้ดเกม
+       ก่อน 1Y (<img> ถอดรหัสในเฟรม) ทุกหน้ามีเฟรม >50 ms 4–5 ครั้ง สูงสุด 100–480 ms
+       เกณฑ์: มัธยฐานของ "สูงสุดต่อหน้า" <90 ms (ต่ำกว่า 3 ช่วงเฟรมที่ 30 FPS · พลาด 1 เฟรม = 67 ms ปกติ) และทุกหน้า <150 ms (เผื่อเครื่องเทสมีโหลด) */
+    {
+      const runs = [];
+      for (let k = 0; k < 5; k++) {
+        const c3 = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+        const p3 = await c3.newPage();
+        await p3.addInitScript(() => {
+          const L = window.__start = { raf: [], t0: null };
+          const f = n => { L.raf.push(n); if (L.t0 == null && window.__G && window.__G.time && window.__G.time.frame >= 1) L.t0 = n; if (L.t0 == null || n - L.t0 < 2100) requestAnimationFrame(f); };
+          requestAnimationFrame(f);
+        });
+        await p3.goto(`http://127.0.0.1:${port}/v6/`);
+        await p3.waitForFunction(() => window.__start.t0 != null && performance.now() - window.__start.t0 > 2200, null, { timeout: 15000 });
+        runs.push(await p3.evaluate(() => {
+          const L = window.__start; let max = 0, n50 = 0;
+          for (let i = 1; i < L.raf.length; i++) { if (L.raf[i] <= L.t0 || L.raf[i] > L.t0 + 2000) continue; const d = L.raf[i] - L.raf[i - 1]; if (d > max) max = d; if (d > 50.5) n50++; }
+          return { max, n50 };
+        }));
+        await c3.close();
+      }
+      const mx = runs.map(r => r.max), srt = [...mx].sort((a, b) => a - b), med = srt[srt.length >> 1];
+      const txt = runs.map(r => r.max.toFixed(0) + (r.n50 ? `(${r.n50}×>50)` : '')).join(' / ') + ' ms';
+      console.log(`    เฟรมนานสุดต่อหน้า ${txt} · มัธยฐาน ${med.toFixed(0)} ms`);
+      ok(med < 90 && srt[srt.length - 1] < 150, 'เปิดเกม 2 วิแรกไม่ค้าง: มัธยฐานเฟรมนานสุด <90 ms และทุกหน้า <150 ms (ก่อน 1Y 100–480 ms)', txt);
+    }
+
     if (LONG) {
       console.log('— รอ 50 วิ: แมพที่ไม่ได้อยู่เกิน 45 วิ คืนหน่วยความจำ');
       await go(page, 'town'); await wait(50000);

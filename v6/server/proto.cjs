@@ -10,7 +10,8 @@
      ยกเว้น hello แบบต่อใหม่เอง (resume) ที่ไม่ใช่ผู้เขียนล่าสุด → ไม่เตะ ตอบ replaced (1B-g N3 · PROTOCOL.md)
      และ resume ขณะที่อีกเครื่องเปิดเกมอยู่แต่ยังโหลดไม่เสร็จ → replaced เหมือนกัน (เครื่องที่เปิดใหม่ล่าสุดชนะ · 1Z/1B-g M2)
    - กันเซฟก้อนใหญ่ค้างในคิวตอนที่เก็บช้า (1Z/1B-g M1): ข้อความ >1 KB นับไบต์ที่ "ค้างอยู่" ทั้งเซิร์ฟเวอร์ (≤2 MB) และต่อซ็อกเก็ต (≤2 ก้อน)
-     เกิน → ตอบ save_no busy ทันที "ก่อน JSON.parse" (อ็อบเจกต์ที่แปลงแล้วบวมได้ ~14 เท่า: [[],[],…] 256 KB → ~3.5 MB)
+     เกิน → ตอบ busy ทันที "ก่อน JSON.parse" (อ็อบเจกต์ที่แปลงแล้วบวมได้ ~14 เท่า: [[],[],…] 256 KB → ~3.5 MB)
+     · ชนิดคำตอบดูจาก "t" หัวข้อความ (peekT · ผลตรวจ 1Z L2): save → save_no busy · อื่น ๆ (hello/login ก้อนใหญ่) → err busy
      คืนโควตาเมื่อข้อความนั้นทำเสร็จ (รวมเวลารอที่เก็บ) · เกมถอยเวลาเองเมื่อได้ busy (core/save · N2) */
 const { counter, ipKey } = require('./limits.cjs');
 
@@ -23,13 +24,25 @@ const AUTH_TIMEOUT_MS = 60000;
 const BIG_MIN = 1024;                     /* ข้อความใหญ่กว่านี้ = "ก้อนใหญ่" ที่ต้องนับ (เซฟจริงเกือบทั้งหมด) */
 const BIG_PENDING_BYTES = 2 * 1024 * 1024; /* ไบต์ดิบของก้อนใหญ่ที่ค้างรอพร้อมกันทั้งเซิร์ฟเวอร์ (แปลงแล้วแย่สุด ~30 MB) */
 const BIG_PENDING_SOCK = 2;                /* ก้อนใหญ่ที่ค้างพร้อมกันต่อซ็อกเก็ต (เกมส่งทีละ 1 + flush ตอนปิดแท็บ) */
-/* เลข r ของคำขอโดยไม่ parse ทั้งก้อน: เกม (core/net) ใส่ r ไว้ท้ายสุด {...,"r":12} · หรือหัวสุด {"r":12,...} */
+/* หัว/ท้ายข้อความดิบ n ตัวอักษร (ไม่แปลงทั้งก้อน) */
+const headOf = (raw, n) => typeof raw === 'string' ? raw.slice(0, n) : raw.subarray(0, n).toString('latin1');
+const tailOf = (raw, n) => typeof raw === 'string' ? raw.slice(-n) : raw.subarray(Math.max(0, raw.length - n)).toString('latin1');
+/* เลข r ของคำขอโดยไม่ parse ทั้งก้อน: เกม (core/net) ใส่ r ไว้ท้ายสุด {...,"r":12} · หรือหัวสุด {"r":12,...}
+   r เป็นตัวเลข หรือสตริง ≤32 ตัว (แบบเดียวกับที่ parse ยอมรับ · ผลตรวจ 1Z L2 เดิมสตริงได้ undefined → เครื่องรอจนหมดเวลา) */
+const R_VAL = '(\\d{1,15}|"[^"\\\\]{0,32}")';
+const R_TAIL = new RegExp('"r"\\s*:\\s*' + R_VAL + '\\s*\\}\\s*$'), R_HEAD = new RegExp('^\\s*\\{\\s*"r"\\s*:\\s*' + R_VAL + '\\s*[,}]');
 function peekR(raw) {
   try {
-    const n = raw.length, tail = typeof raw === 'string' ? raw.slice(-40) : raw.subarray(Math.max(0, n - 40)).toString('latin1');
-    let m = /"r"\s*:\s*(\d{1,15})\s*\}\s*$/.exec(tail);
-    if (!m) { const head = typeof raw === 'string' ? raw.slice(0, 40) : raw.subarray(0, 40).toString('latin1'); m = /^\s*\{\s*"r"\s*:\s*(\d{1,15})\s*[,}]/.exec(head); }
-    return m ? +m[1] : undefined;
+    const m = R_TAIL.exec(tailOf(raw, 60)) || R_HEAD.exec(headOf(raw, 60));
+    if (!m) return undefined;
+    return m[1][0] === '"' ? m[1].slice(1, -1) : +m[1];
+  } catch (e) { return undefined; }
+}
+/* ชนิดข้อความ "t" โดยไม่ parse: เกมใส่ t ไว้หน้าสุดเสมอ ({t:'save',...} · core/save) · หาไม่เจอ = undefined */
+function peekT(raw) {
+  try {
+    const m = /^\s*\{\s*(?:"r"\s*:\s*(?:\d{1,15}|"[^"\\]{0,32}")\s*,\s*)?"t"\s*:\s*"(\w{1,16})"/.exec(headOf(raw, 80));
+    return m ? m[1] : undefined;
   } catch (e) { return undefined; }
 }
 const LIM = {
@@ -182,7 +195,9 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
     if (isBig) {
       if (big.bytes + size > BIG_PENDING_BYTES || conn.bigN >= BIG_PENDING_SOCK) {
         big.refused++;
-        return reply(conn, { t: 'save_no', why: 'busy', r: peekR(raw) });
+        /* save → save_no (core/save ถอยเวลา) · อื่น ๆ → err busy (core/net ไม่ลืมโทเคน · ถอยเวลา) · ผลตรวจ 1Z L2 */
+        const r = peekR(raw);
+        return reply(conn, peekT(raw) === 'save' ? { t: 'save_no', why: 'busy', r } : { t: 'err', why: 'busy', r });
       }
       big.bytes += size; conn.bigN++;
     }
@@ -212,4 +227,4 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
   return { open, message, closed, sweep, sessions, conns, PROTO_V, _lim: lim, _big: big };
 }
 
-module.exports = { createProto, peekR, PROTO_V, MSG_PER_SEC, BYTES_PER_SEC, MAX_PENDING, PRE_AUTH_MAX, SMALL_MAX, AUTH_TIMEOUT_MS, LIM, BIG_MIN, BIG_PENDING_BYTES, BIG_PENDING_SOCK };
+module.exports = { createProto, peekR, peekT, PROTO_V, MSG_PER_SEC, BYTES_PER_SEC, MAX_PENDING, PRE_AUTH_MAX, SMALL_MAX, AUTH_TIMEOUT_MS, LIM, BIG_MIN, BIG_PENDING_BYTES, BIG_PENDING_SOCK };

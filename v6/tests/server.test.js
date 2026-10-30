@@ -3,9 +3,11 @@
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, '..', '..');
 const { memoryStore, PREFIX } = require('../server/store.cjs');
 const { createAccounts } = require('../server/accounts.cjs');
 const { createSaves, SAVE_VERSION, COIN_MAX, MAX_SAVE_CHARS } = require('../server/saves.cjs');
@@ -283,6 +285,17 @@ export default [
       eq((await get('/v6/assets/%2e%2e/server/store.cjs')).code, 400, '.. แบบเข้ารหัส');
       eq((await get('/v6/src/main.js')).h['cache-control'], 'no-cache', 'โค้ดยังไม่แคช');
     } finally { server.close(); }
+  }],
+  ['http (1X · ผลตรวจ 1Z L1): ภาพที่ชื่อไม่มีเลขเวอร์ชัน → no-cache (ไม่แคช 7 วัน) · มีเลข → 7 วัน · ภาพจริงทุกไฟล์ใน v6/assets มีเลขเวอร์ชัน', () => {
+    const R = V6.resolveStatic;
+    eq(R('/v6/assets/town/ground-v538.webp').cache, 'public, max-age=604800', 'มีเลข → 7 วัน');
+    eq(R('/v6/assets/town/landmarks.webp').cache, 'no-cache', 'ไม่มีเลข → no-cache');
+    eq(R('/v6/assets/town/v1.png').cache, 'no-cache', 'ชื่อ v1 เฉย ๆ ไม่นับ');
+    const dir = path.join(ROOT, 'v6', 'assets'), files = [];
+    (function walk(d) { for (const f of fs.readdirSync(d, { withFileTypes: true })) f.isDirectory() ? walk(path.join(d, f.name)) : files.push(path.relative(dir, path.join(d, f.name)).split(path.sep).join('/')); })(dir);
+    truthy(files.length >= 16, 'มีภาพ ' + files.length);
+    const bad = files.filter(f => R('/v6/assets/' + f).cache !== 'public, max-age=604800');
+    eq(bad.join(','), '', 'ภาพที่ไม่มีเลขเวอร์ชัน (ผู้เล่นจะได้ภาพเก่า 7 วันถ้าแก้ภาพ)');
   }],
   ['IP ผู้เล่น (M1): ค่าเริ่ม auto ข้ามพร็อกซีภายใน/Cloudflare จากขวา · ตัวซ้ายปลอมไม่ได้ · ต่อตรงไม่เชื่อ header · V6_PROXY_HOPS ตั้งชั้นได้', () => {
     const R = (xff, sock, env = {}) => V6.clientIp({ headers: xff == null ? {} : { 'x-forwarded-for': xff }, socket: { remoteAddress: sock } }, env);

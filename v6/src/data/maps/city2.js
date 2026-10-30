@@ -1,6 +1,6 @@
 /* ข้อมูลแมพ (สร้างจากเกมเดิมด้วยเครื่องมือดึงข้อมูล · ห้ามมีโค้ดคำนวณ · CONTRACT §3)
    แถว = RLE: ตัวอักษรช่อง + จำนวนซ้ำ (ไม่มีเลข = 1 ช่อง) · ความหมายตัวอักษร: data/maps.js TILE */
-const SRC = ["v6/assets/town/props-v560.webp","v6/assets/town/landmarks.webp","v6/assets/town/details-v560.webp","v6/assets/town/houses-v560.webp","v6/assets/town/shops.webp","v6/assets/world/tree-oak-v585.webp","v6/assets/town/goddess-v562.webp","v6/assets/city2/houses-v560.webp","v6/assets/city2/remaining-v560.webp","v6/assets/city2/buildings-v558.webp"]; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
+const SRC = ["v6/assets/town/props-v560.webp","v6/assets/town/landmarks-v1.webp","v6/assets/town/details-v560.webp","v6/assets/town/houses-v560.webp","v6/assets/town/shops-v1.webp","v6/assets/world/tree-oak-v585.webp","v6/assets/town/goddess-v562.webp","v6/assets/city2/houses-v560.webp","v6/assets/city2/remaining-v560.webp","v6/assets/city2/buildings-v558.webp"]; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */
 export default {
   city2: {
     n: 'นครวารีอัสตรา', kind: 'town', w: 84, h: 64, camOy: .55, lv: 150, /* C2 127-fix95:8 · ผัง build98 130-fix98 */

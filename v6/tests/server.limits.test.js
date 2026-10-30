@@ -213,10 +213,13 @@ export default [
 
   /* ---------- L2 ---------- */
   ['L2: ต่อแล้วไม่ล็อกอินภายในเวลา → ตัด (4002) · ล็อกอินแล้วไม่ตัด', async () => {
-    const { proto } = setup({ authTimeoutMs: 60 });
+    /* 1X: เดิมตั้ง 60 ms → เครื่องเทสมีโหลด สมัคร (แฮชรหัส) ช้ากว่า 60 ms = ถูกตัดก่อนล็อกอินเสร็จ (เทสพังสุ่ม 3/3 ตอนมีงาน CPU อื่น · ไม่ใช่บัค: ของจริง 60 วิ)
+       → 1 วิ (สมัครใต้โหลดใช้ ~100–300 ms) */
+    const { proto } = setup({ authTimeoutMs: 1000 });
     const idle = conn(proto), ok = conn(proto);
     await say(proto, ok, { t: 'register', id: 'l2ok', pw: 'abc123' });
-    await wait(120);
+    eq(ok.closed, null, 'สมัครเสร็จก่อนหมดเวลา');
+    await wait(1300);
     eq(idle.closed && idle.closed.code, 4002, 'ไม่ล็อกอิน ถูกตัด');
     eq(ok.closed, null, 'ล็อกอินแล้ว ไม่ตัด');
   }],
@@ -322,6 +325,33 @@ export default [
     truthy(proto._big.bytes <= P.BIG_PENDING_BYTES, 'ไม่เกิน 2 MB ' + proto._big.bytes);
     truthy(ks.some(ki => ki.out.some(o => o.why === 'busy' && o.r === 5)), 'ตัวที่เกิน 2 MB ได้ busy');
     eq(P.peekR('{"r":77,"t":"save"}'), 77, 'r หัวข้อความ'); eq(P.peekR(Buffer.from('{"t":"save","r":8}')), 8, 'r ท้าย (Buffer)'); eq(P.peekR('{"t":"x"}'), undefined, 'ไม่มี r');
+  }],
+  ['1X (ผลตรวจ 1Z L2): ก้อนใหญ่ที่ไม่ใช่ save ตอนโควตาเต็ม → err busy (ไม่ใช่ save_no) · r สตริงได้คืน', async () => {
+    const { proto } = setup({ delayMs: 300 });
+    /* เติมโควตาก้อนใหญ่ทั้งเซิร์ฟเวอร์ให้เต็ม (2 MB) */
+    const huge = JSON.stringify({ t: 'save', seq: 9, sid: SID, systems: { a: { s: 'y'.repeat(250 * 1024) } }, r: 5 });
+    const q = [];
+    for (let i = 0; i < 9; i++) { const ki = conn(proto); ki.lid = 'fill' + i; q.push(proto.message(ki, huge)); }
+    { const gap = P.BIG_PENDING_BYTES - proto._big.bytes - 1200, kf = conn(proto); kf.lid = 'fillx'; /* เหลือที่ว่าง ~1.2 KB */
+      const pre = JSON.stringify({ t: 'save', seq: 9, sid: SID, systems: { a: { s: '' } }, r: 6 }).length;
+      q.push(proto.message(kf, JSON.stringify({ t: 'save', seq: 9, sid: SID, systems: { a: { s: 'f'.repeat(gap - pre) } }, r: 6 }))); }
+    truthy(proto._big.bytes + 1500 > P.BIG_PENDING_BYTES, 'โควตาต้องเต็ม ' + proto._big.bytes);
+    /* hello ก่อนล็อกอิน 1.5 KB (≤2 KB) · r ตัวเลขท้าย และ r สตริงหัวข้อความ */
+    const k = conn(proto);
+    proto.message(k, JSON.stringify({ t: 'hello', id: 'abc', token: 'a'.repeat(1500), r: 41 }));
+    let o = k.out[k.out.length - 1];
+    eq(o && (o.t + ':' + o.why + ':' + o.r), 'err:busy:41', 'hello ก้อนใหญ่');
+    proto.message(k, '{"r":"q7","t":"login","id":"abc","pw":"' + 'p'.repeat(1500) + '"}');
+    o = k.out[k.out.length - 1];
+    eq(o && (o.t + ':' + o.why + ':' + o.r), 'err:busy:q7', 'login r สตริง');
+    /* save ยังได้ save_no เหมือนเดิม */
+    const ks = conn(proto); ks.lid = 'sv';
+    proto.message(ks, JSON.stringify({ t: 'save', seq: 1, sid: SID, systems: { a: { s: 'z'.repeat(1500) } }, r: 'w2' }));
+    o = ks.out[ks.out.length - 1];
+    eq(o && (o.t + ':' + o.why + ':' + o.r), 'save_no:busy:w2', 'save ก้อนใหญ่');
+    eq(P.peekT('{"t":"save","r":1}'), 'save', 'peekT'); eq(P.peekT('{"r":3,"t":"hello"}'), 'hello', 'peekT r หน้า'); eq(P.peekT(Buffer.from('{"x":1}')), undefined, 'peekT ไม่มี');
+    await Promise.all(q);
+    eq(proto._big.bytes, 0, 'คืนโควตาครบ');
   }],
   ['1Z L2: อ่านตัวนับงบวันไม่ได้ตอนบูต → ไม่เขียนทับค่าที่ใหญ่กว่าในที่เก็บ · อ่านได้ภายหลังแล้วรวมค่า', async () => {
     const c = { t: Date.UTC(2026, 9, 30, 10, 0, 0) }, now = () => c.t;
