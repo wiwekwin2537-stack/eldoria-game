@@ -14,7 +14,7 @@ const ROOT = path.resolve(HERE, '..', '..');
 const SRV = path.join(HERE, '..', 'server');
 const { memoryStore } = require('../server/store.cjs');
 const { createAccounts, MAP_CAP } = require('../server/accounts.cjs');
-const { createSaves, CACHE_MAX } = require('../server/saves.cjs');
+const { createSaves, CACHE_MAX, CACHE_BYTES } = require('../server/saves.cjs');
 const { createProto, MAX_PENDING, LIM } = require('../server/proto.cjs');
 const { counter, budgetStore } = require('../server/limits.cjs');
 const V6 = require('../server/index.cjs');
@@ -112,6 +112,32 @@ export default [
     c.t += 60000;
     const k2 = conn(proto);
     eq((await say(proto, k2, { t: 'login', id: 'bud1', pw: 'abc123' })).why, 'busy', 'งบวันหมด (5)');
+  }],
+
+  /* ---------- 1B-g N1: แคชเซฟห้ามทำหน่วยความจำบวม ---------- */
+  ['N1: 100 บัญชี × เซฟ 256 KB แบบ [[],[],…] → heap โต < 30 MB · แคชไม่เกินงบไบต์ (เดิม +333 MB)', async () => {
+    const r = await new Promise((ok, no) => {
+      const p = spawn(process.execPath, ['--expose-gc', path.join(HERE, 'server.heap.cjs')], { stdio: ['ignore', 'pipe', 'pipe'] });
+      let out = '', err = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => err += d);
+      p.on('close', code => { try { ok(JSON.parse(out.trim().split('\n').pop())); } catch (e) { no(new Error('ผลวัดอ่านไม่ได้ ' + code + ' ' + out + err)); } });
+    });
+    eq(r.saved, 100, 'เซฟสำเร็จทุกบัญชี');
+    truthy(r.grow < 30, 'heap โต ' + r.grow + ' MB (ต้อง < 30)');
+    truthy(r.cacheBytes != null && r.cacheBytes <= CACHE_BYTES, 'แคช ' + r.cacheBytes + ' ไบต์ ต้อง ≤ ' + CACHE_BYTES);
+  }],
+  ['N1: แคชเกินงบไบต์ → ทิ้ง systems ของตัวเก่า (เก็บ seq/w) · load ตัวนั้นอ่านจากที่เก็บได้ถูก · เซฟต่อได้ไม่ต้องอ่านก่อน', async () => {
+    const c = { t: 1.8e12 }, now = () => c.t, store = countingStore();
+    const saves = createSaves({ store, now, cacheBytes: 3000 }); /* ~1.5 KB ต่อตัว → ถือ systems ได้ 1–2 ตัว */
+    const sys = n => ({ bag: { s: String(n).repeat(600) } });
+    for (let i = 0; i < 4; i++) { c.t += 2000; await saves.load('n1u' + i, SID); eq((await saves.save('n1u' + i, { seq: 1, sid: SID, systems: sys(i) })).ok, true, 'เซฟ ' + i); }
+    truthy(saves._cacheStat.bytes <= 3000, 'ไม่เกินงบ ' + saves._cacheStat.bytes);
+    eq(saves._cache.size, 4, 'ข้อมูลเล็กยังอยู่ครบ');
+    eq(saves._cache.get('n1u0').sys, null, 'ตัวเก่าสุดถูกทิ้ง systems');
+    const before = store.ops; c.t += 2000;
+    eq((await saves.save('n1u0', { seq: 2, sid: SID, systems: sys(9) })).ok, true, 'เซฟตัวที่ถูกทิ้ง');
+    eq(store.ops - before, 1, 'เซฟ = 1 คำสั่ง (ไม่ต้องอ่านก่อน)');
+    eq((await saves.load('n1u1', SID)).systems.bag.s, '1'.repeat(600), 'โหลดตัวที่ถูกทิ้ง → อ่านจากที่เก็บถูก');
+    eq((await saves.load('n1u0', SID)).systems.bag.s, '9'.repeat(600), 'ของล่าสุด');
   }],
 
   /* ---------- M2 ---------- */

@@ -124,13 +124,14 @@ function serveHttp(req, res) {
 
 /* สร้างชุดเซิร์ฟเวอร์ v6 (เทสสร้างเองได้ด้วย store ในหน่วยความจำ)
    env ที่ใช้: V6_MAX_PLAYERS · MAX_PER_IP · ALLOWED_ORIGINS · V6_PROXY_HOPS · V6_LOG_XFF
+   · V6_SAVE_CACHE_MB (ค่าเริ่ม 32 = งบแคชเซฟเป็นไบต์ · N1)
    · V6_STORE_PER_MIN (ค่าเริ่ม 120) · V6_STORE_PER_DAY (ค่าเริ่ม 4000) = งบคำสั่งที่เก็บของ v6 ทั้งหมด (กันโควตา Upstash เกมเดิม · H2) */
 function createV6({ store, env = process.env, now = () => Date.now(), log = m => console.log(m), wsLib = null, authTimeoutMs } = {}) {
   if (!M) throw loadErr || new Error('v6 modules not loaded');
   const raw = store || M.fromEnv(env);
   store = M.budgetStore(raw, { perMin: +env.V6_STORE_PER_MIN || 120, perDay: +env.V6_STORE_PER_DAY || 4000, now, log });
   const accounts = M.createAccounts({ store, env, now });
-  const saves = M.createSaves({ store, now });
+  const saves = M.createSaves({ store, now, cacheBytes: (+env.V6_SAVE_CACHE_MB > 0 ? +env.V6_SAVE_CACHE_MB : 32) * 1048576 }); /* 1B-g N1 */
   const proto = M.createProto({ accounts, saves, now, log, authTimeoutMs });
   const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const MAX_CONN = +env.V6_MAX_PLAYERS || 1000, MAX_PER_IP = +env.MAX_PER_IP || 4;
