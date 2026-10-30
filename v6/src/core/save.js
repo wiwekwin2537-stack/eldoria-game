@@ -124,9 +124,14 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     if (S.resyncing) return;
     S.resyncing = true; S.resyncs++;
     status(false, why);
+    /* โหลดใหม่ไม่สำเร็จ (busy/หลุด) → ถอยเวลา 5→60 วิ + ป้าย (1Z/1B-g L1 · เดิมลองทุก 5 วิ เงียบ ๆ ผู้เล่นไม่รู้ว่าไม่ได้บันทึก) */
+    let n = 0;
     const go = () => {
       if (!io.ready()) { timer.set(go, RETRY_MS); return; }
-      load().then(() => { S.resyncing = false; }, () => timer.set(go, RETRY_MS));
+      load().then(() => { S.resyncing = false; }, e => {
+        status(false, e && e.message === 'busy' ? 'busy' : 'load');
+        timer.set(go, busyDelay(++n));
+      });
     };
     go();
   }

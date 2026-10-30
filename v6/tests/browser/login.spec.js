@@ -39,12 +39,13 @@ function wsTalk(p, msgs = []) {
 async function openV6(browser) {
   const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }); /* มือถือแนวนอน */
   const page = await ctx.newPage();
-  const errors = [];
+  const errors = [], assets = [];
+  page.on('response', r => { if (r.url().includes('/v6/assets/')) assets.push({ u: r.url(), s: r.status(), t: r.headers()['content-type'] }); });
   page.on('pageerror', e => errors.push(String(e)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(BASE + '/v6/');
   await page.waitForFunction(() => window.__G && window.__G.time.frame > 5);
-  return { ctx, page, errors };
+  return { ctx, page, errors, assets };
 }
 const phase = page => page.evaluate(() => window.__G.net.phase);
 const visible = (page, sel) => page.evaluate(s => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' && e.offsetParent !== null; }, sel);
@@ -78,6 +79,11 @@ const visible = (page, sel) => page.evaluate(s => { const e = document.querySele
     console.log('— สมัครที่ /v6/ (มือถือแนวนอน 844×390)');
     const A = await openV6(browser);
     await A.page.waitForFunction(() => window.__G.net.phase === 'login', null, { timeout: 10000 });
+    /* 1Z (คำขอ 1A-4): ภาพ webp ของ v6 ต้องโหลดได้จากเซิร์ฟเวอร์จริง (dev-server ในเครื่องเสิร์ฟได้ แต่ server.js เดิม 404) */
+    for (let i = 0; i < 40 && !A.assets.some(a => /\/town\/.+\.webp/.test(a.u)); i++) await wait(100);
+    const town = A.assets.filter(a => /\/town\/.+\.webp/.test(a.u));
+    ok(town.length > 0 && town.every(a => a.s === 200 && a.t === 'image/webp') && A.assets.every(a => a.s === 200 || a.s === 304),
+      'ภาพเมือง /v6/assets/town/*.webp ได้ 200 image/webp จาก server.js จริง', JSON.stringify(A.assets.slice(0, 4)));
     ok(await visible(A.page, '#lg-id'), 'เห็นฟอร์มล็อกอิน');
     await shot(A.page, '1-login');
     await A.page.click('button[data-mode="register"]');

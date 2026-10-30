@@ -264,6 +264,26 @@ export default [
     eq(R('/assets/x.txt'), null, 'นามสกุลอื่น');
     eq(R('/assets/nope.png').missing, null, 'ไม่มีไฟล์ → เกมเดิมตอบ');
   }],
+  ['http (1Z · คำขอ 1A-4): /v6/assets/*.webp ได้ 200 image/webp แคช 7 วัน · .. / นามสกุลอื่น / ไม่มีไฟล์ = 400/404 (ไม่ตกไปเกมเดิม)', async () => {
+    const R = V6.resolveStatic;
+    truthy(R('/v6/assets/town/ground-v538.webp').file.endsWith(path.join('v6', 'assets', 'town', 'ground-v538.webp')), 'ภาพเมือง');
+    eq(R('/v6/assets/../server/store.cjs').code, 400, '..');
+    eq(R('/v6/assets/town/x.js').code, 404, 'นามสกุลอื่น');
+    eq(R('/v6/assets/town/x.webp').missing, 404, 'ไม่มีไฟล์ → 404 ของ v6');
+    const http = require('http');
+    const server = http.createServer((q, s) => { if (V6.http(q, s)) return; s.end('old'); });
+    await new Promise(r => server.listen(0, '127.0.0.1', r));
+    const get = u => new Promise((ok, no) => http.get({ host: '127.0.0.1', port: server.address().port, path: u }, res => { const b = []; res.on('data', d => b.push(d)); res.on('end', () => ok({ code: res.statusCode, h: res.headers, body: Buffer.concat(b) })); }).on('error', no));
+    try {
+      const r = await get('/v6/assets/town/ground-v538.webp');
+      eq(r.code, 200, 'ได้ภาพ'); eq(r.h['content-type'], 'image/webp', 'ชนิด');
+      eq(r.h['cache-control'], 'public, max-age=604800', 'แคช 7 วัน');
+      eq(r.body.slice(8, 12).toString(), 'WEBP', 'เนื้อไฟล์ webp');
+      eq((await get('/v6/assets/town/nope.webp')).code, 404, 'ไม่มีไฟล์');
+      eq((await get('/v6/assets/%2e%2e/server/store.cjs')).code, 400, '.. แบบเข้ารหัส');
+      eq((await get('/v6/src/main.js')).h['cache-control'], 'no-cache', 'โค้ดยังไม่แคช');
+    } finally { server.close(); }
+  }],
   ['IP ผู้เล่น (M1): ค่าเริ่ม auto ข้ามพร็อกซีภายใน/Cloudflare จากขวา · ตัวซ้ายปลอมไม่ได้ · ต่อตรงไม่เชื่อ header · V6_PROXY_HOPS ตั้งชั้นได้', () => {
     const R = (xff, sock, env = {}) => V6.clientIp({ headers: xff == null ? {} : { 'x-forwarded-for': xff }, socket: { remoteAddress: sock } }, env);
     /* Render แบบ "ต่อท้าย IP พร็อกซีของตัวเอง": ผู้เล่น 9.9.9.9 · ตัวท้ายเป็นพร็อกซีภายใน → ได้ผู้เล่น */

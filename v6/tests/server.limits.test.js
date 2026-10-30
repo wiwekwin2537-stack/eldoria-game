@@ -16,6 +16,7 @@ const { memoryStore } = require('../server/store.cjs');
 const { createAccounts, MAP_CAP } = require('../server/accounts.cjs');
 const { createSaves, CACHE_MAX, CACHE_BYTES } = require('../server/saves.cjs');
 const { createProto, MAX_PENDING, LIM } = require('../server/proto.cjs');
+const P = require('../server/proto.cjs');
 const { counter, budgetStore } = require('../server/limits.cjs');
 const V6 = require('../server/index.cjs');
 
@@ -275,5 +276,68 @@ export default [
       const msg = await new Promise((ok, no) => { const s = new WS.WebSocket(`ws://127.0.0.1:${port}/`); const tm = setTimeout(() => { s.terminate(); no(new Error('ws timeout')); }, 8000); s.on('message', m => { clearTimeout(tm); s.close(); ok(JSON.parse(String(m))); }); s.on('error', e => { clearTimeout(tm); no(e); }); });
       eq(msg.t, 'welcome', 'ws เกมเดิม'); truthy(Number.isFinite(msg.id), 'welcome ของเกมเดิม');
     } finally { p.kill(); await wait(200); fs.rmSync(tmp, { recursive: true, force: true }); }
+  }],
+
+  /* ---------- 1Z (ผลตรวจ 1B-g M1): เซฟก้อนใหญ่ค้างในคิวตอนที่เก็บช้า ---------- */
+  ['1Z M1: ที่เก็บช้า 1–3 วิ + 100 บัญชียิงเซฟ [[],…] 256 KB ทุกวิ → heap โต ≤ 50 MB · ws เกมเดิมตอบครบ (เดิม +1,024 MB · p95 4 วิ)', async () => {
+    const r = await new Promise((ok, no) => {
+      const p = spawn(process.execPath, ['--expose-gc', path.join(HERE, 'server.flood.cjs'), '6'], { stdio: ['ignore', 'pipe', 'pipe'] });
+      let out = '', err = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => err += d);
+      p.on('close', code => { try { ok(JSON.parse(out.trim().split('\n').pop())); } catch (e) { no(new Error('ผลวัดอ่านไม่ได้ ' + code + ' ' + out + err)); } });
+    });
+    truthy(r.grow <= 50, 'heap โต ' + r.grow + ' MB (ต้อง ≤ 50)');
+    truthy(r.got >= r.sent - 1 && r.p95 < 250, `ws เกมเดิมตอบ ${r.got}/${r.sent} p95 ${r.p95} ms`);
+    truthy(r.saved > 0, 'ยังเซฟได้บ้าง (ไม่ปิดตาย) ' + r.saved);
+    truthy(r.busy > 0 && r.busyR, 'เกินโควตา → ตอบ busy พร้อมเลข r ของคำขอ');
+    truthy(r.answered, 'ทุกข้อความได้คำตอบ');
+    eq(r.left, 0, 'ทำเสร็จแล้วคืนโควตาไบต์ครบ');
+  }],
+  ['1Z M1: ก้อนใหญ่เกินโควตา → save_no busy ก่อน parse (ไม่เรียก JSON.parse · ได้ r) · ต่อซ็อกเก็ต ≤2 · คืนโควตาเมื่อเสร็จ/ผิดรูป', async () => {
+    const { proto, c } = setup({ delayMs: 150 });
+    const k = conn(proto);
+    await say(proto, k, { t: 'register', id: 'm1sock', pw: 'abc123' });
+    await say(proto, k, { t: 'load', sid: SID });
+    const body = 'x'.repeat(3000);
+    const msg = (seq, r) => JSON.stringify({ t: 'save', seq, sid: SID, systems: { a: { s: body } }, r });
+    const parse = JSON.parse; let parsed = 0;
+    JSON.parse = function (s) { if (typeof s === 'string' && s.length > 2000) parsed++; return parse.apply(this, arguments); };
+    let q;
+    try {
+      c.t += 2000;
+      q = [proto.message(k, msg(1, 11)), proto.message(k, msg(2, 12))];
+      eq(proto._big.bytes, 2 * Buffer.byteLength(msg(1, 11)), 'นับไบต์ 2 ก้อน');
+      proto.message(k, msg(3, 13));
+      eq(parsed, 2, 'ก้อนที่ 3 ไม่ถูก parse');
+    } finally { JSON.parse = parse; }
+    const last = k.out[k.out.length - 1];
+    eq(last.t + ':' + last.why + ':' + last.r, 'save_no:busy:13', 'ตอบ busy พร้อม r');
+    await Promise.all(q);
+    eq(proto._big.bytes, 0, 'เสร็จแล้วคืนโควตา'); eq(k.bigN, 0, 'ต่อซ็อกเก็ตคืนครบ');
+    await proto.message(k, '{"t":"save",' + 'x'.repeat(2000));
+    eq(proto._big.bytes, 0, 'ผิดรูปก็คืนโควตา');
+    /* ทั้งเซิร์ฟเวอร์: หลายซ็อกเก็ตรวมกันเกิน 2 MB → busy */
+    const huge = JSON.stringify({ t: 'save', seq: 9, sid: SID, systems: { a: { s: 'y'.repeat(250 * 1024) } }, r: 5 });
+    const ks = [];
+    for (let i = 0; i < 12; i++) { const ki = conn(proto); ki.lid = 'fake' + i; ks.push(ki); proto.message(ki, huge); }
+    truthy(proto._big.bytes <= P.BIG_PENDING_BYTES, 'ไม่เกิน 2 MB ' + proto._big.bytes);
+    truthy(ks.some(ki => ki.out.some(o => o.why === 'busy' && o.r === 5)), 'ตัวที่เกิน 2 MB ได้ busy');
+    eq(P.peekR('{"r":77,"t":"save"}'), 77, 'r หัวข้อความ'); eq(P.peekR(Buffer.from('{"t":"save","r":8}')), 8, 'r ท้าย (Buffer)'); eq(P.peekR('{"t":"x"}'), undefined, 'ไม่มี r');
+  }],
+  ['1Z L2: อ่านตัวนับงบวันไม่ได้ตอนบูต → ไม่เขียนทับค่าที่ใหญ่กว่าในที่เก็บ · อ่านได้ภายหลังแล้วรวมค่า', async () => {
+    const c = { t: Date.UTC(2026, 9, 30, 10, 0, 0) }, now = () => c.t;
+    const raw = countingStore();
+    const day = Math.floor((c.t + 7 * 3600e3) / 864e5), key = 'eld6:budget:day:' + day;
+    raw._map.set(key, '3000');
+    let down = true;
+    const persist = { get: async k => { if (down) throw new Error('ที่เก็บล่ม'); return raw.get(k); }, set: (k, v) => raw.set(k, v) };
+    const b = budgetStore(raw, { perMin: 1000, perDay: 4000, now, persist });
+    for (let i = 0; i < 80; i++) { await b.get('eld6:x'); if (i % 20 === 0) c.t += 11000; }
+    c.t += 400000; await b.get('eld6:x'); await wait(10);
+    eq(raw._map.get(key), '3000', 'ห้ามเขียน 81 ทับ 3000');
+    down = false;
+    c.t += 400000; await b.get('eld6:x'); await wait(10);
+    eq(b._day().known, true, 'อ่านได้แล้ว');
+    eq(raw._map.get(key), String(3000 + 82), 'รวมค่าเดิม + ที่นับไป');
+    eq(b.left().day, 4000 - 3082, 'งบที่เหลือคิดจากค่ารวม');
   }],
 ];

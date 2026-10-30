@@ -161,6 +161,31 @@ export default [
     G.player.x = 12; await T.run(1100); await sv.save(); eq(sent(), 4, 'กลับมาเซฟปกติ');
   }],
 
+  ['1Z L1: ถูกแทนที่ (replaced) แล้วโหลดใหม่ได้ busy → ถอยเวลา 5→10→20 วิ (ไม่ลองทุก 5 วิ) + ป้ายไทย · โหลดได้แล้วเซฟต่อ', async () => {
+    busReset();
+    const G = createState(), T = fakeTimer();
+    let loads = 0, busyLoads = 0;
+    const io = fakeIo(m => {
+      if (m.t === 'load') { loads++; if (loads === 1) return { t: 'load', doc: { seq: 1, systems: {}, server: {} } }; if (busyLoads-- > 0) return { t: 'err', why: 'busy', r: m.r }; return { t: 'load', doc: { seq: 7, systems: { alpha: { x: 70 } }, server: {} } }; }
+      return loads === 1 ? { t: 'save_no', why: 'replaced', seq: 6 } : { t: 'save_ok', seq: m.seq };
+    });
+    const st = []; on('save:status', d => st.push(d));
+    const sv = createSaver(G, [sysA], io, T);
+    await sv.load();
+    busyLoads = 3;
+    G.player.x = 1; await sv.save(); await tick(); await tick();
+    eq(st[0].error, 'replaced', 'แจ้ง replaced');
+    truthy(/[ก-๙]/.test(saveErrText('replaced')) && /[ก-๙]/.test(saveErrText('old')), 'replaced/old มีป้ายไทย');
+    eq(loads, 2, 'โหลดใหม่ทันที 1 ครั้ง');
+    eq(st[st.length - 1].error, 'busy', 'โหลดไม่ผ่าน → ป้าย busy');
+    await T.run(5000); eq(loads, 3, 'ลองใหม่ที่ 5 วิ');
+    await T.run(5000); eq(loads, 3, 'รอบสองไม่ใช่ 5 วิ (ถอยเวลา)');
+    await T.run(5000); eq(loads, 4, 'รอบสอง 10 วิ');
+    await T.run(15000); eq(loads, 4, 'รอบสามยังไม่ถึง 20 วิ');
+    await T.run(5000); eq(loads, 5, 'รอบสาม 20 วิ → โหลดได้');
+    eq(sv.state.loaded, true, 'โหลดสำเร็จ'); eq(G.player.x, 70, 'ใช้ของบนเซิร์ฟเวอร์');
+  }],
+
   /* ---------- 1B-g N3: ต่อใหม่เองห้ามเตะเครื่องที่กำลังเล่นอยู่ ---------- */
   ['N3: A พักแท็บ (หลุด) → B ล็อกอินเล่น+เซฟ → A ตื่นต่อใหม่เอง → B เล่นต่อได้ (ไม่โดน dupe) · A หยุดพร้อมข้อความไทย · กด "เล่นที่เครื่องนี้แทน" ถึงเตะ B', quiet(async () => {
     busReset(); FakeWS.all = [];
@@ -251,6 +276,58 @@ export default [
       const h2 = w.last('hello'); eq(h2.resume, 1, 'ต่อใหม่ = resume'); eq(h2.sid, sA, 'ส่ง sid');
     } finally { net._reset(); delete globalThis.localStorage; }
   }],
+
+  /* ---------- 1Z (ผลตรวจ 1B-g M2): B เพิ่งเปิดเกม (ยังโหลดไม่เสร็จ) → แท็บพักของ A ต่อใหม่เองห้ามเตะ B ---------- */
+  ['1Z M2: B เปิดเกมใหม่ (hello) แต่ยังโหลดไม่เสร็จ → A ที่พักแท็บต่อใหม่เอง (net จริง) ได้ replaced · B ไม่โดน dupe และโหลด/เซฟต่อได้ · ซ็อกเก็ตเก่าของ A เอง (sid เดียวกัน) ไม่ขวาง', quiet(async () => {
+    busReset(); FakeWS.all = [];
+    const c = { t: 1.8e12 }, now = () => c.t, store = memoryStore();
+    const accounts = createAccounts({ store, env: {}, now });
+    const proto = createProto({ accounts, saves: createSaves({ store, now }), now, authTimeoutMs: 0 });
+    let ipN = 0;
+    class Bridge {
+      constructor() {
+        this.readyState = 1; Bridge.last = this;
+        this.k = { ip: '10.36.0.' + (++ipN), out: [], send: o => { this.k.out.push(o); setTimeout(() => this.onmessage && this.onmessage({ data: JSON.stringify(o) }), 0); }, close: () => this.drop() };
+        setTimeout(() => proto.open(this.k), 0);
+      }
+      send(x) { proto.message(this.k, x); }
+      close() { this.drop(); }
+      drop() { if (this.readyState === 3) return; this.readyState = 3; proto.closed(this.k); setTimeout(() => this.onclose && this.onclose(), 0); }
+    }
+    const raw = () => { const k = { ip: '10.37.0.' + (++ipN), out: [], send(o) { this.out.push(o); }, close() { this.closedFlag = true; } }; proto.open(k); return k; };
+    const say = async (k, o) => { await proto.message(k, JSON.stringify(o)); return k.out[k.out.length - 1]; };
+    const until = async (f, ms = 3000) => { const t0 = Date.now(); while (!f()) { if (Date.now() - t0 > ms) throw new Error('รอนานเกิน'); await new Promise(r => setTimeout(r, 10)); } };
+    globalThis.localStorage = { m: {}, getItem(k) { return this.m[k] ?? null; }, setItem(k, v) { this.m[k] = v; }, removeItem(k) { delete this.m[k]; } };
+    const kicks = []; on('net:kicked', d => kicks.push(d.reason));
+    const sys = [{ id: 'bag', save: G => ({ who: G.player.name }), load: (G, d) => { G.player.name = d ? d.who : 'new'; } }];
+    try {
+      const GA = createState();
+      net.connect(GA, { url: 'ws://x/v6ws', WebSocket: Bridge });
+      await until(() => GA.net.phase === 'login');
+      eq((await net.register('m2dev', 'abc123')).ok, true, 'A สมัคร');
+      const A = createSaver(GA, sys, { request: net.request, send: net.send, ready: net.isReady, setSid: net.setResumeSid });
+      await A.load(); GA.player.name = 'A1'; await A.save();
+      const token = net.readAcct().token;
+      Bridge.last.drop(); /* A พักแท็บ */
+      /* B เปิดเกม (จำโทเคนไว้ → hello ไม่มี resume) แต่ยังไม่ได้โหลด (เช่น โหลดได้ busy แล้วรอถอยเวลา) */
+      const kB = raw();
+      eq((await say(kB, { t: 'hello', id: 'm2dev', token })).t, 'auth_ok', 'B เปิดเกม');
+      /* A ตื่น → ต่อใหม่เอง (resume + sid ของ A ซึ่งยังเป็นผู้เขียนล่าสุดในที่เก็บ) */
+      await until(() => GA.net.phase === 'kicked', 4000);
+      eq(kicks[kicks.length - 1], 'replaced', 'A ได้ replaced (เครื่องที่เปิดใหม่ล่าสุดชนะ)');
+      truthy(!kB.out.some(o => o.t === 'dupe') && !kB.closedFlag, 'B ต้องไม่โดนเตะ');
+      const sB = 'b'.repeat(32);
+      c.t += 6000; eq((await say(kB, { t: 'load', sid: sB })).doc.systems.bag.who, 'A1', 'B โหลดได้ เห็นของล่าสุดของ A');
+      c.t += 2000; eq((await say(kB, { t: 'save', seq: 9, sid: sB, systems: { bag: { who: 'B1' } } })).t, 'save_ok', 'B เซฟได้');
+      /* ซ็อกเก็ตเก่าของเครื่องเดียวกันที่เซิร์ฟเวอร์ยังไม่รู้ว่าหลุด (มือถือเปลี่ยนเน็ต) → ต่อใหม่ด้วย sid เดิมได้ */
+      const k1 = raw(); const reg = await say(k1, { t: 'register', id: 'm2same', pw: 'abc123' });
+      const sA = 'a'.repeat(32); await say(k1, { t: 'load', sid: sA });
+      const k2 = raw();
+      eq((await say(k2, { t: 'hello', id: 'm2same', token: reg.token, resume: 1, sid: sA })).t, 'auth_ok', 'sid เดียวกัน = เครื่องเดิม ต่อได้');
+      truthy(k1.out.some(o => o.t === 'dupe'), 'ซ็อกเก็ตเก่าของตัวเองถูกปิด');
+      c.t += 2000; eq((await say(k2, { t: 'save', seq: 1, sid: sA, systems: {} })).t, 'save_ok', 'เซฟต่อได้');
+    } finally { net._reset(); delete globalThis.localStorage; }
+  })],
 
   /* ---------- net ---------- */
   ['net: welcome ตั้งเวลาเซิร์ฟเวอร์ · ไม่มีโทเคน → หน้าล็อกอิน · login สำเร็จ → net:auth ครั้งเดียว + จำโทเคน', async () => {

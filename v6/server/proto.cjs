@@ -7,7 +7,11 @@
    - กันเผาโควตาที่เก็บ (ผลตรวจ H2): hello ≤10/นาที/IP + ≤3/นาที/ซ็อกเก็ต · load ≤1 ครั้ง/5 วิ/ซ็อกเก็ต + ≤20/นาที/IP
      · save ≤2/วิ/ซ็อกเก็ต (เกินตอบ rate โดยไม่แตะที่เก็บ) · ทั้งหมดอยู่ใต้งบรวมใน index.cjs (budgetStore)
    - ไอดีเดียวเข้าซ้อน: ตัวเก่าได้ dupe แล้วถูกตัด (เซสชันเดียว · spec05 §2.5, §4)
-     ยกเว้น hello แบบต่อใหม่เอง (resume) ที่ไม่ใช่ผู้เขียนล่าสุด → ไม่เตะ ตอบ replaced (1B-g N3 · PROTOCOL.md) */
+     ยกเว้น hello แบบต่อใหม่เอง (resume) ที่ไม่ใช่ผู้เขียนล่าสุด → ไม่เตะ ตอบ replaced (1B-g N3 · PROTOCOL.md)
+     และ resume ขณะที่อีกเครื่องเปิดเกมอยู่แต่ยังโหลดไม่เสร็จ → replaced เหมือนกัน (เครื่องที่เปิดใหม่ล่าสุดชนะ · 1Z/1B-g M2)
+   - กันเซฟก้อนใหญ่ค้างในคิวตอนที่เก็บช้า (1Z/1B-g M1): ข้อความ >1 KB นับไบต์ที่ "ค้างอยู่" ทั้งเซิร์ฟเวอร์ (≤2 MB) และต่อซ็อกเก็ต (≤2 ก้อน)
+     เกิน → ตอบ save_no busy ทันที "ก่อน JSON.parse" (อ็อบเจกต์ที่แปลงแล้วบวมได้ ~14 เท่า: [[],[],…] 256 KB → ~3.5 MB)
+     คืนโควตาเมื่อข้อความนั้นทำเสร็จ (รวมเวลารอที่เก็บ) · เกมถอยเวลาเองเมื่อได้ busy (core/save · N2) */
 const { counter, ipKey } = require('./limits.cjs');
 
 const PROTO_V = 1;
@@ -16,6 +20,18 @@ const BYTES_PER_SEC = 512 * 1024;
 const MAX_PENDING = 8;
 const PRE_AUTH_MAX = 2048, SMALL_MAX = 4096;
 const AUTH_TIMEOUT_MS = 60000;
+const BIG_MIN = 1024;                     /* ข้อความใหญ่กว่านี้ = "ก้อนใหญ่" ที่ต้องนับ (เซฟจริงเกือบทั้งหมด) */
+const BIG_PENDING_BYTES = 2 * 1024 * 1024; /* ไบต์ดิบของก้อนใหญ่ที่ค้างรอพร้อมกันทั้งเซิร์ฟเวอร์ (แปลงแล้วแย่สุด ~30 MB) */
+const BIG_PENDING_SOCK = 2;                /* ก้อนใหญ่ที่ค้างพร้อมกันต่อซ็อกเก็ต (เกมส่งทีละ 1 + flush ตอนปิดแท็บ) */
+/* เลข r ของคำขอโดยไม่ parse ทั้งก้อน: เกม (core/net) ใส่ r ไว้ท้ายสุด {...,"r":12} · หรือหัวสุด {"r":12,...} */
+function peekR(raw) {
+  try {
+    const n = raw.length, tail = typeof raw === 'string' ? raw.slice(-40) : raw.subarray(Math.max(0, n - 40)).toString('latin1');
+    let m = /"r"\s*:\s*(\d{1,15})\s*\}\s*$/.exec(tail);
+    if (!m) { const head = typeof raw === 'string' ? raw.slice(0, 40) : raw.subarray(0, 40).toString('latin1'); m = /^\s*\{\s*"r"\s*:\s*(\d{1,15})\s*[,}]/.exec(head); }
+    return m ? +m[1] : undefined;
+  } catch (e) { return undefined; }
+}
 const LIM = {
   helloIp: { max: 10, ms: 60000 }, helloSock: { max: 3, ms: 60000 },
   loadSock: { max: 1, ms: 5000 }, loadIp: { max: 20, ms: 60000 },
@@ -31,6 +47,7 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
   const lim = {};
   for (const k in LIM) lim[k] = counter({ ...LIM[k], now });
   let sockN = 0;
+  const big = { bytes: 0, refused: 0 }; /* ก้อนใหญ่ที่ค้างอยู่ทั้งเซิร์ฟเวอร์ (M1) */
 
   function armAuthTimer(conn) {
     clearTimeout(conn.authTimer);
@@ -40,7 +57,7 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
   }
 
   function open(conn) {
-    Object.assign(conn, { lid: null, id: null, token: null, rate: 0, bytes: 0, rateT: 0, bad: 0, pending: 0, q: Promise.resolve(), dead: false,
+    Object.assign(conn, { lid: null, id: null, token: null, rate: 0, bytes: 0, rateT: 0, bad: 0, pending: 0, bigN: 0, sid: '', q: Promise.resolve(), dead: false,
       key: ipKey(conn.ip), sk: 's' + (++sockN), authTimer: null });
     conns.add(conn);
     armAuthTimer(conn);
@@ -100,7 +117,15 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
            เปิดเกมใหม่ (ไม่มี resume) / พิมพ์รหัส = ตั้งใจเล่นเครื่องนี้ → เตะเครื่องเก่าเหมือนเดิม (dupe) */
         if (d.resume && typeof saves.claim === 'function') {
           if (conn.dead) return;
-          const okW = await saves.claim(res.lid, d.sid, () => { if (!conn.dead) bind(conn, res, String(d.token)); });
+          const sid = String(d.sid || '');
+          const okW = await saves.claim(res.lid, sid, () => {
+            /* M2: อีกเครื่องเปิดเกมอยู่ (ซ็อกเก็ตยังเปิด) แต่ยังโหลดไม่เสร็จ → w ยังเป็นของเครื่องนี้ แต่ห้ามเตะเครื่องที่เพิ่งเปิด
+               ยกเว้นซ็อกเก็ตนั้นเป็นของเครื่องนี้เอง (sid เดียวกัน = ซ็อกเก็ตเก่าที่ยังไม่รู้ว่าหลุด เช่น มือถือเปลี่ยนเน็ต) */
+            const cur = sessions.get(res.lid);
+            if (cur && cur !== conn && !cur.dead && cur.sid !== sid) return false;
+            if (!conn.dead) { bind(conn, res, String(d.token)); conn.sid = sid; }
+            return true;
+          });
           if (!okW) return reply(conn, { t: 'auth_no', r, why: 'replaced' });
           if (conn.dead) return;
         } else bind(conn, res, String(d.token));
@@ -109,6 +134,7 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
       case 'load': {
         if (!lim.loadSock.hit(conn.sk) || !lim.loadIp.hit(conn.key)) return reply(conn, { t: 'err', why: 'rate', r });
         const doc = await saves.load(conn.lid, d.sid);
+        conn.sid = String(d.sid || ''); /* เครื่องนี้โหลดแล้ว (M2: ซ็อกเก็ตที่ยังไม่โหลด = เครื่องที่เพิ่งเปิด) */
         return reply(conn, { t: 'load', r, doc });
       }
       case 'save': {
@@ -127,6 +153,18 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
     }
   }
 
+  /* แปลง + ตรวจรูปข้อความ → m (เฉพาะช่องที่ใช้) | null (ตอบ bad แล้ว) */
+  function parse(conn, raw, size) {
+    let d;
+    try { d = JSON.parse(String(raw)); } catch (e) { bad(conn); return null; }
+    if (!d || typeof d !== 'object' || Array.isArray(d) || !TYPES.has(d.t)) { bad(conn, d && typeof d.r !== 'object' ? d.r : undefined); return null; }
+    if (d.r != null && !(typeof d.r === 'number' || (typeof d.r === 'string' && d.r.length <= 32))) { bad(conn); return null; }
+    if (d.t !== 'save' && size > SMALL_MAX) { bad(conn, d.r); return null; }
+    const m = {};
+    for (const k of FIELDS) if (Object.prototype.hasOwnProperty.call(d, k)) m[k] = d[k];
+    return m;
+  }
+
   /* ข้อความดิบจากซ็อกเก็ต */
   function message(conn, raw) {
     if (conn.dead) return;
@@ -137,15 +175,19 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
     if (++conn.rate > MSG_PER_SEC || conn.bytes > BYTES_PER_SEC) { cut(conn, 1008, 'rate'); return; }
     if (!conn.lid && size > PRE_AUTH_MAX) { cut(conn, 1009, 'size'); return; } /* ยังไม่ล็อกอิน: ข้อความใหญ่ = ไม่ใช่เกมจริง */
     if (conn.pending >= MAX_PENDING) { cut(conn, 1008, 'queue'); return; }     /* ที่เก็บช้า + ยิงรัว → ไม่ให้คิวโต (H1) */
-    let d;
-    try { d = JSON.parse(String(raw)); } catch (e) { return bad(conn); }
+    /* M1: ก้อนใหญ่ → จองไบต์ก่อน parse · เต็ม = busy ทันที (ไม่ parse ไม่เข้าคิว) */
+    const isBig = size > BIG_MIN;
+    if (isBig) {
+      if (big.bytes + size > BIG_PENDING_BYTES || conn.bigN >= BIG_PENDING_SOCK) {
+        big.refused++;
+        return reply(conn, { t: 'save_no', why: 'busy', r: peekR(raw) });
+      }
+      big.bytes += size; conn.bigN++;
+    }
+    const m = parse(conn, raw, size);
     raw = null;
-    if (!d || typeof d !== 'object' || Array.isArray(d) || !TYPES.has(d.t)) return bad(conn, d && typeof d.r !== 'object' ? d.r : undefined);
-    if (d.r != null && !(typeof d.r === 'number' || (typeof d.r === 'string' && d.r.length <= 32))) return bad(conn);
-    if (d.t !== 'save' && size > SMALL_MAX) return bad(conn, d.r);
-    const m = {};
-    for (const k of FIELDS) if (Object.prototype.hasOwnProperty.call(d, k)) m[k] = d[k];
-    d = null;
+    const release = () => { if (isBig) { big.bytes -= size; conn.bigN--; } };
+    if (!m) { release(); return; }
     /* ทำทีละข้อความตามลำดับที่ส่งมา (ล็อกอินเสร็จก่อนโหลด) */
     conn.pending++;
     conn.q = conn.q.then(async () => {
@@ -158,14 +200,14 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
           if (!busy) log('[v6] ' + m.t + ' error: ' + (e && e.message));
           reply(conn, { t: 'err', why: busy ? 'busy' : 'server', r: m.r });
         }
-      } finally { conn.pending--; }
+      } finally { conn.pending--; release(); }
     });
     return conn.q;
   }
 
   function sweep() { for (const k in lim) lim[k].sweep(); }
 
-  return { open, message, closed, sweep, sessions, conns, PROTO_V, _lim: lim };
+  return { open, message, closed, sweep, sessions, conns, PROTO_V, _lim: lim, _big: big };
 }
 
-module.exports = { createProto, PROTO_V, MSG_PER_SEC, BYTES_PER_SEC, MAX_PENDING, PRE_AUTH_MAX, SMALL_MAX, AUTH_TIMEOUT_MS, LIM };
+module.exports = { createProto, peekR, PROTO_V, MSG_PER_SEC, BYTES_PER_SEC, MAX_PENDING, PRE_AUTH_MAX, SMALL_MAX, AUTH_TIMEOUT_MS, LIM, BIG_MIN, BIG_PENDING_BYTES, BIG_PENDING_SOCK };

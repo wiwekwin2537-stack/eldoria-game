@@ -165,13 +165,13 @@ function createSaves({ store, now = () => Date.now(), cacheBytes = CACHE_BYTES }
 
   /* ต่อใหม่เองด้วยโทเคน (hello resume · 1B-g N3): เครื่องนี้ยังเป็นผู้เขียนล่าสุดไหม
      ทำใน serial ของบัญชี → fn (ผูกเซสชัน) ทำต่อทันทีในคิวเดียวกัน ไม่มี load ของเครื่องอื่นแทรกกลางได้
-     ยังไม่เคยมีผู้เขียน (ไม่เคยโหลด) → ถือว่าใช่ · คืน true = ผ่าน (เรียก fn แล้ว) / false = เครื่องอื่นเล่นอยู่ */
+     ยังไม่เคยมีผู้เขียน (ไม่เคยโหลด) → ถือว่าใช่ · คืน true = ผ่าน / false = เครื่องอื่นเล่นอยู่
+     fn คืน false = ผู้เรียกปฏิเสธเอง (เช่น อีกเครื่องเพิ่งเปิดเกมแต่ยังโหลดไม่เสร็จ · 1Z/M2) */
   function claim(lid, sid, fn) {
     return serial(lid, async () => {
       const m = await meta(lid);
       if (m.w && m.w !== String(sid || '')) return false;
-      fn();
-      return true;
+      return fn() !== false;
     });
   }
 

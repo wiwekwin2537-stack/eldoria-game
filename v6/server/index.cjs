@@ -3,7 +3,7 @@
      const V6 = require('./v6/server/index.cjs');
      ...ในตัวรับ HTTP ก่อนข้อความสุดท้าย:  if (V6.http(req, res)) return;
      ...หลังสร้าง WebSocketServer เดิม:      V6.attach(server);
-   - HTTP: เสิร์ฟ /v6/ (index.html + src/**) และ /assets/ (ภาพ · ยกเว้น /assets/incoming/) · ไม่เสิร์ฟ server/ tests/ tools/ spec/ *.md
+   - HTTP: เสิร์ฟ /v6/ (index.html + src/** + assets/*.webp|png) และ /assets/ (ภาพ · ยกเว้น /assets/incoming/) · ไม่เสิร์ฟ server/ tests/ tools/ spec/ *.md
    - WebSocket: path /v6ws เท่านั้น (เกมเดิมใช้ path อื่นตามเดิม) · เปิดเมื่อ env V6_ENABLE=1
    - กันเกมเดิมล่มเพราะ v6 (ผลตรวจ L4): ไฟล์นี้ require ส่วนอื่นใน try · V6.http / V6.attach / ตัวรับ upgrade ของ v6 ห่อ try ทุกตัว
      → v6 พังตอนบูตหรือระหว่างทำงาน เกมเดิมยังบูตและทำงานต่อ (เทส server.limits.test.js "v6 พังตอนโหลด") */
@@ -71,6 +71,13 @@ function resolveStatic(u) {
   if (u.includes('\0') || u.split('/').some(s => s === '..' || s === '.')) return isV6 ? { code: 400 } : null;
   if (isV6) {
     if (u === '/v6/' || u === '/v6/index.html') return { file: INDEX_FILE };
+    /* ภาพของ v6 (งาน 1A-4 · สร้างด้วย tools/make-webp.py) — webp/png เท่านั้น · ชื่อไฟล์มีเลขเวอร์ชัน → แคช 7 วันได้ */
+    const a = /^\/v6\/assets\/([\w\-/.]+\.(?:webp|png))$/.exec(u);
+    if (a) {
+      const f = path.join(V6_DIR, 'assets', a[1]);
+      if (!f.startsWith(path.join(V6_DIR, 'assets') + path.sep)) return { code: 404 };
+      return { file: f, missing: 404, cache: 'public, max-age=604800' };
+    }
     /* เสิร์ฟเฉพาะโค้ดเกมใน src/ (.js/.json) */
     const m = /^\/v6\/src\/([\w\-/.]+\.(?:js|json))$/.exec(u);
     if (!m) return { code: 404 };
@@ -104,7 +111,7 @@ function serveHttp(req, res) {
   }
   const etag = 'W/"' + st.size.toString(36) + '-' + Math.floor(st.mtimeMs).toString(36) + '"';
   const hd = { 'content-type': TYPES[path.extname(hit.file).toLowerCase()] || 'application/octet-stream', 'x-content-type-options': 'nosniff',
-    'cache-control': u.startsWith('/assets/') ? 'public, max-age=3600' : 'no-cache', etag };
+    'cache-control': hit.cache || (u.startsWith('/assets/') ? 'public, max-age=3600' : 'no-cache'), etag };
   if (req.headers['if-none-match'] === etag) { res.writeHead(304, hd); res.end(); return true; }
   if (hit.file === INDEX_FILE) {
     /* ติดป้าย data-v6-server ให้เกมรู้ว่ามีเซิร์ฟเวอร์ v6 (ws /v6ws) · เปิดผ่าน dev-server ไม่มีป้าย → เกมไม่ต่อ ws (core/net) */

@@ -34,6 +34,7 @@ const DAY_MS = 864e5, TH_OFFSET = 7 * 3600e3;
 function budgetStore(store, { perMin = 120, perDay = 4000, now = () => Date.now(), log = () => {}, persist = store, prefix = 'eld6:budget:day:' } = {}) {
   let minT = 0, minN = 0, warned = 0;
   let day = -1, dayN = 0, savedN = 0, flushT = 0, loading = null, warn80 = -1, flushing = false;
+  let known = false; /* อ่านตัวนับของวันนี้จากที่เก็บได้แล้ว · ยังไม่ได้ = ห้ามเขียนทับ (1Z/1B-g L2: บูตตอนที่เก็บล่ม → นับจาก 0 แล้วเขียน 40 ทับ 3000) */
   const used = { total: 0, refused: 0 };
   const flushEvery = Math.max(1, Math.min(100, Math.floor(perDay / 100)));
   const dayOf = t => Math.floor((t + TH_OFFSET) / DAY_MS);
@@ -42,23 +43,33 @@ function budgetStore(store, { perMin = 120, perDay = 4000, now = () => Date.now(
     const d = dayOf(now());
     if (d === day && !loading) return null;
     if (d !== day) {
-      day = d; dayN = 0; savedN = 0; flushT = now();
+      day = d; dayN = 0; savedN = 0; flushT = now(); known = false;
       const myDay = d;
-      loading = Promise.resolve().then(() => persist.get(prefix + d)).then(v => {
-        const n = Math.floor(+v);
-        if (myDay === day && Number.isFinite(n) && n > 0) { dayN += n; savedN = Math.max(savedN, n); }
-      }, e => log('[v6] อ่านตัวนับงบวันไม่ได้ (นับจาก 0): ' + (e && e.message))).then(() => { if (myDay === day) loading = null; });
+      loading = readDay(myDay).catch(e => log('[v6] อ่านตัวนับงบวันไม่ได้ (นับจาก 0 ไว้ก่อน · ไม่เขียนทับจนกว่าจะอ่านได้): ' + (e && e.message)))
+        .then(() => { if (myDay === day) loading = null; });
     }
     return loading;
+  }
+  /* อ่านตัวนับที่เก็บไว้ของวัน d แล้วบวกเข้ากับที่นับไปแล้วในโปรเซสนี้ (ตัวนับของเราเริ่มที่ 0 ตอนเริ่มวัน/เริ่มโปรเซส) */
+  async function readDay(d) {
+    const v = await persist.get(prefix + d);
+    if (d !== day || known) return;
+    const n = Math.floor(+v);
+    if (Number.isFinite(n) && n > 0) { dayN += n; savedN = Math.max(savedN, n); }
+    known = true;
   }
   function maybeFlush(force) {
     const t = now();
     if (flushing || dayN === savedN) return;
     if (!(force || (dayN - savedN >= flushEvery && t - flushT >= 10000) || t - flushT >= 300000)) return;
     flushing = true; flushT = t;
-    const n = dayN, d = day;
-    Promise.resolve().then(() => persist.set(prefix + d, String(n))).then(() => { if (d === day) savedN = Math.max(savedN, n); },
-      e => log('[v6] บันทึกตัวนับงบวันไม่ได้: ' + (e && e.message))).then(() => { flushing = false; });
+    const d = day;
+    /* ยังอ่านค่าเดิมไม่ได้ → อ่านอีกรอบก่อนเขียน · ยังไม่ได้อีก = ข้ามการเขียนรอบนี้ (ไม่ทับค่าที่ใหญ่กว่าในที่เก็บ) */
+    Promise.resolve().then(() => known ? null : readDay(d)).then(() => {
+      if (!known || d !== day) return;
+      const n = dayN;
+      return Promise.resolve(persist.set(prefix + d, String(n))).then(() => { if (d === day) savedN = Math.max(savedN, n); });
+    }).catch(e => log('[v6] บันทึกตัวนับงบวันไม่ได้: ' + (e && e.message))).then(() => { flushing = false; });
   }
   function take() {
     const t = now();
@@ -80,7 +91,7 @@ function budgetStore(store, { perMin = 120, perDay = 4000, now = () => Date.now(
     async set(k, v) { await gate(); return store.set(k, v); },
     async create(k, v) { await gate(); return store.create(k, v); },
     left: () => ({ min: perMin - minN, day: perDay - dayN }),
-    _day: () => ({ day, dayN, savedN, flushEvery }),
+    _day: () => ({ day, dayN, savedN, flushEvery, known }),
   };
 }
 
