@@ -106,7 +106,7 @@ function createAccounts({ store, env = process.env, now = () => Date.now() }) {
   async function login(d, ip = '') {
     const id = String(d && d.id || ''), pw = String(d && d.pw || '');
     if (ipLimited(ip)) return { err: 'rate' };
-    if (!ID_RE.test(id) || pw.length < 1 || pw.length > PW_MAX) return { err: 'wrong' };
+    if (!ID_RE.test(id) || pw.length < 1 || pw.length > PW_MAX) return { err: 'wrong', diag: ID_RE.test(id) ? 'pwlen' : 'idfmt' };
     const lid = id.toLowerCase();
     const sec = lockedFor(lid);
     if (sec) return { err: 'locked', sec };
@@ -114,7 +114,7 @@ function createAccounts({ store, env = process.env, now = () => Date.now() }) {
       const rec = await readRec(lid);
       /* ไม่มีบัญชี ก็คิด scrypt เหมือนกัน — เวลาตอบเท่ากัน เดาไม่ได้ว่าไอดีมีอยู่ไหม */
       const k = await scrypt(pw, rec ? Buffer.from(rec.salt, 'hex') : Buffer.alloc(16));
-      if (!rec || !crypto.timingSafeEqual(k, Buffer.from(rec.hash, 'hex'))) { addFail(lid); return { err: 'wrong' }; }
+      if (!rec || !crypto.timingSafeEqual(k, Buffer.from(rec.hash, 'hex'))) { addFail(lid); return { err: 'wrong', diag: rec ? 'pw' : 'noacct' }; } /* diag ใช้ใน log เซิร์ฟเวอร์เท่านั้น ไม่ส่งให้เครื่องผู้เล่น */
       fails.delete(lid);
       const token = issueToken(rec);
       await store.set(keyOf(lid), JSON.stringify(rec));

@@ -102,6 +102,7 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
       case 'register':
       case 'login': {
         const res = await accounts[d.t]({ id: d.id, pw: d.pw, name: d.name }, conn.key);
+        log('[v6] ' + d.t + ' id=' + JSON.stringify(String(d.id || '').slice(0, 24)) + ' pwLen=' + String(d.pw || '').length + ' → ' + (res.ok ? 'ok' : res.err + (res.diag ? '/' + res.diag : ''))); /* หัวหน้า 30 ต.ค.: หาสาเหตุ 'รหัสผิด' บนเว็บจริง (ไม่ log รหัส) */
         if (!res.ok) return reply(conn, { t: 'auth_no', r, why: res.err, sec: res.sec });
         bind(conn, res, res.token);
         return reply(conn, { t: 'auth_ok', r, id: res.id, name: res.name, gm: res.gm, token: res.token, created: !!res.created });
@@ -110,6 +111,7 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
         /* อ่านที่เก็บทุกครั้ง → จำกัดต่อ IP และต่อซ็อกเก็ต (ไม่บอกว่าโทเคนผิด แค่ rate → เกมรอแล้วลองใหม่ ไม่ลืมโทเคน) */
         if (!lim.helloSock.hit(conn.sk) || !lim.helloIp.hit(conn.key)) return reply(conn, { t: 'auth_no', r, why: 'rate' });
         const res = await accounts.verify(d.id, d.token);
+        if (!res.ok) log('[v6] hello id=' + JSON.stringify(String(d.id || '').slice(0, 24)) + ' → ' + res.err);
         if (!res.ok) return reply(conn, { t: 'auth_no', r, why: 'auth' });
         /* ต่อใหม่เองระหว่างเล่น (resume + sid ของการโหลดล่าสุดของเครื่องนี้ · 1B-g N3 · แบบ writer/document ของเกมเดิม):
            ถ้าเครื่องอื่นโหลดไปเล่นต่อแล้ว (w ≠ sid) → ไม่เตะเครื่องที่เล่นอยู่ ตอบ replaced ให้เครื่องนี้ถามผู้เล่นเอง

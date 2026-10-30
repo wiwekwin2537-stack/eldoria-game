@@ -121,6 +121,7 @@ function renderForm() {
     e.preventDefault();
     if (U.busy) return;
     const f = Object.fromEntries(new FormData(form));
+    f.id = String(f.id || '').trim(); /* แป้นมือถือมักเติมช่องว่างท้ายคำ → เซิร์ฟเวอร์ตอบ 'รหัสผิด' (หัวหน้า 30 ต.ค.) */
     const bad = checkForm(U.mode, f);
     if (bad) { msg.textContent = errText(bad); return; }
     U.busy = true; go.disabled = true; msg.textContent = '';
