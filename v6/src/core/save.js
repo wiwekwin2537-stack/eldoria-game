@@ -3,6 +3,7 @@
    - เงิน G.player.coin มาจาก doc.server.coin (เซิร์ฟเวอร์ถือ · เครื่องเราไม่ส่งเงินขึ้นไป · DECISIONS 2026-10-30)
    - เซฟเมื่อ: ทุก 30 วิ (ข้ามถ้าไม่มีอะไรเปลี่ยน) · อีเวนต์ save:request (รอ 0.3 วิ รวมหลายคำขอ) · ซ่อนแท็บ/ปิดหน้า
    - เซิร์ฟเวอร์รับไม่ถี่กว่า 1 ครั้ง/วิ → เว้นห่าง ≥1.1 วิ · seq เพิ่มทุกครั้งที่ส่ง
+   - เซิร์ฟเวอร์ตอบ busy → save:status { ok:false, error:'busy' } + ถอยเวลา 5→60 วิ (1B-g N2)
    - เครื่องเก่าห้ามทับเซฟใหม่กว่า (ผลตรวจ 1B H3): ทุกการโหลดสุ่ม sid ใหม่ → เซิร์ฟเวอร์จำว่าเครื่องนี้เป็นผู้เขียนล่าสุด
      ตอบ replaced (เครื่องอื่นโหลดไปเล่นต่อแล้ว) หรือ old (เซิร์ฟเวอร์มีเซฟใหม่กว่า) → หยุดเซฟ ทิ้งของในเครื่อง แล้วโหลดใหม่จากเซิร์ฟเวอร์
      (ห้ามข้าม seq แล้วส่งทับ — ของที่เล่นบนเครื่องอื่นจะหาย)
@@ -15,6 +16,9 @@ export const AUTOSAVE_MS = 30000;
 export const MIN_GAP_MS = 1100;
 export const REQUEST_DEBOUNCE_MS = 300;
 export const RETRY_MS = 5000;
+/* เซิร์ฟเวอร์ตอบ busy (งบคำสั่งที่เก็บเต็ม) → ถอยเวลา 5→10→20→40→60 วิ (1B-g N2 · เดิมลองทุก 1.1 วิ เงียบ ๆ) */
+export const BUSY_MS = [5000, 10000, 20000, 40000, 60000];
+export function busyDelay(n) { return BUSY_MS[Math.min(Math.max(0, n - 1), BUSY_MS.length - 1)]; }
 
 /* sid ของการโหลดแต่ละครั้ง (32 ตัวฐาน 16) */
 export function newSid() {
@@ -56,7 +60,7 @@ export function applyLoad(G, systems, doc) {
 /* ตัวเซฟ (แยกจากเน็ต ให้เทสได้): io = { request(msg)→Promise, send(msg)→bool, ready()→bool }
    timer = { now, set(fn, ms)→id, clear(id) } */
 export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
-  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null, sid: '', resyncing: false, resyncs: 0 };
+  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null, sid: '', resyncing: false, resyncs: 0, busyN: 0, holdUntil: 0 };
 
   function status(ok, error) { emit('save:status', ok ? { ok: true } : { ok: false, error }); }
   function later(ms) {
@@ -70,6 +74,7 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     const m = await io.request({ t: 'load', sid });
     if (!m || m.t !== 'load' || !m.doc) throw new Error((m && m.why) || 'load');
     S.sid = sid;
+    if (typeof io.setSid === 'function') io.setSid(sid); /* ต่อใหม่เองส่ง sid นี้ (net · N3) */
     const isNew = applyLoad(G, systems, m.doc);
     S.seq = +m.doc.seq || 0;
     S.last = JSON.stringify(collect(G, systems)); /* เพิ่งโหลด = ยังไม่มีอะไรต้องเซฟ */
@@ -83,6 +88,8 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     if (!S.loaded) return 'wait';
     if (S.inflight) { S.again = true; return 'wait'; }
     if (!io.ready()) { S.again = true; return 'wait'; } /* ต่อได้แล้วค่อยส่ง (ฟัง net:status) */
+    const hold = S.holdUntil - timer.now();
+    if (hold > 0) { later(hold); return 'wait'; } /* ถอยเพราะ busy — เซฟอัตโนมัติ 30 วิ ไม่ลัดคิว */
     const gap = timer.now() - S.lastSent;
     if (gap < MIN_GAP_MS) { later(MIN_GAP_MS - gap); return 'wait'; }
     const systemsData = collect(G, systems), str = JSON.stringify(systemsData);
@@ -92,9 +99,14 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     S.lastSent = timer.now();
     try {
       const m = await io.request({ t: 'save', seq, sid: S.sid, systems: systemsData });
-      if (m.t === 'save_ok') { S.seq = Math.max(S.seq, +m.seq || seq); S.last = str; status(true); }
+      if (m.t === 'save_ok') { S.seq = Math.max(S.seq, +m.seq || seq); S.last = str; S.busyN = 0; status(true); }
       else if (m.why === 'replaced' || m.why === 'old') { S.inflight = false; S.again = false; resync(m.why); return 'sent'; }
-      else if (m.why === 'rate' || m.why === 'busy') { S.again = true; }
+      else if (m.why === 'busy') { /* ผู้เล่นต้องรู้ว่ายังไม่ได้บันทึก (login.js แสดงป้ายไทย) */
+        const ms = busyDelay(++S.busyN);
+        S.holdUntil = timer.now() + ms;
+        status(false, 'busy'); later(ms);
+      }
+      else if (m.why === 'rate') { S.again = true; }
       else { status(false, m.why || 'server'); later(RETRY_MS); }
     } catch (e) {
       status(false, 'offline'); S.again = true;
@@ -137,16 +149,22 @@ let saver = null;
 export function getSaver() { return saver; }
 
 export function initSave(G, systems) {
-  saver = createSaver(G, systems, { request: net.request, send: net.send, ready: net.isReady });
+  saver = createSaver(G, systems, { request: net.request, send: net.send, ready: net.isReady, setSid: net.setResumeSid });
   let deb = null;
-  on('net:auth', () => {
-    saver.load().catch(e => {
+  /* โหลดครั้งแรก · ไม่สำเร็จ (busy/หลุด/หมดเวลา) → ลองใหม่เองแบบถอยเวลา 5→60 วิ (1B-g N2 · เดิมรอแค่ต่อใหม่ ถ้าไม่หลุดค้างหน้าโหลดตลอด) */
+  let loadN = 0, loadTm = null;
+  const tryLoad = () => {
+    loadTm = null;
+    if (saver.state.loaded) return;
+    if (!net.isReady()) { loadTm = setTimeout(tryLoad, 1500); return; }
+    saver.load().then(() => { loadN = 0; }, e => {
       console.error('[save] โหลดไม่สำเร็จ', e);
-      status(false, 'load');
-      /* ต่อใหม่ได้ → ลองโหลดอีกครั้ง (net:auth ไม่ส่งซ้ำ จึงฟัง net:status เอง) */
-      const off = on('net:status', d => { if (d.online) setTimeout(() => { if (!saver.state.loaded && net.isReady()) { off(); saver.load().catch(() => {}); } }, 1500); });
+      const why = e && e.message === 'busy' ? 'busy' : 'load';
+      status(false, why);
+      if (!loadTm) loadTm = setTimeout(tryLoad, busyDelay(++loadN));
     });
-  });
+  };
+  on('net:auth', tryLoad);
   on('save:request', () => { clearTimeout(deb); deb = setTimeout(() => saver.save(), REQUEST_DEBOUNCE_MS); });
   on('net:status', d => { if (d.online) setTimeout(() => saver.save(), 1500); }); /* ต่อใหม่แล้วเซฟของที่ค้าง (รอ hello เสร็จ) */
   setInterval(() => saver.save(), AUTOSAVE_MS);

@@ -23,10 +23,22 @@ export const ERR_TH = {
   busy: 'เซิร์ฟเวอร์ไม่ว่าง รอสักครู่แล้วลองใหม่',
   mismatch: 'รหัสผ่านทั้งสองช่องไม่ตรงกัน',
 };
+/* ถูกเตะเพราะอะไร → ข้อความ + ปุ่ม (replaced = ต่อใหม่เองแต่เครื่องอื่นเล่นอยู่ · 1B-g N3) */
 export const KICK_TH = {
   dupe: 'ไอดีนี้เข้าเล่นจากเครื่องหรือแท็บอื่น',
+  replaced: 'ไอดีนี้กำลังเล่นอยู่ที่เครื่องหรือแท็บอื่น — เครื่องนี้หยุดไว้ก่อน (ของที่เล่นหลังบันทึกล่าสุดบนเครื่องนี้ไม่ถูกบันทึก) · ถ้าจะเล่นที่เครื่องนี้ กดปุ่มด้านล่าง เครื่องอื่นจะออกจากเกม',
   auth: 'การเข้าสู่ระบบหมดอายุ กรุณาเข้าสู่ระบบใหม่',
 };
+/* เซฟไม่เข้าระหว่างเล่น → ป้ายบนจอ (1B-g N2 · เดิม busy เงียบ ผู้เล่นไม่รู้ว่าเซฟไม่เข้า) · '' = ไม่ต้องแสดง
+   offline มีป้ายของมันเอง · replaced/old = กำลังโหลดใหม่ (เร็ว) */
+export const SAVE_TH = {
+  busy: 'เซิร์ฟเวอร์ไม่ว่าง — ยังไม่ได้บันทึก กำลังลองใหม่เอง (อย่าเพิ่งปิดเกม)',
+  server: 'บันทึกไม่สำเร็จ — กำลังลองใหม่เอง (อย่าเพิ่งปิดเกม)',
+  size: 'ข้อมูลตัวละครใหญ่เกิน บันทึกไม่ได้ — แจ้งผู้ดูแลเกม',
+  bad: 'บันทึกไม่สำเร็จ (ข้อมูลผิดรูป) — แจ้งผู้ดูแลเกม',
+  load: 'โหลดตัวละครไม่สำเร็จ — กำลังลองใหม่เอง',
+};
+export function saveErrText(err) { return (err && SAVE_TH[err]) || ''; }
 export function errText(err, sec) { return (ERR_TH[err] || ERR_TH.server).replace('{sec}', sec || 0); }
 
 /* ตรวจฟอร์มก่อนส่ง (กติกาเดียวกับเซิร์ฟเวอร์ · spec05 §1.2) → null = ผ่าน / รหัสผิดพลาด */
@@ -69,7 +81,7 @@ const CSS = `
 @media (max-height:420px){#lg h1{font-size:16px;margin-bottom:4px}#lg label{margin-top:3px}#lg input{height:32px}#lg .go{height:36px;margin-top:6px}#lg .box{padding:8px 14px}}
 `;
 
-const U = { root: null, box: null, banner: null, mode: 'login', view: '', busy: false, loaded: false, kickReason: '' };
+const U = { root: null, box: null, banner: null, mode: 'login', view: '', busy: false, loaded: false, kickReason: '', saveErr: '' };
 
 function el(tag, attrs = {}, text) {
   const e = document.createElement(tag);
@@ -130,10 +142,10 @@ function show(view) {
   const prev = U.view;
   U.view = view;
   U.root.style.display = (view === 'form' || view === 'wait' || view === 'kicked') ? 'flex' : 'none';
-  U.banner.style.display = view === 'banner' ? 'block' : 'none';
+  U.banner.style.display = view === 'banner' ? 'block' : 'none'; /* view none + เซฟไม่เข้า → update() เปิดเอง */
   if (view === 'form') { if (prev !== 'form') { renderForm(); } }
   else if (view === 'wait') renderInfo('กำลังโหลดตัวละคร…');
-  else if (view === 'kicked') renderInfo(KICK_TH[U.kickReason] || KICK_TH.auth, 'เข้าสู่ระบบใหม่');
+  else if (view === 'kicked') renderInfo(KICK_TH[U.kickReason] || KICK_TH.auth, U.kickReason === 'replaced' ? 'เล่นที่เครื่องนี้แทน' : 'เข้าสู่ระบบใหม่');
 }
 
 export default {
@@ -150,17 +162,24 @@ export default {
     U.root.style.display = 'none'; U.banner.style.display = 'none';
     ui.append(style, U.root, U.banner);
     on('net:auth', d => { G.player.id = d.id; G.player.name = d.name; });
-    on('save:loaded', () => { U.loaded = true; });
+    on('save:loaded', () => { U.loaded = true; U.saveErr = ''; });
     on('net:kicked', d => { U.kickReason = d.reason; });
+    on('save:status', d => { U.saveErr = d.ok ? '' : d.error; });
     /* ตั้งระบบเซฟก่อนต่อเน็ต (กันพลาด net:auth) · import() เสร็จทันที เพราะ index.js โหลดไว้แล้ว */
     import('./index.js').then(m => { initSave(G, m.default); net.connect(G); });
   },
   update(G) {
     if (!U.root) return;
     show(viewOf(G.net.phase, U.loaded, U.busy));
-    if (U.view === 'banner') {
-      const t = G.net.phase === 'offline' ? 'ออฟไลน์ — กำลังเชื่อมต่อใหม่…' : G.net.phase === 'nosrv' ? 'โหมดทดสอบ: ไม่มีเซิร์ฟเวอร์ (ไม่เซฟ)' : 'กำลังเชื่อมต่อเซิร์ฟเวอร์…';
-      if (U.banner.textContent !== t) U.banner.textContent = t;
+    let t = '';
+    if (U.view === 'banner') t = G.net.phase === 'offline' ? 'ออฟไลน์ — กำลังเชื่อมต่อใหม่…' : G.net.phase === 'nosrv' ? 'โหมดทดสอบ: ไม่มีเซิร์ฟเวอร์ (ไม่เซฟ)' : 'กำลังเชื่อมต่อเซิร์ฟเวอร์…';
+    else if (U.view === 'none') t = saveErrText(U.saveErr); /* เซฟไม่เข้า (busy ฯลฯ) → ผู้เล่นต้องเห็น */
+    else if (U.view === 'wait') {
+      const info = document.getElementById('lg-info'), w = saveErrText(U.saveErr) || 'กำลังโหลดตัวละคร…';
+      if (info && info.textContent !== w) info.textContent = w;
     }
+    if (U.banner.textContent !== t && t) U.banner.textContent = t;
+    const disp = t ? 'block' : 'none';
+    if (U.banner.style.display !== disp) U.banner.style.display = disp;
   },
 };

@@ -1,6 +1,6 @@
 /* limits — ตัวนับจำกัดอัตรา + งบคำสั่งที่เก็บ (ผลตรวจ 1B H2/M2/L1 · 1B-f)
    - counter : นับครั้งต่อช่วงเวลาแยกตามคีย์ (IP/บัญชี/ซ็อกเก็ต) · ลบคีย์หมดอายุเอง · จำนวนคีย์มีเพดาน (หน่วยความจำไม่โต)
-   - budgetStore : ห่อที่เก็บ ให้ทั้ง v6 ใช้คำสั่ง get/set/create ได้ไม่เกิน X/นาที และ Y/วัน
+   - budgetStore : ห่อที่เก็บ ให้ทั้ง v6 ใช้คำสั่ง get/set/create ได้ไม่เกิน X/นาที และ Y/วัน (ตัวนับวันเก็บในที่เก็บ · 1B-g N4)
      (Upstash เป็นฐานเดียวกับเกมเดิม → ถ้ามีคนยิง /v6ws โควตาเกมเดิมต้องไม่หมด) · เกินงบ → โยน error code 'busy'
    - ipKey : คีย์ของ IP สำหรับจำกัด (IPv6 ใช้ /64 — ผู้เล่นหนึ่งคนมักได้ทั้งบล็อก /64 เปลี่ยนเลขท้ายได้ฟรี) */
 
@@ -23,27 +23,64 @@ function counter({ max, ms, now = () => Date.now(), cap = 20000 }) {
   return { hit, sweep, size: () => m.size, _map: m };
 }
 
-/* งบคำสั่งที่เก็บ: ทุก get/set/create นับ 1 */
-function budgetStore(store, { perMin = 120, perDay = 4000, now = () => Date.now(), log = () => {} } = {}) {
-  let minT = 0, minN = 0, dayT = 0, dayN = 0, warned = 0;
+/* งบคำสั่งที่เก็บ: ทุก get/set/create นับ 1
+   - ต่อนาที: นับในหน่วยความจำ (รีสตาร์ตแล้วนับใหม่ได้ — สั้นอยู่แล้ว)
+   - ต่อวัน (1B-g N4): วันตามเวลาไทย (เริ่มนับใหม่เที่ยงคืนไทย) · ตัวนับเก็บในที่เก็บด้วยคีย์ eld6:budget:day:<วัน>
+     → รีสตาร์ต/deploy แล้วไม่เริ่มใหม่ที่ 0 · อ่านครั้งแรกที่ใช้งาน (1 คำสั่ง) · เขียนกลับทุก ~1% ของงบวัน (≥10 วิ ห่างกัน)
+     ทุก 5 นาทีถ้ามีเปลี่ยน และทันทีที่งบวันเต็ม — คำสั่งบันทึกตัวนับไม่หักจากงบ (มีเพดานเอง ≈ perDay/flushEvery + 288 ครั้ง/วัน)
+     ข้อจำกัด: โปรเซสดับกะทันหันอาจลืมได้ไม่เกิน flushEvery + 5 นาทีล่าสุด · 2 โปรเซสซ้อนกันตอน deploy ต่างคนต่างเขียน (นับขาดได้ช่วงสั้น ๆ · PROTOCOL N5)
+   - ใช้งบวันเกิน 80% → log เตือน 1 ครั้ง/วัน */
+const DAY_MS = 864e5, TH_OFFSET = 7 * 3600e3;
+function budgetStore(store, { perMin = 120, perDay = 4000, now = () => Date.now(), log = () => {}, persist = store, prefix = 'eld6:budget:day:' } = {}) {
+  let minT = 0, minN = 0, warned = 0;
+  let day = -1, dayN = 0, savedN = 0, flushT = 0, loading = null, warn80 = -1, flushing = false;
   const used = { total: 0, refused: 0 };
+  const flushEvery = Math.max(1, Math.min(100, Math.floor(perDay / 100)));
+  const dayOf = t => Math.floor((t + TH_OFFSET) / DAY_MS);
+  /* วันใหม่ / เพิ่งเริ่มโปรเซส → อ่านตัวนับของวันนี้จากที่เก็บ */
+  function ensureDay() {
+    const d = dayOf(now());
+    if (d === day && !loading) return null;
+    if (d !== day) {
+      day = d; dayN = 0; savedN = 0; flushT = now();
+      const myDay = d;
+      loading = Promise.resolve().then(() => persist.get(prefix + d)).then(v => {
+        const n = Math.floor(+v);
+        if (myDay === day && Number.isFinite(n) && n > 0) { dayN += n; savedN = Math.max(savedN, n); }
+      }, e => log('[v6] อ่านตัวนับงบวันไม่ได้ (นับจาก 0): ' + (e && e.message))).then(() => { if (myDay === day) loading = null; });
+    }
+    return loading;
+  }
+  function maybeFlush(force) {
+    const t = now();
+    if (flushing || dayN === savedN) return;
+    if (!(force || (dayN - savedN >= flushEvery && t - flushT >= 10000) || t - flushT >= 300000)) return;
+    flushing = true; flushT = t;
+    const n = dayN, d = day;
+    Promise.resolve().then(() => persist.set(prefix + d, String(n))).then(() => { if (d === day) savedN = Math.max(savedN, n); },
+      e => log('[v6] บันทึกตัวนับงบวันไม่ได้: ' + (e && e.message))).then(() => { flushing = false; });
+  }
   function take() {
     const t = now();
     if (t - minT >= 60000) { minT = t; minN = 0; }
-    if (t - dayT >= 864e5) { dayT = t; dayN = 0; }
     if (minN >= perMin || dayN >= perDay) {
       used.refused++;
+      if (dayN >= perDay) maybeFlush(true);
       if (t - warned > 60000) { warned = t; log(`[v6] งบคำสั่งที่เก็บเต็ม (นาทีนี้ ${minN}/${perMin} · วันนี้ ${dayN}/${perDay}) — ปฏิเสธชั่วคราว กันโควตาเกมเดิม`); }
       const e = new Error('v6 store budget'); e.code = 'busy'; throw e;
     }
     minN++; dayN++; used.total++;
+    if (dayN >= perDay * 0.8 && warn80 !== day) { warn80 = day; log(`[v6] ใช้งบคำสั่งที่เก็บวันนี้แล้ว ${dayN}/${perDay} (เกิน 80%) — ถ้าคนเล่นจริงเยอะ ให้เจ้าของพิจารณาเพิ่ม V6_STORE_PER_DAY ตามโควตา Upstash ที่เหลือ`); }
+    maybeFlush(dayN >= perDay);
   }
+  async function gate() { const p = ensureDay(); if (p) await p; take(); }
   return {
     kind: store.kind, inner: store, used,
-    async get(k) { take(); return store.get(k); },
-    async set(k, v) { take(); return store.set(k, v); },
-    async create(k, v) { take(); return store.create(k, v); },
+    async get(k) { await gate(); return store.get(k); },
+    async set(k, v) { await gate(); return store.set(k, v); },
+    async create(k, v) { await gate(); return store.create(k, v); },
     left: () => ({ min: perMin - minN, day: perDay - dayN }),
+    _day: () => ({ day, dayN, savedN, flushEvery }),
   };
 }
 

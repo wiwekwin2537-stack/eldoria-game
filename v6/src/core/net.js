@@ -5,6 +5,7 @@
              authed id name gm  บัญชีที่ล็อกอิน · kicked: เหตุผล | null }
    - จำโทเคนในเครื่อง (localStorage `eld6:acct`) → เปิดเกมใหม่เข้าต่อเองด้วย hello ไม่ต้องพิมพ์รหัส
    - หลุดแล้วต่อใหม่เอง (1→2→4→8→15 วิ) และ hello ด้วยโทเคนเดิม · net:auth ส่งแค่ครั้งแรกของหน้าเว็บ
+     ต่อใหม่ระหว่างเล่น ส่ง resume + sid (การโหลดล่าสุด) → เครื่องอื่นเล่นอยู่ = ได้ replaced → หยุด ถามผู้เล่น (ไม่เตะเครื่องที่เล่นอยู่ · 1B-g N3)
      (ต่อใหม่ไม่โหลดเซฟทับของที่เล่นอยู่ — core/save เซฟต่อจาก seq เดิม)
    - ต่อ ws เฉพาะเมื่อหน้าเว็บมาจากเซิร์ฟเวอร์ v6 จริง (<html data-v6-server="1"> ที่ v6/server/index.cjs ติดให้)
      dev-server (tools/dev-server.cjs) ไม่มี ws → ไม่ลองต่อ (กัน error ในคอนโซลของเทส 1A) · phase = 'nosrv'
@@ -22,6 +23,10 @@ let G = null, ws = null, WS = null, url = '';
 let rid = 0, retryN = 0, retryTimer = null, syncTimer = null, everAuthed = false;
 const pending = new Map(); /* r → { ok, no, tm } */
 let memAcct = null; /* สำรองเมื่อ localStorage ใช้ไม่ได้ */
+let resumeSid = '';  /* sid ของการโหลดเซฟล่าสุดของหน้านี้ (core/save ตั้ง) → ต่อใหม่เองส่งไปด้วย (1B-g N3) */
+
+/* core/save เรียกหลังโหลดสำเร็จ */
+export function setResumeSid(sid) { resumeSid = String(sid || ''); }
 
 /* ---------- ฟังก์ชันล้วน ---------- */
 export function wsUrl(loc) { return (loc.protocol === 'https:' ? 'wss://' : 'ws://') + loc.host + WS_PATH; }
@@ -118,8 +123,12 @@ async function onWelcome(m) {
   if (!a) { retryN = 0; setPhase('login'); return; }
   setPhase('authing');
   let r;
-  try { r = await request({ t: 'hello', id: a.id, token: a.token }); } catch (e) { return; } /* หลุดอีก → ต่อใหม่แล้วลองใหม่ */
+  const hello = { t: 'hello', id: a.id, token: a.token };
+  if (everAuthed && resumeSid) { hello.resume = 1; hello.sid = resumeSid; } /* ต่อใหม่เอง ≠ เปิดเกมใหม่ */
+  try { r = await request(hello); } catch (e) { return; } /* หลุดอีก → ต่อใหม่แล้วลองใหม่ */
   if (r.t === 'auth_ok') { retryN = 0; return authOk(r); }
+  /* เครื่องอื่นโหลดไปเล่นต่อแล้ว → ไม่ต่อใหม่เอง ไม่ลืมโทเคน · หน้าล็อกอินถาม "เล่นที่เครื่องนี้แทน" (รีโหลด = เปิดเกมใหม่ → เตะเครื่องนั้นแบบตั้งใจ) */
+  if (r.why === 'replaced') { retryN = 0; return kick('replaced'); }
   /* เซิร์ฟเวอร์ไม่ว่าง/ถี่เกิน (rate · busy · server) ≠ โทเคนเสีย → ไม่ลืมโทเคน · ตัดแล้วต่อใหม่ช้าลงเรื่อย ๆ (1→15 วิ) */
   if (r.why !== 'auth') { setPhase('offline'); try { ws && ws.close(); } catch (e) {} return; }
   retryN = 0;
@@ -194,5 +203,5 @@ export function _reset() {
   const s = ws; ws = null;
   try { s && s.close(); } catch (e) {}
   failAll('reset');
-  memAcct = null; everAuthed = false; G = null;
+  memAcct = null; everAuthed = false; G = null; resumeSid = '';
 }

@@ -26,8 +26,9 @@ const SID = 'c'.repeat(32);
 
 /* ที่เก็บที่นับคำสั่ง + หน่วงได้ */
 function countingStore(delayMs = 0) {
-  const inner = memoryStore(), s = { ops: 0, kind: 'memory', _map: inner._map };
-  for (const k of ['get', 'set', 'create']) s[k] = async (a, b) => { s.ops++; if (delayMs) await wait(delayMs); return inner[k](a, b); };
+  const inner = memoryStore(), s = { ops: 0, bops: 0, kind: 'memory', _map: inner._map };
+  /* ops = คำสั่งข้อมูล v6 · bops = บันทึกตัวนับงบวัน (eld6:budget: · 1B-g N4 มีเพดานแยก) */
+  for (const k of ['get', 'set', 'create']) s[k] = async (a, b) => { if (String(a).startsWith('eld6:budget:')) s.bops++; else s.ops++; if (delayMs) await wait(delayMs); return inner[k](a, b); };
   return s;
 }
 function setup({ delayMs = 0, budget = null, authTimeoutMs = 0 } = {}) {
@@ -138,6 +139,30 @@ export default [
     eq(store.ops - before, 1, 'เซฟ = 1 คำสั่ง (ไม่ต้องอ่านก่อน)');
     eq((await saves.load('n1u1', SID)).systems.bag.s, '1'.repeat(600), 'โหลดตัวที่ถูกทิ้ง → อ่านจากที่เก็บถูก');
     eq((await saves.load('n1u0', SID)).systems.bag.s, '9'.repeat(600), 'ของล่าสุด');
+  }],
+
+  ['N4: ตัวนับงบต่อวันเก็บในที่เก็บ → รีสตาร์ต/deploy แล้วยังเต็ม (เดิมนับใหม่ที่ 0) · ขึ้นวันใหม่ (เที่ยงคืนไทย) ใช้ได้อีก · ต่อนาทีอยู่ในหน่วยความจำ', async () => {
+    const c = { t: Date.UTC(2026, 9, 30, 10, 0, 0) }, now = () => c.t; /* 17:00 เวลาไทย */
+    const raw = countingStore();
+    const tick2 = () => new Promise(r => setTimeout(r, 5));
+    let b = budgetStore(raw, { perMin: 100, perDay: 5, now });
+    for (let i = 0; i < 5; i++) await b.set('eld6:x' + i, '1');
+    let e = null; try { await b.get('eld6:x0'); } catch (x) { e = x; }
+    eq(e && e.code, 'busy', 'วันนี้เต็ม'); await tick2();
+    /* รีสตาร์ต = สร้างตัวห่อใหม่บนที่เก็บเดิม */
+    b = budgetStore(raw, { perMin: 100, perDay: 5, now });
+    e = null; try { await b.get('eld6:x0'); } catch (x) { e = x; }
+    eq(e && e.code, 'busy', 'รีสตาร์ตแล้วงบวันยังเต็ม');
+    eq(raw.ops, 5, 'คำสั่งข้อมูลไม่เกินงบวันรวมทุกการรีสตาร์ต');
+    c.t = Date.UTC(2026, 9, 30, 17, 1, 0); /* 00:01 เวลาไทยวันใหม่ */
+    eq(await b.get('eld6:x0'), '1', 'วันใหม่ใช้ได้');
+    truthy(raw.bops <= 6, 'บันทึกตัวนับไม่ถี่เกิน: ' + raw.bops);
+    /* ต่อนาที: ในหน่วยความจำ */
+    const b2 = budgetStore(countingStore(), { perMin: 2, perDay: 4000, now });
+    await b2.get('a'); await b2.get('a');
+    e = null; try { await b2.get('a'); } catch (x) { e = x; } eq(e && e.code, 'busy', 'นาทีเต็ม');
+    c.t += 60000; await b2.get('a');
+    const big = budgetStore(countingStore(), { perDay: 4000, now }); eq(big._day().flushEvery, 40, 'งบ 4000 → บันทึกทุก 40 คำสั่ง (≥10 วิ)');
   }],
 
   /* ---------- M2 ---------- */

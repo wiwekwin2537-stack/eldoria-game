@@ -6,7 +6,8 @@
      · เก็บเข้าคิวแค่ช่องที่ใช้ (ทิ้งช่องขยะก่อนเข้าคิว)
    - กันเผาโควตาที่เก็บ (ผลตรวจ H2): hello ≤10/นาที/IP + ≤3/นาที/ซ็อกเก็ต · load ≤1 ครั้ง/5 วิ/ซ็อกเก็ต + ≤20/นาที/IP
      · save ≤2/วิ/ซ็อกเก็ต (เกินตอบ rate โดยไม่แตะที่เก็บ) · ทั้งหมดอยู่ใต้งบรวมใน index.cjs (budgetStore)
-   - ไอดีเดียวเข้าซ้อน: ตัวเก่าได้ dupe แล้วถูกตัด (เซสชันเดียว · spec05 §2.5, §4) */
+   - ไอดีเดียวเข้าซ้อน: ตัวเก่าได้ dupe แล้วถูกตัด (เซสชันเดียว · spec05 §2.5, §4)
+     ยกเว้น hello แบบต่อใหม่เอง (resume) ที่ไม่ใช่ผู้เขียนล่าสุด → ไม่เตะ ตอบ replaced (1B-g N3 · PROTOCOL.md) */
 const { counter, ipKey } = require('./limits.cjs');
 
 const PROTO_V = 1;
@@ -22,7 +23,7 @@ const LIM = {
 };
 const PRE_AUTH = new Set(['register', 'login', 'hello', 'time']);
 const TYPES = new Set(['register', 'login', 'hello', 'time', 'load', 'save', 'logout']);
-const FIELDS = ['t', 'r', 'id', 'pw', 'name', 'token', 'c', 'seq', 'sid', 'systems'];
+const FIELDS = ['t', 'r', 'id', 'pw', 'name', 'token', 'c', 'seq', 'sid', 'systems', 'resume'];
 
 function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, authTimeoutMs = AUTH_TIMEOUT_MS }) {
   const sessions = new Map(); /* lid → conn ที่ใช้งานอยู่ */
@@ -93,7 +94,16 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
         if (!lim.helloSock.hit(conn.sk) || !lim.helloIp.hit(conn.key)) return reply(conn, { t: 'auth_no', r, why: 'rate' });
         const res = await accounts.verify(d.id, d.token);
         if (!res.ok) return reply(conn, { t: 'auth_no', r, why: 'auth' });
-        bind(conn, res, String(d.token));
+        /* ต่อใหม่เองระหว่างเล่น (resume + sid ของการโหลดล่าสุดของเครื่องนี้ · 1B-g N3 · แบบ writer/document ของเกมเดิม):
+           ถ้าเครื่องอื่นโหลดไปเล่นต่อแล้ว (w ≠ sid) → ไม่เตะเครื่องที่เล่นอยู่ ตอบ replaced ให้เครื่องนี้ถามผู้เล่นเอง
+           ตรวจ w และผูกเซสชันในคิวเดียวกันของบัญชี (load ของเครื่องอื่นแทรกกลางไม่ได้)
+           เปิดเกมใหม่ (ไม่มี resume) / พิมพ์รหัส = ตั้งใจเล่นเครื่องนี้ → เตะเครื่องเก่าเหมือนเดิม (dupe) */
+        if (d.resume && typeof saves.claim === 'function') {
+          if (conn.dead) return;
+          const okW = await saves.claim(res.lid, d.sid, () => { if (!conn.dead) bind(conn, res, String(d.token)); });
+          if (!okW) return reply(conn, { t: 'auth_no', r, why: 'replaced' });
+          if (conn.dead) return;
+        } else bind(conn, res, String(d.token));
         return reply(conn, { t: 'auth_ok', r, id: res.id, name: res.name, gm: res.gm });
       }
       case 'load': {

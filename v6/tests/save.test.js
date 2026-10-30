@@ -5,7 +5,7 @@ import { createState } from '../src/core/state.js';
 import { collect, applyLoad, createSaver, MIN_GAP_MS } from '../src/core/save.js';
 import * as net from '../src/core/net.js';
 import { srvNow } from '../src/core/time.js';
-import { checkForm, viewOf, errText } from '../src/systems/login.js';
+import { checkForm, viewOf, errText, saveErrText, KICK_TH } from '../src/systems/login.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { memoryStore } = require('../server/store.cjs');
@@ -129,6 +129,127 @@ export default [
     G.player.x = 8;
     eq(sv.flushNow(), true, 'ส่ง');
     eq(io.beacons[0].seq, 3, 'seq'); eq(io.beacons[0].systems.alpha.x, 8, 'ข้อมูล');
+  }],
+
+  /* ---------- 1B-g N2: เซิร์ฟเวอร์ busy ต้องบอกผู้เล่น + ถอยเวลา ---------- */
+  ['N2: เซิร์ฟเวอร์ตอบ busy → save:status(false,busy) + ข้อความไทย · ถอย 5→10 วิ (ไม่ยิงทุก 1.1 วิ · เซฟอัตโนมัติไม่ลัดคิว) · สำเร็จแล้วกลับปกติ', async () => {
+    busReset();
+    const G = createState(), T = fakeTimer();
+    let busy = 2;
+    const io = fakeIo(m => m.t === 'load' ? { t: 'load', doc: { seq: 1, systems: {}, server: {} } }
+      : busy > 0 ? (busy--, { t: 'err', why: 'busy', r: m.r }) : { t: 'save_ok', seq: m.seq });
+    const st = []; on('save:status', d => st.push(d));
+    const sv = createSaver(G, [sysA], io, T);
+    await sv.load();
+    const sent = () => io.sent.filter(m => m.t === 'save').length;
+    G.player.x = 11; await sv.save();
+    eq(sent(), 1, 'ส่งครั้งแรก');
+    const s0 = st[st.length - 1];
+    eq(s0 && s0.ok === false && s0.error, 'busy', 'แจ้ง save:status busy');
+    truthy(/[ก-๙]/.test(saveErrText('busy')) && /ยังไม่ได้บันทึก/.test(saveErrText('busy')), 'ผู้เล่นเห็นข้อความไทย');
+    eq(saveErrText('offline'), '', 'offline มีป้ายของมันเองแล้ว');
+    for (let i = 0; i < 4; i++) await T.run(1100);
+    eq(sent(), 1, 'ภายใน 5 วิ ไม่ยิงซ้ำ (เดิมทุก 1.1 วิ)');
+    eq(await sv.save(), 'wait', 'เซฟอัตโนมัติ/คำขอเซฟ ไม่ลัดคิวช่วงถอย');
+    await T.run(700);
+    eq(sent(), 2, 'ครบ 5 วิ ลองใหม่');
+    eq(st[st.length - 1].error, 'busy', 'busy อีก');
+    await T.run(9000); eq(sent(), 2, 'รอบสองถอย 10 วิ');
+    await T.run(1100); eq(sent(), 3, 'ครบ 10 วิ ลองใหม่');
+    eq(st[st.length - 1].ok, true, 'สำเร็จ → status ok');
+    eq(sv.state.busyN, 0, 'ล้างตัวนับถอย');
+    G.player.x = 12; await T.run(1100); await sv.save(); eq(sent(), 4, 'กลับมาเซฟปกติ');
+  }],
+
+  /* ---------- 1B-g N3: ต่อใหม่เองห้ามเตะเครื่องที่กำลังเล่นอยู่ ---------- */
+  ['N3: A พักแท็บ (หลุด) → B ล็อกอินเล่น+เซฟ → A ตื่นต่อใหม่เอง → B เล่นต่อได้ (ไม่โดน dupe) · A หยุดพร้อมข้อความไทย · กด "เล่นที่เครื่องนี้แทน" ถึงเตะ B', quiet(async () => {
+    busReset(); FakeWS.all = [];
+    const c = { t: 1.8e12 }, now = () => c.t, store = memoryStore();
+    const accounts = createAccounts({ store, env: {}, now });
+    const proto = createProto({ accounts, saves: createSaves({ store, now }), now, authTimeoutMs: 0 });
+    let ipN = 0;
+    /* WebSocket ปลอมที่คุยกับ proto จริง (เครื่อง A ใช้ core/net จริง) */
+    class Bridge {
+      constructor() {
+        this.readyState = 1; Bridge.last = this;
+        this.k = { ip: '10.33.0.' + (++ipN), out: [], send: o => { this.k.out.push(o); setTimeout(() => this.onmessage && this.onmessage({ data: JSON.stringify(o) }), 0); }, close: () => this.drop() };
+        setTimeout(() => proto.open(this.k), 0);
+      }
+      send(x) { proto.message(this.k, x); }
+      close() { this.drop(); }
+      drop() { if (this.readyState === 3) return; this.readyState = 3; proto.closed(this.k); setTimeout(() => this.onclose && this.onclose(), 0); }
+    }
+    const raw = () => { const k = { ip: '10.34.0.' + (++ipN), out: [], send(o) { this.out.push(o); }, close() { this.closedFlag = true; } }; proto.open(k); return k; };
+    const say = async (k, o) => { await proto.message(k, JSON.stringify(o)); return k.out[k.out.length - 1]; };
+    const until = async (f, ms = 3000) => { const t0 = Date.now(); while (!f()) { if (Date.now() - t0 > ms) throw new Error('รอนานเกิน'); await new Promise(r => setTimeout(r, 10)); } };
+    globalThis.localStorage = { m: {}, getItem(k) { return this.m[k] ?? null; }, setItem(k, v) { this.m[k] = v; }, removeItem(k) { delete this.m[k]; } };
+    const kicks = []; on('net:kicked', d => kicks.push(d.reason));
+    const sys = [{ id: 'bag', save: G => ({ who: G.player.name }), load: (G, d) => { G.player.name = d ? d.who : 'new'; } }];
+    try {
+      /* เครื่อง A: สมัคร โหลด เซฟ A1 */
+      const GA = createState();
+      net.connect(GA, { url: 'ws://x/v6ws', WebSocket: Bridge });
+      await until(() => GA.net.phase === 'login');
+      eq((await net.register('n3dev', 'abc123')).ok, true, 'A สมัคร');
+      const A = createSaver(GA, sys, { request: net.request, send: net.send, ready: net.isReady, setSid: net.setResumeSid });
+      await A.load(); GA.player.name = 'A1'; await A.save();
+      /* A พักแท็บ: ซ็อกเก็ตหลุด (ยังไม่ต่อใหม่จนกว่าจะครบ 1 วิ) */
+      Bridge.last.drop();
+      /* เครื่อง B: พิมพ์รหัสเข้า โหลด เล่น เซฟ B2 */
+      c.t += 2000;
+      const kB = raw();
+      eq((await say(kB, { t: 'login', id: 'n3dev', pw: 'abc123' })).t, 'auth_ok', 'B ล็อกอิน');
+      const sB = 'b'.repeat(32);
+      eq((await say(kB, { t: 'load', sid: sB })).doc.systems.bag.who, 'A1', 'B เห็น A1');
+      c.t += 2000; eq((await say(kB, { t: 'save', seq: 5, sid: sB, systems: { bag: { who: 'B2' } } })).t, 'save_ok', 'B เซฟ');
+      /* A ตื่น → ต่อใหม่เอง */
+      await until(() => GA.net.phase === 'kicked', 4000);
+      eq(kicks[kicks.length - 1], 'replaced', 'A ได้ replaced');
+      truthy(!kB.out.some(o => o.t === 'dupe') && !kB.closedFlag, 'B ต้องไม่โดนเตะ');
+      c.t += 2000; eq((await say(kB, { t: 'save', seq: 6, sid: sB, systems: { bag: { who: 'B3' } } })).t, 'save_ok', 'B เล่น/เซฟต่อได้');
+      truthy(net.readAcct() && net.readAcct().id === 'n3dev', 'A ไม่ลืมโทเคน (กดเล่นต่อได้ไม่ต้องพิมพ์รหัส)');
+      await new Promise(r => setTimeout(r, 1200));
+      eq(Bridge.last.readyState, 3, 'A ไม่ต่อใหม่เองวนไป');
+      truthy(/[ก-๙]/.test(KICK_TH.replaced) && /เครื่องอื่น/.test(KICK_TH.replaced), 'ข้อความไทยชัดเจน');
+      eq(viewOf('kicked', true), 'kicked', 'บังจอถามผู้เล่น');
+      /* ผู้เล่นกด "เล่นที่เครื่องนี้แทน" = รีโหลดหน้า → เปิดเกมใหม่ (ไม่มี resume) → ตั้งใจเล่นเครื่องนี้ → B ถูกเตะแบบเดิม */
+      net._reset();
+      const GA2 = createState();
+      net.connect(GA2, { url: 'ws://x/v6ws', WebSocket: Bridge });
+      await until(() => GA2.net.phase === 'ready');
+      await until(() => kB.out.some(o => o.t === 'dupe'));
+    } finally { net._reset(); delete globalThis.localStorage; }
+  })],
+  ['N3: เครื่องเดิมหลุดแล้วต่อใหม่ (ยังเป็นผู้เขียนล่าสุด) → เข้าต่อได้ · ไม่ส่ง resume ตอนเปิดเกมใหม่ · ต่อใหม่ส่ง resume + sid', async () => {
+    const c = { t: 1.8e12 }, now = () => c.t, store = memoryStore();
+    const accounts = createAccounts({ store, env: {}, now });
+    const proto = createProto({ accounts, saves: createSaves({ store, now }), now, authTimeoutMs: 0 });
+    let ipN = 0;
+    const raw = () => { const k = { ip: '10.35.0.' + (++ipN), out: [], send(o) { this.out.push(o); }, close() { this.closedFlag = true; } }; proto.open(k); return k; };
+    const say = async (k, o) => { await proto.message(k, JSON.stringify(o)); return k.out[k.out.length - 1]; };
+    const k1 = raw(); const reg = await say(k1, { t: 'register', id: 'n3same', pw: 'abc123' });
+    const sA = 'a'.repeat(32); await say(k1, { t: 'load', sid: sA });
+    proto.closed(k1);
+    const k2 = raw();
+    eq((await say(k2, { t: 'hello', id: 'n3same', token: reg.token, resume: 1, sid: sA })).t, 'auth_ok', 'ผู้เขียนเดิมต่อใหม่ได้');
+    c.t += 2000; eq((await say(k2, { t: 'save', seq: 1, sid: sA, systems: {} })).t, 'save_ok', 'เซฟต่อได้');
+    const k3 = raw();
+    eq((await say(k3, { t: 'hello', id: 'n3same', token: reg.token, resume: 1, sid: 'f'.repeat(32) })).why, 'replaced', 'sid ไม่ใช่ผู้เขียน → replaced');
+    truthy(!k2.out.some(o => o.t === 'dupe'), 'เครื่องที่เล่นอยู่ไม่โดนเตะ');
+    /* ฝั่งเกม: เปิดหน้าใหม่ไม่ส่ง resume · ต่อใหม่หลังโหลดส่ง resume + sid */
+    busReset(); FakeWS.all = [];
+    globalThis.localStorage = { m: { 'eld6:acct': JSON.stringify({ id: 'n3same', token: reg.token }) }, getItem(k) { return this.m[k] ?? null; }, setItem(k, v) { this.m[k] = v; }, removeItem(k) { delete this.m[k]; } };
+    try {
+      const G = createState();
+      net.connect(G, { url: 'ws://x/v6ws', WebSocket: FakeWS });
+      let w = lastWs(); w.srv({ t: 'welcome', s: Date.now() }); await tick();
+      const h1 = w.last('hello'); eq(h1.resume, undefined, 'เปิดเกมใหม่ไม่ใช่ resume');
+      w.srv({ t: 'auth_ok', r: h1.r, id: 'n3same', name: 'n' }); await tick();
+      net.setResumeSid(sA);
+      w.close(); await new Promise(r => setTimeout(r, 1100));
+      w = lastWs(); w.srv({ t: 'welcome', s: Date.now() }); await tick();
+      const h2 = w.last('hello'); eq(h2.resume, 1, 'ต่อใหม่ = resume'); eq(h2.sid, sA, 'ส่ง sid');
+    } finally { net._reset(); delete globalThis.localStorage; }
   }],
 
   /* ---------- net ---------- */
