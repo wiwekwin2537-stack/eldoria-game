@@ -5,7 +5,8 @@
                   dashStreaks/drawGhosts 018 · ว่ายน้ำ 038-fix7:83 · ดาบ sword() 018:2
    ยังไม่ทำ (รอเฟสที่มีข้อมูล): ชุดเกราะ/หมวก/สร้อย/แหวน (เฟส 4) · ออร่าตีบวก/ชุด (เฟส 4) · ท่าโจมตี/สกิล (เฟส 2–3)
                   สัตว์ขี่/ปีก/แฟชั่น (เฟส 5) · ฝุ่นเท้า (ระบบ fx) */
-import { DASH, HERO } from '../data/movement.js';
+import { DASH } from '../data/movement.js';
+import { HERO, SWORD } from '../data/hero.js';
 
 /* สีเข้ม/อ่อนลง (shade8 031) */
 export function shade(h, a) {
@@ -43,13 +44,14 @@ export function heroView(G) {
 /* ดาบ (sword() 018:2) — ตัวแทนอาวุธในมือจนกว่าเฟส 4 จะมีหน้าตาอาวุธจริง */
 function sword(k, hx, hy, ang) {
   k.save(); k.translate(hx, hy); k.rotate(ang); k.translate(0, -4);
-  k.shadowColor = '#2f8bff'; k.shadowBlur = 10;
-  k.fillStyle = '#1b1d29'; k.fillRect(-2.5, -30, 5, 28);
+  const C = SWORD;
+  k.shadowColor = C.glow; k.shadowBlur = C.glowBlur;
+  k.fillStyle = C.blade; k.fillRect(-2.5, -30, 5, 28);
   k.beginPath(); k.moveTo(-2.5, -30); k.lineTo(0, -37); k.lineTo(2.5, -30); k.fill();
-  k.fillStyle = '#8fc6ff'; k.fillRect(-.8, -30, 1.6, 27);
-  k.fillStyle = '#6d7280'; k.fillRect(-7, -3, 14, 3);
-  k.fillStyle = '#0e0e14'; k.fillRect(-1.5, 0, 3, 8);
-  k.fillStyle = '#5db0ff'; k.fillRect(-2, 8, 4, 4);
+  k.fillStyle = C.edge; k.fillRect(-.8, -30, 1.6, 27);
+  k.fillStyle = C.guard; k.fillRect(-7, -3, 14, 3);
+  k.fillStyle = C.grip; k.fillRect(-1.5, 0, 3, 8);
+  k.fillStyle = C.pommel; k.fillRect(-2, 8, 4, 4);
   k.restore();
 }
 const WEAPONS = { sword };
@@ -137,7 +139,7 @@ function streaks(k, v) {
   k.save(); k.lineCap = 'round'; k.lineWidth = 1.6;
   for (let i = 0; i < 5; i++) {
     const o = (i - 2) * 6, len = 24 + ((i * 37) % 5) * 7, sx = v.x - vx * 8 + px * o, sy = v.y - 24 + py * o * .6;
-    k.strokeStyle = 'rgba(235,245,255,' + (.55 * a) + ')';
+    k.strokeStyle = 'rgba(' + HERO.fx.streak + ',' + (.55 * a) + ')';
     k.beginPath(); k.moveTo(sx, sy); k.lineTo(sx - vx * len, sy - vy * len * .7); k.stroke();
   }
   k.restore();
@@ -175,7 +177,7 @@ export function drawHero(k, v) {
   body(k, { ...v, dp: !!v.dash });
   k.restore();
   if (v.swim) { /* วงน้ำกระเพื่อม */
-    k.save(); k.strokeStyle = 'rgba(235,248,255,.75)'; k.lineWidth = 1.4;
+    k.save(); k.strokeStyle = HERO.fx.ripple; k.lineWidth = 1.4;
     for (let i = 0; i < 3; i++) { const u = (t * .9 + i / 3) % 1; k.globalAlpha = (1 - u) * .8; k.beginPath(); k.ellipse(v.x, v.y + 2, 10 + u * 16, 3 + u * 6, 0, 0, 7); k.stroke(); }
     k.restore();
   }

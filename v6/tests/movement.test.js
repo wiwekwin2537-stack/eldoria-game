@@ -1,6 +1,8 @@
 /* เทสเดิน/วิ่ง/พุ่ง/ว่ายน้ำ/คลิกเดิน + ตัววาดไม่แก้ค่าผู้เล่น (systems/movement + draw/hero)
-   spec01 §5 §6 · spec03 ระบบ 8 · DECISIONS 2026-10-30 01:20 (พุ่ง cd 1.0 · อมตะ +.18 · หลบพอดีจังหวะ .2) */
-import movement, { step, startDash, dodge, pathTo, clickGoal, unstick } from '../src/systems/movement.js';
+   spec01 §5 §6 · spec03 ระบบ 8 · DECISIONS 2026-10-30 01:20 (พุ่ง cd 1.0 · อมตะ +.18 · หลบพอดีจังหวะ .2) · DECISIONS 2026-10-30 (พุ่ง 86 px)
+   1A-3f: เพิ่มเทสให้จับ mutation ที่ผู้ตรวจลองแล้วหลุด (ฟื้นแรงตอนเดิน · มึน · cd นับจากเริ่มพุ่ง · หยุดเองหลัง 2.5 วิ · แบ่งก้าว ≤8 px) */
+import movement, { dodge, clickGoal, stopClick, _test } from '../src/systems/movement.js';
+import * as MV from '../src/systems/movement.js';
 import world from '../src/systems/world.js';
 import { drawHero, heroView, shade } from '../src/draw/hero.js';
 import { _size, zflush } from '../src/core/zsort.js';
@@ -8,6 +10,8 @@ import { createState } from '../src/core/state.js';
 import { on, _reset } from '../src/core/bus.js';
 import { MOVE, DASH, STAMINA, SWIM, CLICK } from '../src/data/movement.js';
 import { T } from '../src/config.js';
+
+const { step, startDash, pathTo, unstick, moveBy, clickTick } = _test;
 
 const ok = (v, m) => { if (!v) throw new Error(m); };
 const near = (a, b, e, m) => { if (!(Math.abs(a - b) <= e)) throw new Error(`${m}: ได้ ${a} ต้องเป็น ${b} ±${e}`); };
@@ -49,6 +53,10 @@ export default [
     step(G, .05); near(G.player.x - x0, MOVE.walk * .05 * MOVE.tiredMul, .01, 'แรงหมดเดินช้า');
     G = fresh(); G.player.sp = 50; key(G, 0, 0); run(G, 1);
     near(G.player.sp, 50 + STAMINA.regenIdle, .2, 'ยืนฟื้น 20');
+    G = fresh(); G.player.sp = 50; key(G, 1, 0); run(G, 1);
+    near(G.player.sp, 50 + STAMINA.regenMove, .2, 'เดิน (ไม่วิ่ง) ฟื้น 9/วิ');
+    G = fresh(); G.player.sp = 50; key(G, 1, 0, true); run(G, 1);
+    near(G.player.sp, 50 - STAMINA.run, .2, 'วิ่งเสีย 3/วิ ไม่ฟื้น');
   }],
   ['เดินเฉียงความเร็วเท่าเดิม (ทำให้ยาวเท่ากัน)', () => {
     const G = fresh(); key(G, 1, 1); const x0 = G.player.x, y0 = G.player.y;
@@ -60,15 +68,25 @@ export default [
     run(G, 1);
     near(G.player.x - x0, MOVE.walk * .75, .5, 'ระยะจอยครึ่ง');
   }],
-  ['ชนกำแพงหยุด · dt .05 วิ่งไม่ทะลุกำแพงหนา 1 ช่อง · พุ่งไม่ทะลุ', () => {
+  ['ชนกำแพงหยุด · dt .05 วิ่งไม่ทะลุ · ยืนชิดกำแพง', () => {
     const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 10) + '#' + r.slice(11) : r);
     const G = fresh(rows); key(G, 1, 0, true);
     run(G, 2, .05);
     ok(G.player.x < 10 * T, 'ทะลุกำแพงช่อง 10 ได้ x=' + G.player.x);
     near(G.player.x, 10 * T - 7, 8.1, 'ยืนชิดกำแพง');
-    key(G, 1, 0); G.input.pressed = new Set(['dash']); G.player.dash.cd = 0;
-    run(G, .5, .05);
-    ok(G.player.x < 10 * T, 'พุ่งทะลุกำแพง x=' + G.player.x);
+  }],
+  ['แบ่งก้าว ≤8 px: ขยับ 60 px ทีเดียว / พุ่งเฟรมเดียว dt .2 (86 px) ไม่ทะลุกำแพงหนา 1 ช่อง', () => {
+    /* กำแพง 32 + ตัวกว้าง 14 = ต้องขยับเกิน 46 px ต่อครั้งเช็กชนถึงจะทะลุ → 60 และ 86 px ทะลุแน่ถ้าไม่แบ่งก้าว */
+    const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 10) + '#' + r.slice(11) : r);
+    let G = fresh(rows); G.player.x = 10 * T - 20;
+    moveBy(G, 60, 0);
+    ok(G.player.x < 10 * T, 'moveBy 60 px ทะลุกำแพง x=' + G.player.x);
+    ok(G.player.x > 10 * T - 7 - MOVE.step - .01 && G.player.x < 10 * T - 7, 'ต้องหยุดชิดกำแพง (ห่างไม่เกิน 1 ก้าวย่อย) x=' + G.player.x);
+    G = fresh(rows); G.player.x = 10 * T - 20; G.player.dir = 'r'; key(G, 0, 0);
+    ok(startDash(G) === true, 'ต้องพุ่งได้'); step(G, .2);
+    ok(G.player.x < 10 * T, 'พุ่ง 86 px ในเฟรมเดียวทะลุกำแพง x=' + G.player.x);
+    G = fresh(rows); G.player.x = 10 * T - 20; key(G, 0, 0); moveBy(G, 0, 60); /* แกนตั้งในที่โล่ง ต้องไปครบ */
+    near(G.player.y, 5 * T + 16 + 60, .01, 'ที่โล่งต้องขยับครบ 60 px');
   }],
   ['เดินเฉียงชนกำแพงตั้ง → ไถลตามกำแพง', () => {
     const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 8) + '#' + r.slice(9) : r);
@@ -84,17 +102,29 @@ export default [
     run(G, 1);
     ok(G.player.x > 9 * T, 'ต้องผ่านมุมไปได้ x=' + G.player.x);
   }],
-  ['พุ่ง: ระยะ ≈73 px · อมตะตลอดพุ่ง +.18 วิ · cd 1.0 วิ · ใช้แรง 6 · ส่ง player:dash', () => {
-    const G = fresh(); let ev = null; on('player:dash', d => { ev = d; });
-    G.player.dir = 'r'; key(G, 0, 0); G.input.pressed = new Set(['dash']);
-    const x0 = G.player.x, dt = 1 / 60;
-    step(G, dt); G.input.pressed = new Set();
-    ok(ev && ev.dir === 'r', 'ไม่มีอีเวนต์ player:dash'); near(G.player.sp, STAMINA.max - DASH.cost, .01, 'แรงหลังพุ่ง');
-    let t = dt, ifEnd = -1;
-    while (t < 1.2) { step(G, dt); t += dt; if (ifEnd < 0 && G.player.dash.iframe <= 0) ifEnd = t; if (t > .5 && t < .9 && startDash(G) === true) throw new Error('cd ยังไม่ครบแต่พุ่งได้ t=' + t.toFixed(2)); }
-    near(G.player.x - x0, DASH.speed * DASH.time, .5, 'ระยะพุ่ง');
-    near(ifEnd, DASH.time + DASH.iframeAfter, 2 * dt + .001, 'อมตะรวม');
-    ok(startDash(G) === true, 'ครบ 1.0 วิแล้วต้องพุ่งได้');
+  ['พุ่ง: ระยะ 86 px (±1) ที่ 30/60/144 FPS และเฟรมกระตุก · อมตะรวม ≈.38 วิ · ใช้แรง 6 · ส่ง player:dash', () => {
+    near(DASH.speed * DASH.time, 86, .001, 'ค่า data ต้องได้ 86 px (DECISIONS 2026-10-30)');
+    for (const dts of [[1 / 30], [1 / 60], [1 / 144], [1 / 60, 1 / 20, 1 / 45]]) {
+      const G = fresh(); let ev = null; on('player:dash', d => { ev = d; });
+      G.player.dir = 'r'; key(G, 0, 0); G.input.pressed = new Set(['dash']);
+      const x0 = G.player.x, tag = dts.map(d => Math.round(1 / d)).join('/') + ' FPS';
+      let t = 0, i = 0, ifEnd = -1;
+      while (t < 1.2) { const dt = dts[i++ % dts.length]; step(G, dt); t += dt; G.input.pressed = new Set(); if (ifEnd < 0 && G.player.dash.iframe <= 0) ifEnd = t; }
+      ok(ev && ev.dir === 'r', 'ไม่มีอีเวนต์ player:dash ' + tag);
+      near(G.player.x - x0, 86, 1, 'ระยะพุ่ง ' + tag);
+      near(ifEnd, DASH.time + DASH.iframeAfter, 2 * Math.max(...dts) + .001, 'อมตะรวม ' + tag); /* ต่างได้ ≤2 เฟรม (เฟรมสุดท้ายพุ่ง + เฟรมที่อมตะหมด) */
+    }
+    const G = fresh(); key(G, 0, 0); startDash(G);
+    near(G.player.sp, STAMINA.max - DASH.cost, .01, 'แรงหลังพุ่ง');
+  }],
+  ['พุ่ง: คูลดาวน์ 1.0 วิ นับจากเริ่มพุ่ง (ไม่ใช่จากจบพุ่ง)', () => {
+    for (const dt of [.05, 1 / 60]) {
+      const G = fresh(); key(G, 0, 0); ok(startDash(G) === true, 'พุ่งแรกต้องได้');
+      let t = 0;
+      while (t < .95 - 1e-9) { step(G, dt); t += dt; ok(startDash(G) !== true, `cd ยังไม่ครบแต่พุ่งได้ t=${t.toFixed(3)} dt=${dt}`); }
+      while (t < DASH.cd + dt + 1e-9) { step(G, dt); t += dt; }
+      ok(startDash(G) === true, `ครบ 1.0 วิ (+1 เฟรม) ต้องพุ่งได้ t=${t.toFixed(3)} dt=${dt} (cd นับจากจบพุ่งจะได้ที่ 1.2)`);
+    }
   }],
   ['พุ่ง: แรงไม่พอ → tired · ไม่กดทิศ = ทิศที่หัน · กดทิศ = ทิศนั้น', () => {
     let G = fresh(); G.player.sp = 5; key(G, 0, 0);
@@ -114,6 +144,60 @@ export default [
     r = dodge(G2); ok(r.dodged && !r.perfect, 'ที่ .25 วิ ยังอมตะแต่ไม่ perfect');
     for (let i = 0; i < 4; i++) step(G2, .05); /* .45 วิ */
     r = dodge(G2); ok(!r.dodged, 'เลย .35 วิ ต้องโดน');
+  }],
+  ['หลบพอดีจังหวะ: โบนัส +30% อยู่จนครบ 3 วิ · พุ่งซ้ำไม่ล้าง · จอช้า .3 วิหมดก่อน · สกิลล้าง boost แล้วหาย', () => {
+    const G = fresh(); key(G, 1, 0); startDash(G); step(G, .05);
+    ok(dodge(G).perfect, 'ต้อง perfect');
+    for (let i = 0; i < 7; i++) step(G, .05); /* .35 วิหลัง perfect */
+    ok(G.player.dash.perfect && G.player.dash.perfect.slow === 0 && G.player.dash.perfect.boost === DASH.nextSkill, 'จอช้าต้องหมดแล้วแต่โบนัสยังอยู่');
+    for (let i = 0; i < 13; i++) step(G, .05); /* 1.05 วิหลังเริ่มพุ่ง → cd ครบ */
+    ok(startDash(G) === true, 'ต้องพุ่งซ้ำได้');
+    ok(G.player.dash.perfect && G.player.dash.perfect.boost === DASH.nextSkill, 'พุ่งซ้ำต้องไม่ล้างโบนัส');
+    step(G, .5); step(G, .5); step(G, .4); /* 2.4 วิหลัง perfect */
+    ok(G.player.dash.perfect && G.player.dash.perfect.boost === DASH.nextSkill, 'ก่อน 3 วิ โบนัสต้องยังอยู่');
+    step(G, .65); /* 3.05 วิ */
+    ok(!G.player.dash.perfect, 'ครบ 3 วิ โบนัสต้องหาย');
+    const G2 = fresh(); key(G2, 1, 0); startDash(G2); step(G2, .05); dodge(G2); step(G2, .5);
+    G2.player.dash.perfect.boost = 0; /* ระบบสกิล (เฟส 3) ใช้แล้วล้าง */
+    step(G2, .05); ok(!G2.player.dash.perfect, 'สกิลล้าง boost + จอช้าหมด → perfect ต้องหาย');
+  }],
+  ['มึน: ไม่เดิน · ไม่พุ่ง · คลิกเดินไม่นับติด (จุดหมายอยู่ครบ) แล้วเดินต่อเมื่อหายมึน', () => {
+    let G = fresh(); G.player.stun = 1; key(G, 1, 0); G.input.pressed = new Set(['dash']); const x0 = G.player.x;
+    run(G, .5);
+    ok(G.player.x === x0, 'มึนแต่เดินได้ x=' + G.player.x);
+    ok(G.player.dash.t === 0 && G.player.sp === STAMINA.max, 'มึนแต่พุ่งได้');
+    ok(startDash(G) === false, 'startDash ตอนมึนต้องคืน false');
+    G = fresh(); G.player.stun = 9; key(G, 0, 0); G.input.click = { wx: 20 * T, wy: 5 * T + 16 };
+    const x1 = G.player.x;
+    run(G, 4);
+    ok(clickGoal(), 'มึน 4 วิแล้วจุดหมายคลิกเดินหาย (นับติดตอนมึน)'); ok(G.player.x === x1, 'มึนแต่เดินตามคลิก');
+    ok(_test.clickState().stk === 0, 'ตัวนับติดต้องเป็น 0 ตอนมึน');
+    G.player.stun = 0; run(G, 1);
+    ok(G.player.x - x1 > 80, 'หายมึนต้องเดินต่อไปจุดหมาย ได้ ' + (G.player.x - x1));
+  }],
+  ['คลิกเดิน: ตอนตีไม่นับติด · ไม่ขยับทั้งที่ยังมีทาง → หยุดเองที่ 2.5 วิ (ไม่หาทางใหม่ไปเรื่อยๆ)', () => {
+    /* เรียก clickTick ตรงๆ โดยไม่ขยับตัว = จำลองตัวโดนขวาง (เช่น มอนบังในอนาคต) ทั้งที่ BFS ยังเจอทาง */
+    let G = fresh(); key(G, 0, 0); G.input.click = { wx: 20 * T, wy: 5 * T + 16 };
+    step(G, 1 / 60); G.input.click = null;
+    const x0 = G.player.x, y0 = G.player.y;
+    let stopAt = -1, minPath = 99;
+    for (let i = 1; i <= 60 * 4; i++) {
+      G.player.x = x0; G.player.y = y0; clickTick(G, 1 / 60);
+      const g = clickGoal(); if (!g) { stopAt = i / 60; break; }
+      if (g.path) minPath = Math.min(minPath, g.path.length);
+    }
+    ok(minPath > 0, 'ต้องมีทางตลอด (ทดสอบกฎ "ติดแต่ยังมีทาง")');
+    near(stopAt, CLICK.stuckStop, .05, 'ต้องหยุดเองที่ 2.5 วิ');
+    G = fresh(); key(G, 0, 0); G.input.click = { wx: 20 * T, wy: 5 * T + 16 }; step(G, 1 / 60); G.input.click = null;
+    G.player.at = 0; /* กำลังตี (เฟส 2) */
+    for (let i = 0; i < 60 * 4; i++) { G.player.x = x0; G.player.y = y0; clickTick(G, 1 / 60); }
+    ok(clickGoal(), 'ตีอยู่ 4 วิ (ไม่ขยับ) แล้วคลิกเดินหาย (นับติดตอนตี)');
+    ok(_test.clickState().stk === 0, 'ตัวนับติดต้องเป็น 0 ตอนตี');
+  }],
+  ['ส่งออกเฉพาะ CONTRACT §4b (dodge stopClick clickGoal) + default + _test (ซ่อน moveBy ฯลฯ)', () => {
+    const names = Object.keys(MV).sort().join(' ');
+    ok(names === '_test clickGoal default dodge stopClick', 'export เกิน/ขาด: ' + names);
+    stopClick(); ok(clickGoal() === null, 'stopClick ต้องล้างจุดหมาย');
   }],
   ['ว่ายน้ำ: ทุ่งหญ้าลงน้ำได้ ช้าลง ×.62 · ในเมืองน้ำคือกำแพง', () => {
     const rows = OPEN.map((r, y) => y > 0 && y < 19 ? r.slice(0, 8) + '~'.repeat(20) + r.slice(28) : r);
@@ -183,6 +267,10 @@ export default [
     ok(!unstick(G4), 'ต้องดันออกจากกำแพงแล้ว (unstick ซ้ำต้องไม่ต้องย้าย)');
     const G5 = fresh(); const x5 = G5.player.x; movement.load(G5, undefined);
     ok(G5.player.x === x5, 'ตัวละครใหม่ = จุดเกิดของฉาก');
+    for (const bad of [{ x: null, y: null }, { x: null, y: 200 }, { x: '', y: '' }, { x: '300', y: 200 }]) {
+      const G6 = fresh(); const p6 = [G6.player.x, G6.player.y]; movement.load(G6, { ...s, ...bad });
+      ok(G6.player.x === p6[0] && G6.player.y === p6[1], 'เซฟเสีย ' + JSON.stringify(bad) + ' ต้องใช้จุดเกิดฉาก ได้ ' + G6.player.x + ',' + G6.player.y);
+    }
   }],
   ['ตัวละครใหม่เกิดที่จุดเกิดเมือง ไม่ติดกำแพง แล้วเดินได้', () => {
     _reset(); world._reset(); movement._reset();

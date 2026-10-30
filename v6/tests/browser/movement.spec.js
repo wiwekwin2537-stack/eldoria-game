@@ -91,7 +91,7 @@ async function heroShot(page, name) {
     await wait(60); console.log('  แคป:', await heroShot(page, 'dash'));
     await wait(400);
     const pb = await pos(page);
-    ok(Math.abs(pb.x - pa.x - 73.1) < 4 && pb.y === pa.y, 'Shift พุ่งไปทางที่หัน ≈73 px (ไม่กดทิศ)', `${pa.x} → ${pb.x}`);
+    ok(Math.abs(pb.x - pa.x - 86) < 4 && pb.y === pa.y, 'Shift พุ่งไปทางที่หัน ≈86 px (ไม่กดทิศ · DECISIONS 2026-10-30)', `${pa.x} → ${pb.x}`);
     ok(pb.dash.cd > 0 && pb.dash.cd <= 1, 'ติดคูลดาวน์ ≤ 1 วิ', JSON.stringify(pb.dash));
 
     console.log('— เดินเข้าร้านอาวุธ (เดินไปหน้าประตูแล้วกด E)');
@@ -142,7 +142,7 @@ async function heroShot(page, name) {
     const d0 = await pos(mp);
     await touch('touchStart', [db]); await wait(60); await touch('touchEnd', []); await wait(300);
     const d1 = await pos(mp);
-    ok(Math.abs(d0.y - d1.y - 73.1) < 4, 'แตะปุ่ม 💨 → พุ่งไปทางที่หัน ≈73 px', `${d0.x},${d0.y} → ${d1.x},${d1.y}`);
+    ok(Math.abs(d0.y - d1.y - 86) < 4, 'แตะปุ่ม 💨 → พุ่งไปทางที่หัน ≈86 px', `${d0.x},${d0.y} → ${d1.x},${d1.y}`);
     ok(merr.length === 0, 'ไม่มี error ในหน้า (มือถือ)', merr.slice(0, 3).join(' | '));
     await mctx.close();
   } catch (e) {
