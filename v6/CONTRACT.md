@@ -52,7 +52,7 @@ export default {
 | `net:status` | core/net | `{ online }` |
 | `save:request` | ใครก็ได้ | — (core/save เซฟครั้งถัดไป) |
 | `player:perfect-dodge` | movement | `{ x, y }` หลบพอดีจังหวะ (DECISIONS 01:20 · ผลจอช้า/สกิล +30% ระบบต่อสู้ทำ) |
-| `world:use` | world | `{ id, scene }` กด E ที่จุดใช้งานที่ไม่ใช่ประตู (เช่น คลังสินค้า) |
+| `world:use` | world | `{ id, scene }` กด E ที่จุดใช้งานที่ไม่ใช่ประตู (เช่น `lodge` บ้านพักชาวเมือง) |
 | `world:blocked` | world | `{ link, lv, scene }` เข้าประตูไม่ได้ (เลเวลไม่ถึง) |
 | `net:auth` | core/net | `{ id, name, gm }` ล็อกอินสำเร็จ (หัวหน้าอนุมัติ 30 ต.ค. · 1B) |
 | `net:kicked` | core/net | `{ reason }` ถูกเตะ/ล็อกอินที่เครื่องอื่น |
@@ -68,6 +68,7 @@ export default {
 | `core/render` | `setQuality` `quality` `setFpsCap` |
 | `core/input` | `setRunKey` `setJoySide` `setJoyRun` `joySettings` |
 | `core/zsort` | `zpush` |
+| `core/rand` | `srand` `hash` `vn` (สุ่มกำหนดเมล็ด/noise ใช้ร่วม) |
 | `systems/movement` | `dodge` `stopClick` `clickGoal` |
 
 ## 5. การควบคุม (core/input แปลงทุกอุปกรณ์เป็นชุดเดียว)

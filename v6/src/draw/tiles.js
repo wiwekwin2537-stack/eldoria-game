@@ -11,7 +11,7 @@ import { T } from '../config.js';
 import { WORLD, TOWN_FLOOR, TOWN_ART, CITY2_ART, ROOM } from '../data/maps.js';
 import { zpush } from '../core/zsort.js';
 import { TREE_SRC, TERRAIN, TREE, COLORS } from '../data/art.js';
-import { hash, vn } from '../systems/world.js'; /* (import วนกับ world · ทำงานได้ · ขอหัวหน้าย้ายไป core/rand.js — ผลตรวจ L6) */
+import { hash, vn } from '../core/rand.js'; /* ไม่ import วนกับ world แล้ว (หัวหน้า 30 ต.ค.) */
 
 const CH = WORLD.chunk;
 const BUILD_MS = 8;      /* ms ต่อเฟรมที่ยอมใช้สร้างแผ่นพื้น (อย่างน้อย 1 แผ่นเสมอ) */

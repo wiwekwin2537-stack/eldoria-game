@@ -18,13 +18,8 @@ const S = {
 };
 
 /* ---------- สุ่มแบบมีเมล็ด + noise (ตามเกมเดิม · ใช้สร้างดันเจี้ยน และ draw/tiles ใช้แต่งพื้น) ---------- */
-export function srand(seed) { let s = (seed >>> 0) || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; } /* 031:842 */
-export function hash(x, y) { const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return h - Math.floor(h); } /* 013 hash */
-export function vn(x, y) { /* value noise 013 vn */
-  const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
-  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
-  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-}
+export { srand, hash, vn } from '../core/rand.js'; /* ย้ายไป core/rand.js (หัวหน้า 30 ต.ค.) · คงชื่อเดิมให้โค้ด/เทสที่อ้าง */
+import { srand, hash, vn } from '../core/rand.js';
 
 /* ---------- แปลงแถว RLE → ตารางช่อง ---------- */
 export function decodeRow(s) {
