@@ -19,19 +19,40 @@ function freePort() {
   return new Promise(r => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
 }
 
-/* ตัวจดปุ่มที่กด (pressed อยู่แค่ 1 เฟรม → ต้องจดทุกเฟรม) · ใส่จากเทสเท่านั้น */
+/* ตัวจดปุ่มที่กด (pressed อยู่แค่ 1 เฟรมเกม → ต้องจดทุกเฟรมเกม) · ใส่จากเทสเท่านั้น
+   - จดเฉพาะเมื่อ __G.time.frame เปลี่ยน (1Z · ผลตรวจ 1A-1g L2): มือถือเพดาน 30 ข้าม rAF ครึ่งหนึ่ง → จดทุก rAF จะนับปุ่มเดียว 2 ครั้ง
+   - กล้องของคลิก = กล้องตอน pointerdown (1Z · ผลตรวจ 1A-1g F1): เกมแปลงจุดคลิกเป็นพิกัดโลกตอนกด (ภาพที่ผู้เล่นเห็น)
+     เดิมอ่านกล้องหลังเกมเดินไปอีกเฟรม → คลิกเดินก่อนหน้าทำกล้องเลื่อน 1.2–2.4 px = เทสพังสุ่ม (ห้ามขยายเกณฑ์ .7 แทน) */
 const RECORDER = () => {
-  window.__seen = []; window.__clicks = []; window.__mx = [];
+  window.__seen = []; window.__clicks = []; window.__mx = []; window.__frames = 0;
+  let downCam = null, lastF = -1;
+  addEventListener('pointerdown', () => { downCam = { x: window.__G.cam.x, y: window.__G.cam.y }; }, true);
   const tick = () => {
-    const I = window.__G.input;
-    for (const a of I.pressed) window.__seen.push(a);
-    window.__mx.push(I.mx);
-    if (I.click) window.__clicks.push({ ...I.click, camx: window.__G.cam.x, camy: window.__G.cam.y }); /* กล้องของเฟรมที่คลิก (คลิกเดินแล้วกล้องเลื่อน) */
+    const G = window.__G, I = G.input;
+    if (G.time.frame !== lastF) {
+      lastF = G.time.frame; window.__frames++;
+      for (const a of I.pressed) window.__seen.push(a);
+      window.__mx.push(I.mx);
+      if (I.click) window.__clicks.push({ ...I.click, camx: downCam ? downCam.x : NaN, camy: downCam ? downCam.y : NaN });
+    }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
 };
 const wait = ms => new Promise(r => setTimeout(r, ms));
+/* รอให้เกมโหลดภาพ/สร้างแผ่นพื้นเสร็จก่อนเริ่มกด (1Z · ต้นเหตุ "ปล่อยปุ่ม → หยุด" พังสุ่ม):
+   วัดแล้ว 1.5–2 วิแรกหลังเฟรม 5 มีเฟรมค้าง 100–480 ms (ถอดรหัสภาพ/สร้างพื้น) → รอ 80 ms แล้วอ่าน input ได้ค่าของเฟรมก่อนกด
+   = รอจนไม่มีช่วง rAF เกิน 50 ms ติดกัน 600 ms (สูงสุด 8 วิ) */
+const SETTLE = () => new Promise(res => {
+  let last = 0, calm = 0; const t0 = performance.now();
+  const f = now => {
+    if (last) { const d = now - last; calm = d > 50 ? 0 : calm + d; }
+    last = now;
+    if (calm >= 600 || now - t0 > 8000) return res(calm >= 600);
+    requestAnimationFrame(f);
+  };
+  requestAnimationFrame(f);
+});
 
 async function openGame(browser, url, opts, init) {
   const ctx = await browser.newContext(opts);
@@ -42,6 +63,7 @@ async function openGame(browser, url, opts, init) {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(url);
   await page.waitForFunction(() => window.__G && window.__G.time.frame > 5);
+  await page.evaluate(SETTLE);
   await page.evaluate(RECORDER);
   return { ctx, page, errors };
 }
@@ -276,6 +298,35 @@ async function openGame(browser, url, opts, init) {
         worst = Math.max(worst, Math.abs(r.c.wx - (r.x + (x - left) / k)), Math.abs(r.c.wy - (r.y + y / k)));
       }
       ok(worst < .7, 'คลิก 4 จุดบนจอที่มีขอบดำ → พิกัดโลกถูก', worst);
+      await ctx.close();
+    }
+
+    console.log('— 1Z มือถือ (เพดาน 30): แตะปุ่มในเฟรมที่ถูกข้าม → ไม่หาย · ตัวจดนับต่อเฟรมเกม (ผลตรวจ 1A-1g L2)');
+    {
+      const { ctx, page, errors } = await openGame(browser, url, MOB);
+      const res = await page.evaluate(async () => {
+        const out = [], btn = document.getElementById('atk');
+        const tap = id => { btn.dispatchEvent(new PointerEvent('pointerdown', { pointerId: id, pointerType: 'touch', bubbles: true, cancelable: true }));
+          btn.dispatchEvent(new PointerEvent('pointerup', { pointerId: id, pointerType: 'touch', bubbles: true, cancelable: true })); };
+        for (let i = 0; i < 6; i++) {
+          window.__seen.length = 0;
+          const skipped = await new Promise(r => {
+            let f0 = window.__G.time.frame;
+            const a = () => {
+              if (window.__G.time.frame === f0) { requestAnimationFrame(a); return; } /* รอ rAF ที่เกมเพิ่งวาด */
+              const f1 = window.__G.time.frame;
+              requestAnimationFrame(() => { const sk = window.__G.time.frame === f1; tap(40 + i); r(sk); }); /* rAF ถัดไป: เกมข้าม (เพดาน 30) → แตะตอนนี้ */
+            };
+            requestAnimationFrame(a);
+          });
+          await new Promise(r => setTimeout(r, 200));
+          out.push({ skipped, n: window.__seen.filter(a => a === 'attack').length });
+        }
+        return out;
+      });
+      ok(res.filter(r => r.skipped).length >= 4, 'แตะได้ในเฟรมที่เกมข้ามจริง (เพดาน 30 บนจอ 60 Hz)', JSON.stringify(res));
+      ok(res.every(r => r.n === 1), 'แตะ ⚔️ 1 ครั้งในเฟรมที่ถูกข้าม → attack ครบ 1 ครั้ง (ไม่หาย ไม่ซ้ำ)', JSON.stringify(res));
+      ok(errors.length === 0, 'ไม่มี error ในคอนโซล', errors.join(' | '));
       await ctx.close();
     }
 

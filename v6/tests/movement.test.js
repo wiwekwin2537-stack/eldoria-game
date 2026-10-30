@@ -103,14 +103,18 @@ export default [
     run(G, 1);
     ok(G.player.x > 9 * T, 'ต้องผ่านมุมไปได้ x=' + G.player.x);
   }],
-  ['พุ่ง: ระยะ 86 px (±1) ที่ 30/60/144 FPS และเฟรมกระตุก · อมตะรวม ≈.38 วิ · ใช้แรง 6 · ส่ง player:dash', () => {
+  ['พุ่ง: ระยะ 86 px (±1) ที่ 30/60/144 FPS และเฟรมกระตุก · อมตะรวม ≈.38 วิ · ใช้แรง 6 และไม่ฟื้นระหว่างพุ่ง · ส่ง player:dash', () => {
     near(DASH.speed * DASH.time, 86, .001, 'ค่า data ต้องได้ 86 px (DECISIONS 2026-10-30)');
     for (const dts of [[1 / 30], [1 / 60], [1 / 144], [1 / 60, 1 / 20, 1 / 45]]) {
       const G = fresh(); let ev = null; on('player:dash', d => { ev = d; });
       G.player.dir = 'r'; key(G, 0, 0); G.input.pressed = new Set(['dash']);
       const x0 = G.player.x, tag = dts.map(d => Math.round(1 / d)).join('/') + ' FPS';
-      let t = 0, i = 0, ifEnd = -1;
-      while (t < 1.2) { const dt = dts[i++ % dts.length]; step(G, dt); t += dt; G.input.pressed = new Set(); if (ifEnd < 0 && G.player.dash.iframe <= 0) ifEnd = t; }
+      let t = 0, i = 0, ifEnd = -1, spDash = [];
+      while (t < 1.2) {
+        const dt = dts[i++ % dts.length]; step(G, dt); t += dt; G.input.pressed = new Set(); if (ifEnd < 0 && G.player.dash.iframe <= 0) ifEnd = t;
+        if (G.player.dash.t > 0) spDash.push(G.player.sp); /* 1Z (ผลตรวจ 1A-3f L1): ระหว่างพุ่งแรงต้องไม่ฟื้น */
+      }
+      ok(spDash.length > 0 && spDash.every(v => Math.abs(v - (STAMINA.max - DASH.cost)) < .001), 'แรงฟื้นระหว่างพุ่ง ' + tag + ' ' + spDash.map(v => v.toFixed(3)).join(','));
       ok(ev && ev.dir === 'r', 'ไม่มีอีเวนต์ player:dash ' + tag);
       near(G.player.x - x0, 86, 1, 'ระยะพุ่ง ' + tag);
       near(ifEnd, DASH.time + DASH.iframeAfter, 2 * Math.max(...dts) + .001, 'อมตะรวม ' + tag); /* ต่างได้ ≤2 เฟรม (เฟรมสุดท้ายพุ่ง + เฟรมที่อมตะหมด) */

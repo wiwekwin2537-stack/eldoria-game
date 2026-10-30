@@ -165,18 +165,32 @@ async function headDiff(page, x, y, name) {
     page.off('request', onReq);
     ok(groundReq === 0, 'เดินไปมุมเมืองหลังยืนนาน → ไม่โหลดภาพพื้นใหม่', 'คำขอ ' + groundReq);
 
-    console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9)');
+    console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9) · ครั้งแรกของหน้า (ภาพยังไม่โหลด) · มัธยฐาน 3 รอบ หน้าใหม่ทุกรอบ');
+    /* 1Z: เดิมวัดครั้งเดียวในหน้าที่ยืนมา 60 วิ (ภาพเมือง 2 ถูกคืนแล้ว = วาปครั้งแรก) → 65–75 ms ปกติ แต่เคยได้ 121 ms ตอนเครื่องมีงานอื่น
+       วัดแล้ว: ช่วงค้างอยู่ที่เฟรมที่ 5–6 หลังวาป = ตอนภาพ 1536×1024 (3 ภาพ) โหลดเสร็จ → วาดครั้งแรก/ส่งขึ้นการ์ดจอ + สร้างแผ่นพื้นใหม่ (54–70 ms)
+       ไม่ใช่ตอน enter (≤1 ms) · วาปซ้ำตอนภาพอยู่ในแคช ~20 ms · เกณฑ์ <100 ms เท่าเดิม แต่ใช้มัธยฐาน 3 รอบ (กันเครื่องเทสถูกแย่ง CPU ครั้งเดียว) */
     for (const id of ['city2', 'grove', 'dg:60']) {
-      const r = await page.evaluate(async id => {
-        const w = await import('/v6/src/systems/world.js');
-        const ts = []; let last = performance.now();
-        w.enter('town', [22, 17, 'd']); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        w.enter(id); last = performance.now();
-        for (let i = 0; i < 30; i++) { await new Promise(r => requestAnimationFrame(r)); const n = performance.now(); ts.push(n - last); last = n; }
-        return { max: Math.max(...ts), p50: ts.sort((a, b) => a - b)[15] };
-      }, id);
-      console.log(`    ${id}: เฟรมนานสุด ${r.max.toFixed(0)} ms · กลาง ${r.p50.toFixed(0)} ms`);
-      ok(r.max < 100, `วาปเข้า ${id} ไม่ค้างเฟรมยาว (<100 ms · ก่อนแก้ city2 107–132 ms)`, r.max.toFixed(0) + ' ms');
+      const runs = [];
+      for (let k = 0; k < 3; k++) {
+        const c2 = await browser.newContext({ viewport: { width: 1366, height: 768 } });
+        const p2 = await c2.newPage();
+        await p2.goto(`http://127.0.0.1:${port}/v6/`);
+        await p2.waitForFunction(() => window.__G && window.__G.time.frame > 5);
+        const r = await p2.evaluate(async id => {
+          /* รอเมืองโหลดเสร็จ (ไม่มี rAF เกิน 50 ms ติดกัน 600 ms) ก่อนวาป — ไม่ให้ค้างของเมืองปนผล */
+          await new Promise(res => { let last = 0, calm = 0; const t0 = performance.now(); const f = n => { if (last) { const d = n - last; calm = d > 50 ? 0 : calm + d; } last = n; if (calm >= 600 || n - t0 > 8000) return res(); requestAnimationFrame(f); }; requestAnimationFrame(f); });
+          const w = await import('/v6/src/systems/world.js');
+          const ts = []; let last = performance.now();
+          w.enter(id); last = performance.now();
+          for (let i = 0; i < 40; i++) { await new Promise(r => requestAnimationFrame(r)); const n = performance.now(); ts.push(n - last); last = n; }
+          return Math.max(...ts);
+        }, id);
+        runs.push(r);
+        await c2.close();
+      }
+      const med = [...runs].sort((a, b) => a - b)[1];
+      console.log(`    ${id}: เฟรมนานสุดแต่ละรอบ ${runs.map(v => v.toFixed(0)).join(' / ')} ms · มัธยฐาน ${med.toFixed(0)} ms`);
+      ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน 3 รอบ <100 ms · ก่อนแก้ 1A-2f city2 107–132 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
     }
 
     if (LONG) {
