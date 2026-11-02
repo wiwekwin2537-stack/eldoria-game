@@ -20,8 +20,7 @@ const tick = () => new Promise(r => setTimeout(r, 0));
 /* ระบบตัวอย่าง */
 const sysA = { id: 'alpha', save: G => ({ x: G.player.x }), load: (G, d) => { G.player.x = d ? d.x : 7; } };
 const sysB = { id: 'beta', save: () => undefined };
-const sysBoom = { id: 'boom', save: () => { throw new Error('x'); }, load: () => { throw new Error('y'); } };
-const SYS = [sysA, sysB, sysBoom, { id: 'nosave' }];
+const SYS = [sysA, sysB, { id: 'nosave' }];
 
 /* ตัวส่งปลอม: เก็บคำขอ ตอบตามฟังก์ชันที่ตั้ง */
 function fakeIo(answer) {
@@ -49,7 +48,7 @@ class FakeWS {
 const lastWs = () => FakeWS.all[FakeWS.all.length - 1];
 
 export default [
-  ['collect: รวม save() ทุกระบบ · undefined ไม่เก็บ · ระบบพังไม่ทำให้ตัวอื่นหาย', quiet(() => {
+  ['collect: รวม save() ทุกระบบปกติ · undefined ที่ไม่เคยมีข้อมูลไม่เก็บ', quiet(() => {
     const G = createState(); G.player.x = 3;
     const d = collect(G, SYS);
     eq(JSON.stringify(d), '{"alpha":{"x":3}}', 'ผล');

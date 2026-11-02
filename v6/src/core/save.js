@@ -7,7 +7,7 @@
    - เครื่องเก่าห้ามทับเซฟใหม่กว่า (ผลตรวจ 1B H3): ทุกการโหลดสุ่ม sid ใหม่ → เซิร์ฟเวอร์จำว่าเครื่องนี้เป็นผู้เขียนล่าสุด
      ตอบ replaced (เครื่องอื่นโหลดไปเล่นต่อแล้ว) หรือ old (เซิร์ฟเวอร์มีเซฟใหม่กว่า) → หยุดเซฟ ทิ้งของในเครื่อง แล้วโหลดใหม่จากเซิร์ฟเวอร์
      (ห้ามข้าม seq แล้วส่งทับ — ของที่เล่นบนเครื่องอื่นจะหาย)
-   - ยังโหลดไม่เสร็จ = ห้ามเซฟ (กันเซฟตัวละครว่างทับของจริง)
+   - ยังโหลดไม่เสร็จ/โหลดพัง = ห้ามเซฟ · save/JSON พังหรือระบบที่เคยมีข้อมูลหาย = หยุดส่งทั้งก้อน (SAVE-SAFE)
    อีเวนต์: save:loaded { isNew } · save:status { ok, error? } (CONTRACT §4) */
 import { on, emit } from './bus.js';
 import * as net from './net.js';
@@ -32,25 +32,62 @@ const DEFAULT_TIMER = { now: () => Date.now(), set: (fn, ms) => setTimeout(fn, m
 
 /* ---------- ฟังก์ชันล้วน (เทสได้ใน node) ---------- */
 
-/* รวมข้อมูลเซฟจากทุกระบบ · ระบบที่พังตอน save ไม่ทำให้ระบบอื่นหาย */
+/* ข้อมูลไม่ครบต้องยกเลิกทั้ง snapshot ห้ามคืนข้อมูลบางระบบไปเขียนทับของเดิม */
+function incomplete(stage, id, cause) {
+  const e = new Error(stage + '-incomplete');
+  e.code = stage + '-incomplete'; e.system = id; e.cause = cause;
+  return e;
+}
+function systemId(s, seen) {
+  if (!s || !/^[a-z][a-z0-9_-]{0,31}$/.test(s.id) || seen.has(s.id)) throw new Error('system-id');
+  seen.add(s.id);
+}
+/* snapshot JSON แบบไม่สูญเสียค่า: ไม่ยอมให้ NaN→null หรือ undefined/function/Map/Promise→หายเงียบ ๆ */
+function jsonValue(value, ancestors = new Set()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (!value || typeof value !== 'object' || ancestors.has(value)) throw new Error('json-value');
+  const array = Array.isArray(value), proto = Object.getPrototypeOf(value);
+  if (!array && proto !== Object.prototype && proto !== null) throw new Error('json-object');
+  if (Object.getOwnPropertySymbols(value).length) throw new Error('json-symbol');
+  const keys = Object.keys(value);
+  if (array && (keys.length !== value.length || keys.some((k, i) => k !== String(i)))) throw new Error('json-array');
+  ancestors.add(value);
+  try {
+    const out = array ? [] : {};
+    for (const key of keys) Object.defineProperty(out, key, { value: jsonValue(value[key], ancestors), enumerable: true, configurable: true, writable: true });
+    return out;
+  } finally { ancestors.delete(value); }
+}
+function syncResult(result) {
+  if (result && typeof result.then === 'function') {
+    Promise.resolve(result).catch(() => {}); /* หยุดก่อนใช้ผล async และรับ rejection ไม่ให้หลุดเป็น unhandled */
+    throw new Error('async-system');
+  }
+  return result;
+}
 export function collect(G, systems) {
-  const out = {};
+  const out = {}, seen = new Set();
   for (const s of systems) {
     if (typeof s.save !== 'function') continue;
     try {
-      const d = s.save(G);
-      if (d !== undefined) out[s.id] = JSON.parse(JSON.stringify(d)); /* JSON ล้วน (ตัด function/Set) */
-    } catch (e) { console.error('[save]', s.id, e); }
+      systemId(s, seen);
+      const d = syncResult(s.save(G));
+      if (d !== undefined) Object.defineProperty(out, s.id, { value: jsonValue(d), enumerable: true });
+    } catch (e) { throw incomplete('save', s.id, e); }
   }
   return out;
 }
 
-/* ใส่เซฟเข้าเกม → true ถ้าเป็นตัวละครใหม่ */
+/* โหลดผิดแม้ระบบเดียวต้องโยน error: ผู้เรียกห้ามปลดล็อกเซฟจนโหลดใหม่ครบทุกระบบ */
 export function applyLoad(G, systems, doc) {
-  const sys = (doc && doc.systems) || {};
+  const sys = doc?.systems === undefined ? {} : doc.systems;
+  if (!sys || typeof sys !== 'object' || Array.isArray(sys)) throw incomplete('load', null, new Error('systems-shape'));
+  const seen = new Set();
   for (const s of systems) {
     if (typeof s.load !== 'function') continue;
-    try { s.load(G, sys[s.id]); } catch (e) { console.error('[load]', s.id, e); }
+    try { systemId(s, seen); syncResult(s.load(G, Object.hasOwn(sys, s.id) ? sys[s.id] : undefined)); }
+    catch (e) { throw incomplete('load', s.id, e); }
   }
   const coin = Math.floor(+(doc && doc.server && doc.server.coin));
   G.player.coin = Number.isFinite(coin) && coin > 0 ? coin : 0;
@@ -60,7 +97,8 @@ export function applyLoad(G, systems, doc) {
 /* ตัวเซฟ (แยกจากเน็ต ให้เทสได้): io = { request(msg)→Promise, send(msg)→bool, ready()→bool }
    timer = { now, set(fn, ms)→id, clear(id) } */
 export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
-  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null, sid: '', resyncing: false, resyncs: 0, busyN: 0, holdUntil: 0 };
+  const S = { loaded: false, seq: 0, last: '', inflight: false, again: false, lastSent: -1e15, wait: null, sid: '', resyncing: false, resyncs: 0, busyN: 0, holdUntil: 0, failure: null, failureVersion: 0, epoch: 0 };
+  let required = new Set(), loading = null;
 
   function status(ok, error) { emit('save:status', ok ? { ok: true } : { ok: false, error }); }
   function later(ms) {
@@ -68,22 +106,45 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     S.wait = timer.set(() => { S.wait = null; save(); }, Math.max(0, ms));
   }
 
-  async function load() {
-    S.loaded = false;
+  function snapshot(keys = required) {
+    const data = collect(G, systems);
+    for (const id of keys) if (!Object.hasOwn(data, id)) throw incomplete('save', id, new Error('missing-system'));
+    return data;
+  }
+  function dataFailure(code) { S.failure = code; S.failureVersion++; status(false, code); }
+  function recovered() { if (S.failure) { S.failure = null; status(true); } }
+  function load() {
+    if (loading) return loading; /* ไม่ให้โหลดซ้อนกันแล้วผลเก่าทับผลใหม่ */
+    loading = performLoad().finally(() => { loading = null; });
+    return loading;
+  }
+  async function performLoad() {
+    S.loaded = false; S.epoch++;
+    if (S.wait) { timer.clear(S.wait); S.wait = null; }
     const sid = newSid();
     const m = await io.request({ t: 'load', sid });
     if (!m || m.t !== 'load' || !m.doc) throw new Error((m && m.why) || 'load');
+    let isNew, data;
+    try {
+      isNew = applyLoad(G, systems, m.doc);
+      data = snapshot(new Set(Object.keys(m.doc.systems || {})));
+    } catch (e) {
+      const error = e.code === 'load-incomplete' ? e : incomplete('load', e.system, e);
+      dataFailure(error.code);
+      throw error;
+    }
+    /* commit baseline/sid/loaded เฉพาะหลังโหลดและรวมข้อมูลครบ ระบบที่เลิกใช้ต้องมี migration ชัดเจนก่อน */
     S.sid = sid;
-    if (typeof io.setSid === 'function') io.setSid(sid); /* ต่อใหม่เองส่ง sid นี้ (net · N3) */
-    const isNew = applyLoad(G, systems, m.doc);
+    if (typeof io.setSid === 'function') io.setSid(sid);
     S.seq = +m.doc.seq || 0;
-    S.last = JSON.stringify(collect(G, systems)); /* เพิ่งโหลด = ยังไม่มีอะไรต้องเซฟ */
-    S.loaded = true;
+    S.last = JSON.stringify(data);
+    required = new Set(Object.keys(data));
+    S.loaded = true; S.failure = null;
     emit('save:loaded', { isNew });
     return { isNew };
   }
 
-  /* เซฟถ้ามีอะไรเปลี่ยน → 'same' | 'wait' | 'sent' */
+  /* เซฟถ้ามีอะไรเปลี่ยน → 'same' | 'wait' | 'sent' | 'blocked' (ข้อมูลไม่ครบ) */
   async function save() {
     if (!S.loaded) return 'wait';
     if (S.inflight) { S.again = true; return 'wait'; }
@@ -92,14 +153,18 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     if (hold > 0) { later(hold); return 'wait'; } /* ถอยเพราะ busy — เซฟอัตโนมัติ 30 วิ ไม่ลัดคิว */
     const gap = timer.now() - S.lastSent;
     if (gap < MIN_GAP_MS) { later(MIN_GAP_MS - gap); return 'wait'; }
-    const systemsData = collect(G, systems), str = JSON.stringify(systemsData);
-    if (str === S.last) return 'same';
+    let systemsData, str;
+    try { systemsData = snapshot(); str = JSON.stringify(systemsData); }
+    catch (e) { dataFailure('save-incomplete'); return 'blocked'; }
+    for (const id of Object.keys(systemsData)) required.add(id); /* จดข้อมูลที่เคยรวมครบก่อนส่ง ไม่รอ ACK */
+    if (str === S.last) { recovered(); return 'same'; }
     S.inflight = true; S.again = false;
-    const seq = ++S.seq;
+    const seq = ++S.seq, epoch = S.epoch, failureVersion = S.failureVersion;
     S.lastSent = timer.now();
     try {
       const m = await io.request({ t: 'save', seq, sid: S.sid, systems: systemsData });
-      if (m.t === 'save_ok') { S.seq = Math.max(S.seq, +m.seq || seq); S.last = str; S.busyN = 0; status(true); }
+      if (epoch !== S.epoch) return 'sent'; /* คำตอบของเซฟก่อนเริ่มโหลดใหม่ห้ามยืนยัน baseline/ล้างข้อผิดพลาด */
+      if (m.t === 'save_ok') { S.seq = Math.max(S.seq, +m.seq || seq); S.last = str; S.busyN = 0; if (failureVersion === S.failureVersion) { S.failure = null; status(true); } }
       else if (m.why === 'replaced' || m.why === 'old') { S.inflight = false; S.again = false; resync(m.why); return 'sent'; }
       else if (m.why === 'busy') { /* ผู้เล่นต้องรู้ว่ายังไม่ได้บันทึก (login.js แสดงป้ายไทย) */
         const ms = busyDelay(++S.busyN);
@@ -109,11 +174,11 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
       else if (m.why === 'rate') { S.again = true; }
       else { status(false, m.why || 'server'); later(RETRY_MS); }
     } catch (e) {
-      status(false, 'offline'); S.again = true;
+      if (epoch === S.epoch) { status(false, 'offline'); S.again = true; }
     } finally {
       S.inflight = false;
     }
-    if (S.again && io.ready()) later(MIN_GAP_MS);
+    if (S.loaded && S.again && io.ready()) later(MIN_GAP_MS);
     return 'sent';
   }
 
@@ -129,7 +194,7 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
     const go = () => {
       if (!io.ready()) { timer.set(go, RETRY_MS); return; }
       load().then(() => { S.resyncing = false; }, e => {
-        status(false, e && e.message === 'busy' ? 'busy' : 'load');
+        status(false, e && e.code === 'load-incomplete' ? 'load-incomplete' : e && e.message === 'busy' ? 'busy' : 'load');
         timer.set(go, busyDelay(++n));
       });
     };
@@ -139,8 +204,11 @@ export function createSaver(G, systems, io, timer = DEFAULT_TIMER) {
   /* ปิดหน้า/ซ่อนแท็บ: ส่งทันทีไม่รอคำตอบ (ไม่ดูระยะห่าง — ถ้าเซิร์ฟเวอร์ตอบ rate ก็ยังมีเซฟล่าสุดก่อนหน้า 1 วิ) */
   function flushNow() {
     if (!S.loaded || !io.ready()) return false;
-    const systemsData = collect(G, systems), str = JSON.stringify(systemsData);
-    if (str === S.last) return false;
+    let systemsData, str;
+    try { systemsData = snapshot(); str = JSON.stringify(systemsData); }
+    catch (e) { dataFailure('save-incomplete'); return false; }
+    if (str === S.last) { recovered(); return false; }
+    for (const id of Object.keys(systemsData)) required.add(id);
     const ok = io.send({ t: 'save', seq: ++S.seq, sid: S.sid, systems: systemsData });
     if (ok) S.lastSent = timer.now();
     return ok;
@@ -164,7 +232,7 @@ export function initSave(G, systems) {
     if (!net.isReady()) { loadTm = setTimeout(tryLoad, 1500); return; }
     saver.load().then(() => { loadN = 0; }, e => {
       console.error('[save] โหลดไม่สำเร็จ', e);
-      const why = e && e.message === 'busy' ? 'busy' : 'load';
+      const why = e && e.code === 'load-incomplete' ? 'load-incomplete' : e && e.message === 'busy' ? 'busy' : 'load';
       status(false, why);
       if (!loadTm) loadTm = setTimeout(tryLoad, busyDelay(++loadN));
     });
