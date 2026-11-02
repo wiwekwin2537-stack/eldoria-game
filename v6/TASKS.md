@@ -1,5 +1,9 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จองงาน STORY-E2/E3a — 2026-11-02
+ChatGPT ผู้พัฒนา · เจ้าของสั่งต่อ · server/story.cjs (ใหม่), server/saves.cjs เฉพาะธุรกรรม server/readServer/การคืนแคชหลังเขียนล้มเหลว, tests/server.story.test.js (ใหม่), TASKS.md, CHANGELOG.md, STORY.md และ reviews/STORY-E3a-independent.md · branch เดิม · ยังไม่เปิด WebSocket หรือปรับค่าบนเซิร์ฟเวอร์จริง
+
+
 ## SAVE-SAFE — ผลงานต่อ 2026-11-02
 เจ้าของสั่งทำต่อ จึงปิดงานเซฟก่อนเชื่อมเนื้อเรื่อง งานนี้อยู่ใน branch เดิมของ PR #1 ไม่ได้รวม main หรือขึ้นเว็บจริง
 - โหลดผิดพลาดแม้ระบบเดียวไม่ส่ง save:loaded และไม่ปลดล็อกเซฟ; โหลดซ้อนใช้คำขอเดียวกัน คำตอบเซฟก่อนเริ่มโหลดใหม่ไม่ยืนยัน baseline ของการโหลดรอบใหม่
