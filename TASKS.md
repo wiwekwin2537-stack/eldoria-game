@@ -1,6 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
+| `AGENTS.md`, `CLAUDE.md`, `TASKS.md`, `README.md`, `SYSTEMS.md`, `GAME_DESIGN.md`, `v6/TASKS.md`, `v6/PLAN.md`, `v6/CHANGELOG.md`, `v6/AGENTS.md`, `v6/README.md` | ChatGPT | ล้างงานปิด/คำสั่งเก่า ตรวจระบบทับ และกำหนดใบงานเดียว | 2026-11-03 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
