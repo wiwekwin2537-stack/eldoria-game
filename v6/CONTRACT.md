@@ -129,3 +129,9 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - ท่าต่อเริ่มด้วยbeginภายในคิวเดิม รับเวลา ณcommitหลังawait ตรวจchapter/profile/actor/sessionและแรงก่อนหัก ไม่เรียกserialattackซ้อนจากtimer
 - interruptล้างสาย/คิวและไม่ให้bufferข้ามการล้ม ค่าแรงอ้างชั้นท้าย031:2630 ฟัน1หมุน1.5
 - ยังไม่รันตรวจใดๆตามเจ้าของ ต้องทบทวนassert3ของเทสเก่าเมื่อกลับมาเทส ไม่ถือว่าข้อกำหนด runtime ผ่านแล้ว
+
+## EQUIP-SWORD — draft / ยังไม่เทส
+- prologuecommand `{op:'equip',uid:string|null}` ใช้ได้หลังstartและนอกtrainingเท่านั้น ไม่รับitemId/level/stats/slotจากclient เป้าหมายช่องswordคงที่
+- equipment.cjsใช้single-writer saves.claim/updateServer ตรวจsessionก่อนclaimและในmutation ใช้character/inventorycanonicalเดิม ไม่มีgrant/charge/receiptใหม่เพราะเป็นการตั้งdesiredstateที่ทำซ้ำได้
+- clientเปลี่ยนprofileเมื่อserverตอบผ่านเท่านั้น ไม่มีoptimisticinventory ถ้าstorageตอบคลุมเครือให้ลองdesiredstateเดิมหลังreconcileตามsavesเดิม
+- ลานฝึกยังจำกัดloadoutเริ่มต้น ระบบนี้ไม่ยืนยันความพร้อมown-blade/อาวุธสูงขึ้น ไม่deployจนตรวจภายหลัง

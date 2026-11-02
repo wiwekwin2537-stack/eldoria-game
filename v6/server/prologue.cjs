@@ -3,12 +3,14 @@
    route รับแค่ start/move/talk/claim ไม่มีทางส่ง kill/reward/scene ตามใจ */
 const { randomUUID, createHash } = require('crypto');
 const {createFieldTraining}=require('./field-training.cjs');
+const {createEquipment}=require('./equipment.cjs');
 const { createEldoriaStoryService } = require('./story-rewards.cjs');
 async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }={}) {
   const [{PROLOGUE:P},{MOVE,DASH},{getMap,hit},{T}] = await Promise.all([import('../src/data/prologue.js'),import('../src/data/movement.js'),import('../src/systems/world.js'),import('../src/config.js')]);
   const map=getMap(P.scene), actors=new WeakMap(), proofs=new Map(),connections=new Set();let stopped=false;const ticking=new WeakMap();
   const fail=code=>{const e=new Error(code);e.code=code;throw e;};
   const training=await createFieldTraining({saves,now,isActive}),queues=new WeakMap();
+  const equipment=await createEquipment({saves,isActive,storageMode:'single-writer'});
   const near=a=>!training.active(a.conn)&&Math.hypot(a.x-P.king.x,a.y-P.king.y)<P.king.range&&a.y>P.king.minY;
   const current=conn=>{const a=actors.get(conn);return a&&a.lid===conn.lid&&a.sid===conn.sid?a:null;};
   function valid({lid,ticket}) { const a=proofs.get(ticket);return a&&a.lid===lid&&now()-a.issued<=P.proofMs&&current(a.conn)===a&&isActive(a.conn)&&near(a)?a:null; }
@@ -50,6 +52,7 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
       if(command.op==='attack')return {ok:true,...await training.attack(conn,command.sequence),...await state(lid)};
       if(command.op==='hall'){if(training.active(conn))await training.leave(conn);a.x=P.spawn[0]*T;a.y=P.spawn[1]*T;a.dir=P.spawn[2];a.at=now();a.budget=P.initialCredit;return {ok:true,actor:pose(a),...await state(lid)};}
       if(training.active(conn)&&!['end'].includes(command.op))fail('training-active');
+      if(command.op==='equip'){await equipment.equip(conn,command.uid);return {ok:true,actor:pose(a),...await state(lid)};}
       if(command.op==='move'){move(a,command);return {ok:true,actor:pose(a)};}
       if(command.op==='talk'){
         if(!near(a))fail('near');const s=await service.read(lid);

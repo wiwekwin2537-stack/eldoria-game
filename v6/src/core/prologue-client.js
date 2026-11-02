@@ -31,5 +31,5 @@ export function createPrologueClient(G,{request,ready,enter,stop=()=>{}}) {
     }catch(e){if(gen===generation){S.error=e.message;bookmark=null;delete G.ui.prologueBookmark;}return false;}finally{if(gen===generation)S.busy=false;}
   }
   function end(){if(ready())send({op:'end'}).catch(()=>{});closeLocal();}
-  return {state:S,start,sample,sync,talk:()=>action('talk'),claim:()=>action(S.story?.state.chapterId==='first-light'?'claim-first-light':'claim'),field:()=>action('field'),hall:()=>action('hall'),potion:()=>action('potion',{encounterId:S.pose?.encounterId,sequence:(S.pose?.potionSequence||0)+1}),attack:()=>action('attack',{sequence:(S.battle?.sequence||0)+1}),end,disconnect:closeLocal};
+  return {state:S,start,sample,sync,talk:()=>action('talk'),equip:uid=>action('equip',{uid}),claim:()=>action(S.story?.state.chapterId==='first-light'?'claim-first-light':'claim'),field:()=>action('field'),hall:()=>action('hall'),potion:()=>action('potion',{encounterId:S.pose?.encounterId,sequence:(S.pose?.potionSequence||0)+1}),attack:()=>action('attack',{sequence:(S.battle?.sequence||0)+1}),end,disconnect:closeLocal};
 }
