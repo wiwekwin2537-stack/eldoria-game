@@ -35,6 +35,15 @@ function normServer(s) {
   return o;
 }
 
+/* ส่วน server ต้องเป็น JSON ที่ไม่สูญเสียค่า และคืนสำเนาแยกจากแคชเสมอ */
+function serverCopy(value) {
+  return JSON.parse(JSON.stringify(value, (key, v) => {
+    if (v === undefined || typeof v === 'function' || typeof v === 'symbol' || typeof v === 'bigint' || (typeof v === 'number' && !Number.isFinite(v))) throw new Error('server-data');
+    if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null) throw new Error('server-data');
+    return v;
+  }));
+}
+
 /* ตรวจ systems ที่เครื่องผู้เล่นส่งมา → { err } ไม่ผ่าน / { str } = systems เป็นสตริง JSON (ใช้เขียนต่อเลย ไม่ต้องแปลงซ้ำ) */
 function checkSystems(systems) {
   if (!isPlain(systems)) return { err: 'bad' };
@@ -103,9 +112,10 @@ function createSaves({ store, now = () => Date.now(), cacheBytes = CACHE_BYTES }
   /* อ่านจากที่เก็บ → { m, sys(สตริง) } */
   async function readStore(lid) {
     const raw = await store.get(keyOf(lid));
-    let d = null;
-    if (raw) { try { d = JSON.parse(raw); } catch (e) { d = null; } }
-    if (!isPlain(d)) { const f = freshDoc(); return { m: { v: f.v, seq: 0, upd: 0, server: f.server }, sys: '{}' }; }
+    if (raw == null) { const f = freshDoc(); return { m: { v: f.v, seq: 0, upd: 0, server: f.server }, sys: '{}' }; }
+    let d;
+    try { d = JSON.parse(raw); } catch (e) { throw new Error('save-data'); }
+    if (!isPlain(d) || d.v !== SAVE_VERSION || !isPlain(d.systems) || !isPlain(d.server)) throw new Error('save-data'); /* ไม่แปลงเซฟเสีย/รุ่นใหม่เป็นตัวละครใหม่ */
     const m = { v: d.v || SAVE_VERSION, seq: +d.seq || 0, upd: +d.upd || 0, server: normServer(d.server) };
     if (typeof d.w === 'string') m.w = d.w;
     return { m, sys: isPlain(d.systems) ? JSON.stringify(d.systems) : '{}' };
@@ -127,7 +137,13 @@ function createSaves({ store, now = () => Date.now(), cacheBytes = CACHE_BYTES }
     return { m, sys: r.sys };
   }
   async function write(lid, m, sys) {
-    await store.set(keyOf(lid), docString(m, sys));
+    try { await store.set(keyOf(lid), docString(m, sys)); }
+    catch (e) {
+      /* อาจเขียนสำเร็จแล้วแต่คำตอบหาย: retry ต้องอ่านที่เก็บใหม่ ห้ามเอาแคชเก่าทับ receipt/รางวัลที่ commit แล้ว */
+      const old = cache.get(lid);
+      if (old) { stat.bytes -= old.bytes; cache.delete(lid); }
+      throw e;
+    }
     remember(lid, m, sys);
   }
 
@@ -136,7 +152,7 @@ function createSaves({ store, now = () => Date.now(), cacheBytes = CACHE_BYTES }
     return serial(lid, async () => {
       const { m, sys } = await full(lid);
       if (SID_RE.test(String(sid || '')) && m.w !== sid) await write(lid, { ...m, w: sid }, sys);
-      return { v: m.v, seq: m.seq, upd: m.upd, systems: JSON.parse(sys), server: { ...m.server } }; /* ไม่ส่ง w ให้เครื่องผู้เล่น */
+      return { v: m.v, seq: m.seq, upd: m.upd, systems: JSON.parse(sys), server: serverCopy(m.server) }; /* ไม่ส่ง w ให้เครื่องผู้เล่น */
     });
   }
 
@@ -175,17 +191,23 @@ function createSaves({ store, now = () => Date.now(), cacheBytes = CACHE_BYTES }
     });
   }
 
-  /* ให้โค้ดฝั่งเซิร์ฟเวอร์เปลี่ยนส่วน server (เช่น เงิน · เฟส 4/6) — เครื่องผู้เล่นเรียกตรงไม่ได้ */
+  /* อ่านส่วน server โดยไม่เปลี่ยน sid และไม่เปิดเผยอ็อบเจกต์แคชให้ผู้เรียกแก้ */
+  function readServer(lid) { return serial(lid, async () => serverCopy((await meta(lid)).server)); }
+
+  /* ธุรกรรมส่วน server ในคิวบัญชีเดียวกันของ createSaves instance เดียว
+     callback ต้อง sync และไม่มี side effect ภายนอก · ไม่ใช่ CAS/ธุรกรรมข้ามหลายโปรเซส */
   function updateServer(lid, fn) {
     return serial(lid, async () => {
       const { m, sys } = await full(lid);
-      const next = normServer(fn({ ...m.server }) || m.server);
-      await write(lid, { ...m, server: next }, sys);
-      return next;
+      const result = fn(serverCopy(m.server));
+      if (result && typeof result.then === 'function') { Promise.resolve(result).catch(() => {}); throw new Error('server-async'); }
+      const next = serverCopy(normServer(result || m.server));
+      if (JSON.stringify(next) !== JSON.stringify(m.server)) await write(lid, { ...m, server: next }, sys);
+      return serverCopy(next);
     });
   }
 
-  return { load, save, claim, updateServer, sweep, _cache: cache, _cacheStat: stat, _lastSave: lastSave, cacheBytes };
+  return { load, save, claim, readServer, updateServer, sweep, _cache: cache, _cacheStat: stat, _lastSave: lastSave, cacheBytes };
 }
 
 module.exports = { createSaves, SAVE_VERSION, MAX_SAVE_CHARS, SAVE_MIN_MS, COIN_MAX, SID_RE, CACHE_MAX, CACHE_BYTES, freshDoc, keyOf };
