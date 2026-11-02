@@ -1,7 +1,7 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
 ## จอง COMBO-3 (2026-11-03)
-ChatGPT: src/data/combat.js, server/field-combat.cjs, src/systems/prologue.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/COMBO-3-static.md — คอมโบฟัน0/1/หมุน2 serverถือqueue/แรง/ช่วงโดน ตาม031/017/070 ไม่รันหรือเพิ่มเทสตามเจ้าของ ไม่deployรุ่นนี้ไปเว็บทดสอบ
+ChatGPT: src/data/combat.js, server/field-combat.cjs, src/systems/prologue.js, spec/02-combat.md, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/COMBO-3-static.md — คอมโบฟัน0/1/หมุน2ตาม031/017/070 และแก้สเปกค่าแรงชั้นท้าย ไม่รันหรือเพิ่มเทสตามเจ้าของ ไม่deployรุ่นนี้ไปเว็บทดสอบ
 
 ## POTION-HP — ใช้ยาเลือดจริงในลานฝึก (2026-11-03)
 **สถานะ: เชื่อมserver/controller/UIแล้ว เทสและตรวจอิสระผ่าน QAภาพ/มือถือยังแยกจากผลตรรกะ**
