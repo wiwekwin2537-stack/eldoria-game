@@ -10,7 +10,7 @@
 - validationปฏิเสธไม่พักค้างหรือใช้ยา เมื่อออก/รีสตาร์ตก่อนผลยืนยันครบ ไม่เอาreceiptเก่าไปฟื้นชีวิตใหม่ และไม่คืนรายการยาที่commitไปแล้วอัตโนมัติ HPลานยังเป็นsessionชั่วคราวตามเดิม
 - potions14/14ผ่าน รวมcontrollerและWebSocketจริง ใช้clockserverจำลอง/ข้อมูลบัญชีทดสอบ ไม่มีfixtureฟื้นฝั่งclient ผู้ตรวจอิสระเจาะlostACK→timerแก้pending5วิแล้วฟื้นครั้งเดียว/hpp2 และsequenceผิดไม่ทำห้องค้าง ผ่าน ดูreviews/POTION-HP-independent.md
 - browser/prologue.spec.jsเพิ่มการกดปุ่มยาและตรวจhppลด1/CD แต่ยังไม่รันภาพ/ทัชตามขอบเขตQAที่พักไว้ ไม่อ้างผ่านมือถือ
-- เตรียมอัปเดตเฉพาะเว็บทดสอบแยก eldoria-v6-playtest-20261103.onrender.com จากbranchเดิมหลังcommit ตรวจliveตามdeployจริงภายหลัง ไม่รวมmainหรือแก้เว็บeldoria-online
+- อัปเดตเว็บทดสอบแยกแล้ว https://eldoria-v6-playtest-20261103.onrender.com/v6/ Render deploy dep-dbkebdmi0phs73cdolig live ที่codecommit6e020f94729d397912efd3625fa07763bdb75f00 ตรวจหน้าloginเชื่อมต่อได้และDOMมีปุ่มp0-potionใหม่ แต่ยังไม่ทดสอบทัช/ภาพหลังloginบนมือถือ เซฟpreviewรีสตาร์ตใหม่ ไม่รวมmainหรือแก้eldoria-online
 - ชุดเต็มท้ายรอบ306ผ่าน1รันไม่ได้เพราะflood testอ้างwsที่ไม่มี บางรายการข้าม ไม่อ้างผ่านทั้งชุด
 - ปลดจองPOTION-HPแล้ว งานต่อคือดรอป/XPมอน ใช้มานา/อาหาร และระบบอื่นตามใบงาน ไม่ถือว่ากระเป๋าหรือระบบใช้ของครบเกมแล้ว
 

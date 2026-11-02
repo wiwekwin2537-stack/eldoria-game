@@ -4,7 +4,7 @@
 - เพิ่มhpp30%min60/CD8วิจากเกมเดิม ปุ่มยา/Hพร้อมจำนวนและCD หักinventory+receiptก่อนฟื้นHPลาน
 - กันduplicate/session/epochเก่า และfreezependingเฉพาะห้องเมื่อstorageคลุมเครือ ให้timerretryโดยไม่หักหรือฟื้นซ้ำ
 - ชุดเต็มท้ายรอบ306ผ่าน1รันไม่ได้เพราะflood testอ้างwsที่ไม่มี บางรายการข้าม ไม่อ้างผ่านทั้งชุด
-- potions14ผ่านรวมcontroller/WebSocketและตรวจอิสระผ่าน เพิ่มbrowserassertแต่ยังไม่รับรองภาพ/มือถือ ไม่รวมmain เตรียมอัปเดตpreviewแยก
+- potions14ผ่านรวมcontroller/WebSocketและตรวจอิสระผ่าน เพิ่มbrowserassertแต่ยังไม่รับรองภาพ/มือถือ ไม่รวมmain อัปเดตpreviewแยกliveแล้วที่codecommit6e020f9 (เซฟชั่วคราวเริ่มใหม่)
 
 
 ## 2026-11-02 — ITEMS-VIEW รายการของในหน้าราชา
