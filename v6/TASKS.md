@@ -1,5 +1,9 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง STORY-E3b1 — 2026-11-02
+ChatGPT · เจ้าของสั่งทำต่อ · src/data/{items,economy}.js ใหม่, server/{inventory,story-rewards}.cjs ใหม่, tests/server.inventory.test.js ใหม่, TASKS.md, CHANGELOG.md, STORY.md, reviews/STORY-E3b1-independent.md · กระเป๋า/UID/XPและรางวัลบท0–2ตามเกมเดิม · ยังไม่เปิดrouteหรือแก้เซิร์ฟเวอร์จริง
+
+
 ## STORY-E3a — รับหลักฐานและธุรกรรมเควสต์ภายในเซิร์ฟเวอร์ (2026-11-02)
 เจ้าของสั่งต่อ จึงเพิ่ม `server/story.cjs` ใช้ข้อมูลบท/แกนเดิมผ่าน import ไม่สร้างเรื่องอีกชุด และใช้ `server/saves.cjs` เก็บใน `server.storyLedger` แยกจาก systems ของ client
 **สถานะ: โค้ดและตรวจอิสระบริการภายในแล้ว ยังไม่ได้เชื่อมเล่น** ไม่มี WebSocket route ใหม่ ไม่เปิดใน index.cjs ไม่มี verifier จากระบบต่อสู้/NPC จริง ยังไม่แจกเงินจริงในเกม
