@@ -1,5 +1,8 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง POTION-HP (2026-11-03)
+ChatGPT: src/data/economy.js, server/potions.cjs, server/field-training.cjs, server/prologue.cjs, src/core/prologue-client.js, src/systems/prologue.js, tests/potions.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/POTION-HP-independent.md — ใช้hppจริงในลานฝึก หักยา/receipt atomic คูลดาวน์เดิม ไม่แตะเกมจริงหรือมานา/อาหาร
+
 ## ITEMS-VIEW — รายการของที่บันทึกแล้วในหน้าคุยราชา (2026-11-02)
 **สถานะ: เชื่อมUIและตรวจโค้ดอิสระแล้ว QAภาพ/browserเก็บก่อนเปิดทดสอบตามเจ้าของ**
 - เจ้าของขออีกงานเล็ก จึงปิดงานแสดงผล1ชิ้น ไม่ขยายระบบดรอป/XP/ใช้ของในรอบนี้
