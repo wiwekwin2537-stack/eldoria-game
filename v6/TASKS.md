@@ -1,5 +1,8 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง PLAY-E2d (2026-11-02)
+ChatGPT: server/fixed-step.cjs, src/data/prologue.js, server/field-training.cjs, server/field-combat.cjs, server/prologue.cjs, server/index.cjs, tests/fixed-step.test.js, tests/training.test.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2d-independent.md — นาฬิกาและtimerเซิร์ฟเวอร์เฉพาะลานฝึก ทดสอบlogic/WS เก็บQAหน้าจอไว้ก่อนเปิดทดสอบตามเจ้าของ ไม่เปิดliveหรือshared world
+
 ## PLAY-E2c — AIสไลม์/สวนกลับ/เลือด/ล้มในลานฝึก (2026-11-02)
 **สถานะ: เชื่อมserver/controller/UIแล้ว ตรวจตรรกะและวงจรWebSocketแล้ว ยังไม่ผ่านภาพ/browser/มือถือ**
 - โหมดV6_PROLOGUE_TESTเดิม defaultoff memory/file single-writer ไม่เปลี่ยนจุดเกิด/สถานะโลกจริง ลานฝึกยังเป็นพื้นที่แยก8ตัว ไม่มีrespawnโลก/ดรอป/XPมอน/คอมโบฟัน/อาชีพอื่น/บทown-blade
