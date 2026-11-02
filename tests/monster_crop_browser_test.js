@@ -1,0 +1,9 @@
+/* v590 (เจ้าของสั่ง 2026-10-25): เกมไม่โหลดไฟล์ภาพมอน/นกเหยี่ยวเลย (ภาพ v578–v586 เลิกใช้ · กลับเป็นโค้ด) */
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+(async()=>{const port=process.env.ELD_TEST_PORT||'8856',base='http://127.0.0.1:'+port,dir=fs.mkdtempSync(path.join(os.tmpdir(),'eld-mob-'));let b;const errors=[],imgs=[];const server=spawn(process.execPath,['server.js'],{cwd:path.join(__dirname,'..'),env:{...process.env,PORT:port,DATA_DIR:dir,UPSTASH_REDIS_REST_URL:'',UPSTASH_REDIS_REST_TOKEN:''},stdio:['ignore','pipe','inherit']});
+try{await new Promise(r=>server.stdout.once('data',r));for(let i=0;i<60;i++){try{await fetch(base+'/');break}catch(e){await new Promise(r=>setTimeout(r,500))}}b=await chromium.launch({args:['--no-sandbox','--enable-unsafe-swiftshader']});const pg=await b.newPage({viewport:{width:900,height:650}});pg.on('pageerror',e=>errors.push(e.message));
+await pg.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin!==base)return r.abort();if(/monster|hawk/.test(u.pathname)&&/\.(png|webp)$/.test(u.pathname))imgs.push(u.pathname);return r.continue()});
+await pg.goto(base+'/?devtest=1&server=ws://127.0.0.1:'+port,{waitUntil:'domcontentloaded'});await pg.waitForFunction(()=>!window.FM_LOADING&&typeof MOBDRAW!=='undefined',null,{timeout:180000});
+await pg.waitForTimeout(3000);const r=await pg.evaluate(()=>({art:!!window.MOBART578,hawk:!!window.WORLDART_HAWK}));console.log(JSON.stringify({...r,imgs}));
+assert.equal(r.art,false);assert.equal(r.hawk,false);assert.deepEqual(imgs,[],'ยังโหลดภาพมอน');assert.deepEqual(errors,[]);console.log('PASS ไม่โหลดภาพมอนสเตอร์');
+}finally{await b?.close();server.kill();await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exit(1)});

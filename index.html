@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="eldoria-cdn" content=""><script src="js/000-cdn.js?v=583"></script><script src="js/000-reset-eld4.js?v=592"></script><link rel="icon" type="image/png" href="icon-192-v541.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1a1226"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icon-192-v541.png"><meta name="eldoria-server" content="wss://eldoria-online-q0vs.onrender.com">
+<link rel="preload" as="image" type="image/webp" href="assets/ui/loading-v543.webp" fetchpriority="high">
+<title>ตำนานเอลโดเรีย v5.98</title>
+<style>
+:root{--loading-preview:url("data:image/webp;base64,UklGRsAaAABXRUJQVlA4ILQaAAAQaACdASrwAKAAPrVKm0qnJKIiNnjbiOAWiWoAyYAwK++fKLPlXxH/vaa14r2Vmh/Pd8v0m83z1D+a7zifOD34/en/8taZnHbFB0fxM8VdpX3WSKsq3nLqC4ndoeAnd65BvDiO2+DTUOE+PwufzMd2X1fnx/Hf1udc+xUdLPlXXuNp1GNITni8ltV/pdso+xQxL/0B1PbFNPSt28ml852/EE/cwtonb7Oebaq0j3N085ZZGKSylgk++UzOiSHC63kv/6pjZDWTE+ZDAPeNUKLYh3hHN2ZMRIP8YbI928qJ9CR0573iJSXz9Yv3jbsrbq6xOowVXdByUESeTxSlnkMFW14bl8BRngZkpkdl//9Y3pIu+ranqRHNnL+T9wjgyTMtc298wSy44rQD7xxQvHIGbgAcXKQZqyYfO0PoWyjfrDreiTjnvoYyHL5qr/q7HF37o0xt5/Y5xiC3QEU7QvkP7KJZamq9+MFrPUlNS319uucyveZWquldGqCF6yvvnxRozabgjuILKYvNkVyzcx8ay/J347Nche3qeYHudwvoUGIIKJ2kxcNJ1GzKh5tKU/3Uo5XFbuR+9cFAVI+8QWUHxdL05QjrYxUudAaHowEuzCtfpbinUzZfYRtFPnnMiqhWug+n4a/FH11OsR2/n83cpLqsJKmVezlWw00uOFF1dAnpB16kaCIXzjVZXcnHa+6rV+n4/NOhFdcnXxIWzSv/thMf/yXPX3IzAf412ZOHdsWfUf5UI8uV2qdtvlE+HdGeXRWwEfa8MgSd6/nwnFtf13nZWoXF3cpRkxHA9I48cEaVFxU6vpo0dM5IFxSV3p1QKVicSetyOtjMgNdyfZeYQSYP0+fCyBXrs5S4Vdx6yyKt/dPAHkKFQedXVn53mbVzHDfJ2NIjgnCa31CK2jLZ3FQYu8YMU+pKVZzoM0ifJp1glnb6FiAV4+Cm0ujWKm3JsGTKPvzBU43dYjSqk/Vk44An4LXYdy/QlMDADzuoiKXX3ZWt27jPjiRx349g/FOpGGIAd/wByv9N0S+M86NhOBLhGlt3FFloIoYDqqFH0vvN4Q/YdVl4aLWfqZKTJj0YB5WscvCZRWfRcqT2nqFChMYoUJjExKgAAP71k9a2BhzFJ9/ed+ab9c6qSZZzTKDZy+xm78GqD7VoBd1hQiZXalieJ8FsrHW28XL2YhG4ieZwkz/cI+iZMgNq+W+fJSdJ+t+0jcM14jJby6WrraYxgaFFQzj8sU0noMalE10Nd6Xqz+UptYuTRnd5O9ACW0jY0/oyalkiC8kul9A9qIf6atx40DNZG0oQh2CbwS+dzc3LIB7yXwTAz17dFGbzdld4fbawAH4Y3cKbIoxPanZ+U0Wgc4iOUKndyrGObE50rL15H0acAoTN3MRPphzA9Eq0wMZIyI1/PT7G9Z3Cr2+1Vgq+6Gc/ti2pH8f1w7GteoTZV4/8J90i9ljhTzPLom5Ps4iWJPoqSN6Be+XJHtYY6sQ+xvzGBV1vN3x7hlvFFYE0xkfxdOcCHYzwbABCAv73UuOae1m6sEo7Nsmw34bb/i8DsdCMGCArW43BgXhVQMgo22novxGRH3/+wYge1ihM1PZck2wP3YCuY/0sX0kc86+OMn5TUV75rmaUYot8IfjuGYWbWxbRHuGu65Hp2qp+PrDOaSW1T4X7EdBGDNbb2MMM8jS9RQR/lmhKUSLj/5ZyIErPENIuHNASuzKV2JQwHn0PWgYK1hd59bps3Q44g3SbRMF6gdRZlB1kZY3EPk6Gu8dV4x9JDIxjoiZ2NpteTKIM1PAgQIxZYnUUc8ZNfT3G8Hhh+4AOWNtq+XEBjJx/7//jyevD25LQwHlUqdnQ+9dwntKR5gp65ljOpWw/X9Z+tztwatgMVsNzB+7v8nDJOJVxXxwENSFOPbTIAumvCnaTF0apm5jV+Y4KpJupUTrn3MXQstVGBsptMdi2dxi248+r/31Jj8CP0t1QcI5YWmbAMN+40L1Rf9BgDAhnLDmHc8Uu2ePqFZbM9iCDa3DyI0ADeMfYrJ6dr3ubd3MEUlbvO6EUhhiMnCJGAk9lqE546pjAHOnPKVPGqHqieEOOd6qpdeW2HYTeKnLgbP6uoStk+Aq5XsGIXpr23vb0zqpyb9KOPtLTjkqThgp2seD16CPS3oz4GTdMrObLYvhSBzwCQ2B9zTwI8tB94+Ttf2CwyKJd1fFQBzidgAe2zDMQRx8mGlWRwIKE5yx28Oz/jeLkrBOP04EOOMjOn8Wr3vf4iWmgTy1YJpI7RoaolgiTktucClYgC8mGVHtmV9QJwcXm5GuOvf9brdnT9FlwJmtr+rRaACzNRmohEUDlodmLPKLOo5Fgs1oBcHjjLcQk5jIJ3ddiaBo1myPVcywo8JYTp9a+uQgh0zLqz2uY+m3oN46FTLjzh3uSSyTMRPBq6ZfBw4KuYcCk007L5pOtXDZdBHkoFPK2CajP7uxkTNC1GZZLag25Mg4yFV+XGdzBBW6ndLG5m7W4QDQnYRXlanjo3frtTBzyOrKjt3zxC8YTCcE8lXzISC+NHqdk/ky9XKTYnIFLamWVFTBKWMCrYeIrHHmgcWPB7fF4gYtztCdgdo86I3hzPbS4BKCk2xlT5RCHzdNNJzJm5de4KGryJbjT5TyFJN2lW5buedYtqvE2nhWwj//IqbDDzMLwV9+AnLgH/77qVOR/kdcJQRuXUUYQNsPYqGhD3ru9cl+defpLhFdLnvu86i4XV8xPMnz3fu8bX8u9WqG1Ior/pGL0zdQ11B8C5JbDw0bbCkGtafeOcZ54ZFq7XRsmJhhD2Fo53OwVYMkZJsyR6qWIBJEA3H7vlCTrEE0jSqMz7HFGperI8Na1H1jfx9xrKadF8DT8FA0+2TdPQ6pEVtZmT+jzuFwmSV2cxpRKIfCwaVEmkaCNqWKKBS/WZxMme373PiX732Jsa5sYmCMXQ4r/QfowP9V6qyp4PXYfotiwzYa+v2bgCDp4iLTKQMMtz0s+hph42zuKfbJ+EfRXX/BXqE4NnpnGyV4hIOBbjdj5x3NF3EusniK+sHO9nCCThyh+GRtT4d5VNXIK6zp1y2JP+0xEAauvUep4kqV22rOzIIiG8IU4UZiZLf1PqkV+zHyNaYxfZwqQjW1Fwde29oQfNm9+VZZEkfaXCqOaSg32+gdyMyWI3YVqoK3mn7syBmOraNgKa9iY/JBcyiok5jNQOuwNK10h/RMqCpAtbQ+2PxNLuDHIxZLD+mORuwl7EQZay8Cyi1YpiS5RRd0gX4fUcM27dToaZ+jZpQj6n0+FYi+G8EhQfznmBKybpN0lVeOX5V6Qz6XSqqVqSIIAeTRWH7WBt4r1DsOBf0iMyiwCVgZI+xg6cmKe+hUoIaUWCiq7blspnnBfZ3XThIi8VinO3QSTC7UVwmNEA3Qrn0VxRXaBlXXEwIKCLbbn4O9JQDWj8mRe8/fbq4hQWXq5YZoRZODzMU6hRZn7p7LUCAdUrXYw1UxODHwKhaxvW2Ek52d1THKI0XY/8vsova4tvRly98wMqt80eppK2ey5d4RwwD04s4UV4WZ983jU+OdHTSbGSSJeveWAC/2cHl0Uejtdu6ZhPA8UFr1ZJgIN5E+kP8FfsttapgzLCzqn+WKhrd5uwnYh/XJdGlOgyh6/1tEalLc93j22uEtLCN91NFhH4ztxSjEw0M3dhAKmx5eEtne3vCqJanwBzyPB8/hwS0UjtXCblQWKPjgF3dGITMLhkjFO+fDCsDVhxevQaYGScgQN9e4agZYXpj4eCtdrwC9cGnUQKaHrX4UXEhtTxLFOFCdobbApu0vMi4pj41WK8eHX+Aw/B05HreHXJMpgKyCBKxmUp+IdkV/vPQZYin7xqwKEkBBGp+aCIxDOlwmF+ldd6PRO7Ed3/WsExTZ/sNcSdMFW7cFvEczsKi4WJUiTD/oUGrHZE4I686mXTAVguws4u08zkqy5XOS8aAl2Q2FEXkS1D7J5NJbpQLEKUwvd4VTByPZWiV5kvNCYrjWWmutwBpErDa83RDH6Imtpaom8XF8vOFsHkOGrZ4a4thhxr3vVf91Z7uM6dR5OsCbHK3+QtAnHc2RPNCsvVH8ECCw6Ei1aSfBvl1CasO/os4zuMJq8r4zFyxZHxHwxq1qHSQkWNXNNJk6oeI4E7Ka7Umsftoex5bzIcdVByRPBCE4V7m1cZ3klSkLVM6k3tFNsMtYlsITP4fHATeTXEw+PLmbWOrxd272M9X8Ms1S9/SKdWDGZi6Ln46H12V+gD8js9ZMrUe2d5+wo2zmqoLDaihkgFa8D19tQyz+ycI4yMHrmiYnLa/4kOnifqF3OI5hCk7zOH7FQUAKJqXLaZ7yVbnVuHvGKiKPTLY47QOx0EHbRIT3en9r4aMCbBEHQ62BHSIOb72sJabdt1+UAGRMLc0vjXokcGoNMA0uju8HtLu3ZRvGrbE0HT2mXfh/wPlOw772w0OEZalNAb+mFcUduKDFsEdEaYJxiWQWv7Heo3vFv0IzpSDURGmpNrL+Ob5g5bF3gL2HaWdOMUQnS2K0tagLUWnPCZw746q5IX/WVh4wsJ3NI5dk3aY2duXUPB1ofdEuDukyNaEuVnbVhcoaWDq3KyoJBtl4P9FrbMB5v9ZBdiYbg3/pnIAS6mV5QqCZ33XC5mNQstM480Y2Zw+HwsDJb9UIAMKWFm2i8+3a1O+zxmLs8FvQ6q8D8bylx7jjDys6JpzVWYmH8NfS7Tfsc5rKaMZdCmgpyYRRwI8q0DZicXLGW3+isT8///r5fa5ozc9dgMrTFBgN662ILa2nIahfvG2hF10xmEwvULBzX5qPUqSbIVmSPpKr+OJ+/PyzRZw+br243BqbHx4eCSd3wvckYfjwb4091FTThgaKC3FCUWl8nhkt+ApS4F3jMqm0+JO1lWP+ffxW17RQps5iFoKwwWoR9yeImyiocPTPgStt79qyDEuDtffG3ZK2+0jfa8PZlj9SozVys9kxCj05W2IgaIxB6G+uTKgQKArhPAN5wKcRQfVwvuqllCNKnOhIpZVblbBMejGgo7cXe3S6COg2J1GeXAsYyPcxFOMMqCldFN8sF6LWYXZnLzi6qTSRDqwduToEY3OoMT/moEijBDfF3S4Bmh8RzeO0IlmiMfYoIT8thpak/EBPX2xOYoOOIao+6BMd3VBoYrxcTraQrNJtuq7Lh1wnjBRd9NItZsGVrWEMiMOc8Si3nR0G7gHEodQM63cNWMzyOi6u3cEN57iij2yfGNq43d6QqFWToNUNaJo+CWwdDMTnX9eOgFKl9+1orJYLlsC7HVjweZRqSyWwMs8LjpeiO6cgmh3fRJFy6OKjb9jBk/ZUdGxMfkJaC0EzsrI8/fVlsz7qARfa81gv9R4OWxvbXH9MKNTtCqqdyygymwXV3/ZO4N9OEw3F3ErYiT636VZxNdtS9gRrL0n+605P8KWoK0/57V8NFZOHIEnHjF/HFYiRWaP/O/JPM9YI0V5zG3k0OXxE+AKwTQqy3YV7eF6mtYy10Q414Ie+u8mNVoQ5ELMKwtZJs3/9Bqfq/IGCv9rtfsMRsObRbMIomP32ELmlCB6ezFqgla6layHRuYENoDRSX+BwOr47adPgJKS4mzu7jt+d0UQhWzFwQFdm3FjSGZH8tkhFvTu8NNRw7JAGyXv6c6y2F1RjHjw5EdzYnqEUnt8nz1RB/Lmok57KSAcC9ZRQdNll/GEM/cYGvMaFAnF+Xtl7s+L1bm/Pkmbg7hQW/4PkUKsSQJ0CgV/OSutjpJMgTITpisRxvsf52avNQ72svT6lh5DNKzyjN3JtnPUjzYmvNaaDVicndyTWF5PFb6a+C5gV5dqSmMHbK7TXCn8hi8xYp/X5ZQGOHwAxWcrbh4BRgD4ukzjvPiB4ALcoClsyql7P0R6GOrXTH380TR5YzDJbnykn6wlc7B8OIVj3Nfgw03BsMF4XBOS5creQIij2gMIfzOXe5syQbB0FDvgI/G95T2D/iHBC3hdJp8djurpOLMyMIR0wp3A6c9OHU4fFgsRXpTLZjdodebwa1fm0a0nHwjyYhMDQiNb71dn77dRZGeZ3Su59yCj52E45l+eC4A46y1R4NbaXM19AiTvXO+X9/Qg5QVttf2pxt2+px4z/i8wqdvOhrEB4YnN5I/2Px5oMFQ6JelIVhbBVIlYnaGb6pi/8dmRAsfdlwzpnlT2hLK/atnp3wElsHqCRJ3j7zmRPRxulNbvGzfw54k442x5WW09vQ/RaP5Sj/Menikza0BZleREZEYSxV/AOb0fFvqwm/4CRGKUOilTf7pEe4osUQZ/3J1QtgJ+w080f9cRXG5zcJ5Wb7zED1O6diLboHy8HTTYeN4bjmBfURN/Mojr5p0zLrTq6/KmOhax0sb1OF2TLyTltB0q5vWIRFHpyOo1XD3chINzT6hUMB5Q7tMKqog5R50et8iB5KOWfVSXEbr3BQ9GvuAIMxtu7/vDXMVzm1Qw9mYNmNMYV6IJLjXL/42LuxGTLSEqFuPq0iqtpljQYEn05s3Eq+6ZAX9bQZMmSeBjg2W8lc0ZXZwe9NhjCZ5BLZoQ9+X+MQuiUGbYcXG6Mt/b3gekGYF2h98pb+sW7VSdvoMZchldP7ZhrMMDkgc7Vqfx8JJ0INUgk/PdCF5cXoPEMO7jE5Qc9XnL/pgxC65sfA3F4POkWT3umGB+1I9C+YG9nSrwH8WKRtTF+NvPBIFVOct1LU9Qx1b4vsCcsrDitmDnaNxL278XlQkiIkEjt0yKqPBC7GWoBFhWEkCXyuhVILafEc45h5EZZo/h6RBvnok7njXVMMItPOASPzCkz4N4JGbeRYXwMZCVxCT8/hdR5CAwXbpC317PExU9L0o3wqw981CzPQ8lNi3GhB2513B6Yh9iHVdhPihBX5hGVeNAh+rFS8pPqU5BBMAk6HQwrK0FC/wxN4N1gkBXW7VeCsKRY+x9iqyOO+IYKKpudwh9efPcfQsGvcXSlVP+HOMXvwK1ccoPJh2X1+snQL2TG4cRVWHDMgE5Oiyrkl/kwyHcqp/dhwFo52aPfMhez2qUve30z/s++V7iM1+G3PoVK1mveJsVhaToDY+BKvixE3D6zuzSmqoCOlXlOVV2tYGxDNddiFyc3a/Usr0yMunstpH2dFe33rLEW/d9fK2rljC4eC4crs3clJdM86jt7ph0EZpMwZadgD7El5dKmgsNWuGugDAkQjXWOyBx4Gv0mzdSWpF/3y5ob0gfXrEu66auBxAiG/KQt3xlIaikxzIEbAsQ4vC1bLapTAMMty9ujZEgTpKwJDlfHGQwblkAmugDdqp8ob90ArjCRlk6Oq7j1AC0y6WhFQcDJil4cZMmEmyKQ1QUwIfvvOfIKgTu/ahLLYsxfV8Z1j5GNHMOA35dogxwGizQxzWaAgh6Yc2jiY9x8EyRR4EE9cZHwQCwZasZtBLIJ8DYwiqR/q1oIQTZuvmGClY+mxlNkNA5pyIGULzaD9Fq8zYq5EqeWkg1eDKj/gyyIGWpkffhlA5anRsynSJbJ3JQolYc9fNCyUbubgVQAtdK/ADr10PPI1ltkW+x/erGsSytDA9do5L5ZBqSYZycjtJFNda729RasBmkZdS4V7lqTt67Tmd+DFTYVe8ancC3+yEWhW9PY/zeQCXQfokF9Ky0MaWVy5QD5wGjAlCiT41jHGuh2xF/zYegL/hXgBKEmsTzmqNBScozXpCnIVeQyvDN2KjBOmJoVIptfcmLMbVCt248Xx5l92zhDFI13p0dOCzQJcZClTNSQ/HIDrmnhaduhHbJdrynw2WWufO4nO0bkx+s7+ngPjMtw2OFY/jxZO6CKYc5S55gATWicSS8DI8swXICP3Tjwg3uwDdSrWVZ6r93S7jghz3p1z9CeOsEOs76omxFiohuszSh5NCqqqxGXabbMwL9vOofet8jgW3Aa8oipwHk3bWChWo2iUeBiYc9DP2DsWnZ5SQDujy0IYjHoZUnr/AogJMP2MRiZBGZFBl2RXnNC3KCKhrejO1umKaEiVUhUU3I7Gzp0pxgqpUHPwvc5KH564zCUNA/yRvV1zGkJbVdI8XEzTd8BRSLZ1uw7DflNQUEAhxm3zKE8MvMnnpkF+s8Qy8UuSj7vjQgNgFefOkUWId7oYPle3ZZ8+6AKYcDsnnMeGbBCCBpqGwXRpu97m1dNLTl/7s0TM8mJ9dkBYYseHg9fIgD8Cm6PBSJF2L06WFQ1gajkURcAH5q7ehHyLwA9le2WNNWFwweeWPcq4plr8BDnjnnMoWkoGjxpdsZSkaVekOI6sVCM5CcPzOQekAzvpq6Up4Ofm3MASU6WATg6FxeNkPn34nwUEAjacuLpVhnOisi73mlHX1WSV5AJv9L/Ggcr7kexeMXAzl9brX96vYtPCfwqedaa8Qo+RqT3J7Wf7zlu9WZEzSbtbifExrrEX8WUV0dUkuSyntzLMvNc07jMWMMGnKavtPD4LoWXi1FLgezPzJkZPycdFdsu8IdYK6xq0LNIoZNVR/Jt4kkAE+UMiXAgHF7+VGx++FgNkCeIhnnt3zzQlpuRicCdduG/DUGHtSOrwfC+yBq94fAUCH3et1rMiLAR7HA2tbm9NdZW4x8F0iWiShHxjoOzlI4zEXCCUE01dh3zLYx7br9eo5P+NsHcoDDwgazAb/GCyfCsZSoCBNAVMRRD9kEPOao1WysnSWue7W6vAm3QxGZgFawXtbHtl/m49Ztb1T7mq+3Y9mJCvtiqfnFJqYvAw6dDtKKdgNwkDGVHl7wYrMUenJQ6lDKolPsKCzrih3GrQYp87S6Sb5Sl1wAXd5gvVTqztoj37Ihw/7uXj9+I4IvZvMNOcSapf7ebopE7y56XcNdGfgXYTc8tAD+KAfzXQEvB/oSXrGpKgSOOrWUyBe03CYJ78AAK6vQ0BbVLogPDrySv2wqAxmLDFwQ+FWvRYxKVmCn/IBeG+kgvq++Xr6AWG0PumfUXS/LqVmlqAsRmF4aziOz03vnX3PNITM+DnXilVBq66bmVjfb3QGgyVmh/pPS9dsi4c2r6N3Hp5AZYrRziE6DKQwJklckikmXeHnkNiV6GysHCKFqnZnYAAAA==")}
+
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3efe6;--fg:#2b2a26;--card:#fff;--bd:#cfc8b8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}}
+:root[data-theme="dark"]{--bg:#1d1c19;--fg:#ece7da;--card:#2a2925;--bd:#4a4740}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Noto Sans Thai",sans-serif;text-align:center;padding:10px}
+canvas{width:100%;max-width:800px;border:2px solid var(--bd);border-radius:6px;background:#000}
+.hud{display:flex;gap:10px;justify-content:center;margin:8px 0;flex-wrap:wrap}
+.hud span{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 10px}
+#msg{min-height:1.4em;margin:4px 0}
+.pad{display:grid;grid-template-columns:repeat(3,56px);gap:6px;justify-content:center;margin:8px auto}
+button{height:56px;font-size:20px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--fg);touch-action:manipulation}
+small{opacity:.7}
+#wrap{position:relative;max-width:800px;margin:0 auto}
+#hud{position:absolute;top:8px;left:8px;display:flex;gap:6px;background:rgba(0,0,0,.5);padding:5px;border-radius:10px}
+#face{width:48px!important;height:48px;max-width:none!important;border:2px solid #e8c14a!important;border-radius:8px!important}
+.bars{width:min(34vw,150px);display:flex;flex-direction:column;justify-content:center;gap:5px}
+.bar{position:relative;background:#222;border:1px solid #000;border-radius:7px;overflow:hidden;height:16px}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(#ff7b7b,#c0282d);transition:width .15s}
+.bar.mp i{background:linear-gradient(#78c2ff,#2a62d9)}
+.bar span{position:relative;font-size:11px;color:#fff;line-height:16px;top:-3px;text-shadow:0 1px 1px #000}
+#bagb{position:absolute;top:8px;right:8px;width:48px;height:48px;font-size:26px;background:rgba(0,0,0,.5);border-color:#e8c14a}
+#bag{position:absolute;top:62px;right:8px;background:rgba(20,18,14,.92);color:#ece7da;border:2px solid #e8c14a;border-radius:10px;padding:8px;text-align:left}
+#bag[hidden]{display:none}
+.slots{display:grid;grid-template-columns:repeat(4,52px);gap:5px;margin-top:6px}
+.slot{position:relative;height:52px;background:#33302a;border:1px solid #5a554a;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.slot img{width:36px;height:36px}
+.slot em{position:absolute;right:3px;bottom:1px;font:bold 12px system-ui;font-style:normal;text-shadow:0 1px 2px #000}
+.slot small{position:absolute;left:3px;top:1px;font-size:9px;opacity:.7}
+.mini{height:34px;font-size:13px;padding:0 10px}
+#coinbox{position:absolute;top:70px;left:8px;background:rgba(0,0,0,.5);color:#ffd84a;padding:2px 10px;border-radius:10px;font:bold 14px system-ui}
+#bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.ts{width:54px;height:54px;background:rgba(0,0,0,.55);border:2px solid #5a554a;border-radius:8px;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ts.on{border-color:#e8c14a;box-shadow:0 0 8px #e8c14a}
+.ts canvas{width:42px!important;height:42px;border:none!important;background:none!important;max-width:none!important}
+.ts b{position:absolute;left:4px;top:0;font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+#zb{position:absolute;bottom:8px;right:8px;display:flex;flex-direction:column;gap:4px}#zb button{width:40px;height:40px;font-size:20px;background:rgba(0,0,0,.5);color:#fff;border-color:#e8c14a}
+#shop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,18,14,.95);color:#ece7da;border:2px solid #e8c14a;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:230px}#shop[hidden]{display:none}
+#mini{position:absolute;top:8px;right:64px;width:112px!important;height:112px;max-width:none!important;border-radius:50%!important;border:3px solid #e8c14a!important;background:#10202e!important;box-shadow:0 2px 8px #000a}
+#fpsb{position:absolute;left:8px;bottom:70px;color:#9f9;font:11px monospace;text-shadow:0 1px 2px #000}
+.pad2{display:flex;gap:6px;justify-content:center;margin:6px 0}.pad2 button{width:56px}
+#menu{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(88%,330px);background:rgba(20,18,14,.96);color:#ece7da;border:2px solid #e8c14a;border-radius:12px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:7px;z-index:5;font-size:14px}
+#menu[hidden]{display:none}#menu label{display:flex;justify-content:space-between;align-items:center;gap:8px}#menu input[type=range]{width:55%}#menu select{background:#33302a;color:#ece7da;border:1px solid #5a554a;border-radius:6px;padding:3px}
+#menu small{opacity:.7;line-height:1.5}
+
+.ts em{position:absolute;right:4px;bottom:1px;font:bold 12px system-ui;font-style:normal;color:#fff;text-shadow:0 1px 2px #000}
+#scrollslot{cursor:pointer}#scrollslot:hover{border-color:#e8c14a}
+
+/* v1.5 : จอยสติ๊ก · ปุ่มกด · หน้าต่างร้าน */
+[hidden]{display:none!important}
+#joyzone{position:absolute;left:0;bottom:0;width:48%;height:66%;touch-action:none;z-index:1;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#joyzone.r{left:auto;right:0}
+#joybase{position:absolute;display:none;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.08) 0,rgba(255,255,255,.16) 100%);border:3px solid rgba(255,255,255,.6);box-shadow:0 0 14px #0007 inset,0 2px 10px #0006;box-sizing:border-box}
+#joybase.run::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px dashed rgba(255,226,122,.55)}
+#joyknob{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,#fff 0,#cfe3ff 35%,#6c95d6 100%);border:2px solid rgba(20,30,60,.7);box-shadow:0 3px 8px #0008}
+#hud,#bagb,#coinbox,#bar,#zb,#shop,#bag,#mini,#fpsb{z-index:2}
+.acts{display:flex;gap:8px;justify-content:center;margin:8px 0}.acts button{width:60px}
+.pad2 button{width:56px}
+#menu{max-height:92%;overflow:auto}#menu .sec{margin-top:4px;padding-top:6px;border-top:1px solid #5a554a}
+#menu label select{max-width:55%}
+#shop{max-height:90%;overflow:auto}#shop .mini{height:auto;min-height:34px;padding:5px 10px;line-height:1.25}#shop .mini small{display:block;opacity:.75;font-size:11px}
+@media (max-width:520px){.pad{grid-template-columns:repeat(3,52px)}}
+#shop{top:auto;bottom:6%;transform:translate(-50%,0)}
+#menu{position:fixed;z-index:20;max-height:88vh}
+#joyzone{width:42%}
+
+
+/* v1.6 : เต็มจอ · ปุ่มบนจอ · สกิล */
+:root{padding:0!important;--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;padding:0!important;height:100%;overflow:hidden;background:#000;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#wrap{position:fixed;inset:0;max-width:none;margin:0;touch-action:none}
+#c{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;border:0;border-radius:0;display:block}
+#hud{top:calc(8px + var(--st));left:calc(8px + var(--sl))}
+#coinbox{top:calc(70px + var(--st));left:calc(8px + var(--sl))}
+#mini{top:calc(8px + var(--st));right:calc(64px + var(--sr))}
+#bagb,#setb,#muteb{position:absolute;right:calc(8px + var(--sr));width:48px;height:48px;font-size:22px;padding:0;background:rgba(0,0,0,.5);color:#fff;border:2px solid #e8c14a;border-radius:10px;z-index:3}
+#bagb{top:calc(8px + var(--st))}#setb{top:calc(62px + var(--st))}#muteb{top:calc(116px + var(--st))}
+#bag{top:50%;right:auto;left:50%;transform:translate(-50%,-50%);z-index:4}
+#zb{left:calc(8px + var(--sl));right:auto;bottom:auto;top:calc(98px + var(--st));flex-direction:row;z-index:3}
+#zb button{width:36px;height:36px;font-size:18px}
+#fpsb{left:calc(8px + var(--sl));top:calc(140px + var(--st));bottom:auto}
+#bar{bottom:calc(8px + var(--sb))}
+#shop{z-index:4}
+#msg{position:absolute;left:50%;bottom:calc(72px + var(--sb));transform:translateX(-50%);max-width:min(56vw,520px);min-height:0;margin:0;padding:5px 12px;background:rgba(0,0,0,.62);color:#fff;border-radius:12px;font-size:12px;line-height:1.4;pointer-events:none;z-index:3;opacity:0;transition:opacity .3s}
+#msg.on{opacity:1}
+#padd{position:absolute;left:calc(14px + var(--sl));bottom:calc(14px + var(--sb));margin:0;z-index:3;grid-template-columns:repeat(3,54px)}
+#padd button{height:54px;font-size:20px;background:rgba(0,0,0,.45);color:#fff;border:2px solid rgba(255,255,255,.5)}
+#acts{position:absolute;right:calc(10px + var(--sr));bottom:calc(10px + var(--sb));width:180px;height:200px;z-index:3;pointer-events:none}
+#acts button{position:absolute;pointer-events:auto;border-radius:50%;padding:0;color:#fff;background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.65);box-shadow:0 2px 8px #0008;-webkit-tap-highlight-color:transparent}
+#acts #atk{right:16px;bottom:16px;width:78px;height:78px;font-size:34px;background:rgba(150,40,30,.6);border-color:#e8c14a}
+#acts #dashb{right:104px;bottom:14px;width:54px;height:54px;font-size:26px}
+#acts .sk{width:52px;height:52px;font-size:24px;overflow:hidden}
+#acts #sk1{right:112px;bottom:74px}#acts #sk2{right:56px;bottom:116px}#acts #sk3{right:2px;bottom:136px}
+.sk .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.68)}
+.sk .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:bold 16px system-ui;font-style:normal;text-shadow:0 1px 2px #000}
+.sk small{position:absolute;right:6px;bottom:2px;font-size:10px;opacity:1;color:#8fc6ff;text-shadow:0 1px 2px #000}
+.sk.lock{opacity:.55}.sk.nomp small{color:#ff7a7a}
+@media (max-aspect-ratio:1/1){#bar{bottom:calc(214px + var(--sb))}#msg{bottom:calc(276px + var(--sb))}#joyzone{width:52%}}
+
+/* v1.7 : ปุ่มเล็กลง · จอแนวนอน */
+#acts{transform:scale(.86);transform-origin:right bottom}
+#padd{transform:scale(.86);transform-origin:left bottom}
+#bagb,#setb,#muteb{width:42px;height:42px;font-size:20px}
+#setb{top:calc(56px + var(--st))}#muteb{top:calc(104px + var(--st))}
+#mini{width:96px!important;height:96px!important;right:calc(58px + var(--sr))}
+.ts{width:46px;height:46px}.ts canvas{width:36px!important;height:36px}.ts b{font-size:10px}
+#msg{font-size:11px;padding:4px 10px}
+@media (max-height:520px){
+ #acts{transform:scale(.68);right:calc(4px + var(--sr));bottom:calc(2px + var(--sb))}
+ #padd{transform:scale(.72);left:calc(6px + var(--sl));bottom:calc(4px + var(--sb))}
+ #hud{transform:scale(.78);transform-origin:left top;top:calc(4px + var(--st));left:calc(4px + var(--sl))}
+ #coinbox{top:calc(50px + var(--st));left:calc(4px + var(--sl));font-size:12px;padding:1px 8px}
+ #zb{top:calc(76px + var(--st));left:calc(4px + var(--sl))}#zb button{width:30px;height:30px;font-size:16px}
+ #bagb,#setb,#muteb{width:36px;height:36px;font-size:17px;border-radius:9px;right:calc(4px + var(--sr))}
+ #bagb{top:calc(4px + var(--st))}#setb{top:calc(44px + var(--st))}#muteb{top:calc(84px + var(--st))}
+ #mini{width:78px!important;height:78px!important;top:calc(4px + var(--st));right:calc(46px + var(--sr))}
+ #bar{bottom:calc(4px + var(--sb));gap:4px}.ts{width:38px;height:38px;border-width:1px}.ts canvas{width:30px!important;height:30px}.ts em{font-size:10px}
+ #msg{bottom:calc(48px + var(--sb));max-width:44vw;font-size:10px;padding:3px 8px;border-radius:9px}
+ #fpsb{top:calc(100px + var(--st))}
+ #bag{transform:translate(-50%,-50%) scale(.8)}
+ #shop{transform:translate(-50%,0) scale(.82);transform-origin:bottom center;bottom:2%;min-width:210px}
+ #menu{transform:translate(-50%,-50%) scale(.85);max-height:96vh}
+}
+/* v2.0 */
+.bars{gap:3px}.bar{height:15px;border-radius:6px;display:flex;align-items:center;justify-content:center}.bar span{position:relative;top:0;font-size:10px;line-height:1;white-space:nowrap;display:block;transform:translateY(-.5px)}
+.bar.xp i{background:linear-gradient(#ffe27a,#d9a21a)}
+#buffs{position:absolute;left:calc(8px + var(--sl));top:calc(100px + var(--st));display:flex;gap:6px;z-index:2}
+.bf{width:44px;text-align:center;background:rgba(0,0,0,.55);border:2px solid #4fae5a;border-radius:11px;padding:2px 0 1px;color:#fff;font:bold 11px system-ui;line-height:1.15}
+.bf i{display:block;font-style:normal;font-size:18px;line-height:22px}.bf b{display:block;font-size:11px}.bf small{display:block;font-size:9px;opacity:.9}
+.bf.mid{border-color:#e8c14a}.bf.low{border-color:#ff5a4a;animation:bfp 1s infinite}@keyframes bfp{50%{box-shadow:0 0 8px 2px #f44}}
+#hud{align-items:flex-start}
+#coinbox{top:calc(70px + var(--st))}#zb{top:calc(160px + var(--st))}#fpsb{top:calc(202px + var(--st))}
+#bag{min-width:300px;max-width:92vw;max-height:86vh;overflow:auto}
+#bag .bh{display:flex;justify-content:space-between;align-items:center;gap:10px}#bag .mini.x{height:28px;padding:0 9px}
+#bag .bsec{font-size:11px;opacity:.7;margin-top:8px}
+#bag .eqrow{display:grid;grid-template-columns:repeat(6,46px);gap:4px;margin-top:3px}
+#bag .slots{grid-template-columns:repeat(6,46px);gap:4px}
+#bag .slot{height:46px;cursor:pointer}#bag .slot img{width:34px;height:34px}
+#bag .slot.eq{background:#3a352c;border-color:#7a6a3a}#bag .slot.eq small{top:auto;bottom:0;left:0;right:0;text-align:center;font-size:8px;opacity:.85}
+#bag .slot em{text-shadow:0 0 3px #000,0 1px 2px #000}
+#bag .emp{font-size:12px;opacity:.75;max-width:290px;padding:8px 2px;line-height:1.5}
+#binfo{font-size:12px;min-height:16px;margin-top:6px;color:#ffe9a8;max-width:290px;line-height:1.4}
+#statl{font-size:12px;margin-top:4px}
+.si{width:20px;height:20px;vertical-align:middle;margin-right:4px}.si.lg{width:28px;height:28px}
+#shop .mini{text-align:left}#shop .rw{display:flex;gap:6px}#shop .rw .mini{flex:1}#shop .rw .sm{flex:0 0 auto;text-align:center}
+#shop .rw{flex-wrap:wrap;align-items:center}#shop .mini.no{opacity:.5}
+#shop{min-width:270px;max-width:92vw}#shop>small{opacity:.8}
+#shop .cf{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0}#shop .cf .lg2{width:48px;height:48px}#shop .cf .q{min-width:34px;text-align:center;font-size:16px}#shop .cf .tot{font:bold 15px system-ui;color:#ffd84a}#shop .cf .rw{width:100%;justify-content:center}#shop .mini.ok{background:#2f6a3a;border-color:#7ed957;font-weight:bold}#shop .mini.on{border-color:#e8c14a;background:#4a3a1a}
+#picks{position:absolute;left:50%;transform:translateX(-50%);top:calc(10px + var(--st));display:flex;flex-direction:column;gap:3px;align-items:center;pointer-events:none;z-index:3}
+#picks div{background:rgba(0,0,0,.6);color:#fff;font:bold 12px system-ui,"Noto Sans Thai",sans-serif;padding:2px 10px 2px 6px;border-radius:10px;border:1px solid #e8c14a}
+#chp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;background:rgba(20,18,14,.95);color:#ece7da;border:2px solid #e8c14a;border-radius:10px;padding:10px;width:min(94vw,560px);max-height:90vh;overflow:auto;text-align:left}
+#chp .bh{display:flex;justify-content:space-between;align-items:center;gap:10px}#chp .mini.x{height:28px;min-width:30px;padding:0 9px}#chp .mini.x:disabled{opacity:.3}
+.chbody{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}.chl{flex:1;min-width:215px}.chr{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 auto}
+#chp{--fw:150px;--fh:193px;--ss:48px;--g:6px}
+.doll{position:relative;width:calc(var(--fw) + 2*(var(--ss) + var(--g)));height:calc(var(--fh) + 2*(var(--ss) + var(--g)));margin:0 auto}
+#figc{position:absolute;left:calc(var(--ss) + var(--g));top:calc(var(--ss) + var(--g));width:var(--fw)!important;height:var(--fh)!important;max-width:none!important;border:1px solid #5a554a!important;border-radius:10px!important;background:#2a2723!important;cursor:pointer;touch-action:manipulation}
+#che{display:contents}#chp .slot.eq{position:absolute;width:var(--ss)}
+#chp .slot.s-helm{left:calc(50% - var(--ss)/2);top:0}#chp .slot.s-pants{left:calc(50% - var(--ss)/2);bottom:0}
+#chp .slot.s-neck{left:0;top:calc(var(--ss) + var(--g) + var(--fh)*.30 - var(--ss)/2)}
+#chp .slot.s-chest{left:0;top:calc(var(--ss) + var(--g) + var(--fh)*.55 - var(--ss)/2)}
+#chp .slot.s-sword{right:0;top:calc(var(--ss) + var(--g) + var(--fh)*.30 - var(--ss)/2)}
+#chp .slot.s-arm{right:0;top:calc(var(--ss) + var(--g) + var(--fh)*.55 - var(--ss)/2)}
+#chp .slot.s-ring{right:0;top:calc(var(--ss) + var(--g) + var(--fh)*.80 - var(--ss)/2)}
+.chn{font:bold 17px system-ui;margin-bottom:4px}.chn small{font-weight:normal;opacity:.7;font-size:11px}
+.cs{display:flex;justify-content:space-between;font-size:13px;padding:1px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sp{margin:8px 0 4px;font-size:13px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.06)}.sp.on{background:rgba(232,193,74,.2);border:1px solid #e8c14a}.sp b{color:#ffd84a}
+.st{display:flex;align-items:center;gap:8px;padding:3px 0}.st>div{flex:1;font-size:13px}.st small{display:block;font-size:10px;opacity:.65}.st b{min-width:22px;text-align:center;font-size:15px}
+#chp .slot{height:var(--ss);cursor:pointer}#chp .slot img{width:calc(var(--ss)*.72);height:calc(var(--ss)*.72)}#chp .slot.eq{background:#3a352c;border-color:#7a6a3a}#chp .slot.eq.on{border-color:#ffe27a;box-shadow:0 0 8px #e8c14a}
+#chp .slot.eq small{top:auto;bottom:0;left:0;right:0;text-align:center;font-size:8px;opacity:.85}#chp .slot em{top:1px;right:3px;bottom:auto;color:#ffd84a;text-shadow:0 1px 2px #000}
+#chp .bsec{font-size:11px;opacity:.75;margin:8px 0 3px}#chp .emp{font-size:12px;opacity:.7;padding:6px 2px}
+#chp .pk{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid #5a554a;border-radius:8px;margin-bottom:4px;cursor:pointer;background:#2e2b25;font-size:13px}.pk.on{border-color:#7ed957;cursor:default}.pk span{flex:1}.pk small{display:block;font-size:10px;opacity:.7}
+#chp .mini.ok{background:#2f6a3a;border-color:#7ed957}
+#spb{position:absolute;left:34px;top:-8px;background:#ff5a4a;color:#fff;font:bold 11px system-ui;border-radius:10px;padding:0 6px;border:2px solid #fff;animation:bfp 1s infinite;cursor:pointer;z-index:3}
+.trade{display:flex;gap:10px;align-items:flex-start}.tp{flex:1;min-width:250px;max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:6px}.tt{font:bold 12px system-ui;opacity:.85;border-bottom:1px solid #5a554a;padding-bottom:3px}
+#shop .tabs{display:none}#shop .slots{grid-template-columns:repeat(6,46px);gap:4px;margin-top:2px}#shop .slot{height:46px;cursor:pointer}#shop .slot img{width:34px;height:34px}#shop .slot.no{opacity:.35;cursor:default}#shop .slot small{color:#ffd84a;font-weight:bold;text-shadow:0 1px 2px #000;opacity:1}
+@keyframes shn{0%{background-position:160% 0}60%,100%{background-position:-60% 0}}
+@keyframes gl{0%,100%{filter:brightness(1) drop-shadow(0 0 0 rgba(255,255,255,0))}45%{filter:brightness(1.45) drop-shadow(0 0 4px rgba(255,255,255,.9))}}
+.slot.rare{overflow:hidden;box-shadow:inset 0 0 8px rgba(190,220,255,.35)}.slot.rare::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.65) 50%,transparent 62%);background-size:260% 100%;background-position:160% 0;animation:shn 2.6s infinite}
+.slot.rare.r4{box-shadow:inset 0 0 9px rgba(255,215,90,.5)}.slot.rare.r5{box-shadow:inset 0 0 10px rgba(110,200,255,.65)}.slot.rare.r4::after{animation-duration:2.2s}.slot.rare.r5::after{animation-duration:1.8s}
+img.rare{animation:gl 2.4s infinite}img.rare.r4{animation-duration:2s}img.rare.r5{animation-duration:1.6s}
+#tsr{display:none!important}.ts img{width:38px;height:38px;pointer-events:none}.ts.q em{color:#ffd84a}.ts.q.empty{opacity:.5;border-style:dashed}.ts.q.dim img{opacity:.4;filter:grayscale(.7)}
+#bag .bh span{font:bold 12px system-ui;margin-right:10px}#bag .bh span.ov{color:#ff6a5a}#bag .bh{justify-content:flex-start}#bag .bh .mini.x{margin-left:auto}#bag .slot.empty{opacity:.3;cursor:default}
+#qpick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;background:rgba(20,18,14,.96);color:#ece7da;border:2px solid #e8c14a;border-radius:10px;padding:10px;max-width:92vw;text-align:left}
+#qpick .slots{display:grid;grid-template-columns:repeat(5,46px);gap:4px}#qpick .slot{height:46px;cursor:pointer}#qpick .slot img{width:34px;height:34px}#qpick .slot.sel{border-color:#7ed957;box-shadow:0 0 8px #7ed957}#qpick .bh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}#qpick .bh span{font:bold 13px system-ui}#qpick .mini.x{height:28px;padding:0 9px}
+#msg,#picks{display:none!important}
+#bag .slot.worn{border-color:#7ed957}#bag .slot .wm{position:absolute;right:2px;top:0;font-size:11px;font-style:normal;text-shadow:0 1px 2px #000}
+#chatBox{position:absolute;left:calc(8px + var(--sl));bottom:calc(66px + var(--sb));width:min(46vw,310px);z-index:3;font:12px system-ui,"Noto Sans Thai",sans-serif;color:#fff;text-align:left}
+#chatHd{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.62);border:1px solid #e8c14a;border-radius:8px 8px 0 0;padding:0 6px;height:24px}
+#chatBox.folded #chatHd{border-radius:8px}#chatHd b{font-size:11px;white-space:nowrap}#chatHd .sp{flex:1}
+#chatBox button{height:20px;min-width:24px;padding:0 6px;font-size:12px;border-radius:5px;border:1px solid #8a7a3a;background:rgba(255,255,255,.12);color:#fff}
+#chatBadge{background:#ff5a4a;border-radius:9px;padding:0 6px;font-style:normal;font-size:10px}
+#chatList{background:rgba(0,0,0,.45);max-height:96px;min-height:50px;overflow-y:auto;padding:3px 6px;border:1px solid rgba(232,193,74,.4);border-top:0;pointer-events:none;line-height:1.35;scrollbar-width:thin}
+@media (pointer:fine){#chatList{pointer-events:auto}#chatBox{left:190px}}
+#chatBox.folded #chatList,#chatBox.folded #chatIn{display:none}
+.cl{padding:1px 0;word-break:break-word;text-shadow:0 1px 2px #000}.cl i{font-style:normal;opacity:.85}.cl img{width:14px;height:14px;vertical-align:-3px;margin-right:3px}
+.cl.sys{color:#ececec}.cl.warn{color:#ffb4a8}.cl.drop{color:#ffe9a0}.cl.me{color:#9fe0ff}
+#chatIn{display:flex;gap:4px;background:rgba(0,0,0,.72);padding:3px;border:1px solid rgba(232,193,74,.4);border-top:0;border-radius:0 0 8px 8px}
+#chatTi{flex:1;min-width:0;height:24px;border-radius:5px;border:1px solid #8a7a3a;background:#1d1c19;color:#fff;padding:0 6px;font-size:12px;-webkit-user-select:text;user-select:text}
+#chatIn button{height:24px}
+@media (pointer:coarse){#wrap #bar{left:calc(8px + var(--sl));right:auto;transform:none;bottom:calc(6px + var(--sb))}}
+#rot{position:fixed;inset:0;z-index:60;background:#111;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;font-family:system-ui,"Noto Sans Thai",sans-serif;padding:20px}
+#rot[hidden]{display:none}#rot b{font-size:20px}#rot small{opacity:.7}#rot .ph{width:52px;height:88px;border:4px solid #e8c14a;border-radius:10px;animation:rotph 2.2s infinite ease-in-out}
+@keyframes rotph{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+#intro{position:fixed;inset:0;z-index:70;background:radial-gradient(circle at 50% 40%,#2a3a52,#10141c);display:flex;align-items:center;justify-content:center;font-family:system-ui,"Noto Sans Thai",sans-serif}
+#intro[hidden]{display:none}#intro .card{background:rgba(20,18,14,.92);border:2px solid #e8c14a;border-radius:14px;padding:22px 26px;text-align:center;color:#ece7da;width:min(86vw,340px);display:flex;flex-direction:column;gap:10px}
+#intro h2{margin:0;font-size:24px}#intro p{margin:0}#intro input{height:44px;font-size:18px;text-align:center;border-radius:8px;border:2px solid #8a7a3a;background:#1d1c19;color:#fff;-webkit-user-select:text;user-select:text}
+#intro button{height:46px;font-size:18px;background:#2f6a3a;border-color:#7ed957;color:#fff}#intro small{opacity:.6;font-size:11px;line-height:1.4}
+#chp .nm{cursor:pointer;border-bottom:1px dashed #8a7a3a}
+@media (max-height:520px){#chatBox{width:min(40vw,270px);font-size:11px}#chatList{max-height:62px;min-height:34px}#chatBox button{height:18px}#chatHd{height:21px}#wrap #bar{bottom:calc(5px + var(--sb))}#chatBox{bottom:calc(52px + var(--sb))}}
+#shop .xclose{position:absolute;top:6px;right:8px;height:26px;padding:0 9px;z-index:2}#shop .tbuy>b:first-child{padding-right:34px}
+.bph{display:flex;gap:14px;font:bold 12px system-ui;margin-bottom:2px}.bph .ov{color:#ff6a5a}
+#shop .slot.hl{border-color:#ffd84a;box-shadow:0 0 8px rgba(255,216,74,.75)}#shop .slot.proc{border-color:#ff9a4a;box-shadow:0 0 6px rgba(255,150,60,.6)}#shop .slot.empty{opacity:.3;cursor:default}#shop .slot.worn{border-color:#7ed957}#shop .slot .wm{position:absolute;right:2px;top:0;font-size:11px;font-style:normal}
+#shop .trade{width:min(92vw,620px)}
+@media (max-width:700px){#shop .tabs{display:flex}.trade{display:block}.trade.show-buy .tsell,.trade.show-sell .tbuy{display:none}.tp{max-height:50vh}}
+@media (max-width:560px){#chp{--fw:112px;--fh:144px;--ss:38px;--g:4px}.chbody{gap:8px}.chr{order:-1;width:100%}.chl{flex:1 1 100%;min-width:0}.st small{display:none}.st{gap:4px}.st>div{font-size:12px}.cs{font-size:12px}#chp .slot.eq small{font-size:7px}#chp{padding:8px}}
+@media (max-height:520px){#chp{transform:translate(-50%,-50%) scale(.8)}.tp{max-height:46vh}}
+@media (max-height:520px){#coinbox{top:calc(50px + var(--st))}#buffs{top:calc(74px + var(--st));transform:scale(.8);transform-origin:left top}#zb{top:calc(124px + var(--st))}#fpsb{top:calc(162px + var(--st))}}
+.painted-item,#icard .ii img,#enhw .bigslot img{image-rendering:auto!important}#boot106{background-image:linear-gradient(180deg,rgba(3,9,18,.42),transparent 45%,rgba(3,9,18,.82)),url(assets/ui/loading-v543.webp)}.emblem541{width:clamp(52px,9vh,96px);height:auto;border-radius:22%;box-shadow:0 0 35px #e8c14a33}#boot106 .hd106{padding-top:4vh}.slot img,.si,.painted-item{image-rendering:auto!important}#title canvas.bg{display:none}#title .logo img{width:72px;max-height:14vh;object-fit:contain;border-radius:22%}#title{background:linear-gradient(90deg,rgba(3,9,18,.55),rgba(3,9,18,.2)),url(assets/ui/loading-v543.webp) center/cover no-repeat!important}#boot106,#title{background-image:linear-gradient(180deg,rgba(3,9,18,.25),transparent 45%,rgba(3,9,18,.82)),url(assets/ui/loading-v543.webp),var(--loading-preview)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}</style>
+</head>
+<body>
+<!-- boot106 (v4.91) หน้าโหลดตอนเปิดเกม: ต้องอยู่ต้น <body> เพื่อขึ้นก่อนสคริปต์เกม (เจ้าของขอ 2026-10-14 19:51) · ปิดโดย fix106 ท้ายไฟล์ -->
+<div id="boot106"><style>#boot106{position:fixed;inset:0;z-index:99999;background:#08061a url(assets/ui/loading-v543.webp) center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6vw 9vh;font-family:system-ui,"Noto Sans Thai",sans-serif;color:#fff;transition:opacity .5s}
+#boot106 .hd106{margin:0 0 auto;padding-top:11vh;text-align:center}#boot106 h1{margin:0;font-size:clamp(28px,6.4vw,64px);letter-spacing:2px;color:#ffe08a;text-shadow:0 0 18px rgba(255,190,90,.6),0 3px 0 #5a3a10,0 6px 14px #000}
+#boot106 .sub106{margin-top:6px;font-size:clamp(12px,1.8vw,18px);opacity:.85;text-shadow:0 1px 4px #000}
+#boot106 .bar106{width:min(620px,88vw);height:16px;border-radius:10px;background:rgba(10,8,26,.75);border:2px solid #e8c14a;box-shadow:0 0 14px rgba(232,193,74,.35);overflow:hidden;position:relative}
+#boot106 .fill106{position:absolute;left:0;top:0;height:100%;width:3%;background:linear-gradient(90deg,#c8862a,#ffd86a,#fff2c8);border-radius:8px;transition:width .35s}
+#boot106 .shine106{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:sh106 1.2s linear infinite;will-change:transform}
+@keyframes sh106{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+#boot106 .txt106{margin-top:10px;font-size:clamp(12px,1.7vw,16px);text-shadow:0 1px 3px #000;display:flex;gap:14px}
+#boot106 .tip106{margin-top:6px;font-size:clamp(11px,1.5vw,14px);opacity:.75;text-align:center;text-shadow:0 1px 3px #000}.painted-item,#icard .ii img,#enhw .bigslot img{image-rendering:auto!important}</style>
+<div class="hd106"><img class="emblem541" src="icon-192-v541.png" alt=""><h1>ตำนานเอลโดเรีย</h1><div class="sub106">⚔️ Eldoria Chronicles</div></div><div class="bar106"><div class="fill106"></div><div class="shine106"></div></div><div class="txt106"><span class="st106">กำลังโหลดเกม…</span><b class="pc106">0%</b></div><div class="tip106"></div>
+<script src="js/001-core.js?v=583"></script></div>
+<div id="wrap"><canvas id="c" width="640" height="448"></canvas>
+<div id="hud"><canvas id="face" width="48" height="48"></canvas>
+ <div class="bars"><div class="bar"><i id="hpb"></i><span id="hpt">100/100</span></div><div class="bar mp"><i id="mpb"></i><span id="mpt">50/50</span></div><div class="bar xp"><i id="xpb"></i><span id="xpt">⭐ Lv.1</span></div></div></div>
+<button id="bagb" aria-label="กระเป๋า">🎒</button>
+<div id="coinbox">🪙 <b id="coinhud">0</b></div><div id="buffs"><div class="bf ok" id="bfh"><i>🍖</i><b>100</b><small>อิ่ม</small></div><div class="bf ok" id="bff"><i>💪</i><b>100</b><small>แรงดี</small></div></div>
+<canvas id="mini" width="224" height="224"></canvas><div id="fpsb" hidden></div>
+<div id="bar"></div>
+<div id="joyzone"><div id="joybase"><div id="joyknob"></div></div></div><div id="zb"><button id="zin" aria-label="ซูมเข้า">＋</button><button id="zout" aria-label="ซูมออก">－</button></div><div id="shop" hidden></div>
+<div id="msg"></div>
+<button id="setb" aria-label="ตั้งค่า">⚙️</button><button id="muteb" aria-label="เสียง">🔊</button>
+<div class="pad" id="padd" hidden>
+<span></span><button data-d="u">▲</button><span></span>
+<button data-d="l">◀</button><button id="run" aria-label="วิ่ง">🏃</button><button data-d="r">▶</button>
+<span></span><button data-d="d">▼</button><span></span>
+</div>
+<div id="acts"><button id="atk" aria-label="ตีธรรมดา">⚔️</button><button id="dashb" aria-label="พุ่ง">💨</button>
+<button class="sk" id="sk1"></button><button class="sk" id="sk2"></button><button class="sk" id="sk3"></button></div>
+<div id="bag" hidden></div>
+<script src="js/002-fix123.js?v=583"></script>
+<script src="js/003-core.js?v=583"></script>
+<script src="js/004-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/005-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/006-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/007-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/008-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/009-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/010-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/011-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/011-item-catalog.js?v=583"></script><script type="application/x-eldoria" data-game-src="js/011-item-art.js?v=583"></script><script type="application/x-eldoria" data-game-src="js/012-scene-art.js?v=583"></script><script type="application/x-eldoria" data-game-src="js/012-tool-art.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/012-town-floor.js?v=586"></script>
+<script type="application/x-eldoria" data-game-src="js/012-town-life.js?v=586"></script>
+<script type="application/x-eldoria" data-game-src="js/012-core.js?v=586"></script>
+<script type="application/x-eldoria" data-game-src="js/012-world-art.js?v=591"></script>
+<script type="application/x-eldoria" data-game-src="js/013-core.js?v=593"></script>
+<script type="application/x-eldoria" data-game-src="js/014-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/015-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/016-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/017-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/018-core.js?v=585"></script>
+<script type="application/x-eldoria" data-game-src="js/019-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/020-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/021-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/022-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/023-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/024-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/025-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/026-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/027-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/028-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/029-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/030-core.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/031-core.js?v=598"></script>
+<script type="application/x-eldoria" data-game-src="js/032-fix1.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/033-fix2.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/034-fix3.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/035-fix4.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/036-fix5.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/037-fix6.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/038-fix7.js?v=585"></script>
+<script type="application/x-eldoria" data-game-src="js/039-fix8.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/040-fix9.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/041-fix10.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/042-fix11.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/043-fix12.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/044-fix13.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/045-fix14.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/046-fix15.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/047-fix16.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/048-fix17.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/049-fix18.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/050-fix19.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/051-fix20.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/052-fix21.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/053-fix22.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/054-fix23.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/055-fix24.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/056-fix25.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/057-fix26.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/058-fix27.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/059-fix28.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/060-fix29.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/061-fix30.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/062-fix31.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/063-fix32.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/064-fix33.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/065-fix34.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/066-fix35.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/067-fix36.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/068-fix37.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/069-fix38.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/070-core.js?v=595"></script>
+<script type="application/x-eldoria" data-game-src="js/071-fix39.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/072-fix40.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/073-fix41.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/074-fix42.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/075-fix43.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/076-fix44.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/077-fix45.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/078-fix46.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/079-fix47.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/080-fix48.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/081-fix49.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/082-fix50.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/083-fix51.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/084-fix52.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/085-fix53.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/086-fix54.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/087-fix55.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/088-fix56.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/089-fix57.js?v=585"></script>
+<script type="application/x-eldoria" data-game-src="js/090-fix58.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/091-fix59.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/092-fix60.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/093-fix61.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/094-fix62.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/095-fix63.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/096-fix64.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/097-fix65.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/098-fix66.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/099-fix67.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/100-fix68.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/101-fix69.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/102-fix70.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/103-fix71.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/104-fix72.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/105-fix73.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/106-fix74.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/107-fix75.js?v=585"></script>
+<script type="application/x-eldoria" data-game-src="js/108-fix76.js?v=585"></script>
+<script type="application/x-eldoria" data-game-src="js/109-fix77.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/110-fix78.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/111-fix79.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/112-fix80.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/113-fix81.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/114-fix82.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/115-fix83.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/116-fix84.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/117-fix85.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/118-fix86.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/119-fix87.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/120-fix88.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/121-fix89.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/122-fix90.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/123-fix91.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/124-fix92.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/125-fix93.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/126-fix94.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/127-fix95.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/128-fix96.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/129-fix97.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/130-fix98.js?v=586"></script>
+
+<script type="application/x-eldoria" data-game-src="js/131-fix99.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/132-fix100.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/133-fix101.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/134-fix102.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/135-fix103.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/136-fix104.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/137-fix105.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/138-fix106.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/139-fix107.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/140-fix108.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/141-fix109.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/142-fix110.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/143-fix111.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/144-fix112.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/145-fix113.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/146-fix114.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/147-fix115.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/148-fix116.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/149-fix117.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/150-fix118.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/151-fix119.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/152-fix121.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/153-fix123.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/154-fix127.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/155-fix128.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/156-fix129.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/157-fix130.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/158-fix131.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/159-fix132.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/160-fix133.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/161-fix134.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/162-fix135.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/163-fix136.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/164-fix137.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/165-fix138.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/166-fix139.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/167-fix140.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/168-fix141.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/169-fix142.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/170-fix143.js?v=585"></script>
+
+<script type="application/x-eldoria" data-game-src="js/171-fix144.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/172-fix145.js?v=585"></script>
+
+<script type="application/x-eldoria" data-game-src="js/173-fix146.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/174-fix147.js?v=583"></script>
+
+
+<script type="application/x-eldoria" data-game-src="js/175-fix148.js?v=583"></script>
+
+
+<script type="application/x-eldoria" data-game-src="js/176-fix149.js?v=583"></script>
+
+
+<script type="application/x-eldoria" data-game-src="js/177-fix150.js?v=583"></script>
+
+
+<script type="application/x-eldoria" data-game-src="js/178-fix151.js?v=583"></script>
+
+
+<script type="application/x-eldoria" data-game-src="js/179-fix152.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/180-fix153.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/181-fix154.js?v=583"></script>
+
+<script type="application/x-eldoria" data-game-src="js/182-fix155.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/183-fix156.js?v=597"></script>
+<script type="application/x-eldoria" data-game-src="js/184-fix157.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/185-shared-world.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/186-test-supplies.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/194-art-ready.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/195-monster-book.js?v=583"></script>
+<script type="application/x-eldoria" data-game-src="js/197-coin-glyph.js?v=598"></script>
+<script type="application/x-eldoria" data-game-src="js/198-click-move.js?v=597"></script>
+<script type="application/x-eldoria" data-game-src="js/199-gun-flip.js?v=598"></script>
+<!-- v590: เจ้าของสั่ง 2026-10-25 มอนสเตอร์กลับเป็นแบบวาดด้วยโค้ด → ไม่โหลด js/196-monster-art.js (ภาพมอน v578–v586) --></body>
+
+</html>

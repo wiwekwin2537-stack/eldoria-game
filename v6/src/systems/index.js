@@ -1,0 +1,22 @@
+/* รายชื่อระบบทั้งหมดตามลำดับทำงาน — ไฟล์เดียวที่เพิ่มระบบ (CONTRACT §1)
+   ลำดับสำคัญ (update ทุกระบบก่อน แล้วค่อย draw ทุกระบบ ตามลำดับนี้):
+   - input แรกสุด: ย้ายปุ่มที่กดเข้า G.input ก่อนทุกระบบอ่าน
+   - render ที่ 2: draw ของมันต้องมาก่อนระบบที่วาดทุกตัว (ล้างจอ + ตั้งพิกัดวาดแต่ละชั้น)
+   - login ที่ 3: ต่อเซิร์ฟเวอร์ + หน้าล็อกอิน (HTML ใน #ui ไม่วาด canvas) + เริ่มระบบเซฟ — load() ของทุกระบบถูกเรียกหลังล็อกอิน
+   - camera ท้ายสุด: ตามตำแหน่งตัวละครหลังระบบที่ขยับตัวละครทำงานแล้ว */
+import input from '../core/input.js';
+import render from '../core/render.js';
+import login from './login.js';
+import camera from '../core/camera.js';
+import world from './world.js';
+import movement from './movement.js';
+
+export default [
+  input,
+  render,
+  login,
+  world,  /* แมพ/ชน/ประตู — ต้องอยู่หลัง render (render ล้างจอ+ตั้งพิกัด) และก่อน camera (กล้องอ่าน G.scene) */
+  movement, /* เดิน/วิ่ง/พุ่ง/คลิกเดิน + วาดตัวละคร (1A-3) — หลัง world (ประตูแบบเดินตรวจเฟรมถัดไป) ก่อน camera */
+  /* ← ระบบเกมอื่นใส่ตรงนี้ */
+  camera,
+];
