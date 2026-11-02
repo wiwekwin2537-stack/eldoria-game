@@ -95,3 +95,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - prologueเป็นเจ้าของ G.ui.prologueActive และ G.ui.prologueBookmark{scene,x,y,dir,sp}; worldปิดประตูเฉพาะโหมดนี้ movementหยุดตามประตู และsaveทั้งสองอ่านbookmarkเพื่อรักษาจุดปกติ
 - controllerเขียนplayer.coin/lv/xpจากprofileที่serverตอบยืนยันเท่านั้น; ตำแหน่ง/แรงถูกคืนเมื่อออกหรือหลุด ไม่มีการมอบของฝั่งclient
 - route prologueเปิดเฉพาะV6_PROLOGUE_TEST=1 memory/file single-writer ค่าเริ่มปิด serverตรวจpose/ระยะNPC/sessionและมอบรางวัลผ่านstory serviceเดียวกัน ไม่ใช่สัญญาต่อสู้หรือstaminaครบเกม
+
+## PLAY-E2b — authorityเฉพาะลานทดสอบ (2026-11-02)
+- ต่อop field/input/attack/hall/claim-first-lightใต้routeprologueเดิม ปิดค่าเริ่มต้นและจำกัดmemory/fileตามเดิม ไม่เป็นAPIโลกจริง
+- prologueเป็นเจ้าของG.ui.prologueField เฉพาะช่วงfield: movement.updateหยุดเขียนpose/แรง; prologue-clientเขียนx/y/dir/sp/movingจากserverและprologueอัปเดตanim.t/runด้วยANIMเดิม ห้ามส่งG.playerposeกลับเป็นauthorityfield
+- inputส่งmx/my/runและattackส่งsequenceเท่านั้น actorในserverถือพิกัด/แรง/สถานะ และfield-combatเลือกเป้า/คำนวณdamageเอง ไม่เพิ่มbus events
+- การเซฟยังอ่านprologueBookmarkเดิม ไม่บันทึกพิกัดลานทับตำแหน่งปกติ ออก/หลุดล้างทั้งprologueActive/prologueFieldและคืนbookmark
+- ขอบลาน/ตำแหน่งสไลม์นิ่งเป็นtestlayout ไม่ใช่ค่าดุลหรือspawnproduction ไม่รองรับdash/คลิกเดิน/AI/สวนกลับ/ดรอป/XPมอน

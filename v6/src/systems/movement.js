@@ -276,7 +276,7 @@ export default {
       if (G.scene) unstick(G);
     });
   },
-  update(G, dt) { step(G, dt); },
+  update(G, dt) { if(G.ui.prologueField)return;step(G, dt); },
   draw(G, ctx, layer) {
     if (layer !== 'world' || !G.scene) return;
     const v = heroView(G);

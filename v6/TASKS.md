@@ -1,7 +1,27 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
-## จอง PLAY-E2b (2026-11-02)
-ChatGPT: server/field-training.cjs, server/prologue.cjs, src/data/prologue.js, src/core/prologue-client.js, src/systems/prologue.js, src/systems/movement.js, tests/training.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2b-independent.md — ต่อโหมดลานทดสอบสไลม์นิ่ง/authorityเดินและแรง/route/UI/ส่งบท1 ไม่เปิดliveหรือAIเต็มระบบ
+## PLAY-E2b — เชื่อมลานทดสอบล่าสไลม์ผ่านrouteและUI (2026-11-02)
+**สถานะ: route/controller/UIเชื่อมแล้ว ตรวจserverและWebSocketครบวงจรแล้ว ยังไม่ตรวจภาพ/browser/มือถือ**
+- เปิดต่อจากV6_PROLOGUE_TEST=1เดิม เฉพาะmemory/file single-writer ค่าเริ่มปิด ไม่เปิดlive ไม่เปลี่ยนจุดเกิด/การเดินโหมดปกติ
+- รับชุดเริ่มต้น→คุยราชา→ปุ่มไปลานทดสอบ→เดิน/ฟัน8ตัว→ปุ่มกลับท้องพระโรง→เดินเข้าระยะราชา→ส่งfirst-light รับ120เหรียญ60XP+mpp2จากตารางจริง รวมเงิน170 หลังบท1ยังไม่เปิดown-blade
+- เป็นลานฝึกสไลม์นิ่งที่วาดรูปทรง/สีอ้างอิง017-core ใช้พื้นทุ่งเดิม serverเลือกพื้นที่clearและขอบลาน ไม่ใช่spawnโลกจริง ไม่มีAI/สวนกลับ/ตายฟื้น/คอมโบ/ดรอป/XPมอน ห้ามนำโหมดนี้ไปเปิดฟาร์มจริง
+- server/field-training.cjsให้authorityจริงแก่field-combat: รับเฉพาะmx/my/run/sequence ไม่อ่านพิกัด/แรง/เวลา/damageจากclient เดินชนทีละ8px จำกัดเวลา120msต่อคำขอ inputหมดอายุ250ms ไม่สะสมเดินย้อนหลัง ไม่มีdashหรือคลิกเดินในลาน
+- ค่าเดิน95/วิ่ง170/แรงและฟื้นจากdata/movementเดิม ท่าฟันเดินช้า.4 มีขอบลานเฉพาะทดสอบ ไม่มีระบบว่ายน้ำ/น้ำหนัก/หิว/บัฟครบเกม serverอัปเดตตามคำขอ ไม่ได้มีAIหรือลูปโลกต่อเนื่องเบื้องหลัง
+- prologueคิวต่อconnรองรับfield/input/attack/hall/claim-first-light ช่วงhallยังใช้traceตรวจระยะแบบP0; ห้ามส่งtracehallมาแทนfieldinput ต้องกลับและใกล้ราชาจริงก่อนส่งบท1 receiptผูกบท/บัญชีคงเดิม กดซ้ำไม่ได้เงินเพิ่ม
+- clientหยุดmovementเฉพาะG.ui.prologueField รับpose/แรง/เลือดมอนจากserver วาดมอน/แถบเลือด/วงฟัน มีปุ่มฟัน+ตัวนับ8 รองรับactionattackจากinputเดิม รักษาbookmarkตำแหน่งและแรงปกติเมื่อเซฟ/ออก/หลุด คำตอบเก่าหลังหลุดไม่เปิดfieldกลับ
+- training8/8ผ่าน รวมrouteและWebSocketจริงครบวงจร (ใช้clockserverจำลองเพื่อไม่รอเวลาจริง) ไม่มีfixturekillหรือtransportจำลอง; authorityการเดินและแรงมาจากfield-trainingจริง ต่างจากE2aที่จำลองadapter
+- ตรวจอิสระพบP2ยืนนิ่งกดrunแล้วเสียแรง เพิ่มregressionก่อนแก้7ผ่าน1พัง99.7→แก้แล้ว8ผ่าน0พังคง100 ตรวจซ้ำปิดได้ ดูreviews/PLAY-E2b-independent.md
+- browser/prologue.spec.jsขยายdesktop/mobileviewportถึงส่งบท1แล้ว syntaxผ่าน ลองรันไม่เริ่มเพราะChromium headless_shell1234ไม่มี ยังไม่มีภาพก่อน–หลังหรือผลมือถือ ไม่อ้างว่าปุ่ม/ภาพผ่านแล้ว
+- ชุดเต็มล่าสุด269ผ่าน1รันไม่ได้เพราะflood testอ้าง /opt/npm-tools/node_modules/ws ที่ไม่มี บางรายการข้ามด้วยเหตุเดียวกัน ไม่อ้างผ่านทั้งชุด; P0เดิม10และcombat16ยังผ่าน
+- ปลดจองPLAY-E2bแล้ว งานอยู่PR #1 ไม่รวมmain ไม่มีการตั้งค่าRenderหรือขึ้นเว็บจริง
+
+### จุดที่หยุดไว้ / งานถัดไป
+1. ตรวจภาพ/ปุ่ม/ตัวละคร/การเคลื่อนที่ผ่านbrowser desktopและmobileviewportจริงตามสคริปต์ แยกมือถือจริงออกจากviewportจำลอง
+2. ก่อนยกระดับลานฝึกเป็นเกมต่อสู้จริง: ทำspawn/AIสไลม์/สวนกลับ/เลือด/ตายฟื้น/คอมโบและดรอป/XPตามเกมเดิมพร้อมserverธุรกรรม ไม่ถือว่าลานนิ่งทดแทนระบบเหล่านี้
+3. รองรับตัวละคร/อุปกรณ์/อาชีพส่วนที่เหลือ ย้ายเซฟเก่า และCASหลายwriterก่อนเปิดproduction; own-bladeยังไม่พร้อม
+
+### สมุดบัค PLAY-E2b
+P2 field-trainingใช้input.runหักแรงแม้mx=my=0: เพิ่มam>0ในสถานะวิ่ง เทสregressionเคยพังsp99.7ก่อนแก้และผ่าน100หลังแก้ ผู้ตรวจเจาะยืนนิ่ง1วินาทีคง100 และเดินวิ่ง100msยังลดเหลือ99.7ถูกต้อง
 
 ## STORY-E2a — แกนฟันสไลม์และหลักฐานฆ่าฝั่งserver (2026-11-02)
 **สถานะ: APIภายในและเทสแล้ว ยังไม่ต่อroute/UI/ระบบเกิดมอนหรือAI ไม่ถือว่าผู้เล่นล่าได้แล้ว**
