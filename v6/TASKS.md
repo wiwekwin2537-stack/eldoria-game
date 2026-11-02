@@ -1,5 +1,8 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง PLAY-E2b (2026-11-02)
+ChatGPT: server/field-training.cjs, server/prologue.cjs, src/data/prologue.js, src/core/prologue-client.js, src/systems/prologue.js, src/systems/movement.js, tests/training.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2b-independent.md — ต่อโหมดลานทดสอบสไลม์นิ่ง/authorityเดินและแรง/route/UI/ส่งบท1 ไม่เปิดliveหรือAIเต็มระบบ
+
 ## STORY-E2a — แกนฟันสไลม์และหลักฐานฆ่าฝั่งserver (2026-11-02)
 **สถานะ: APIภายในและเทสแล้ว ยังไม่ต่อroute/UI/ระบบเกิดมอนหรือAI ไม่ถือว่าผู้เล่นล่าได้แล้ว**
 - เพิ่มdata/combat.js + server/field-combat.cjs ตามสูตรสไลม์ทุ่งหญ้า017-core ไม่ใช้สูตรมอนโซน: HP2+Lv ระดับ1–5, ดาบ0/ตัวละครLv1stats0ไม่มีอาชีพ/ออป, ATK/คริ/ระยะฟัน/ช่วงโดนตาม017/030/031เดิม ไม่รวมคอมโบหรือปรับดุล
