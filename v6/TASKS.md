@@ -1,5 +1,8 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง STORY-E2a (2026-11-02)
+ChatGPT ผู้พัฒนา: v6/src/data/combat.js, v6/server/field-combat.cjs, v6/tests/server.combat.test.js, v6/TASKS.md, v6/CHANGELOG.md, v6/STORY.md, v6/reviews/STORY-E2a-independent.md — แกนโจมตีสไลม์จากserverและหลักฐานฆ่า ยังไม่จองUI/route/AIเต็มระบบ
+
 ## PLAY-P0 — บทนำราชาในโหมดทดสอบ (2026-11-02)
 **สถานะ: เชื่อม route/controller/UI แล้ว ตรวจตรรกะและ WebSocket จริงแล้ว ยังไม่ตรวจภาพในเบราว์เซอร์และไม่เปิดเว็บจริง**
 - เปิดเฉพาะ `V6_PROLOGUE_TEST=1` กับ memory/file single-writer; ค่าเริ่มต้นปิด ไม่รองรับ remote store/หลายโปรเซส ผู้เล่นกดปุ่มเริ่มทดสอบจึงเข้าท้องพระโรง ไม่เปลี่ยนจุดเกิดปกติ
