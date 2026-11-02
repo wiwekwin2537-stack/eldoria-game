@@ -135,3 +135,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - equipment.cjsใช้single-writer saves.claim/updateServer ตรวจsessionก่อนclaimและในmutation ใช้character/inventorycanonicalเดิม ไม่มีgrant/charge/receiptใหม่เพราะเป็นการตั้งdesiredstateที่ทำซ้ำได้
 - clientเปลี่ยนprofileเมื่อserverตอบผ่านเท่านั้น ไม่มีoptimisticinventory ถ้าstorageตอบคลุมเครือให้ลองdesiredstateเดิมหลังreconcileตามsavesเดิม
 - ลานฝึกยังจำกัดloadoutเริ่มต้น ระบบนี้ไม่ยืนยันความพร้อมown-blade/อาวุธสูงขึ้น ไม่deployจนตรวจภายหลัง
+
+## FIELD-REWARDS — draft / ยังไม่เทส (แทนข้อจำกัดไม่มีXP/ดรอปและLv1ในลานก่อนหน้า)
+- `createStoryService({grantEvidence})` เพิ่มrecordReward(lid,ticket)ภายในเท่านั้น ใช้verifierเดิม+grantEvidenceสำเนาprofileพร้อมledger ในtransactionเดียว การrecordปกติยังไม่grant เมื่อreadyแล้วcallbackจ่ายมอนที่ตายในท่าเดียวกันได้โดยไม่เพิ่มprogress อาศัยjournalreceiptกันซ้ำ
+- field-loot.cjsใช้single-writer savesเดิม profile.fieldLoot v1={encounterId,kills:[{id,level,at,drops:[{id,itemId,x,y,taken}]}]} สูงสุด24kills ของที่เหลือpersistจนเก็บได้ ไม่ใช่client-writableprofileหรือshared-worldjournal
+- ไม่มีrequestเก็บของตามitemId/จำนวนจากclient serverเลือกจากposeปัจจุบัน/clockและระยะเดิมเอง collectallตอนleave/recoverต้องผ่านactive sessionและupdateServer ค่าความจุเต็มไม่ทำให้hall/startติด; journalมีของค้างบล็อกเฉพาะresetเป็นสนามใหม่
+- snapshotbattleเพิ่มcharacterLevel/loot/lootError profileยืนยันเพิ่มpendingLootจำนวนค้าง ไม่ส่งjournal/killproofภายในให้client เลเวลเพิ่มได้โดยยังไม่มีstats/อาชีพ/โบนัสอุปกรณ์
+- ของสัตว์เลี้ยงเป็นstackตามitemidเดิม ยังไม่เปิดการสุ่มค่า/ใส่/โบนัส ไม่มีspawnใหม่หรือพัฒนาบทown-bladeในงานนี้ ยังต้องตรวจstorage retry/session/วงจรจริงและภาพก่อนdeploy

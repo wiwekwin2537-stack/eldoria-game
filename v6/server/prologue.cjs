@@ -36,7 +36,7 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
     }
     Object.assign(a,{x,y,dir,budget:Math.max(0,credit),at:time,dashAt});
   }
-  async function state(lid) { const [story,profile]=await Promise.all([service.read(lid),saves.readServer(lid)]);return {story,profile:{coin:profile.coin,character:profile.character||null,inventory:profile.inventory||null}}; }
+  async function state(lid) { const [story,profile]=await Promise.all([service.read(lid),saves.readServer(lid)]);return {story,profile:{pendingLoot:(profile.fieldLoot?.kills||[]).reduce((n,k)=>n+k.drops.filter(d=>!d.taken).length,0),coin:profile.coin,character:profile.character||null,inventory:profile.inventory||null}}; }
   async function run(conn,command) {
     if(stopped)return {ok:false,error:'unavailable'};
     if(!conn.lid||!conn.sid||!isActive(conn))return {ok:false,error:'session'};
@@ -44,7 +44,7 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
     if(!command||typeof command!=='object'||Array.isArray(command))return {ok:false,error:'command'};
     let a=current(conn);
     try {
-      if(command.op==='start'){a=actor(conn);if(training.active(conn))return {ok:true,...await training.enter(conn),...await state(lid)};return {ok:true,actor:pose(a),...await state(lid)};}
+      if(command.op==='start'){if(!training.active(conn))await training.recover(conn);a=actor(conn);if(training.active(conn))return {ok:true,...await training.enter(conn),...await state(lid)};return {ok:true,actor:pose(a),...await state(lid)};}
       if(!a)fail('start');
       if(command.op==='field'){if(!near(a)&&!training.active(conn))fail('near');return {ok:true,...await training.enter(conn),...await state(lid)};}
       if(command.op==='input')return {ok:true,...await training.input(conn,command),...await state(lid)};

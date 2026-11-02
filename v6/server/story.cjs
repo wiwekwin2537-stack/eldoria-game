@@ -11,7 +11,7 @@ function fail(code) { const e = new Error(code); e.code = code; throw e; }
 function textId(s) { return typeof s === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(s); }
 function sync(value) { if (value && typeof value.then === 'function') { Promise.resolve(value).catch(() => {}); fail('story-async'); } return value; }
 
-async function createStoryService({ saves, storageMode, verifyEvidence, verifyReport, rewards = {}, grant } = {}) {
+async function createStoryService({ saves, storageMode, verifyEvidence, verifyReport, rewards = {}, grant, grantEvidence } = {}) {
   if (storageMode !== 'single-writer') fail('story-storage-not-ready');
   if (!saves || typeof saves.readServer !== 'function' || typeof saves.updateServer !== 'function') fail('story-storage-not-ready');
   const { createStory } = await import('../src/core/story.js');
@@ -37,7 +37,7 @@ async function createStoryService({ saves, storageMode, verifyEvidence, verifyRe
   function readyCoin(profile) { if (!Number.isSafeInteger(profile.coin) || profile.coin < 0 || profile.coin > COIN_MAX) fail('story-coin'); }
 
   async function read(lid) { account(lid); return snapshot(ledger(await saves.readServer(lid))); }
-  async function record(lid, ticket) {
+  async function record(lid, ticket, withReward = false) {
     account(lid);
     if (typeof verifyEvidence !== 'function') fail('story-evidence-unavailable');
     let result;
@@ -48,9 +48,14 @@ async function createStoryService({ saves, storageMode, verifyEvidence, verifyRe
       const event = { id: proof.id, chapterId: proof.chapterId, kind: proof.kind, target: proof.target, count: 1 };
       if (proof.count !== undefined && proof.count !== 1) fail('story-evidence');
       if (proof.chapterId !== l.state.chapterId) fail('story-chapter');
+      if (withReward && engine.view().needsReconciliation) fail('story-reconcile');
+      if (withReward && typeof grantEvidence !== 'function') fail('story-rewards-not-ready');
       if (l.state.seen.includes(event.id)) { result = { ok: true, duplicate: true, ...snapshot(l) }; return profile; }
-      if (!engine.record(event)) fail('story-evidence');
-      l.state = engine.save(); l.revision++; profile.storyLedger = l;
+      if (!(withReward && engine.view().ready)) {
+        if (!engine.record(event)) fail('story-evidence');
+        l.state = engine.save(); l.revision++; profile.storyLedger = l;
+      }
+      if (withReward && sync(grantEvidence(profile, clone(proof))) !== true) fail('story-reward-rejected');
       result = { ok: true, duplicate: false, ...snapshot(l) }; return profile;
     });
     return result;
@@ -93,6 +98,6 @@ async function createStoryService({ saves, storageMode, verifyEvidence, verifyRe
     });
     return result;
   }
-  return { read, record, report };
+  return { read, record, recordReward:(lid,ticket)=>record(lid,ticket,true), report };
 }
 module.exports = { createStoryService };

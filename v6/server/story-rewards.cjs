@@ -42,8 +42,8 @@ async function createStoryRewardAdapter(options = {}) {
   }
   return { rewards:structuredClone(E.storyRewards), grant, inventory, character, gain, need };
 }
-async function createEldoriaStoryService({ saves, storageMode, verifyEvidence, verifyReport } = {}) {
+async function createEldoriaStoryService({ saves, storageMode, verifyEvidence, verifyReport, grantEvidence } = {}) {
   const { rewards, grant } = await createStoryRewardAdapter();
-  return createStoryService({saves,storageMode,verifyEvidence,verifyReport,rewards,grant});
+  return createStoryService({saves,storageMode,verifyEvidence,verifyReport,rewards,grant,grantEvidence});
 }
 module.exports = { createStoryRewardAdapter, createEldoriaStoryService };

@@ -21,7 +21,14 @@ export const SLIME_AI = {
   decay:.02, stopImpulse:4,
 };
 export const TRAINING_VITALS = {
-  hp:100, damage:3, levelDamage:2, comboDamage:8, comboWindow:4,
+  hp:100, hpPerLevel:15, damage:3, levelDamage:2, comboDamage:8, comboWindow:4,
   iframe:.8, stun:.28, knockback:55, heavyKnockback:240,
   regenDelay:4.5, regen:2.2,
+};
+
+/* 030:12 + fix31(.8) ไม่ใช้fix64XP×5ชั่วคราว; 043:45/031:4674 */
+export const FIELD_LOOT = {
+ xpPerLevel:5,xpPermanentMul:.8,extraGelChance:.4,coinRoll:3,essenceChance:.06,petChance:.002,
+ petItems:['pa_collar_1','pa_bell_1','pa_ring_1'],
+ pickupDelayMs:350,magnetDelayMs:550,pickupRange:14,magnetRange:80,magnetSpeed:320,magnetFalloff:1.5,
 };
