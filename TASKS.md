@@ -1,7 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
-| `v6/server/field-loot.cjs`, `v6/server/story.cjs`, `v6/server/story-rewards.cjs`, `v6/server/field-combat.cjs`, `v6/server/field-training.cjs`, `v6/server/slime-ai.cjs`, `v6/src/data/combat.js`, `v6/src/data/items.js`, `v6/src/systems/prologue.js`, `v6/TASKS.md`, `v6/CHANGELOG.md`, `v6/CONTRACT.md`, `v6/reviews/FIELD-REWARDS-static.md`, `README.md` | ChatGPT | FIELD-REWARDS · XP/ของสไลม์จากฐานเดิม · ไม่รันเทส | 2026-11-03 |
+| `v6/server/field-loot.cjs`, `v6/server/story.cjs`, `v6/server/story-rewards.cjs`, `v6/server/field-combat.cjs`, `v6/server/field-training.cjs`, `v6/server/slime-ai.cjs`, `v6/src/data/combat.js`, `v6/src/data/items.js`, `v6/src/systems/prologue.js`, `v6/TASKS.md`, `v6/CHANGELOG.md`, `v6/CONTRACT.md`, `v6/reviews/FIELD-REWARDS-static.md`, `README.md`, `v6/server/prologue.cjs` | ChatGPT | FIELD-REWARDS · เพิ่มprologueเพื่อคืนของค้างหลังหลุด · ไม่รันเทส | 2026-11-03 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
