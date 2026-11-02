@@ -1,6 +1,7 @@
 ## 🔒 ตารางจองไฟล์ (ดูกติกา AGENTS.md ข้อ 0) — จองก่อนแก้ ปลดจองเมื่อเสร็จ
 | ไฟล์ | ใคร | งาน | เริ่ม |
 |---|---|---|---|
+| `v6/server/equipment.cjs`, `v6/server/prologue.cjs`, `v6/src/core/prologue-client.js`, `v6/src/systems/prologue.js`, `v6/TASKS.md`, `v6/CHANGELOG.md`, `v6/CONTRACT.md`, `v6/reviews/EQUIP-SWORD-static.md`, `README.md` | ChatGPT | EQUIP-SWORD · สวม/ถอดดาบ · ไม่รันเทส | 2026-11-03 |
 
 ## ✅ v5.98 — อีโมจิใหม่ขึ้นกล่อง (หน้าอาชีพ/หัวมอน) · ปืนสไนคว่ำ (Claude Opus · 2026-10-25 · เจ้าของแจ้ง)
 - สมุดบัค: 🥷 ขึ้นกล่อง + 🪙 บนหัวมอนยังกล่อง — v5.94 ครอบแค่ 🪙 ในหน้าเว็บ · แก้ 197-coin-glyph (44 ตัว + fillText/strokeText/measureText) · เทส coin_glyph
