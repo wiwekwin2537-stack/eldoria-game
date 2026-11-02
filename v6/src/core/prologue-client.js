@@ -20,7 +20,7 @@ export function createPrologueClient(G,{request,ready,enter,stop=()=>{}}) {
     if(S.busy)return false;S.busy=true;S.error='';const gen=generation;
     try{sample();if(flight&&!await flight)return false;while(S.trace.length)if(!await sync())return false;
       const r=await send({op,...extra});if(gen!==generation)return false;accept(r);if(!r.ok){S.error=r.error;return false;}
-      S.dialog=!['field','hall','attack'].includes(op);S.done=r.story?.state.chapterId!=='awakening';S.trace=[];last=null;return true;
+      S.dialog=!['field','hall','attack','potion'].includes(op);S.done=r.story?.state.chapterId!=='awakening';S.trace=[];last=null;return true;
     }catch(e){if(gen===generation)S.error=e.message;return false;}finally{if(gen===generation)S.busy=false;}
   }
   async function start(){
@@ -31,5 +31,5 @@ export function createPrologueClient(G,{request,ready,enter,stop=()=>{}}) {
     }catch(e){if(gen===generation){S.error=e.message;bookmark=null;delete G.ui.prologueBookmark;}return false;}finally{if(gen===generation)S.busy=false;}
   }
   function end(){if(ready())send({op:'end'}).catch(()=>{});closeLocal();}
-  return {state:S,start,sample,sync,talk:()=>action('talk'),claim:()=>action(S.story?.state.chapterId==='first-light'?'claim-first-light':'claim'),field:()=>action('field'),hall:()=>action('hall'),attack:()=>action('attack',{sequence:(S.battle?.sequence||0)+1}),end,disconnect:closeLocal};
+  return {state:S,start,sample,sync,talk:()=>action('talk'),claim:()=>action(S.story?.state.chapterId==='first-light'?'claim-first-light':'claim'),field:()=>action('field'),hall:()=>action('hall'),potion:()=>action('potion',{encounterId:S.pose?.encounterId,sequence:(S.pose?.potionSequence||0)+1}),attack:()=>action('attack',{sequence:(S.battle?.sequence||0)+1}),end,disconnect:closeLocal};
 }

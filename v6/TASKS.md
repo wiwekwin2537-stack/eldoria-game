@@ -1,7 +1,18 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
-## จอง POTION-HP (2026-11-03)
-ChatGPT: src/data/economy.js, server/potions.cjs, server/field-training.cjs, server/prologue.cjs, src/core/prologue-client.js, src/systems/prologue.js, tests/potions.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/POTION-HP-independent.md — ใช้hppจริงในลานฝึก หักยา/receipt atomic คูลดาวน์เดิม ไม่แตะเกมจริงหรือมานา/อาหาร
+## POTION-HP — ใช้ยาเลือดจริงในลานฝึก (2026-11-03)
+**สถานะ: เชื่อมserver/controller/UIแล้ว เทสและตรวจอิสระผ่าน QAภาพ/มือถือยังแยกจากผลตรรกะ**
+- เพิ่มปุ่มยาเลือดและactionpotionHpเดิม (H) เฉพาะลานฝึก แสดงจำนวนยาที่ยืนยันและคูลดาวน์ ไม่เปิดปุ่มเมื่อเลือดเต็ม/ล้ม/ยาไม่มี/กำลังยืนยันผล
+- สูตรจาก031-core:1775 ฟื้น30%maxHPอย่างน้อย60 ไม่เกินmaxHP และfix82คูลดาวน์8วิ เพิ่มในdata/economy.js ไม่ตั้งค่าดุลใหม่ ไม่เพิ่มยาใหม่หรือระบบยามานา/อาหาร
+- server/potions.cjsรับเฉพาะencounterIdที่serverออก+sequence เลือกhpp/จำนวน1/ผลฟื้นเอง ไม่รับHP/จำนวน/เวลา/itemจากclient ตรวจalive/full/empty/sessionและcooldownก่อนหัก
+- inventoryและpotionUse receiptล่าสุดหนึ่งรายการเขียนเอกสารเดียวผ่านsaves.updateServerก่อนapplyHPชั่วคราวของลาน ไม่เขียนHPลงprofileจริง receiptมีversion1/epoch/seq/amount/usedAt/until ไม่โตตามจำนวนครั้งที่ใช้ และcooldownคงข้ามการออก/เข้าลาน
+- กดซ้ำ/20คำขอพร้อมกัน/ACKหายretryไม่หักหรือฟื้นซ้ำ epochเก่าไม่ฟื้นชีวิตใหม่ หากผลstorageไม่ชัดให้pendingพักAIเฉพาะลานนั้น timerretryseqเดิมก่อนเดินต่อ แล้วskipBeforeช่วงที่พัก ไม่หยุดห้องอื่น
+- validationปฏิเสธไม่พักค้างหรือใช้ยา เมื่อออก/รีสตาร์ตก่อนผลยืนยันครบ ไม่เอาreceiptเก่าไปฟื้นชีวิตใหม่ และไม่คืนรายการยาที่commitไปแล้วอัตโนมัติ HPลานยังเป็นsessionชั่วคราวตามเดิม
+- potions14/14ผ่าน รวมcontrollerและWebSocketจริง ใช้clockserverจำลอง/ข้อมูลบัญชีทดสอบ ไม่มีfixtureฟื้นฝั่งclient ผู้ตรวจอิสระเจาะlostACK→timerแก้pending5วิแล้วฟื้นครั้งเดียว/hpp2 และsequenceผิดไม่ทำห้องค้าง ผ่าน ดูreviews/POTION-HP-independent.md
+- browser/prologue.spec.jsเพิ่มการกดปุ่มยาและตรวจhppลด1/CD แต่ยังไม่รันภาพ/ทัชตามขอบเขตQAที่พักไว้ ไม่อ้างผ่านมือถือ
+- เตรียมอัปเดตเฉพาะเว็บทดสอบแยก eldoria-v6-playtest-20261103.onrender.com จากbranchเดิมหลังcommit ตรวจliveตามdeployจริงภายหลัง ไม่รวมmainหรือแก้เว็บeldoria-online
+- ชุดเต็มท้ายรอบ306ผ่าน1รันไม่ได้เพราะflood testอ้างwsที่ไม่มี บางรายการข้าม ไม่อ้างผ่านทั้งชุด
+- ปลดจองPOTION-HPแล้ว งานต่อคือดรอป/XPมอน ใช้มานา/อาหาร และระบบอื่นตามใบงาน ไม่ถือว่ากระเป๋าหรือระบบใช้ของครบเกมแล้ว
 
 ## ITEMS-VIEW — รายการของที่บันทึกแล้วในหน้าคุยราชา (2026-11-02)
 **สถานะ: เชื่อมUIและตรวจโค้ดอิสระแล้ว QAภาพ/browserเก็บก่อนเปิดทดสอบตามเจ้าของ**

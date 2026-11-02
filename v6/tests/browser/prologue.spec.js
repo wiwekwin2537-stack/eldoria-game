@@ -21,7 +21,7 @@ try{
   await page.locator('#p0-items summary').click();const initialItems=await page.locator('#p0-items ul').innerText();assert(initialItems.includes('ยาเลือด × 3')&&initialItems.includes('ม้วนวาร์ป × 2'),'ของใช้ยืนยัน');assert(initialItems.includes('ดาบนักล่าเงา · สวมอยู่')&&initialItems.includes('ขวานหินธรรมดา')&&initialItems.includes('ที่ขุดแร่หินธรรมดา'),'kitยืนยัน');
   const profile=await api.saves.readServer(id);assert(profile.coin===50&&Object.keys(profile.inventory.gear).length===3,'รางวัลครบ');assert(profile.inventory.stacks.hpp===3&&profile.inventory.stacks.scroll===2,'ของครบ');
   await page.locator('#p0-field').click();await page.waitForFunction(()=>window.__G.ui.prologueField);
-  await page.waitForFunction(()=>window.__G.player.hp<100,{},{timeout:20000});assert((await page.locator('#p0-bar').innerText()).includes('HP'),'แสดงHP');
+  await page.waitForFunction(()=>window.__G.player.hp<100,{},{timeout:20000});assert((await page.locator('#p0-bar').innerText()).includes('HP'),'แสดงHP');await page.locator('#p0-potion').click();await page.waitForFunction(()=>window.__G.player.hp===100);assert((await api.saves.readServer(id)).inventory.stacks.hpp===2,'ยาใช้หนึ่งขวด');assert(!(await page.locator('#p0-potion').isEnabled()),'คูลดาวน์ยา');
   for(let attempt=0;attempt<90;attempt++){
     const saved=await api.saves.readServer(id);if(saved.storyLedger.state.progress[0]>=8)break;
     if(await page.evaluate(()=>window.__G.player.hp<=0)){

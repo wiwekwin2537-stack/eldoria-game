@@ -116,3 +116,9 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - field-training.pumpประมวลผลfixed-step20ms/max10จากserver .takeเก็บเศษ/consumeก่อนdispatch .skipBeforeกันactionย้อนเวลาและclockถอยไม่ผลิตก้าวใหม่
 - field-combat now(conn,kind) สำหรับsimulationอ่านเวลาของtick; kind=attackรับเวลาสดและsyncclockหลังawaitสุดท้าย ณcommitท่า callbackภายในเท่านั้น ไม่รับเวลาจากclient
 - ไม่เพิ่มG/bus/routeใหม่ ไม่มีshared-worldหรือหลายwriter และไม่รับรองครบเวลาที่serverค้างเกิน200ms
+
+## POTION-HP — ใช้ยาเลือดเฉพาะลานฝึก (2026-11-03)
+- op potionใต้routeprologueรับencounterId+sequenceเท่านั้น serverถือitemhpp/จำนวน1/สูตร/CD ตรวจactorและinventoryจริง
+- actorเพิ่มencounterId/potionSequence/potionCooldownMs/potionPending เป็นผลยืนยันสำหรับUI ไม่มีG/busใหม่ ใช้input.pressed potionHpเดิมและปุ่มp0-potion
+- profile.server.potionUse version1เป็นreceiptล่าสุดขนาดคงที่ inventoryลดและreceiptพร้อมกันก่อนapplyHP memory; cooldownคงข้ามepoch ข้อมูลเก่าไม่มีfieldนี้เริ่มได้ ข้อมูลผิดไม่resetเงียบ
+- ผลstorageคลุมเครือให้pendingfreezeเฉพาะencounterและtimerretryก่อนsimulation ไม่รับHPหรือitemจากclient ไม่applyreceiptข้ามepoch และไม่อ้างHPdurabletransaction

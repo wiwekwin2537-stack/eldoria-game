@@ -46,6 +46,7 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
       if(!a)fail('start');
       if(command.op==='field'){if(!near(a)&&!training.active(conn))fail('near');return {ok:true,...await training.enter(conn),...await state(lid)};}
       if(command.op==='input')return {ok:true,...await training.input(conn,command),...await state(lid)};
+      if(command.op==='potion')return {ok:true,...await training.potion(conn,command),...await state(lid)};
       if(command.op==='attack')return {ok:true,...await training.attack(conn,command.sequence),...await state(lid)};
       if(command.op==='hall'){if(training.active(conn))await training.leave(conn);a.x=P.spawn[0]*T;a.y=P.spawn[1]*T;a.dir=P.spawn[2];a.at=now();a.budget=P.initialCredit;return {ok:true,actor:pose(a),...await state(lid)};}
       if(training.active(conn)&&!['end'].includes(command.op))fail('training-active');
