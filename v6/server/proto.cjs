@@ -38,10 +38,10 @@ const LIM = {
   saveSock: { max: 2, ms: 1000 },
 };
 const PRE_AUTH = new Set(['register', 'login', 'hello', 'time']);
-const TYPES = new Set(['register', 'login', 'hello', 'time', 'load', 'save', 'logout']);
-const FIELDS = ['t', 'r', 'id', 'pw', 'name', 'token', 'c', 'seq', 'sid', 'systems', 'resume'];
+const TYPES = new Set(['register', 'login', 'hello', 'time', 'load', 'save', 'logout', 'prologue']);
+const FIELDS = ['t', 'r', 'id', 'pw', 'name', 'token', 'c', 'seq', 'sid', 'systems', 'resume', 'command'];
 
-function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, authTimeoutMs = AUTH_TIMEOUT_MS }) {
+function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, authTimeoutMs = AUTH_TIMEOUT_MS, prologue = null }) {
   const sessions = new Map(); /* lid → conn ที่ใช้งานอยู่ */
   const conns = new Set();
   const lim = {};
@@ -61,11 +61,12 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
       key: ipKey(conn.ip), sk: 's' + (++sockN), authTimer: null });
     conns.add(conn);
     armAuthTimer(conn);
-    reply(conn, { t: 'welcome', v: PROTO_V, s: now() });
+    reply(conn, { t: 'welcome', v: PROTO_V, s: now(), ...(prologue ? {features:{prologue:true}} : {}) });
   }
 
   function closed(conn) {
     conn.dead = true;
+    if (prologue) prologue.closed(conn);
     clearTimeout(conn.authTimer);
     conns.delete(conn);
     if (conn.lid && sessions.get(conn.lid) === conn) sessions.delete(conn.lid);
@@ -144,6 +145,10 @@ function createProto({ accounts, saves, now = () => Date.now(), log = () => {}, 
         const res = await saves.save(conn.lid, { seq: d.seq, sid: d.sid, systems: d.systems });
         if (!res.ok) return reply(conn, { t: 'save_no', r, why: res.err, seq: res.seq });
         return reply(conn, { t: 'save_ok', r, seq: res.seq, upd: res.upd });
+      }
+      case 'prologue': {
+        if (!prologue) return reply(conn,{t:'prologue',r,ok:false,error:'unavailable'});
+        return reply(conn,{t:'prologue',r,...await prologue.handle(conn,d.command)});
       }
       case 'logout': {
         if (conn.token) await accounts.logout(conn.id, conn.token);

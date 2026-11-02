@@ -10,6 +10,7 @@ import login from './login.js';
 import camera from '../core/camera.js';
 import world from './world.js';
 import movement from './movement.js';
+import prologue from './prologue.js';
 
 export default [
   input,
@@ -17,6 +18,7 @@ export default [
   login,
   world,  /* แมพ/ชน/ประตู — ต้องอยู่หลัง render (render ล้างจอ+ตั้งพิกัด) และก่อน camera (กล้องอ่าน G.scene) */
   movement, /* เดิน/วิ่ง/พุ่ง/คลิกเดิน + วาดตัวละคร (1A-3) — หลัง world (ประตูแบบเดินตรวจเฟรมถัดไป) ก่อน camera */
+  prologue, /* โหมดทดสอบบทนำ: ปิดเมื่อ server ไม่ส่ง feature */
   /* ← ระบบเกมอื่นใส่ตรงนี้ */
   camera,
 ];

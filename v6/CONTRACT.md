@@ -88,3 +88,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 ## 8. git
 - push เฉพาะไฟล์ในโฟลเดอร์/ไฟล์ที่ใบงานให้ · `git pull --rebase origin main` ก่อน push · push ทุก 30–45 นาที และก่อนหยุด · ข้อความ commit ขึ้นต้น `v6 <งาน>:`
 - ห้ามแตะเกมเดิม (`js/` `index.html` `server.js` ฯลฯ) เว้นแต่ใบงานสั่งชัด
+
+## PLAY-P0 — สัญญาโหมดทดสอบบทนำ (2026-11-02)
+- core/net exportเพิ่ม `hasFeature(name)` อ่านเฉพาะfeatureที่welcomeจากserverรับรอง; resetล้างfeature ไม่เพิ่มฟิลด์ในG.net
+- systems/prologue ลงทะเบียนหลังmovement ก่อนcamera, always:true; อ่านinput.interactและscene/playerเพื่อส่งtrace ใช้event save:loaded/net:status/net:kickedเดิม ไม่มีeventสาธารณะใหม่
+- prologueเป็นเจ้าของ G.ui.prologueActive และ G.ui.prologueBookmark{scene,x,y,dir,sp}; worldปิดประตูเฉพาะโหมดนี้ movementหยุดตามประตู และsaveทั้งสองอ่านbookmarkเพื่อรักษาจุดปกติ
+- controllerเขียนplayer.coin/lv/xpจากprofileที่serverตอบยืนยันเท่านั้น; ตำแหน่ง/แรงถูกคืนเมื่อออกหรือหลุด ไม่มีการมอบของฝั่งclient
+- route prologueเปิดเฉพาะV6_PROLOGUE_TEST=1 memory/file single-writer ค่าเริ่มปิด serverตรวจpose/ระยะNPC/sessionและมอบรางวัลผ่านstory serviceเดียวกัน ไม่ใช่สัญญาต่อสู้หรือstaminaครบเกม

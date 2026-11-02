@@ -1,8 +1,25 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
-## จอง PLAY-P0 — 2026-11-02
-ChatGPT · เจ้าของสั่งต่อและถามความคืบหน้า · โหมดทดสอบบทนำแบบ opt-in: server/prologue.cjs ใหม่, server/{proto,index}.cjs, src/data/prologue.js ใหม่, src/core/net.js, src/systems/{prologue,index,world,movement}.js, assets/npc/king-v587.png (คัดลอกภาพเดิม), tests/prologue.test.js และ tests/browser/prologue.spec.js ใหม่, CONTRACT.md,TASKS.md,CHANGELOG.md,STORY.md,reviews/PLAY-P0-independent.md · ปิดค่าเริ่มต้น ไม่เปลี่ยนspawnเกมปกติ ไม่เปิดRenderจริง
+## PLAY-P0 — บทนำราชาในโหมดทดสอบ (2026-11-02)
+**สถานะ: เชื่อม route/controller/UI แล้ว ตรวจตรรกะและ WebSocket จริงแล้ว ยังไม่ตรวจภาพในเบราว์เซอร์และไม่เปิดเว็บจริง**
+- เปิดเฉพาะ `V6_PROLOGUE_TEST=1` กับ memory/file single-writer; ค่าเริ่มต้นปิด ไม่รองรับ remote store/หลายโปรเซส ผู้เล่นกดปุ่มเริ่มทดสอบจึงเข้าท้องพระโรง ไม่เปลี่ยนจุดเกิดปกติ
+- ใช้ราชาภาพเดิม `assets/incoming/npc-king-v587.png` คัดลอกเป็น `v6/assets/npc/king-v587.png`; ตรวจภาพต้นฉบับแล้ว ใช้พิกัด/ระยะคุยเดิม ไม่สร้างภาพใหม่
+- server ออกจุดเกิด ตรวจ trace ระยะตามนาฬิกา server/กำแพง/ใกล้ราชา ผูก session และ ticket; client ไม่ส่งจำนวนรางวัลหรือเลือกบทเอง ขอบเขตนี้เป็นการเดินในห้องทดสอบ ยังไม่ใช่ authoritative movement/stamina/combat ครบเกม
+- คุยและส่งบท awakening รับ50เหรียญ20XP ยาเลือด3 ม้วนวาร์ป2 และkit3ชิ้นจากตารางจริง บันทึกบท/รางวัล/receiptพร้อมกัน retryไม่แจกซ้ำ; UIรับเฉพาะผลยืนยันจากserver
+- ขณะทดสอบ เซฟตำแหน่ง/แรงเป็นจุดก่อนเข้าห้อง; ออก/หลุดคืนจุดและแรงเดิม กันประตู/คลิกตามประตูพาออกจากห้อง
+- โค้ด: data/prologue.js, core/prologue-client.js, systems/prologue.js, server/prologue.cjs; ต่อ proto/index/net/ทะเบียนระบบ/world/movement พร้อม CONTRACT และเทส browser/prologue.spec.js
+- ตรวจแล้ว prologue10/10 รวม WebSocket จริงผ่าน createV6/http/proto และรีเกรสชัน bookmark เริ่มไม่สำเร็จ; ผู้ตรวจอิสระพบP2แล้วแก้แบบแดง→เขียว ตรวจซ้ำปิดได้ ดู reviews/PLAY-P0-independent.md
+- ชุดเต็ม245ผ่าน1รันไม่ได้: server.flood.cjsอ้าง /opt/npm-tools/node_modules/ws ที่ไม่มี บางเทสข้ามเพราะws; เทสใหม่ใช้wsจริงที่ติดตั้งมากับ Playwright ไม่ใช่ transportจำลอง ไม่อ้างผ่านทั้งชุด
+- ยังไม่ตรวจ browser: Chromiumในเครื่องไม่มี และ cloud browserเข้าถึง localhostไม่ได้ สคริปต์รับงาน desktop/mobile viewportเขียนและsyntaxผ่าน แต่ยังไม่รัน ไม่รับรองภาพ/มือถือจริง
+- ปลดจองPLAY-P0แล้ว งานอยู่PR #1 ไม่รวมmain ความคืบหน้าประเมินประมาณ40%เฉพาะเป้าหมายรุ่นเล็กคุย→ล่า→รางวัล→เซฟ→เข้าใหม่ ไม่ใช่เปอร์เซ็นต์ทั้งเกมหรือจำนวนเทส
 
+### จุดที่หยุดไว้ / งานถัดไป
+1. ทำ first-light: มอน/การโจมตี/หลักฐานฆ่าจากserverจริง ไม่ให้clientส่งจำนวนฆ่าเพื่อรับรางวัล
+2. ต่อ UIกระเป๋า/สถานะ/เควสต์และใช้ของจากprofileยืนยัน รวมทะเบียนของส่วนที่เหลือและย้ายเซฟเก่า
+3. ตรวจหน้าจอจริงทั้งdesktopและmobile viewport ตาม browser/prologue.spec.js ก่อนยกระดับเป็นเชื่อมเล่นและตรวจภาพแล้ว; ตรวจมือถือจริงแยกต่างหาก
+
+### สมุดบัค PLAY-P0
+P2 เริ่มโหมดล้มเหลวทิ้งbookmarkเก่า ทำให้retryแล้วออกกลับผิดจุด: ล้างbookmarkเมื่อคำตอบไม่สำเร็จหรือrequestพังในcore/prologue-client.js เทส failed-start→เดินทุ่ง→retry→end เคยพังก่อนแก้แล้วผ่าน ตรวจอิสระยืนยันทั้งสองทาง; เป็นcontroller regression ยังรอตรวจUIในbrowser
 
 ## STORY-E3b1 — กระเป๋า/UID/XP และรางวัลจริงบท0–2 (2026-11-02)
 เจ้าของสั่งทำต่อ เพิ่ม src/data/items.js, src/data/economy.js, server/inventory.cjs, server/story-rewards.cjs และ tests/server.inventory.test.js
@@ -19,7 +36,7 @@ ChatGPT · เจ้าของสั่งต่อและถามควา
 - E2: authoritative NPC/combat/milestoneจริง รวมการตรวจLv5+สวมtier1ของบท2จากserver state ห้ามใช้หลักฐานfixtureในเทสเป็นตัวตรวจเกมจริง
 - E3b2: ทะเบียนไอเท็มส่วนที่เหลือ คราฟ/ร้าน/ใช้ของ/จัดแต้มและเกราะอื่น ระบบดาวตำนานและการย้ายเซฟเก่า ป้องกันหลายwriterก่อนเปิดหลายโปรเซส; รุ่นinventory v1ชุดนี้มีช่องสวมswordเท่านั้น ไม่อ้างว่าระบบอุปกรณ์ครบ
 - E4: ส่งprofileที่serverยืนยันไปแสดงกระเป๋า/เลเวล/เควสต์บนUI และรับinputสำหรับทำactionตามกติกา ไม่เปิดให้แก้server profileตรง ๆ
-- ยังไม่สร้างserviceในserver/index.cjs และไม่มีrouteใหม่ รางวัลจริงชุดนี้พร้อมทดสอบฝั่งserverแต่ยังไม่มีผู้เล่นรับผ่านหน้าเกมได้
+- สถานะเดิมตอนจบE3b1ยังไม่มีroute; PLAY-P0ด้านบนเพิ่มทางบทนำแบบopt-inแล้ว บท1–2ยังไม่เชื่อมการเล่น
 
 ### ตรวจแล้ว
 server.inventory15/15ผ่าน รวมแพ็กจริง0–2, UIDและการสวม, ขอบเขตช่อง/น้ำหนัก, เงินเต็ม, retry/restart, commitแล้วคำตอบหายด้วยgrantจริง และclientปลอมprofileไม่เปลี่ยนserver

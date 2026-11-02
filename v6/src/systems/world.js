@@ -228,7 +228,7 @@ export default {
   init(G) { S.G = G; if (!G.scene) enter(WORLD.start, null, G); },
   update(G, dt) {
     S.G = G;
-    if (!G.scene) return;
+    if (G.ui.prologueActive || !G.scene) return;
     if (S.lock > 0) S.lock -= dt;
     const P = G.player;
     if (S.lock <= 0) {
@@ -240,7 +240,7 @@ export default {
     }
   },
   draw(G, ctx, layer) { if (G.scene) drawLayer(G, ctx, layer); },
-  save(G) { return G.scene ? { scene: G.scene.id, ret: S.ret } : undefined; },
+  save(G) { return G.scene ? { scene: G.ui.prologueActive && G.ui.prologueBookmark ? G.ui.prologueBookmark.scene : G.scene.id, ret: S.ret } : undefined; },
   load(G, data) {
     S.G = G;
     if (!data || !data.scene) return;

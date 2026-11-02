@@ -183,7 +183,7 @@ function useHere(G) {
   const dx = g.x - P.x, dy = g.y - P.y;
   if (Math.hypot(dx, dy) > 3) P.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'l' : 'r') : (dy < 0 ? 'u' : 'd');
   const l = linkNear(G);
-  if (l) follow(l, G);
+  if (l && !G.ui.prologueActive) follow(l, G);
 }
 /* 1 เฟรมของคลิกเดิน → ทิศ [ix,iy] หรือ null (ไม่ได้เดินตามคลิก) */
 function clickTick(G, dt) {
@@ -283,6 +283,7 @@ export default {
     zpush(G.player.y, k => drawHero(k, v));
   },
   save(G) {
+    if (G.ui.prologueActive && G.ui.prologueBookmark) return { ...G.ui.prologueBookmark };
     const P = G.player;
     if (!G.scene) return undefined;
     return { scene: G.scene.id, x: Math.round(P.x * 10) / 10, y: Math.round(P.y * 10) / 10, dir: P.dir, sp: Math.round(P.sp * 10) / 10 };

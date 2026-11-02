@@ -23,6 +23,8 @@ let G = null, ws = null, WS = null, url = '';
 let rid = 0, retryN = 0, retryTimer = null, syncTimer = null, everAuthed = false;
 const pending = new Map(); /* r → { ok, no, tm } */
 let memAcct = null; /* สำรองเมื่อ localStorage ใช้ไม่ได้ */
+let features = {};
+export function hasFeature(name) { return features[name] === true; }
 let resumeSid = '';  /* sid ของการโหลดเซฟล่าสุดของหน้านี้ (core/save ตั้ง) → ต่อใหม่เองส่งไปด้วย (1B-g N3) */
 
 /* core/save เรียกหลังโหลดสำเร็จ */
@@ -115,6 +117,7 @@ export async function logout() {
 
 /* ต่อแล้วได้ welcome: ตั้งเวลา → ถ้าจำบัญชีไว้ เข้าต่อเอง */
 async function onWelcome(m) {
+  features = { prologue: m.features?.prologue === true };
   setServerTime(m.s);
   setOnline(true);
   syncTime();
@@ -203,5 +206,5 @@ export function _reset() {
   const s = ws; ws = null;
   try { s && s.close(); } catch (e) {}
   failAll('reset');
-  memAcct = null; everAuthed = false; G = null; resumeSid = '';
+  memAcct = null; everAuthed = false; G = null; resumeSid = ''; features = {};
 }
