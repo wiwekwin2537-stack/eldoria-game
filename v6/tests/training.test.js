@@ -10,11 +10,13 @@ const ok=(v,m)=>{if(!v)throw Error(m);},eq=(a,b,m)=>ok(JSON.stringify(a)===JSON.
 async function setup(){let clock=100000,live=true;const store=memoryStore(),saves=createSaves({store,now:()=>clock}),conn={lid:'training-test',sid:'a'.repeat(32)};await saves.load(conn.lid,conn.sid);const p=await createPrologue({saves,now:()=>clock,isActive:()=>live});const send=c=>p.handle(conn,c);return {send,saves,store,conn,p,advance:n=>{clock+=n;},deactivate:()=>{live=false;}};}
 async function king(t){let r=await t.send({op:'start'}),y=r.actor.y;while(y>214){t.advance(100);y=Math.max(214,y-16);r=await t.send({op:'move',trace:[{x:416,y,dir:'u'}]});ok(r.ok,r.error);}return r;}
 async function intro(t){await king(t);ok((await t.send({op:'talk'})).ok,'talk');ok((await t.send({op:'claim'})).ok,'claim0');return t.send({op:'field'});}
-async function hunt(t,r){for(let n=0;n<8;n++){const m=r.battle.entities.find(x=>!x.dead);if(!m)break;let guard=0;
-  while(Math.hypot(r.actor.x-m.x,r.actor.y-(m.y+16))>8){ok(++guard<100,'เดินไม่ติด');const dx=m.x-r.actor.x,dy=m.y+16-r.actor.y,l=Math.max(1,Math.hypot(dx,dy));t.advance(100);r=await t.send({op:'input',mx:dx/l,my:dy/l,run:false});ok(r.ok,r.error);}
-  await t.send({op:'input',mx:0,my:-1,run:false});t.advance(1);r=await t.send({op:'input',mx:0,my:0,run:false});
-  for(let k=0;k<3&&!r.battle.entities.find(x=>x.id===m.id).dead;k++){r=await t.send({op:'attack',sequence:r.battle.sequence+1});ok(r.ok,'attack '+r.error);for(let j=0;j<8;j++){t.advance(100);r=await t.send({op:'input',mx:0,my:0,run:false});ok(r.ok,'step '+r.error);}}
- }return r;}
+async function hunt(t,r){let trips=0;for(let tick=0;tick<1800;tick++){
+  if(r.story.view.progress[0]>=8)return r;
+  if(!r.actor.alive){ok(++trips<12,'ล้มซ้ำเกินขอบเขตทดสอบ');await t.send({op:'hall'});await king(t);r=await t.send({op:'field'});ok(r.ok,r.error);continue;}
+  const mobs=r.battle.entities.filter(m=>!m.dead&&!m.pending);const m=mobs.sort((a,b)=>Math.hypot(a.x-r.actor.x,a.y-r.actor.y)-Math.hypot(b.x-r.actor.x,b.y-r.actor.y))[0];ok(m,'มีเป้า');
+  const dx=m.x-r.actor.x,dy=m.y-r.actor.y,d=Math.hypot(dx,dy),moving=d>26;t.advance(80);r=await t.send({op:'input',mx:moving?dx/Math.max(1,d):0,my:moving?dy/Math.max(1,d):0,run:false});ok(r.ok,r.error);
+  if(r.actor.alive&&!r.actor.stunned&&!r.battle.swing&&Math.hypot(m.x-r.actor.x,m.y-r.actor.y)<52){const hit=await t.send({op:'attack',sequence:r.battle.sequence+1});if(hit.ok)r=hit;else ok(hit.error==='combat-actor'||hit.error==='combat-chapter','attack '+hit.error);}
+ }throw Error('ล่าสไลม์เคลื่อนไหวไม่ครบ8');}
 export default [
  ['E2b regression ยืนนิ่งกดวิ่งค้างไม่เสียแรง',async()=>{
   const t=await setup();await intro(t);await t.send({op:'input',mx:0,my:0,run:true});t.advance(100);const r=await t.send({op:'input',mx:0,my:0,run:true});eq(r.actor.moving,false);eq(r.actor.sp,100,'ยืนนิ่งไม่หักแรง');
@@ -38,6 +40,12 @@ export default [
  }],
  ['E2b คำตอบเข้าfieldมาช้าหลังdisconnectไม่เปิดflagหรือวาร์ปกลับ',async()=>{
   const t=await setup();await intro(t);await t.send({op:'hall'});await king(t);_reset();world._reset();const G=createState();world.init(G);let release;const c=createPrologueClient(G,{request:async m=>m.command.op==='field'?new Promise(r=>{release=r;}):({t:'prologue',...await t.send(m.command)}),ready:()=>true,enter});await c.start();while(c.state.pose.y>214){G.player.y=Math.max(214,c.state.pose.y-16);t.advance(100);c.sample();await c.sync();}const pending=c.field();while(!release)await Promise.resolve();c.disconnect();release({t:'prologue',...await t.send({op:'field'})});eq(await pending,false);eq(G.scene.id,'town');eq(G.ui.prologueField,false);eq(c.state.mode,false);
+ }],
+ ['E2c AIไล่และสวนจริง เลือด0หยุดเดิน/ฟัน กลับhallได้โดยไม่เสียเงินหรือเสกของ',async()=>{
+  const t=await setup();let r=await intro(t),moved=false,hurt=false;const first=r.battle.entities.map(m=>[m.x,m.y]);for(let i=0;i<1600&&r.actor.alive;i++){t.advance(120);r=await t.send({op:'input',mx:0,my:0,run:false,hp:99999,alive:true});ok(r.ok,r.error);if(r.actor.hp<100)hurt=true;if(JSON.stringify(r.battle.entities.map(m=>[m.x,m.y]))!==JSON.stringify(first))moved=true;}ok(moved&&hurt,'AIเดินและสวน');eq(r.actor.hp,0);eq(r.actor.alive,false);const at=[r.actor.x,r.actor.y];eq((await t.send({op:'attack',sequence:r.battle.sequence+1})).error,'combat-actor');t.advance(100);const still=await t.send({op:'input',mx:1,my:1,run:true,hp:100});eq(still.actor.hp,0);eq([still.actor.x,still.actor.y],at,'ล้มไม่เดิน');ok((await t.send({op:'hall'})).ok,'กลับhallได้');const profile=await t.saves.readServer(t.conn.lid);eq(profile.coin,50);eq(profile.character.xp,20);eq(Object.keys(profile.inventory.gear).length,3);
+ }],
+ ['E2c clientHPมาจากserverและออก/หลุดคืนHPปกติ ไม่เซฟเลือดลานทับ',async()=>{
+  const t=await setup();await intro(t);await t.send({op:'hall'});_reset();world._reset();const G=createState();world.init(G);G.player.hp=63;G.player.maxHp=111;const c=createPrologueClient(G,{request:async m=>({t:'prologue',...await t.send(m.command)}),ready:()=>true,enter});await c.start();while(c.state.pose.y>214){G.player.y=Math.max(214,c.state.pose.y-16);t.advance(100);c.sample();await c.sync();}await c.field();eq([G.player.hp,G.player.maxHp],[100,100]);for(let i=0;i<100&&G.player.hp===100;i++){t.advance(120);await c.sync();}ok(G.player.hp<100,'รับเลือดที่serverหัก');eq(G.player.hp,c.state.pose.hp);await c.hall();eq([G.player.hp,G.player.maxHp],[63,111],'กลับhallคืนปกติ');c.disconnect();eq([G.player.hp,G.player.maxHp],[63,111],'หลุดคืนเดิม');eq(G.scene.id,'town');
  }],
  ['E2b WebSocketจริงทั้งวงจรinput/ฟัน/ledger/ส่งบท1 ไม่ใช้transportจำลอง',async()=>{
   const http=require('node:http'),lib=process.env.ELDORIA_TEST_WS_BUNDLE?require(process.env.ELDORIA_TEST_WS_BUNDLE):require('ws'),WS=lib.WebSocket||lib.ws||lib,WebSocketServer=lib.WebSocketServer||lib.wsServer;let clock=1e6;

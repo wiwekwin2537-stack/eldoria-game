@@ -1,7 +1,23 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
-## จอง PLAY-E2c (2026-11-02)
-ChatGPT: src/data/combat.js, server/slime-ai.cjs, server/field-combat.cjs, server/field-training.cjs, src/core/prologue-client.js, src/systems/prologue.js, tests/slime-ai.test.js, tests/training.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2c-independent.md — AI/สวนกลับ/เลือด/ล้มเฉพาะลานฝึกเดิม ไม่เปิดlive ไม่เปลี่ยนดรอป/เศรษฐกิจ
+## PLAY-E2c — AIสไลม์/สวนกลับ/เลือด/ล้มในลานฝึก (2026-11-02)
+**สถานะ: เชื่อมserver/controller/UIแล้ว ตรวจตรรกะและวงจรWebSocketแล้ว ยังไม่ผ่านภาพ/browser/มือถือ**
+- โหมดV6_PROLOGUE_TESTเดิม defaultoff memory/file single-writer ไม่เปลี่ยนจุดเกิด/สถานะโลกจริง ลานฝึกยังเป็นพื้นที่แยก8ตัว ไม่มีrespawnโลก/ดรอป/XPมอน/คอมโบฟัน/อาชีพอื่น/บทown-blade
+- เพิ่มserver/slime-ai.cjsและข้อมูลSLIME_AI/TRAINING_VITALSในdata/combat.js ใช้ค่าจาก017-core/014-coreและ031-core:7191 ไม่ใช้สูตรมอนโซน: รอบกระโดด.9วิ เคลื่อนช่วง.3–.7 ความเร็ว70 ไล่เมื่อใกล้170 เลือกทิศเมื่อครบรอบ; นอกระยะสุ่มเดิน/หยุดและชนขอบ/กำแพง
+- สัมผัสระยะ20หลังphase.3 สวนได้เมื่อมอนไม่hurt/coolและผู้เล่นไม่มีiframe ใช้ดาเมจLv1=3 ตีซ้ำใน4วิ+8, iframe.8, มอนcool1.2, stun.28 แรงกระเด็น55/หนัก240 มอนสะท้อน140 ฟันโดนมอนhurt.25/กระเด็น240 decay.02 ตามเกมเดิม ขอบเขตตัวละครLv1stats0ไม่มีเกราะ/ออปจึงDEF0/หลบ0 ไม่อ้างรองรับสูตรอาชีพอื่นแล้ว
+- ฟื้นเลือดหลังไม่โดน4.5วิที่2.2/วิ แต่HP0ไม่ฟื้นเองและไม่เดิน/ฟันต่อ ท่าค้างถูกยกเลิกเมื่อมึน/ล้ม ไม่สร้างkillproofจากท่านั้น กลับhallหรือออกโหมดได้ คืนHP/maxHPเดิมตามbookmark
+- กติกาลานฝึก: เลือด/แรง/ล้มเป็นsessionชั่วคราว กลับhall/เข้าใหม่เริ่มHP100 ไม่ลงโทษเงิน/XP/ของและไม่เขียนHPลงprofileจริง นี่ไม่ใช่ระบบตายฟื้น/บทลงโทษproductionที่อนุมัติใหม่ คงprogressฆ่าที่บันทึกแล้วตามledger
+- clientส่งinput/sequenceเหมือนเดิม ไม่มีทางส่งhp/alive/damage/killมาเปลี่ยนserver เพิ่มHP/ข้อความล้ม ปิดปุ่มฟันตอนมึน/ล้ม แสดงกระโดดและhurtจากserverphase ไม่เพิ่มassetใหม่
+- AI/vitalsใช้เวลาserverที่ผ่านadvanceจำกัด120msต่อคำขอตามลานเดิม ไม่คิดย้อนหลังยาว ไม่ใช่ลูปโลกต่อเนื่องเมื่อไม่มีคำขอ จึงยังไม่พร้อมใช้กับโลกออนไลน์production ต้องทำfixed-step/shared-worldก่อน
+- slime-ai9/9และtraining10/10ผ่าน รวมฆ่าสไลม์ที่เคลื่อนที่ครบ8→ส่งราชา→รับบท1ผ่านWebSocketจริง (clockserverจำลอง); tests/huntปรับตามเป้าเคลื่อนที่และรองรับกลับhallเมื่อล้ม ไม่เสกkillfixture
+- ตรวจอิสระผ่าน ไม่พบข้อบกพร่องที่มีผลจริงในขอบเขต ดูreviews/PLAY-E2c-independent.md; combatเดิม16/prologue10ยังผ่าน ชุดเต็ม280ผ่าน1รันไม่ได้เพราะwsในflood test บางรายการข้าม ไม่อ้างผ่านทั้งชุด
+- browser/prologue.spec.jsปรับรอHPลด/ฟันมอนเคลื่อนที่/กลับhallเมื่อล้มแล้วส่งบท1 syntaxผ่าน ลองรันไม่เริ่มเพราะChromium headless_shell1234ไม่มี ไม่มีภาพก่อน–หลังหรือผลมือถือ ไม่รับรองUIภาพ/ทัช
+- ปลดจองPLAY-E2cแล้ว งานอยู่PR #1 ไม่รวมmain ไม่เปลี่ยนRender/เปิดlive
+
+### จุดที่หยุดไว้ / งานถัดไป
+1. ตรวจภาพ/อินพุต/ปุ่มจริงบนdesktopและmobileviewport (แยกมือถือจริง) โดยเฉพาะมอนกระโดด แถบHP ชะงักและกลับหลังล้ม
+2. ทำsimulationโลกตามserver fixed-stepแทนการอัปเดตเมื่อรับคำขอ ก่อนใช้กับโลกจริง รวมspawn/respawn/เพื่อนร่วมฉาก/ความทนทานsessionตามขอบเขตต่อไป
+3. เชื่อมดรอป/XPมอน/คอมโบและไอเท็มครบตามสูตรเดิม/ธุรกรรมserver ไม่เปลี่ยนเศรษฐกิจเพื่อเร่งเควสต์ และทำบทown-blade/ย้ายเซฟ/CASหลายwriterภายหลัง
 
 ## PLAY-E2b — เชื่อมลานทดสอบล่าสไลม์ผ่านrouteและUI (2026-11-02)
 **สถานะ: route/controller/UIเชื่อมแล้ว ตรวจserverและWebSocketครบวงจรแล้ว ยังไม่ตรวจภาพ/browser/มือถือ**

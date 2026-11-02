@@ -102,3 +102,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - inputส่งmx/my/runและattackส่งsequenceเท่านั้น actorในserverถือพิกัด/แรง/สถานะ และfield-combatเลือกเป้า/คำนวณdamageเอง ไม่เพิ่มbus events
 - การเซฟยังอ่านprologueBookmarkเดิม ไม่บันทึกพิกัดลานทับตำแหน่งปกติ ออก/หลุดล้างทั้งprologueActive/prologueFieldและคืนbookmark
 - ขอบลาน/ตำแหน่งสไลม์นิ่งเป็นtestlayout ไม่ใช่ค่าดุลหรือspawnproduction ไม่รองรับdash/คลิกเดิน/AI/สวนกลับ/ดรอป/XPมอน
+
+## PLAY-E2c — สุขภาพ/AIเฉพาะลานฝึก (2026-11-02)
+- field-trainingเป็นเจ้าของHP/maxHP/alive/stunned/iframe/แรงกระเด็นของactorในserver ไม่มีrouteเขียนHPโดยตรง ไม่บันทึกHPนี้ในprofileเงินจริง
+- field-combat.stepรับframe{dt,bounds}เฉพาะผู้เรียกserverที่เปิดenableAI:true ไม่เพิ่มrouteclientสำหรับframe; โหมดลานจริงเปิดAIจากserver ไม่มีตัวเลือกclientปิดAI
+- prologue-clientเขียนG.player.hp/maxHpจากactorยืนยันเฉพาะfield เก็บHP/maxHPปกติในbookmarkภายในแล้วคืนเมื่อhall/ออก/หลุด; G.ui.prologueBookmarkสำหรับmovement.saveยังใช้ตำแหน่ง/แรงเดิม ไม่เพิ่มเลือดลานเข้าเซฟ
+- entitysnapshotเพิ่มphase/hurtเพื่อวาดการกระโดด/โดนตี และactorเพิ่มhp/maxHp/alive/stunned/hitCount/lastHit ไม่มีbusใหม่
+- HP0เป็นการล้มในลานฝึก หยุดโจมตี/เดิน มีปุ่มกลับhall ไม่ใช่ระบบตายฟื้นหรือบทลงโทษโลกจริง; AIอัปเดตเมื่อรับคำขอแบบจำกัดdt ไม่ใช่shared-world clock

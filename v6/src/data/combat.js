@@ -10,3 +10,15 @@ export const FIELD_COMBAT = {
   /* ขอบเขตความจำ session ของAPIใหม่ ไม่ใช่ค่าดุลเกม */
   maxEntities:24, maxSequence:2147483647,
 };
+/* 017-core updSlimes/hurtPlayer014 + ค่าสุดท้าย031-core:7191
+   ขอบเขตลานLv1 stats0: DEF0/หลบ0 ไม่มีเกราะ/บัฟ/อาชีพ */
+export const SLIME_AI = {
+  cycle:.9, hopFrom:.3, hopTo:.7, chaseRange:170, speed:70, wanderChance:.7,
+  contactRange:20, cooldown:1.2, hurtTime:.25, slashKnockback:240, recoil:140,
+  decay:.02, stopImpulse:4,
+};
+export const TRAINING_VITALS = {
+  hp:100, damage:3, levelDamage:2, comboDamage:8, comboWindow:4,
+  iframe:.8, stun:.28, knockback:55, heavyKnockback:240,
+  regenDelay:4.5, regen:2.2,
+};

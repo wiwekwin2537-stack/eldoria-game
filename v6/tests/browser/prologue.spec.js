@@ -1,4 +1,4 @@
-/* PLAY-E2b browser acceptance: ต้องมี playwright Chromium และ ws · บัญชีทดสอบในmemoryเท่านั้น
+/* PLAY-E2c browser acceptance: ต้องมี playwright Chromium และ ws · บัญชีทดสอบในmemoryเท่านั้น
    node v6/tests/browser/prologue.spec.js · ไม่เปิดเว็บไซต์จริง/ไม่เปลี่ยนenvของRender */
 import {createRequire} from 'node:module';
 import http from 'node:http';
@@ -20,12 +20,13 @@ try{
   await page.locator('#p0-talk').click();await page.locator('#p0-claim').waitFor({state:'visible'});assert((await page.locator('#p0-dialog').innerText()).includes('พระราชาอัลดริค'),'พระราชา');await page.locator('#p0-claim').click();await page.waitForFunction(()=>window.__G.player.coin===50);
   const profile=await api.saves.readServer(id);assert(profile.coin===50&&Object.keys(profile.inventory.gear).length===3,'รางวัลครบ');assert(profile.inventory.stacks.hpp===3&&profile.inventory.stacks.scroll===2,'ของครบ');
   await page.locator('#p0-field').click();await page.waitForFunction(()=>window.__G.ui.prologueField);
-  const origin=await page.evaluate(()=>({x:window.__G.player.x,y:window.__G.player.y-72}));
-  async function walkAxis(axis,target){let at=await page.evaluate(a=>window.__G.player[a],axis);if(Math.abs(at-target)<8)return;const positive=target>at,key=axis==='x'?(positive?'ArrowRight':'ArrowLeft'):(positive?'ArrowDown':'ArrowUp');await page.keyboard.down(key);await page.waitForFunction(({axis,target,positive})=>positive?window.__G.player[axis]>=target-8:window.__G.player[axis]<=target+8,{axis,target,positive},{timeout:15000});await page.keyboard.up(key);await page.waitForTimeout(300);}
-  for(const [dx,dy] of [[-40,-40],[0,-40],[40,-40],[-40,0],[40,0],[-40,40],[0,40],[40,40]]){
+  await page.waitForFunction(()=>window.__G.player.hp<100,{},{timeout:20000});assert((await page.locator('#p0-bar').innerText()).includes('HP'),'แสดงHP');
+  for(let attempt=0;attempt<90;attempt++){
     const saved=await api.saves.readServer(id);if(saved.storyLedger.state.progress[0]>=8)break;
-    await walkAxis('x',origin.x+dx);await walkAxis('y',origin.y+dy+16);await page.keyboard.down('ArrowUp');await page.waitForFunction(()=>window.__G.player.dir==='u');await page.keyboard.up('ArrowUp');await page.waitForTimeout(300);
-    for(let k=0;k<3;k++){await page.locator('#p0-attack').click();await page.waitForTimeout(900);}
+    if(await page.evaluate(()=>window.__G.player.hp<=0)){
+      await page.locator('#p0-hall').click();await page.waitForFunction(()=>window.__G.scene.id==='shop.hall');await page.keyboard.down('ArrowUp');await page.waitForFunction(()=>window.__G.player.y<225);await page.keyboard.up('ArrowUp');await page.locator('#p0-talk').click();await page.locator('#p0-field').click();await page.waitForFunction(()=>window.__G.ui.prologueField);
+    }
+    if(await page.locator('#p0-attack').isEnabled())await page.locator('#p0-attack').click();await page.waitForTimeout(650);
   }
   const hunted=await api.saves.readServer(id);assert(hunted.storyLedger.state.progress[0]===8,'ล่า8');await page.locator('#p0-hall').click();await page.waitForFunction(()=>window.__G.scene.id==='shop.hall');await page.keyboard.down('ArrowUp');await page.waitForFunction(()=>window.__G.player.y<225);await page.keyboard.up('ArrowUp');await page.locator('#p0-talk').click();await page.locator('#p0-claim').click();await page.waitForFunction(()=>window.__G.player.coin===170);assert((await api.saves.readServer(id)).inventory.stacks.mpp===2,'รางวัลบท1');
   const box=await page.locator('#p0-close').boundingBox();assert(box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height,'ปุ่มอยู่ในจอ');await page.locator('#p0-close').click();

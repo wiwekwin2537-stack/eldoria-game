@@ -6,12 +6,14 @@
    attack รับแค่ลำดับคำสั่ง; server เลือกเป้า/คิดdamage/จับเวลาและให้proofเอง
    เริ่มเฉพาะfirst-light+kitดาบ0ไม่มีออป ยังไม่รองรับคอมโบ/อาชีพ/ของขั้นอื่น */
 const {randomUUID}=require('crypto');
+const {createSlimeSimulation}=require('./slime-ai.cjs');
 const {createEldoriaStoryService,createStoryRewardAdapter}=require('./story-rewards.cjs');
 function fail(code){const e=new Error(code);e.code=code;throw e;}
 function sync(v){if(v&&typeof v.then==='function'){Promise.resolve(v).catch(()=>{});fail('combat-authority-async');}return v;}
-async function createFieldCombat({saves,storageMode,isActive,readActor,spendStamina,now=Date.now,random=Math.random}={}){
+async function createFieldCombat({saves,storageMode,isActive,readActor,spendStamina,enableAI=false,now=Date.now,random=Math.random}={}){
   if(storageMode!=='single-writer'||![isActive,readActor,spendStamina].every(f=>typeof f==='function'))fail('combat-authority-unavailable');
   const [{FIELD_COMBAT:C},{getMap,hit},{T},{MOVE}]=await Promise.all([import('../src/data/combat.js'),import('../src/systems/world.js'),import('../src/config.js'),import('../src/data/movement.js')]);
+  const simulation=await createSlimeSimulation({blocked:(x,y)=>hit(x,y,null,getMap(C.scene)),random});
   const map=getMap(C.scene),adapter=await createStoryRewardAdapter(),encounters=new WeakMap(),proofs=new Map(),queues=new Map();
   const dirs={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
   const active=conn=>!!conn?.lid&&!!conn.sid&&sync(isActive(conn))===true;
@@ -26,7 +28,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
     queues.set(lid,next);return next.finally(()=>{if(queues.get(lid)===next)queues.delete(lid);});
   }
   function rng(){const n=random();if(!Number.isFinite(n)||n<0||n>=1)fail('combat-random');return n;}
-  function snapshot(e){return {sequence:e.sequence,swing:e.swing?{sequence:e.swing.sequence,start:e.swing.start,end:e.swing.end,hitAt:e.swing.hitAt}:null,entities:e.entities.map(m=>({id:m.id,x:m.x,y:m.y,level:m.level,hp:m.hp,maxHp:m.maxHp,dead:m.dead,pending:!!m.pending})),last:e.last?structuredClone(e.last):null};}
+  function snapshot(e){return {sequence:e.sequence,swing:e.swing?{sequence:e.swing.sequence,start:e.swing.start,end:e.swing.end,hitAt:e.swing.hitAt}:null,entities:e.entities.map(m=>({id:m.id,x:m.x,y:m.y,level:m.level,hp:m.hp,maxHp:m.maxHp,dead:m.dead,pending:!!m.pending,phase:m.phase||0,hurt:m.hurt||0})),last:e.last?structuredClone(e.last):null};}
   async function flush(e){for(const m of e.entities){if(!m.pending)continue;const event=m.pending;
       try{const current=await service.read(e.lid);if(current.state.chapterId==='first-light'&&!current.view.ready)await service.record(e.lid,event.id);m.dead=true;m.pending=null;proofs.delete(event.id);}catch(err){throw err;}
     }}
@@ -40,7 +42,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
     /* สไลม์เดิมไม่อยู่ในD.zone แต่ตรวจLOSฝั่งserverเพื่อไม่สร้างหลักฐานผ่านสิ่งกีดขวาง */
     const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/MOVE.step));for(let i=1;i<=n;i++)if(hit(p.x+dx*i/n,p.y+dy*i/n,null,map))return false;return true;
   }
-  async function stepCore(conn,e){await flush(e);if(!active(conn))fail('combat-session');const s=e.swing;if(!s)return snapshot(e);
+  async function stepCore(conn,e){await flush(e);if(!active(conn))fail('combat-session');const s=e.swing;if(!s)return snapshot(e);const actor=sync(readActor(conn));if(actor?.alive===false||actor?.stunned===true){e.swing=null;return snapshot(e);}
     const t=now();if(!Number.isFinite(t)||t<s.start)fail('combat-clock');
     if(!s.resolved&&t>=s.hitAt){
       if(t<s.hitEnd){const p=pose(conn);const staged=[];
@@ -48,7 +50,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
         for(const m of e.entities){if(m.dead||m.pending||m.hp<=0||s.hitIds.has(m.id)||!contact(p,m))continue;const crit=rng()<C.damage.critBase+s.character.stats.agi*C.damage.critAgi;
           const base=Math.round(C.damage.base+C.damage.sword0+s.character.stats.str+((s.character.level-1)>>1));
           const damage=Math.max(1,Math.round(base*(C.damage.spreadMin+rng()*C.damage.spreadWidth)*(crit?C.damage.critMul:1)));staged.push({m,damage,crit});}
-        for(const {m,damage,crit} of staged){s.hitIds.add(m.id);m.hp=Math.max(0,m.hp-damage);e.last.hits.push({id:m.id,damage,crit});if(m.hp===0){const id=randomUUID();m.pending={id};proofs.set(id,{id,lid:e.lid,conn,encounter:e});}}
+        for(const {m,damage,crit} of staged){s.hitIds.add(m.id);m.hp=Math.max(0,m.hp-damage);if(enableAI)simulation.slash(m,p);e.last.hits.push({id:m.id,damage,crit});if(m.hp===0){const id=randomUUID();m.pending={id};proofs.set(id,{id,lid:e.lid,conn,encounter:e});}}
       }else s.resolved=true;
       await flush(e);
     }
@@ -70,7 +72,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
     const duration=C.slash.durationMs*(p.sp-C.slash.stamina<C.lowStamina?C.tiredDurationMul:1);if(!active(conn))fail('combat-session');if(sync(spendStamina(conn,C.slash.stamina))!==true)fail('combat-stamina');
     e.sequence=sequence;e.last={sequence,hits:[]};e.swing={sequence,start:t,end:t+duration,hitAt:t+duration*C.slash.hitFrom,hitEnd:t+duration*C.slash.hitTo,resolved:false,hitIds:new Set(),character:c};return snapshot(e);
   });}
-  function step(conn){return serial(conn,()=>stepCore(conn,current(conn)));}
+  function step(conn,frame){return serial(conn,async()=>{const e=current(conn);await flush(e);if(frame!==undefined){if(enableAI!==true)fail('combat-authority-unavailable');simulation.step(e.entities,sync(readActor(conn)),frame.dt,frame.bounds);}return stepCore(conn,e);});}
   function close(conn){const e=encounters.get(conn);if(e)for(const m of e.entities)if(m.pending)proofs.delete(m.pending.id);encounters.delete(conn);}
   return {open,attack,step,close,readStory:lid=>service.read(lid)};
 }
