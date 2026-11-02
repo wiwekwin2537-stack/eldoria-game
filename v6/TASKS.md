@@ -1,5 +1,9 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง PLAY-P0 — 2026-11-02
+ChatGPT · เจ้าของสั่งต่อและถามความคืบหน้า · โหมดทดสอบบทนำแบบ opt-in: server/prologue.cjs ใหม่, server/{proto,index}.cjs, src/data/prologue.js ใหม่, src/core/net.js, src/systems/{prologue,index,world,movement}.js, assets/npc/king-v587.png (คัดลอกภาพเดิม), tests/prologue.test.js และ tests/browser/prologue.spec.js ใหม่, CONTRACT.md,TASKS.md,CHANGELOG.md,STORY.md,reviews/PLAY-P0-independent.md · ปิดค่าเริ่มต้น ไม่เปลี่ยนspawnเกมปกติ ไม่เปิดRenderจริง
+
+
 ## STORY-E3b1 — กระเป๋า/UID/XP และรางวัลจริงบท0–2 (2026-11-02)
 เจ้าของสั่งทำต่อ เพิ่ม src/data/items.js, src/data/economy.js, server/inventory.cjs, server/story-rewards.cjs และ tests/server.inventory.test.js
 **สถานะ: โค้ดและตรวจอิสระโมเดลฝั่งเซิร์ฟเวอร์แล้ว ยังไม่เชื่อมเล่น/ยังไม่ขึ้นเว็บจริง**
