@@ -122,3 +122,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - actorเพิ่มencounterId/potionSequence/potionCooldownMs/potionPending เป็นผลยืนยันสำหรับUI ไม่มีG/busใหม่ ใช้input.pressed potionHpเดิมและปุ่มp0-potion
 - profile.server.potionUse version1เป็นreceiptล่าสุดขนาดคงที่ inventoryลดและreceiptพร้อมกันก่อนapplyHP memory; cooldownคงข้ามepoch ข้อมูลเก่าไม่มีfieldนี้เริ่มได้ ข้อมูลผิดไม่resetเงียบ
 - ผลstorageคลุมเครือให้pendingfreezeเฉพาะencounterและtimerretryก่อนsimulation ไม่รับHPหรือitemจากclient ไม่applyreceiptข้ามepoch และไม่อ้างHPdurabletransaction
+
+## COMBO-3 — ข้อมูลท่าที่serverถือ (code-only 2026-11-03)
+- payloadattackยังเป็นsequenceเดิม ไม่รับcombo/spin/radius/staminaจากclient serverกำหนดและคิวได้หนึ่งsequenceหลังphase>.3
+- battleเพิ่มqueuedSequence/queuedError และswingเพิ่มcombo(0–2)/spin/phase/radius UIอ่านเพื่อวาดและแสดงป้าย ไม่มีG/busใหม่
+- ท่าต่อเริ่มด้วยbeginภายในคิวเดิม รับเวลา ณcommitหลังawait ตรวจchapter/profile/actor/sessionและแรงก่อนหัก ไม่เรียกserialattackซ้อนจากtimer
+- interruptล้างสาย/คิวและไม่ให้bufferข้ามการล้ม ค่าแรงอ้างชั้นท้าย031:2630 ฟัน1หมุน1.5
+- ยังไม่รันตรวจใดๆตามเจ้าของ ต้องทบทวนassert3ของเทสเก่าเมื่อกลับมาเทส ไม่ถือว่าข้อกำหนด runtime ผ่านแล้ว

@@ -4,7 +4,10 @@
 export const FIELD_COMBAT = {
   scene: 'field',
   slime: { minLevel:1, maxLevel:5, baseHp:2 },
-  slash: { durationMs:550, hitFrom:.2, hitTo:.7, radius:34, reach:26, behind:12, stamina:3 },
+  slash: { durationMs:550, hitFrom:.2, hitTo:.7, radius:34, reach:26, behind:12, stamina:1 },
+  /* คอมโบ 031:809/774 + 070:15; ค่าแรงชั้นท้าย031:2630 ไม่ใช้ค่า3/5จาก1710ที่ถูกทับแล้ว */
+  combo: { windowMs:450, queueAfter:.3, steps:3 },
+  spin: { durationMs:850, hitFrom:.12, hitTo:.88, radius:50, stamina:1.5 },
   lowStamina:20, tiredDurationMul:1.3,
   damage: { base:1, sword0:0, spreadMin:.9, spreadWidth:.2, critBase:.08, critAgi:.004, critMul:1.8 },
   /* ขอบเขตความจำ session ของAPIใหม่ ไม่ใช่ค่าดุลเกม */
