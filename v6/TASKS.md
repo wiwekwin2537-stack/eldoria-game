@@ -1,5 +1,8 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
+## จอง PLAY-E2c (2026-11-02)
+ChatGPT: src/data/combat.js, server/slime-ai.cjs, server/field-combat.cjs, server/field-training.cjs, src/core/prologue-client.js, src/systems/prologue.js, tests/slime-ai.test.js, tests/training.test.js, tests/browser/prologue.spec.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2c-independent.md — AI/สวนกลับ/เลือด/ล้มเฉพาะลานฝึกเดิม ไม่เปิดlive ไม่เปลี่ยนดรอป/เศรษฐกิจ
+
 ## PLAY-E2b — เชื่อมลานทดสอบล่าสไลม์ผ่านrouteและUI (2026-11-02)
 **สถานะ: route/controller/UIเชื่อมแล้ว ตรวจserverและWebSocketครบวงจรแล้ว ยังไม่ตรวจภาพ/browser/มือถือ**
 - เปิดต่อจากV6_PROLOGUE_TEST=1เดิม เฉพาะmemory/file single-writer ค่าเริ่มปิด ไม่เปิดlive ไม่เปลี่ยนจุดเกิด/การเดินโหมดปกติ
