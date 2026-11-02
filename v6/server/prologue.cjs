@@ -6,7 +6,7 @@ const {createFieldTraining}=require('./field-training.cjs');
 const { createEldoriaStoryService } = require('./story-rewards.cjs');
 async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }={}) {
   const [{PROLOGUE:P},{MOVE,DASH},{getMap,hit},{T}] = await Promise.all([import('../src/data/prologue.js'),import('../src/data/movement.js'),import('../src/systems/world.js'),import('../src/config.js')]);
-  const map=getMap(P.scene), actors=new WeakMap(), proofs=new Map();
+  const map=getMap(P.scene), actors=new WeakMap(), proofs=new Map(),connections=new Set();let stopped=false;const ticking=new WeakMap();
   const fail=code=>{const e=new Error(code);e.code=code;throw e;};
   const training=await createFieldTraining({saves,now,isActive}),queues=new WeakMap();
   const near=a=>!training.active(a.conn)&&Math.hypot(a.x-P.king.x,a.y-P.king.y)<P.king.range&&a.y>P.king.minY;
@@ -15,9 +15,9 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
   const service=await createEldoriaStoryService({saves,storageMode:'single-writer',verifyEvidence:ctx=>{
     const a=valid(ctx);return a?{id:a.ticket,chapterId:'awakening',kind:'talk',target:'king'}:false;
   },verifyReport:ctx=>{const a=valid(ctx);return a&&a.reportChapter===ctx.chapterId&&['awakening','first-light'].includes(ctx.chapterId)?{chapterId:ctx.chapterId,npc:'king'}:false;}});
-  function closed(conn) { training.close(conn); const a=actors.get(conn);if(a?.ticket)proofs.delete(a.ticket);actors.delete(conn); }
+  function closed(conn) { connections.delete(conn);training.close(conn); const a=actors.get(conn);if(a?.ticket)proofs.delete(a.ticket);actors.delete(conn); }
   function actor(conn) {
-    let a=current(conn);if(!a){closed(conn);a={conn,lid:conn.lid,sid:conn.sid,x:P.spawn[0]*T,y:P.spawn[1]*T,dir:P.spawn[2],at:now(),budget:P.initialCredit,dashAt:-1e15,ticket:null};actors.set(conn,a);}return a;
+    let a=current(conn);if(!a){closed(conn);a={conn,lid:conn.lid,sid:conn.sid,x:P.spawn[0]*T,y:P.spawn[1]*T,dir:P.spawn[2],at:now(),budget:P.initialCredit,dashAt:-1e15,ticket:null};actors.set(conn,a);connections.add(conn);}return a;
   }
   const pose=a=>({scene:P.scene,x:a.x,y:a.y,dir:a.dir});
   function issue(a,chapter='awakening') {a.reportChapter=chapter;if(a.ticket)proofs.delete(a.ticket);a.ticket=randomUUID();a.issued=now();proofs.set(a.ticket,a);return a.ticket;}
@@ -36,6 +36,7 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
   }
   async function state(lid) { const [story,profile]=await Promise.all([service.read(lid),saves.readServer(lid)]);return {story,profile:{coin:profile.coin,character:profile.character||null,inventory:profile.inventory||null}}; }
   async function run(conn,command) {
+    if(stopped)return {ok:false,error:'unavailable'};
     if(!conn.lid||!conn.sid||!isActive(conn))return {ok:false,error:'session'};
     const lid=conn.lid;if(!await saves.claim(lid,conn.sid,()=>isActive(conn)))return {ok:false,error:'session'};
     if(!command||typeof command!=='object'||Array.isArray(command))return {ok:false,error:'command'};
@@ -67,7 +68,10 @@ async function createPrologue({ saves, now=()=>Date.now(), isActive=()=>false }=
       fail('command');
     }catch(e){return {ok:false,error:e.code||e.message||'server',...(a&&!training.active(conn)?{actor:pose(a)}:{})};}
   }
-  function handle(conn,command){const previous=queues.get(conn)||Promise.resolve();const next=previous.catch(()=>{}).then(()=>run(conn,command));queues.set(conn,next);return next.finally(()=>{if(queues.get(conn)===next)queues.delete(conn);});}
-  return {handle,closed};
+  function enqueue(conn,work){const previous=queues.get(conn)||Promise.resolve();const next=previous.catch(()=>{}).then(work);queues.set(conn,next);return next.finally(()=>{if(queues.get(conn)===next)queues.delete(conn);});}
+  const handle=(conn,command)=>enqueue(conn,()=>run(conn,command));
+  function tick(){if(stopped)return Promise.resolve();const jobs=[];for(const conn of connections){if(ticking.has(conn))continue;const job=enqueue(conn,()=>{if(stopped)return;if(!isActive(conn)){closed(conn);return;}if(training.active(conn))return training.pump(conn);}).finally(()=>{if(ticking.get(conn)===job)ticking.delete(conn);});ticking.set(conn,job);jobs.push(job);}return Promise.allSettled(jobs).then(results=>{const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;});}
+  function stop(){stopped=true;for(const conn of [...connections])closed(conn);}
+  return {handle,closed,tick,stop,tickMs:training.tickMs};
 }
 module.exports={createPrologue};

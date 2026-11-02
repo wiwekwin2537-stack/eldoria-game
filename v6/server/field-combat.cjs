@@ -43,7 +43,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
     const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/MOVE.step));for(let i=1;i<=n;i++)if(hit(p.x+dx*i/n,p.y+dy*i/n,null,map))return false;return true;
   }
   async function stepCore(conn,e){await flush(e);if(!active(conn))fail('combat-session');const s=e.swing;if(!s)return snapshot(e);const actor=sync(readActor(conn));if(actor?.alive===false||actor?.stunned===true){e.swing=null;return snapshot(e);}
-    const t=now();if(!Number.isFinite(t)||t<s.start)fail('combat-clock');
+    const t=now(conn);if(!Number.isFinite(t)||t<s.start)fail('combat-clock');
     if(!s.resolved&&t>=s.hitAt){
       if(t<s.hitEnd){const p=pose(conn);const staged=[];
         /* เตรียมdamageทั้งหมดก่อนแตะเลือด กันrandom/dataพังแล้วเกิดผลบางตัว */
@@ -68,7 +68,7 @@ async function createFieldCombat({saves,storageMode,isActive,readActor,spendStam
     const e=current(conn);if(!Number.isSafeInteger(sequence)||sequence<1||sequence>C.maxSequence)fail('combat-sequence');
     await stepCore(conn,e);if(sequence===e.sequence)return snapshot(e);if(sequence!==e.sequence+1)fail('combat-sequence');if(e.swing)fail('combat-cooldown');
     const story=await service.read(conn.lid);if(story.state.chapterId!=='first-light'||story.view.ready||story.view.needsReconciliation)fail('combat-chapter');
-    const c=weapon(await saves.readServer(conn.lid)),p=pose(conn),t=now();if(!Number.isFinite(t))fail('combat-clock');if(p.sp<C.slash.stamina)fail('combat-stamina');
+    const c=weapon(await saves.readServer(conn.lid)),p=pose(conn),t=now(conn,'attack');if(!Number.isFinite(t))fail('combat-clock');if(p.sp<C.slash.stamina)fail('combat-stamina');
     const duration=C.slash.durationMs*(p.sp-C.slash.stamina<C.lowStamina?C.tiredDurationMul:1);if(!active(conn))fail('combat-session');if(sync(spendStamina(conn,C.slash.stamina))!==true)fail('combat-stamina');
     e.sequence=sequence;e.last={sequence,hits:[]};e.swing={sequence,start:t,end:t+duration,hitAt:t+duration*C.slash.hitFrom,hitEnd:t+duration*C.slash.hitTo,resolved:false,hitIds:new Set(),character:c};return snapshot(e);
   });}

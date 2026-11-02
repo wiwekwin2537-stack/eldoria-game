@@ -140,12 +140,13 @@ function createV6({ store, env = process.env, now = () => Date.now(), log = m =>
   store = M.budgetStore(raw, { perMin: +env.V6_STORE_PER_MIN || 120, perDay: +env.V6_STORE_PER_DAY || 4000, now, log });
   const accounts = M.createAccounts({ store, env, now });
   const saves = M.createSaves({ store, now, cacheBytes: (+env.V6_SAVE_CACHE_MB > 0 ? +env.V6_SAVE_CACHE_MB : 32) * 1048576 }); /* 1B-g N1 */
-  let prologue = null;
+  let prologue = null,trainingTimer=null,stopped=false;
   if (env.V6_PROLOGUE_TEST === '1') {
     if (!['memory','file'].includes(raw.kind)) throw new Error('prologue test requires local single-writer storage');
     const ready = require('./prologue.cjs').createPrologue({saves,now,isActive:c=>!c.dead&&!!c.lid&&proto.sessions.get(c.lid)===c});
     ready.catch(e=>log('[v6] prologue: '+e.message));
-    prologue={handle:(c,d)=>ready.then(p=>p.handle(c,d)),closed:c=>{ready.then(p=>p.closed(c)).catch(()=>{});}};
+    ready.then(p=>{if(stopped){p.stop();return;}trainingTimer=setInterval(()=>{p.tick().catch(e=>log('[v6] training tick: '+e.message));},p.tickMs);trainingTimer.unref&&trainingTimer.unref();}).catch(()=>{});
+    prologue={stop:()=>{ready.then(p=>p.stop()).catch(()=>{});},handle:(c,d)=>ready.then(p=>p.handle(c,d)),closed:c=>{ready.then(p=>p.closed(c)).catch(()=>{});}};
   }
   const proto = M.createProto({ accounts, saves, now, log, authTimeoutMs, prologue });
   const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -214,7 +215,7 @@ function createV6({ store, env = process.env, now = () => Date.now(), log = m =>
     return api;
   }
 
-  function stop() { clearInterval(sweepTimer); if (pingTimer) clearInterval(pingTimer); if (wss) for (const ws of wss.clients) ws.terminate(); }
+  function stop() { stopped=true;if(trainingTimer)clearInterval(trainingTimer);prologue&&prologue.stop();clearInterval(sweepTimer); if (pingTimer) clearInterval(pingTimer); if (wss) for (const ws of wss.clients) ws.terminate(); }
 
   const api = { http: serveHttp, attach, upgrade: safeUpgrade, stop, sweep, accounts, saves, proto, store, rawStore: raw, ipCount };
   return api;

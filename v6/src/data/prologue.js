@@ -6,5 +6,8 @@ export const PROLOGUE = {
   king: { x:416, y:114, range:118, minY:116, src:'v6/assets/npc/king-v587.png', cell:[96,128], size:[36,48] },
   syncMs:120, traceMax:24, creditMs:1000, initialCredit:8, proofMs:30000,
 };
-/* ลานทดสอบแยกบนพื้นทุ่งเดิม ยังไม่มีAI/สวนกลับ/ดรอป ไม่ใช่จุดเกิดโลกจริง */
-export const TRAINING = { radius:96, mobOffset:40, spawnY:72, stepMs:120, inputLeaseMs:250 };
+/* ลานทดสอบแยกบนพื้นทุ่งเดิม มีAI/สวนกลับ ยังไม่มีดรอป ไม่ใช่จุดเกิดโลกจริง */
+export const TRAINING = { radius:96, mobOffset:40, spawnY:72, inputLeaseMs:250 };
+
+/* จังหวะsimulationของลานฝึกใหม่ ไม่ใช่ค่าดุลเศรษฐกิจ */
+export const TRAINING_CLOCK = { stepMs:20, maxSteps:10 };

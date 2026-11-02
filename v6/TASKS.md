@@ -1,7 +1,28 @@
 # 📋 ใบงาน v6 (อ่านคู่กับ v6/PLAN.md) — เสร็จแล้วลบทิ้ง ย้ายไป CHANGELOG.md
 
-## จอง PLAY-E2d (2026-11-02)
-ChatGPT: server/fixed-step.cjs, src/data/prologue.js, server/field-training.cjs, server/field-combat.cjs, server/prologue.cjs, server/index.cjs, tests/fixed-step.test.js, tests/training.test.js, CONTRACT.md, TASKS.md, STORY.md, CHANGELOG.md, reviews/PLAY-E2d-independent.md — นาฬิกาและtimerเซิร์ฟเวอร์เฉพาะลานฝึก ทดสอบlogic/WS เก็บQAหน้าจอไว้ก่อนเปิดทดสอบตามเจ้าของ ไม่เปิดliveหรือshared world
+## PLAY-E2d — นาฬิกาserverแยกจากคำสั่งผู้เล่น (2026-11-02)
+**สถานะ: โค้ด/ตรวจอิสระ/เทสserverและWebSocketแล้ว ตรวจหน้าจอเก็บเป็นรอบก่อนเปิดทดสอบตามเจ้าของ**
+- เจ้าของให้ทำระบบต่อและรวบตรวจภาพ/มือถือก่อนเปิดทดสอบ ไม่ถือว่ายกเลิกเทสตรรกะหรืออนุญาตเปิดlive
+- เพิ่มfixed-step.cjsและTRAINING_CLOCK20ms/max10: servertimerเดินAI/vitals/ท่าฟันของลานฝึกเองแม้ไม่มีinputใหม่ คำสั่งและtimerเข้าคิวเดียวต่อconn inputหมดอายุ250msแล้วหยุดเดิน แต่AIไม่หยุดตามข้อความ
+- ไม่มีclientdt/พิกัด/HP/killใหม่ ใช้serverclockเท่านั้น .take consumeก่อนdispatchไม่เล่นtickเดิมซ้ำหลังstorageพัง เก็บเศษเวลา และไม่นับclockที่ถอยกลับเป็นtickใหม่
+- ล่าช้าเกิน200msจำกัด10ก้าว/รอบและทิ้งช่วงเก่า ไม่catch-upย้อนหลังไม่สิ้นสุด ไม่อ้างว่าจำลองทุกวินาทีที่serverค้างครบ; ระบุ droppedMs ในclock.viewภายในสำหรับตรวจ
+- เริ่มท่าฟันรับเวลาสด ณจุดcommitหลังawaitสุดท้ายและskipBeforeไม่จำลองเวลาย้อนก่อนaction กันstorageช้าทำให้windowท่าหมดทันทีโดยเสียแรง
+- timerคุมin-flightแยกต่อconn ไม่รวมงานเดิมในpromiseของรอบใหม่ งานAค้างไม่หยุดBและไม่สะสมคิว .stop/closedยกเลิกลาน ไม่มีtimerเกิดทีหลังเมื่อstopก่อนasyncinitเสร็จ
+- ค่าเริ่มปิด V6_PROLOGUE_TEST=1ยังจำกัดmemory/file single-writer createV6สร้างintervalเฉพาะflagนี้และล้างเมื่อstop ไม่แตะRender/live/เกมเดิม
+- ยังเป็นลานฝึกส่วนตัวต่อconnection ไม่ใช่shared-world/มอนร่วมกัน/หลายwriter ไม่เพิ่มดรอป/XP/respawn/ของหรือเปลี่ยนตัวเลขดุลเดิม
+- fixed-step12/12 + training10/10ผ่าน รวมtimerจริงผ่านWebSocketขณะไม่ส่งinput (clockserverในเทสจำลอง); ตรวจอิสระแก้P2สองข้อด้วยregressionแดง→เขียว ดูreviews/PLAY-E2d-independent.md
+- ชุดเต็มท้ายรอบ292ผ่าน1รันไม่ได้เพราะflood testอ้าง /opt/npm-tools/node_modules/ws ที่ไม่มี บางเทสข้าม ไม่อ้างผ่านทั้งชุด
+- ปลดจองPLAY-E2dแล้ว งานอยู่PR #1 ไม่รวมmain ไม่มีUI/assetใหม่รอบนี้ ไม่รับรองภาพ/มือถือเพิ่ม
+
+### จุดที่หยุดไว้ / งานถัดไป
+1. ดรอป/XPมอนและกระเป๋าตามค่าเดิมพร้อมธุรกรรมserver ป้องกันรับซ้ำ/ที่เก็บพัง โดยไม่สร้างค่าดุลใหม่เอง
+2. ระบบใช้ของ/คอมโบ/ไอเท็มและอาชีพที่ยังขาด จากนั้นบทown-blade/ย้ายเซฟเก่า/CASหลายwriterตามลำดับที่เลือกทำ
+3. ก่อนเปิดทดสอบรวบตรวจbrowser desktop/mobileviewportและมือถือจริงตามที่เข้าถึงได้ ไม่ใช้เทสserverแทนผลหน้าจอ
+4. shared-world/มอนร่วมกันต้องออกแบบroom/session/world authorityต่อ ต่างจากtimerลานส่วนตัวที่ทำรอบนี้
+
+### สมุดบัค PLAY-E2d
+- P2 clockท่าฟันเก่าหลังรอstorage: เพิ่มregressionหน่วงclaim1วิ ก่อนแก้10ผ่าน1พัง swing101400แต่now102400 แก้รับเวลา ณcommitหลังawaitเป็น102400และไม่หมดทันที tickถัดไป
+- P2 globalpumpทำให้Aค้างแล้วBหยุด: regressionสองบัญชีก่อนแก้11ผ่าน1พัง แก้per-conn in-flight ข้ามงานเดิมไม่ผูกpromiseซ้ำ รอบท้าย12ผ่าน0พัง ผู้ตรวจยืนยันAค้างงานเดียว/Bเดินต่อและstopระหว่างงานค้างได้
 
 ## PLAY-E2c — AIสไลม์/สวนกลับ/เลือด/ล้มในลานฝึก (2026-11-02)
 **สถานะ: เชื่อมserver/controller/UIแล้ว ตรวจตรรกะและวงจรWebSocketแล้ว ยังไม่ผ่านภาพ/browser/มือถือ**

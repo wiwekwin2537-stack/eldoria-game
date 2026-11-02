@@ -109,3 +109,10 @@ action: `attack dash interact skill1..skill6 ult menu bag map recall skills poti
 - prologue-clientเขียนG.player.hp/maxHpจากactorยืนยันเฉพาะfield เก็บHP/maxHPปกติในbookmarkภายในแล้วคืนเมื่อhall/ออก/หลุด; G.ui.prologueBookmarkสำหรับmovement.saveยังใช้ตำแหน่ง/แรงเดิม ไม่เพิ่มเลือดลานเข้าเซฟ
 - entitysnapshotเพิ่มphase/hurtเพื่อวาดการกระโดด/โดนตี และactorเพิ่มhp/maxHp/alive/stunned/hitCount/lastHit ไม่มีbusใหม่
 - HP0เป็นการล้มในลานฝึก หยุดโจมตี/เดิน มีปุ่มกลับhall ไม่ใช่ระบบตายฟื้นหรือบทลงโทษโลกจริง; AIอัปเดตเมื่อรับคำขอแบบจำกัดdt ไม่ใช่shared-world clock
+
+## PLAY-E2d — clock/lifecycleภายในserver (2026-11-02)
+- prologueเพิ่มtick()/stop()/tickMs ใช้คิวเดียวกับhandleต่อconn; timercoalesceเฉพาะconnนั้น ข้ามงานเดิมในรอบใหม่เพื่อไม่สะสมpromises ห้องอื่นทำต่อได้
+- createV6สร้างintervalหลังasyncinitสำเร็จเฉพาะflagtestเดิม มีstoppedguardก่อนสร้างและล้างintervalเมื่อstop .unrefไม่ใช้แทนการล้างtimer
+- field-training.pumpประมวลผลfixed-step20ms/max10จากserver .takeเก็บเศษ/consumeก่อนdispatch .skipBeforeกันactionย้อนเวลาและclockถอยไม่ผลิตก้าวใหม่
+- field-combat now(conn,kind) สำหรับsimulationอ่านเวลาของtick; kind=attackรับเวลาสดและsyncclockหลังawaitสุดท้าย ณcommitท่า callbackภายในเท่านั้น ไม่รับเวลาจากclient
+- ไม่เพิ่มG/bus/routeใหม่ ไม่มีshared-worldหรือหลายwriter และไม่รับรองครบเวลาที่serverค้างเกิน200ms
