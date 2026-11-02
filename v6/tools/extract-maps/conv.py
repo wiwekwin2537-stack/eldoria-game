@@ -9,7 +9,6 @@ os.makedirs(OUT, exist_ok=True)
 d1 = json.load(open(X + 'dump.json'))
 d3 = json.load(open(X + 'dump3.json'))
 tw2 = json.load(open(X + 'town2.json'))
-c2t = json.load(open(X + 'c2t.json'))
 T = 32
 
 def rle(row):
@@ -135,35 +134,6 @@ def town():
     props.sort(key=lambda p: p[0])
     return ground, props
 
-# ======================= เมือง 2 =======================
-def city2():
-    c = d3['c2']
-    by = build_index(c['build'])
-    seen, props = set(), []
-    for fr in c['frames']:
-        main = fr['main']
-        for o in fr['ops']:
-            src = o['src']
-            if re.match(r'#\d+:(2688x2048|96x96)', src): continue
-            m = re.match(r'#\d+:(\d+)x(\d+)', src)
-            if m and int(m.group(1)) >= 400: continue
-            if not src.startswith('#'): continue
-            key = src
-            if key in seen: continue
-            seen.add(key)
-            oo = dict(o); oo['t'] = [1, 0, 0, 1, 0, 0]
-            fl = flatten(oo, by)
-            if not fl: continue
-            props.append((o['d'][1] + o['d'][3], fl))
-    # ของที่วาดลงพื้นตอนสร้าง (ไม่ใช่ลายพื้น)
-    ground = []
-    for o in by.get(c['cv'], []):
-        if o['src'].startswith('assets/city2/ground'): continue
-        if re.match(r'#\d+:128x128', o['src']): continue
-        ground += flatten(o, by)
-    props.sort(key=lambda p: p[0])
-    return ground, props
-
 # ภาพเกมเดิม → ภาพ webp ของ v6 (สร้างด้วย v6/tools/make-webp.py · งาน 1A-4) — ไฟล์ข้อมูลที่เขียนออกอ้างภาพ v6 เสมอ
 V6_ART = {
     'assets/town/ground-v538.png': 'v6/assets/town/ground-v538.webp',
@@ -173,10 +143,6 @@ V6_ART = {
     'assets/town/details-v560.webp': 'v6/assets/town/details-v560.webp',
     'assets/town/houses-v560.webp': 'v6/assets/town/houses-v560.webp',
     'assets/town/goddess-v562.webp': 'v6/assets/town/goddess-v562.webp',
-    'assets/city2/houses-v560.webp': 'v6/assets/city2/houses-v560.webp',
-    'assets/city2/remaining-v560.webp': 'v6/assets/city2/remaining-v560.webp',
-    'assets/city2/buildings-v558.webp': 'v6/assets/city2/buildings-v558.webp',
-    'assets/city2/ground-v558.webp': 'v6/assets/city2/ground-v558.webp',
     'assets/incoming/terrain-v585.png': 'v6/assets/world/terrain-v585.webp',
     'assets/incoming/tree-oak-v585.png': 'v6/assets/world/tree-oak-v585.webp',
     'assets/incoming/tree-ancient-v585.png': 'v6/assets/world/tree-ancient-v585.webp',
@@ -306,15 +272,15 @@ export const TOWN_ART = {{
     rows: {rows_js(rows)},
   }},
 """)
-    # ---------- เหมือง / ทุ่งสังหาร / ดันเมือง 2 (แบบ zone ทั่วไป) ----------
+    # ---------- เหมือง / ทุ่งสังหาร (เอโดเรียเท่านั้น) ----------
     zone_js = []
-    for zi in ['0', '1', '2', '3', '4', '13', '14', '15', '16', '17', '18']:
+    for zi in ['0', '1', '2', '3', '4', '13']:
         z = d1['zones'][zi]
-        rows = zone_rows(z, z['ores'] if not z['id'].startswith('dg96') else [])
+        rows = zone_rows(z, z['ores'])
         e = z['ent']
         tile = tile_of_ops(z['ops'])
         pal = z['pal']
-        kind = 'dg96' if z['id'].startswith('dg96') else 'mine' if int(zi) < 5 else 'zone'
+        kind = 'mine' if int(zi) < 5 else 'zone'
         lv = z['lv']; ulv = z.get('ulv')
         extra = ''
         zone_js.append(f"""  {z['id']}: {{
@@ -411,43 +377,7 @@ export const TOWN_ART = {{
     v = sp['road']
     sp_js.append(special('road', 'road', 'ถนนตะวันออก', 'road', [2.2, 12.5, 'r'], [
         "{ id: 'town', on: 'walk', box: [0, 11, .5, 3], to: 'town', at: [40, 16.6, 'l'] }, /* ขอบซ้าย GATE → toTown144 171-fix144 */",
-        "{ id: 'ferry', on: 'use', circle: [113, 11.5, 40], to: 'city2', lv: 150, at: [42, 56, 'u'], front: [110.5, 12.5, 'l'] }, /* ลุงบรอม คนเรือ (113,11.5) ferry · C2.LV 150 · ขึ้นเรือ (1344,1792)px วัดแล้ว */",
     ], {'floor': 'road', 'g': [[78, 124, 62], [90, 138, 70], [66, 110, 54], [104, 146, 78]], 'pathC': '#8a7450', 'pathD': '#66543a', 'tree': 'oak', 'sea': [103], 'path': {'y': 12, 'amp': 2.4, 'x0': 6, 'x1': 86, 'ramp': 10, 'period': 11}}, 'buildRoad144 171-fix144 · 124×24 · ไม่มีมอน · ท่าเรือ x≥110'))
-    # ---------- เมือง 2 ----------
-    c = d3['c2']
-    crow = remap(c['grid'], ZONE)
-    names2 = c2t['names']
-    ter = {'sea': '~', 'plaza': 'P', 'land': 'l', 'bridge': 'b', 'street': 's', 'path': 'p', 'garden': 'g', 'dock': 'd'}
-    trow = [''.join(ter[names2[int(ch, 36)]] for ch in r) for r in c2t['rows']]
-    links = ["      { id: 'exit', on: 'use', circle: [41.5, 59.5, 40], to: '@back', home: 'road', at: [110.5, 12.5, 'l'] }, /* วงเวทเกาะใต้ → backToCity1 = enterRoad144('port') 171-fix144 */"]
-    for i in range(5):
-        x = 33.5 + 16 * i / 4 + .5
-        links.append(f"      {{ id: 'dg{i}', on: 'use', circle: [{num(x)}, 5.225, 44], to: '{'dg96' + 'abcde'[i]}', lv: {150 + 10*i}, front: [{num(x)}, 6.6, 'd'] }}, /* portalPos95 127-fix95:151 · ดันเมือง 2 (DG96) */")
-    for dr in c['doors']:
-        links.append(f"      {{ id: '{dr['id']}', on: 'use', circle: [{num(dr['x']/T)}, {num(dr['y']/T)}, 40], to: 'shop.{dr['id']}', at: [13, 13.4, 'u'], front: [{num(dr['x']/T)}, {num(dr['y']/T + .75)}, 'd'] }}, /* ประตูร้าน C2.doors ({dr['n']}) near95 r40 */" if dr['id'] != 'ware' else f"      {{ id: 'ware', on: 'use', circle: [{num(dr['x']/T)}, {num(dr['y']/T)}, 40], use: 'ware' }}, /* คลังสินค้าท่าเรือ (หน้าต่างคลัง) */")
-    g2, p2 = city2()
-    c2g = pack_ops(g2, srcs)
-    c2p = [[round(b, 1), pack_ops(fl, srcs)] for (b, fl) in p2]
-    c2_js = f"""  city2: {{
-    n: 'นครวารีอัสตรา', kind: 'town', w: 84, h: 64, camOy: .55, lv: 150, /* C2 127-fix95:8 · ผัง build98 130-fix98 */
-    look: {{ floor: 'city2', art: 'city2' }},
-    spawn: [42, 56, 'u'], /* ขึ้นจากเรือ (วัด 1344,1792 px) */
-    links: [
-{chr(10).join(links)}
-    ],
-    rows: {rows_js(crow)},
-    ground: {rows_js(trow)}, /* ชนิดพื้น: ~ ทะเล · P ลาน · l ดิน · b สะพาน · s ถนน · p ทางเดิน · g สวน · d ท่าเรือ */
-  }},
-"""
-    c2art = f"""export const CITY2_ART = {{
-  src: SRC,
-  street: 'assets/city2/ground-v558.webp', /* ถนน: ตัดภาพ 384×384 ตามตำแหน่ง px%384 (build98 130-fix98:117) */
-  colors: {{ '~': ['#22689c', '#2a74aa'], P: ['#d8cfc0', '#cfc5b4'], l: ['#6a8a4a', '#62824a'], b: ['#8a6a44', '#7a5c3a'], p: ['#b8a888', '#ae9e7e'], g: ['#5a8a42', '#527e3c'], d: ['#7a5a3a', '#6e5034'] }}, /* สีแทนลายพื้นที่วาดด้วยโค้ด */
-  ground: {ops_js(c2g, '  ')},
-  props: [
-{''.join(f'    {js(r)},' + chr(10) for r in c2p)}  ],
-}};
-"""
     # ---------- เขียนไฟล์ ----------
     srcjs = 'const SRC = ' + js(srcs) + '; /* ภาพ webp ใน v6/assets/ (make-webp.py แปลงจากภาพเกมเดิม · กติกาภาพ spec01 §10: อาคาร/พื้น/ต้นไม้/ของตกแต่ง) */\n'
     write('field.js', HEAD, 'export default {\n' + field + '};\n')
@@ -456,6 +386,5 @@ export const TOWN_ART = {{
     write('zones.js', HEAD, 'export default {\n' + ''.join(zone_js) + '};\n')
     write('forests.js', HEAD, 'export default {\n' + ''.join(nat_js) + '};\n')
     write('special.js', HEAD, 'export default {\n' + ''.join(sp_js) + '};\n')
-    write('city2.js', HEAD + srcjs, 'export default {\n' + c2_js + '};\n\n' + c2art)
 
 main()

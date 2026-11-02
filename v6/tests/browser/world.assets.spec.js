@@ -21,11 +21,11 @@ const MEASURE = process.argv.includes('--measure');
 const MB = 1024 * 1024;
 
 /* งบไบต์ (เป้างาน 1A-4: เมือง 1 ครั้งแรก ≤ 3 MB) · ฉากอื่น = ที่โหลดเพิ่ม */
-const BUDGET = { town: 3 * MB, field: .5 * MB, mist: .5 * MB, iron: .5 * MB, 'dg:1': .5 * MB, city2: 2 * MB };
+const BUDGET = { town: 3 * MB, field: .5 * MB, mist: .5 * MB, iron: .5 * MB, 'dg:1': .5 * MB };
 /* ฉาก · จุดยืน (ช่อง) · ชื่อรูป */
 const SCENES = [
   ['town', [7, 21.5, 'd'], 'town'], ['field', [50, 22, 'l'], 'field'], ['mist', null, 'forest'],
-  ['iron', null, 'mine'], ['dg:1', null, 'dungeon'], ['city2', [41, 30, 'd'], 'city2'],
+  ['iron', null, 'mine'], ['dg:1', null, 'dungeon'],
 ];
 
 let pass = 0, fail = 0;

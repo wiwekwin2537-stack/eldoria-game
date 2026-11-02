@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 import world, { enter } from '../src/systems/world.js';
 import * as tiles from '../src/draw/tiles.js';
 import { TERRAIN } from '../src/data/art.js';
-import { CITY2_ART, MAPS } from '../src/data/maps.js';
 import { createState } from '../src/core/state.js';
 import { _reset } from '../src/core/bus.js';
 
@@ -86,17 +85,10 @@ export default [
     ok(info().ready.includes(TERRAIN.src), 'ภาพพื้นทุ่งพร้อม ' + JSON.stringify(info().ready));
     const im = peek(TERRAIN.src); ok(im && im.naturalWidth === 256, 'ภาพคือ <img>');
   })],
-  ['เดินใกล้วงเวทเรือ (≤5 ช่อง) → โหลด+ถอดรหัสภาพเมือง 2 ไว้ก่อนวาป · อยู่ไกล = ไม่โหลด · ไม่เข้า = คืนตามกติกา 45 วิ', () => withBrowser('bitmap', async () => {
-    const want = [...new Set(CITY2_ART.src.concat(CITY2_ART.street))];
-    ok(tiles.sceneImages && tiles.sceneImages(MAPS.city2).length === want.length, 'รายชื่อภาพเมือง 2 ครบ');
-    const G = scene('road', [60, 12.5, 'r']); /* ไกลจากเรือ (113,11.5) */
-    draw(G); await ticks();
-    ok(!want.some(s => info().srcs.includes(s)), 'ไกลประตู → ยังไม่โหลดภาพเมือง 2');
-    G.player.x = 107 * 32; G.player.y = 12.5 * 32; /* ห่างขอบวง ~4 ช่อง */
-    draw(G); await ticks(); draw(G);
-    ok(want.every(s => info().ready.includes(s)), 'ใกล้เรือ → ภาพเมือง 2 พร้อมก่อนวาป ' + want.filter(s => !info().ready.includes(s)).join());
-    G.player.x = 60 * 32; G.time.now += 50; draw(G); G.time.now += 6; draw(G);
-    ok(!want.some(s => info().srcs.includes(s)), 'เดินออกห่างเกิน 45 วิ → คืนภาพเมือง 2 ' + info().srcs.join());
+  ['ถนนเอโดเรียไม่โหลดภาพเมืองที่ตัดออก แม้เดินถึงท่าเรือเดิม', () => withBrowser('bitmap', async st => {
+    const G = scene('road', [107, 12.5, 'r']); draw(G); await ticks(); draw(G);
+    ok(!st.fetched.some(s => /city2\//.test(s)), 'ต้องไม่ขอภาพเมือง 2');
+    ok(!info().srcs.some(s => /city2\//.test(s)), 'ต้องไม่มีภาพเมือง 2 ในแคช');
   })],
   ['make-webp.py จดรุ่น Pillow/libwebp ที่ใช้สร้างภาพ และเตือนเมื่อรุ่นไม่ตรง (ผลตรวจ 1A-4 L5)', () => {
     const src = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'tools', 'make-webp.py'), 'utf8');

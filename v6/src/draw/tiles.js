@@ -12,7 +12,7 @@
      ต้นไม้ที่อยู่หน้าและบังตัวเรา → โปร่ง (คิดตอนวาดใน fn) · หลังคาอาคารวาดซ้ำที่ฐานแนวหลังคา → เดินหลังอาคาร หลังคาบังตัว
    - ชื่อภาพ/สี อยู่ data/art.js (CONTRACT §3) */
 import { T } from '../config.js';
-import { WORLD, MAPS, TOWN_FLOOR, TOWN_ART, CITY2_ART, ROOM } from '../data/maps.js';
+import { WORLD, MAPS, TOWN_FLOOR, TOWN_ART, ROOM } from '../data/maps.js';
 import { zpush } from '../core/zsort.js';
 import { TREE_SRC, TERRAIN, TREE, COLORS } from '../data/art.js';
 import { hash, vn } from '../core/rand.js'; /* ไม่ import วนกับ world แล้ว (หัวหน้า 30 ต.ค.) */
@@ -91,7 +91,6 @@ export function sceneImages(map) {
   if (L.floor === 'terrain' || (L.floor === 'zone' || !L.floor) && L.tile != null) out.add(TERRAIN.src);
   if (L.floor === 'terrain' || L.floor === 'nature' || L.floor === 'road') out.add(TREE_SRC[L.tree || L.trees] || TREE_SRC.oak);
   if (L.floor === 'town') out.add(TOWN_FLOOR.src);
-  if (L.floor === 'city2') out.add(CITY2_ART.street);
   const art = artOf(map);
   if (art) for (const s of art.src) out.add(s);
   return [...out];
@@ -205,17 +204,7 @@ const FLOOR = {
     }
     return true;
   },
-  /* เมือง 2: ถนนจากภาพ ground-v558 · พื้นอื่นสีตามชนิด (build98 130-fix98:117) */
-  city2(k, map, x0, y0, x1, y1) {
-    const im = image(CITY2_ART.street), C = CITY2_ART.colors, G = map.groundGrid;
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
-      const g = G ? String.fromCharCode(G[y * map.w + x]) : 'l';
-      if (g === 's' && im) { const px = x * T, py = y * T; k.drawImage(im, px % 384, py % 384, T, T, px, py, T, T); continue; }
-      const c = C[g] || C.l; k.fillStyle = c[0]; k.fillRect(x * T, y * T, T, T);
-      k.fillStyle = c[1]; for (let i = 0; i < 3; i++) { const r = hash(x * 2.3 + i, y * 1.9 - i); k.fillRect(x * T + (r * 26 | 0), y * T + (r * 89 % 26 | 0), 5, 3); }
-    }
-    return !!im;
-  },
+
 };
 function roadY(x, p) { /* roadY 171-fix144 · sm = smoothstep */
   const sm = t => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
@@ -305,11 +294,10 @@ function buildChunk(sc, cx, cy) {
   }
   return { cv, used: clock, miss: !ok, scene: sc.id };
 }
-function artOf(map) { return map.look && map.look.art === 'town' ? TOWN_ART : map.look && map.look.art === 'city2' ? CITY2_ART : null; }
+function artOf(map) { return map.look && map.look.art === 'town' ? TOWN_ART : null; }
 
 function drawGround(G, ctx) {
   const sc = G.scene, c = G.cam, map = sc.map;
-  if (map.look && map.look.floor === 'city2' && !map.groundGrid && map.ground) map.groundGrid = groundGrid(map);
   ctx.fillStyle = (map.look && map.look.pal && map.look.pal.vd) || COLORS.bg;
   ctx.fillRect(c.x, c.y, c.vw, c.vh);
   const cx0 = Math.max(0, Math.floor(c.x / CH)), cy0 = Math.max(0, Math.floor(c.y / CH));
@@ -330,12 +318,6 @@ function drawGround(G, ctx) {
   }
 }
 const now = () => (typeof performance !== 'undefined' ? performance.now() : 0); /* วัดงบเวลาวาดเท่านั้น (ไม่ใช่เวลาเกม) */
-function groundGrid(map) { /* แถวชนิดพื้นเมือง 2 (RLE) → ตาราง */
-  const g = new Uint8Array(map.w * map.h);
-  map.ground.forEach((r, y) => { let s = ''; for (const m of r.matchAll(/(\D)(\d*)/g)) s += m[1].repeat(m[2] ? +m[2] : 1); for (let x = 0; x < map.w; x++) g[y * map.w + x] = s.charCodeAt(x); });
-  return g;
-}
-
 /* ---------- ของสูงเรียงตาม y ---------- */
 function treeAt(k, src, bx, by, sc, alpha, ang) {
   const im = image(src);

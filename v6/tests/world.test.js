@@ -62,15 +62,15 @@ function linkReachable(m, l, seen) {
 
 const SIZES = { /* spec01 §4 ตารางแมพ (วัดจากเกมจริง) */
   field: [60, 44], town: [44, 34], 'shop.gear': [26, 15], 'shop.hall': [26, 15], iron: [62, 44], diamond: [62, 44], mist: [62, 44],
-  grove: [88, 60], creek: [88, 60], pine: [88, 60], rage: [62, 44], dg96a: [62, 44], tower: [30, 24], market: [44, 30],
-  wboss: [40, 30], arena: [36, 26], duel: [26, 18], 'seal.thorn': [36, 28], city2: [84, 64], road: [124, 24],
+  grove: [88, 60], creek: [88, 60], pine: [88, 60], rage: [62, 44], tower: [30, 24], market: [44, 30],
+  wboss: [40, 30], arena: [36, 26], duel: [26, 18], 'seal.thorn': [36, 28], road: [124, 24],
 };
 
 export default [
   ['ถอดแถว RLE', () => { eq(decodeRow('#3.2G'), '###..G', 'rle'); eq(decodeRow('.12'), '.'.repeat(12), 'นับ 2 หลัก'); }],
   ['ทุกแมพในตารางโหลดได้ ขนาดตรงข้อมูล (แถว × คอลัมน์)', () => {
     for (const id of Object.keys(MAPS)) { const m = getMap(id); ok(m && m.grid.length === m.w * m.h, 'โหลดไม่ได้ ' + id); }
-    ok(Object.keys(MAPS).length >= 40, 'แมพน้อยผิดปกติ ' + Object.keys(MAPS).length);
+    eq(Object.keys(MAPS).length, 38, 'เอโดเรีย 38 แมพ หลังตัดนครวารีและดัน 5 แห่ง');
   }],
   ['ขนาดแมพตรงสเปก spec01 §4', () => { for (const [id, [w, h]] of Object.entries(SIZES)) { const m = getMap(id); eq(m.w + '×' + m.h, w + '×' + h, id); } }],
   ['ขนาดดันเจี้ยนตามชั้น (DGSZ 031:3204)', () => {
@@ -191,16 +191,16 @@ export default [
     const a = genDungeon(7, 555), b = genDungeon(7, 555), c = genDungeon(7, 556);
     eq(a.grid.join(), b.grid.join(), 'รอบเดียวกันผังเดียวกัน'); ok(a.grid.join() !== c.grid.join(), 'รอบใหม่ผังเปลี่ยน');
   }],
-  ['เมือง 2: ถนน → เรือ (Lv150) → นครวารี → ดันเมือง 2 → ออก = หน้าประตูมิติ → วงเวทใต้ = ท่าเรือ', () => {
-    const G = fresh(); const blocked = []; on('world:blocked', e => blocked.push(e));
-    follow(getMap('town').links.find(l => l.id === 'east'), G); eq(G.scene.id, 'road', 'ถนน'); eq(tiles(G.player.x, G.player.y), '2.2,12.5', 'ฝั่งตะวันตก');
-    const ferry = getMap('road').links.find(l => l.id === 'ferry');
-    eq(follow(ferry, G), false, 'Lv1 ขึ้นเรือไม่ได้'); eq(blocked.length, 1, 'แจ้งเลเวลไม่ถึง'); eq(blocked[0].lv, 150, 'Lv150');
-    G.player.lv = 200; follow(ferry, G); eq(G.scene.id, 'city2', 'นครวารี'); eq(tiles(G.player.x, G.player.y), '42,56', 'ขึ้นจากเรือ');
-    const p = getMap('city2').links.find(l => l.id === 'dg2'); follow(p, G); eq(G.scene.id, 'dg96c', 'ป้อมเพลิง');
-    follow(G.scene.map.links.find(l => l.id === 'exit'), G); eq(G.scene.id, 'city2', 'กลับเมือง 2'); eq(tiles(G.player.x, G.player.y), p.front[0] + ',' + p.front[1], 'หน้าประตูมิติที่เข้า');
-    follow(getMap('city2').links.find(l => l.id === 'exit'), G); eq(G.scene.id, 'road', 'ท่าเรือ'); eq(tiles(G.player.x, G.player.y), '110.5,12.5', 'ท่าเรือ');
-    follow(getMap('road').links.find(l => l.id === 'town'), G); eq(G.scene.id, 'town', 'เมือง'); eq(tiles(G.player.x, G.player.y), '40,16.6', 'ประตูตะวันออก');
+  ['เอโดเรีย: ถนนตะวันออกไปกลับได้ ไม่มีเรือหรือทางไปเมืองที่ตัดออก', () => {
+    const G = fresh();
+    follow(getMap('town').links.find(l => l.id === 'east'), G); eq(G.scene.id, 'road', 'ถนน');
+    ok(!getMap('road').links.some(l => l.id === 'ferry'), 'ไม่มีเรือ');
+    follow(getMap('road').links.find(l => l.id === 'town'), G); eq(G.scene.id, 'town', 'กลับเอโดเรีย');
+    for (const id of ['city2', 'dg96a', 'dg96b', 'dg96c', 'dg96d', 'dg96e']) {
+      eq(getMap(id), null, 'แมพถูกตัด ' + id);
+      world.load(G, { scene: id, ret: { [id]: { scene: 'city2', x: 42, y: 10, dir: 'd' } } });
+      eq(G.scene.id, 'town', 'เซฟเก่ากลับเอโดเรีย ' + id);
+    }
   }],
   ['ตลาดกลาง: ประตูใต้เมือง → ตลาด (22,2.9) → เดินขึ้น → เมือง (33,31)', () => {
     const G = fresh(); for (let i = 0; i < 30; i++) world.update(G, .05);

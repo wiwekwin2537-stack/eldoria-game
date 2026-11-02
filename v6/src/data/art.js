@@ -1,5 +1,5 @@
 /* ภาพและสีที่ตัววาดฉาก (draw/tiles.js) ใช้ — ตารางข้อมูลล้วน (CONTRACT §3 · ผลตรวจ 1A-2 L6)
-   ภาพอาคาร/พื้นเมือง 1 และเมือง 2 อยู่ใน data/maps/town.js · city2.js (TOWN_FLOOR · TOWN_ART · CITY2_ART)
+   ภาพอาคาร/พื้นเอโดเรียอยู่ใน data/maps/town.js (TOWN_FLOOR · TOWN_ART)
    ภาพทั้งหมดของ v6 อยู่ v6/assets/ (webp · สร้างด้วย v6/tools/make-webp.py จากภาพเกมเดิม · งาน 1A-4) — ไม่โหลดจาก assets/incoming/ */
 
 /* ภาพต้นไม้ 4 แบบ TREEART 013:30 · ป่าเลือกด้วย look.tree / look.trees */

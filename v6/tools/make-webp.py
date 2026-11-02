@@ -5,7 +5,7 @@
    - ขนาดภาพเท่าเดิมทุกภาพ (ตำแหน่งตัดภาพใน data/ ไม่ต้องเปลี่ยน) ยกเว้นที่เขียนเหตุผลไว้ในตาราง
    - ช่องโปร่งใส (alpha) เก็บแบบไม่เสียคุณภาพทุกภาพ (alpha_quality=100) → ขอบอาคาร/ต้นไม้คมเท่าเดิม
    - เลือกคุณภาพต่อภาพ (วัดแล้ว · ดูตาราง) · ภาพ PNG จานสี (ต้นไม้) = แบบไม่เสียคุณภาพ (เล็กกว่า PNG เดิมอยู่แล้ว)
-   - ภาพที่ v6 ใช้ทั้งหมดอยู่ในตารางนี้ · ชื่อปลายทางคือชื่อที่ data/art.js · data/maps/town.js · city2.js อ้าง
+   - ภาพที่ v6 ใช้ทั้งหมดอยู่ในตารางนี้ · ชื่อปลายทางคือชื่อที่ data/art.js · data/maps/town.js อ้าง
    - ตรวจ: ทุกภาพเปิดได้ ขนาดตรงตาราง · พิมพ์ขนาดก่อน/หลัง
    - ⚠️ รุ่นที่ใช้สร้างภาพที่ commit อยู่: Pillow 12.3.0 · libwebp 1.6.0 (ผลตรวจ 1A-4 L5)
      "ผลเหมือนเดิม" จริงเฉพาะรุ่นนี้ · รุ่นอื่นได้ไบต์ต่าง → git เก็บภาพใหม่ทั้ง ~3.9 MB อีกรอบ
@@ -33,11 +33,6 @@ TABLE = [
     ('assets/town/details-v560.webp',   'town/details-v560.webp',    ('lossy', 85), 'ของชิ้นเล็ก (วาดย่อ ≤0.24 เท่า)'),
     ('assets/town/houses-v560.webp',    'town/houses-v560.webp',     ('lossy', 85), 'บ้าน'),
     ('assets/town/goddess-v562.webp',   'town/goddess-v562.webp',    ('lossy', 85), 'รูปปั้นเทพี'),
-    # เมือง 2 (CITY2_ART · data/maps/city2.js)
-    ('assets/city2/houses-v560.webp',   'city2/houses-v560.webp',    ('lossy', 85), 'บ้านเมือง 2'),
-    ('assets/city2/remaining-v560.webp','city2/remaining-v560.webp', ('lossy', 85), 'อาคารอื่นเมือง 2'),
-    ('assets/city2/buildings-v558.webp','city2/buildings-v558.webp', ('lossy', 85), 'อาคารใหญ่เมือง 2'),
-    ('assets/city2/ground-v558.webp',   'city2/ground-v558.webp',    ('copy',),     'ถนนเมือง 2: วาด 1:1 และเล็กอยู่แล้ว (63 KB) → คัดลอกตรง ๆ'),
     # ทุ่ง/ป่า/เหมือง (data/art.js · ภาพเดิมอยู่ assets/incoming/ — v6 ไม่โหลดจาก incoming แล้ว)
     ('assets/incoming/terrain-v585.png',     'world/terrain-v585.webp',     ('lossy', 90), 'ช่องพื้นทุ่ง/เหมือง 128 px วาดย่อเหลือ 32 · ช่อง 128 หาร 16 ลงตัว ไม่มีรอยต่อข้ามช่อง'),
     ('assets/incoming/tree-oak-v585.png',    'world/tree-oak-v585.webp',    ('lossless',), 'ต้นไม้ (PNG จานสี · แบบไม่เสียเล็กกว่า PNG)'),

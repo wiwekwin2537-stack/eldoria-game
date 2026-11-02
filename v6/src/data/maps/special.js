@@ -413,7 +413,6 @@ export default {
     spawn: [2.2,12.5,"r"],
     links: [
       { id: 'town', on: 'walk', box: [0, 11, .5, 3], to: 'town', at: [40, 16.6, 'l'] }, /* ขอบซ้าย GATE → toTown144 171-fix144 */
-      { id: 'ferry', on: 'use', circle: [113, 11.5, 40], to: 'city2', lv: 150, at: [42, 56, 'u'], front: [110.5, 12.5, 'l'] }, /* ลุงบรอม คนเรือ (113,11.5) ferry · C2.LV 150 · ขึ้นเรือ (1344,1792)px วัดแล้ว */
     ],
     rows: [
       '#124',

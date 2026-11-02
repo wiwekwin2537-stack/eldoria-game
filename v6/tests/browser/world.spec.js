@@ -114,7 +114,7 @@ async function headDiff(page, x, y, name) {
     const views = [
       ['field', [50, 22, 'l'], 'field'], ['field', [12, 30, 'd'], 'field-west'], ['grove', null, 'grove'], ['volcano', null, 'volcano'],
       ['iron', null, 'mine-iron'], ['diamond', null, 'mine-diamond'], ['dg:1', null, 'dungeon-1'], ['dg:60', null, 'dungeon-60'],
-      ['city2', null, 'city2'], ['city2', [41, 30, 'd'], 'city2-plaza'], ['road', [60, 12.5, 'r'], 'road'], ['tower:1', null, 'tower'],
+      ['road', [60, 12.5, 'r'], 'road'], ['tower:1', null, 'tower'],
       ['market', null, 'market'], ['shop.hall', null, 'hall'], ['seal.frost', null, 'seal-frost'],
     ];
     for (const [id, at, name] of views) {
@@ -170,18 +170,8 @@ async function headDiff(page, x, y, name) {
     page.off('request', onReq);
     ok(groundReq === 0, 'เดินไปมุมเมืองหลังยืนนาน → ไม่โหลดภาพพื้นใหม่', 'คำขอ ' + groundReq);
 
-    console.log('— เตรียมภาพเมือง 2 ตอนเดินใกล้เรือ (1Y)');
-    await go(page, 'road', [60, 12.5, 'r']); await wait(800);
-    const far = await page.evaluate(async () => (await import('/v6/src/draw/tiles.js')).cacheInfo().srcs.filter(s => /city2\//.test(s)).length);
-    await go(page, 'road', [107, 12.5, 'r']); await wait(2500);
-    const near = await page.evaluate(async () => { const t = await import('/v6/src/draw/tiles.js'); const { MAPS } = await import('/v6/src/data/maps.js'); if (!t.sceneImages) return { want: 0, ready: 0 }; const want = t.sceneImages(MAPS.city2), r = t.cacheInfo().ready; return { want: want.length, ready: want.filter(s => r.includes(s)).length }; });
-    ok(far === 0 && near.want >= 4 && near.ready === near.want, 'ไกลเรือ = ไม่โหลดภาพเมือง 2 · ใกล้เรือ = ภาพเมือง 2 ถอดรหัสพร้อมก่อนวาป', JSON.stringify({ far, near }));
-
     console.log('— เวลาเฟรมตอนวาปเข้าแมพใหญ่ (ผลตรวจ L9 · 1Y) · ครั้งแรกของหน้า (ภาพยังไม่โหลด) · หน้าใหม่ทุกรอบ');
-    /* 1Z: ช่วงค้างอยู่ที่เฟรมที่ 5–6 หลังวาป = ตอนภาพ 1536×1024 (3 ภาพ) โหลดเสร็จ → วาดครั้งแรก (<img> + decode ยังถอดรหัส/ส่งขึ้นการ์ดจอในเฟรม 42–53 ms ต่อภาพ)
-       1Y: ภาพเป็น ImageBitmap (ถอดรหัสนอกเฟรม) → วาดครั้งแรก ~0.3 ms · วัดในเครื่องช่าง 7 รอบ: ก่อน มัธยฐาน 112 สูงสุด 133 ms → หลัง มัธยฐาน 26 สูงสุด 34 ms
-       เกณฑ์เมือง 2 (5 รอบ): มัธยฐาน <50 ms และทุกรอบ <100 ms · grove/ดัน 60 (ไม่มีภาพใหญ่) มัธยฐาน 3 รอบ <100 ms เท่าเดิม */
-    for (const [id, n] of [['city2', 5], ['grove', 3], ['dg:60', 3]]) {
+    for (const [id, n] of [['grove', 3], ['dg:60', 3]]) {
       const runs = [];
       for (let k = 0; k < n; k++) {
         const c2 = await browser.newContext({ viewport: { width: 1366, height: 768 } });
@@ -202,8 +192,7 @@ async function headDiff(page, x, y, name) {
       }
       const srt = [...runs].sort((a, b) => a - b), med = srt[srt.length >> 1], max = srt[srt.length - 1];
       console.log(`    ${id}: เฟรมนานสุดแต่ละรอบ ${runs.map(v => v.toFixed(0)).join(' / ')} ms · มัธยฐาน ${med.toFixed(0)} · สูงสุด ${max.toFixed(0)} ms`);
-      if (id === 'city2') ok(med < 50 && max < 100, `วาปเข้าเมือง 2 ครั้งแรก ${n} รอบ: มัธยฐาน <50 ms และทุกรอบ <100 ms (ก่อน 1Y มัธยฐาน 112 · สูงสุด 133)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
-      else ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน ${n} รอบ <100 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
+      ok(med < 100, `วาปเข้า ${id} ครั้งแรกไม่ค้างเฟรมยาว (มัธยฐาน ${n} รอบ <100 ms)`, runs.map(v => v.toFixed(0)).join(' / ') + ' ms');
     }
 
     if (LONG) {

@@ -16,12 +16,10 @@ import shops from './maps/shops.js';
 import zones from './maps/zones.js';
 import forests from './maps/forests.js';
 import special from './maps/special.js';
-import city2 from './maps/city2.js';
 
 export { TOWN_FLOOR, TOWN_ART } from './maps/town.js';
-export { CITY2_ART } from './maps/city2.js';
 
-export const MAPS = { ...field, ...town, ...shops, ...zones, ...forests, ...special, ...city2 };
+export const MAPS = { ...field, ...town, ...shops, ...zones, ...forests, ...special };
 
 /* ความหมายตัวอักษรในแถว (ช่องที่ไม่อยู่ในตาราง = กำแพง) */
 export const TILE = {
