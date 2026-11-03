@@ -1,5 +1,5 @@
 /* Code checks for updates; artwork is reused locally without delaying display. */
-const C='eldoria-v599';
+const C='eldoria-v5991';
 const IMAGES='eldoria-images-v1';
 const CORE=['./','index.html','manifest.webmanifest'];
 const IMAGE_LIMIT=128;

@@ -40,10 +40,7 @@ window.fill153=fill153;window.peek153=peek153;
 /* XP แบ่งปาร์ตี้ (เพื่อนฆ่าให้ เราได้ครึ่ง) — ทำเครื่องหมายไว้ให้ตัวลด XP รู้ */
 {const _p=partyXp33;partyXp33=function(){RN153.share++;try{return _p.apply(this,arguments)}finally{RN153.share--}};window.partyXp33=partyXp33}
 /* XP จากการฆ่าในทุ่งสังหาร: XP ของแต่ละตัวมาหลังฆ่า ~30ms → จับคู่กับคิวรางวัลของตัวนั้น (ตรงจำนวน XP ของมอนตัวนั้น) · XP แบ่งปาร์ตี้ใช้ค่าเฉลี่ยล่าสุด · XP เควส/รายวันที่กดรับระหว่างฟาร์มไม่โดนลด */
-{const _g=gainXp;gainXp=function(n){try{if(typeof n==='number'&&n>0&&inR153()){
-   if(RN153.share>0)n=Math.max(1,Math.round(n*KXP153*RN153.ema));
-   else{const now=performance.now();while(RN153.q.length&&now-RN153.q[0].t>1500)RN153.q.shift();const i=RN153.q.findIndex(q=>q.n===n);if(i>=0){const q=RN153.q.splice(i,1)[0];n=Math.max(1,Math.round(n*KXP153*q.f))}}}}catch(e){}
-  return _g.apply(this,arguments)};window.gainXp=gainXp}
+XP_PIPELINE.quota = {active:inR153,state:RN153,multiplier:KXP153};
 /* ป้ายบอกโควตา (ใต้แถบเกจคลั่ง) + ข้อความแท็บทุ่งสังหารให้ตรงกับจริง (เดิมบอก "XP ทั้งหมดเข้าดาวตำนาน" ซึ่งเป็นของสมัยตัน Lv.150) */
 const q153=document.createElement('div');q153.id='q153';gid('wrap').appendChild(q153);
 {const st=document.createElement('style');st.textContent='#q153{position:absolute;left:50%;top:calc(126px + var(--st,0px));transform:translateX(-50%);z-index:5;pointer-events:none;display:none;font:800 10px system-ui,"Noto Sans Thai",sans-serif;color:#ffe0b0;background:rgba(30,8,6,.78);border:1px solid #a8401a;border-radius:8px;padding:2px 8px;white-space:nowrap}#q153.lo{color:#ffb0a0;border-color:#ff5a2a}';document.head.appendChild(st)}

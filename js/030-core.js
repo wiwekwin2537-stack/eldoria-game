@@ -7,8 +7,58 @@ const EQ={w:[{n:'ดาบไม้ฝึกหัด',a:0},{n:'ดาบเห�
 const ATK=()=>Math.round((window.atkMul?atkMul():1)*(1+(P.armor.sword?SWATK[P.tier.sword]+(window.enhAtk?enhAtk(ENH[P.armor.sword]||0):(ENH[P.armor.sword]||0)):0)+(window.PRIM10?PRIM10():P.stats.str)+ringAtk()+((P.lv-1)>>1))),DEF=()=>armorDef()+(P.stats.vit>>1)+((P.lv-1)>>2),need=l=>Math.round((20+l*l*12)*(l<20?1:1+(l-20)/40));
 const lvBox=document.getElementById('coinbox');lvBox.style.whiteSpace='nowrap';lvBox.insertAdjacentHTML('beforeend',' · ⭐Lv.<b id="lvhud">1</b> <small id="xphud"></small>');
 function lvHud(){document.getElementById('lvhud').textContent=P.lv;document.getElementById('xphud').textContent=P.xp+'/'+need(P.lv)}
-function gainXp(n){P.xp+=n;let up=0;while(P.xp>=need(P.lv)&&P.lv<(typeof MAXLV!=='undefined'?MAXLV:150)){P.xp-=need(P.lv);P.lv++;up=1}
- if(up){BAL.hp=100+(P.lv-1)*15;BAL.mp=50+(P.lv-1)*5;P.hp=BAL.hp;P.mp=BAL.mp;sfx('heal');say('⭐ เลเวลอัป! Lv.'+P.lv+' เลือดสูงสุด '+BAL.hp+' โจมตี '+ATK())}else say('+'+n+' XP');lvHud();refreshInv()}
+/* Sole XP owner. Stages become ready at their original module initialization points. */
+const XP_PIPELINE=Object.create(null);
+function gainXp(n){
+ const stages=XP_PIPELINE;
+ const quota=stages.quota;
+ if(quota)try{if(typeof n==='number'&&n>0&&quota.active()){
+  const state=quota.state;
+  if(state.share>0)n=Math.max(1,Math.round(n*quota.multiplier*state.ema));
+  else{const now=performance.now();while(state.q.length&&now-state.q[0].t>1500)state.q.shift();const i=state.q.findIndex(q=>q.n===n);if(i>=0){const q=state.q.splice(i,1)[0];n=Math.max(1,Math.round(n*quota.multiplier*q.f))}}
+ }}catch(e){}
+ const rage=stages.rage;
+ if(rage)try{if(rage.active()&&typeof n==='number'&&n>0)n=Math.round(n*.4*rage.combo()*rage.party())}catch(e){}
+ if(stages.legend&&typeof MAXLV!=='undefined'&&P.lv>=MAXLV&&typeof n==='number'&&n>0){const m=window.__noXpm64?n:Math.round(n*(window.XPM64||1));stages.legend.add(m);return}
+ if(stages.high&&typeof n==='number'&&n>0&&!window.__noXpm64){const k=P.lv>=100?.6:P.lv>=80?.75:1;if(k<1)n=Math.max(1,Math.round(n*k))}
+ if(stages.testing&&typeof n==='number'&&n>0&&!window.__noXpm64)n=Math.max(1,Math.round(n*stages.testing.multiplier));
+ if(stages.nerf)n=Math.max(1,Math.round((+n||0)*.8));
+ if(stages.event)n=EV11.cur&&EV11.cur.k==='xp'&&n>0?n*2:n;
+ if(stages.guard)return Guard.run('gainXp',()=>{
+  const l0=P.lv;let v=Number(n)||0;
+  v=Math.max(0,Math.round(Hooks.apply('xp',v)));
+  applyPlayerXp(v);
+  EventBus.emit(EV.XP_GAINED,{amount:v,base:n,lv:P.lv});
+  if(P.lv>l0)EventBus.emit(EV.LEVEL_UP,{from:l0,to:P.lv});
+ });
+ return applyPlayerXp(n);
+}
+window.gainXp=gainXp;
+function applyPlayerXp(n){
+ const stages=XP_PIPELINE,levels=[];
+ /* Capture in the same order as the former outer-to-inner calls. */
+ if(stages.fx)levels[6]=P.lv;
+ if(stages.skills)levels[5]=P.lv;
+ let f0;if(stages.passive){levels[4]=P.lv;f0=ptTotal()}
+ if(stages.classes)levels[3]=P.lv;
+ if(stages.guild)levels[2]=P.lv;
+ if(stages.cap&&P.lv>=MAXLV){P.xp=0;lvHud()}
+ else{
+  if(stages.stats)levels[0]=P.lv;
+  P.xp+=n;let up=0;while(P.xp>=need(P.lv)&&P.lv<(typeof MAXLV!=='undefined'?MAXLV:150)){P.xp-=need(P.lv);P.lv++;up=1}
+ if(up){BAL.hp=100+(P.lv-1)*15;BAL.mp=50+(P.lv-1)*5;P.hp=BAL.hp;P.mp=BAL.mp;sfx('heal');say('⭐ เลเวลอัป! Lv.'+P.lv+' เลือดสูงสุด '+BAL.hp+' โจมตี '+ATK())}else say('+'+n+' XP');lvHud();refreshInv()
+  if(stages.stats){if(P.lv>levels[0]){const g=3*(P.lv-levels[0]);P.sp+=g;recalcStats();P.hp=BAL.hp;P.mp=BAL.mp;say('⭐ เลเวลอัป! Lv.'+P.lv+' ได้แต้มสเตตัส +'+g+' (กดรูปโปรไฟล์เพื่ออัพ)');updBadge();lvHud()}}
+  if(stages.cap&&P.lv>=MAXLV)P.xp=0;
+ }
+ if(stages.guild){if(P.lv>levels[2]){const m=GUILD.mem[Math.random()*GUILD.mem.length|0];setTimeout(()=>chatSay('guild',m[0],'ยินดีด้วย Lv.'+P.lv+' แล้ว! 🎉',m[1]),1200);saveGame()}}
+ if(stages.classes){if(P.lv>levels[3]){if(levels[3]<CLASS_LV&&P.lv>=CLASS_LV)chatAnn('Lv.'+CLASS_LV+' แล้ว! ไปเลือกอาชีพกับปรมาจารย์ซีรอสที่จัตุรัสได้เลย');const L=CSKILLS[P.cls];if(L&&P.cls!=='none')for(const s of L)if(levels[3]<s.lv&&P.lv>=s.lv){castBanner('ปลดล็อกสกิล: '+s.n,'#ffd84a');say('✨ ปลดล็อกสกิลใหม่ '+s.e+' '+s.n+'!')}
+ for(const p of (PASSIVE[P.cls]||[]))if(levels[3]<p.lv&&P.lv>=p.lv)say('🌟 ปลดล็อกพาสซีฟ '+p.n+' — '+p.d)}}
+ if(stages.passive){if(P.lv>levels[4]&&ptTotal()>f0){setTimeout(()=>say('🌟 ได้แต้มพาสซีฟ +'+(ptTotal()-f0)+' — กดปุ่ม 🌟 (K) เพื่ออัพ'),1600);updPasBadge()}}
+ if(stages.skills){const L=CSKILLS[P.cls];if(L&&P.lv>levels[5])L.forEach((s,i)=>{if(s.lv>levels[5]&&s.lv<=P.lv){setTimeout(()=>{say('✨ ปลดล็อกสกิลใหม่: '+s.e+' '+s.n+'! กด 🌟 (K) → สกิล เพื่อใส่ช่อง');if(typeof chatAnn==='function')sysSay('ปลดล็อกสกิล '+s.n)},2400)}})}
+ if(stages.fx){if(P.lv>levels[6]){banner('LEVEL UP!','Lv.'+P.lv+' · ได้แต้มสเตตัส +'+3*(P.lv-levels[6]));fanfare();
+  for(let i=0;i<40;i++){const a=Math.random()*6.28,r=Math.random()*18;rfxP(P.x+Math.cos(a)*r,P.y-Math.random()*10,Math.cos(a)*20,-90-Math.random()*140,1.1,Math.random()<.5?'255,220,90':'255,255,220',2.4,'spark')}RFX.push({k:'ring',x:P.x,y:P.y,t:0,l:.6,rgb:'255,220,90',s:50})}}
+}
+
 dropLoot=function(x,y,sl){const lv=(sl&&sl.lv)||1,n=1+(Math.random()<.4?1:0),c=1+Math.floor(Math.random()*3)+(lv>>1);for(let i=0;i<n;i++)addDrop('gel',x,y);for(let i=0;i<c;i++)addDrop('coin',x,y);if(sl)setTimeout(()=>gainXp(5*lv),30)};
 const _dsl=drawSlime;drawSlime=function(s){const k=1+((s.lv||1)-1)*.07;if(k>1){ctx.save();ctx.translate(s.x,s.y);ctx.scale(k,k);ctx.translate(-s.x,-s.y);_dsl(s);ctx.restore()}else _dsl(s);
  ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.lineWidth=2.5;ctx.strokeStyle='#000';const t='Lv.'+(s.lv||1);ctx.strokeText(t,s.x,s.y-26*k);ctx.fillStyle=['#9f9','#cf9','#ff9','#fb7','#f77'][(s.lv||1)-1];ctx.fillText(t,s.x,s.y-26*k);ctx.textAlign='left'};

@@ -6,6 +6,7 @@
 ## การจองไฟล์
 | ไฟล์ | ผู้รับผิดชอบ | งาน | เริ่ม |
 |---|---|---|---|
+| `js/030-core.js`, `js/031-core.js`, `js/041-fix10.js`, `js/062-fix31.js`, `js/096-fix64.js`, `js/109-fix77.js`, `js/124-fix92.js`, `js/125-fix93.js`, `js/180-fix153.js`, `tests/xp_chain_equivalence_test.js`, `tests/fixtures/xp_chain_before.json`, `tests/xp_browser_test.js`, `TASKS.md`, `SYSTEMS.md`, `index.html`, `sw.js`, `js/163-fix136.js` | ChatGPT | LEGACY-02A รวมgainXp 15ชั้นเป็นเจ้าของเดียว รักษาผลเดิมก่อนแก้mobKill | 2026-11-03 |
 
 ## งานเรียงลำดับ
 | รหัส | งานที่ยังเปิด | เกณฑ์ปิด / จุดเริ่ม |
