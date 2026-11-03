@@ -1,0 +1,107 @@
+{
+  "commit": "76d9717e302cd95e62024484526fcefe784ca4e5",
+  "base": "function gainXp(n){P.xp+=n;let up=0;while(P.xp>=need(P.lv)&&P.lv<(typeof MAXLV!=='undefined'?MAXLV:150)){P.xp-=need(P.lv);P.lv++;up=1}\n if(up){BAL.hp=100+(P.lv-1)*15;BAL.mp=50+(P.lv-1)*5;P.hp=BAL.hp;P.mp=BAL.mp;sfx('heal');say('⭐ เลเวลอัป! Lv.'+P.lv+' เลือดสูงสุด '+BAL.hp+' โจมตี '+ATK())}else say('+'+n+' XP');lvHud();refreshInv()}",
+  "stages": [
+    {
+      "file": "js/031-core.js",
+      "line": 335,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){const g=3*(P.lv-l0);P.sp+=g;recalcStats();P.hp=BAL.hp;P.mp=BAL.mp;say('⭐ เลเวลอัป! Lv.'+P.lv+' ได้แต้มสเตตัส +'+g+' (กดรูปโปรไฟล์เพื่ออัพ)');updBadge();lvHud()}}}",
+      "after": "XP_PIPELINE.stats = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 838,
+      "before": "{const _g=gainXp;gainXp=function(n){if(P.lv>=MAXLV){P.xp=0;lvHud();return}_g(n);if(P.lv>=MAXLV)P.xp=0}}",
+      "after": "XP_PIPELINE.cap = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 1883,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){const m=GUILD.mem[Math.random()*GUILD.mem.length|0];setTimeout(()=>chatSay('guild',m[0],'ยินดีด้วย Lv.'+P.lv+' แล้ว! 🎉',m[1]),1200);saveGame()}}}",
+      "after": "XP_PIPELINE.guild = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 2272,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){if(l0<CLASS_LV&&P.lv>=CLASS_LV)chatAnn('Lv.'+CLASS_LV+' แล้ว! ไปเลือกอาชีพกับปรมาจารย์ซีรอสที่จัตุรัสได้เลย');const L=CSKILLS[P.cls];if(L&&P.cls!=='none')for(const s of L)if(l0<s.lv&&P.lv>=s.lv){castBanner('ปลดล็อกสกิล: '+s.n,'#ffd84a');say('✨ ปลดล็อกสกิลใหม่ '+s.e+' '+s.n+'!')}\n for(const p of (PASSIVE[P.cls]||[]))if(l0<p.lv&&P.lv>=p.lv)say('🌟 ปลดล็อกพาสซีฟ '+p.n+' — '+p.d)}}}",
+      "after": "XP_PIPELINE.classes = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 3154,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv,f0=ptTotal();_g(n);if(P.lv>l0&&ptTotal()>f0){setTimeout(()=>say('🌟 ได้แต้มพาสซีฟ +'+(ptTotal()-f0)+' — กดปุ่ม 🌟 (K) เพื่ออัพ'),1600);updPasBadge()}}}",
+      "after": "XP_PIPELINE.passive = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 3435,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);const L=CSKILLS[P.cls];if(L&&P.lv>l0)L.forEach((s,i)=>{if(s.lv>l0&&s.lv<=P.lv){setTimeout(()=>{say('✨ ปลดล็อกสกิลใหม่: '+s.e+' '+s.n+'! กด 🌟 (K) → สกิล เพื่อใส่ช่อง');if(typeof chatAnn==='function')sysSay('ปลดล็อกสกิล '+s.n)},2400)}})}}",
+      "after": "XP_PIPELINE.skills = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 3755,
+      "before": "{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){banner('LEVEL UP!','Lv.'+P.lv+' · ได้แต้มสเตตัส +'+3*(P.lv-l0));fanfare();\n  for(let i=0;i<40;i++){const a=Math.random()*6.28,r=Math.random()*18;rfxP(P.x+Math.cos(a)*r,P.y-Math.random()*10,Math.cos(a)*20,-90-Math.random()*140,1.1,Math.random()<.5?'255,220,90':'255,255,220',2.4,'spark')}RFX.push({k:'ring',x:P.x,y:P.y,t:0,l:.6,rgb:'255,220,90',s:50})}}}",
+      "after": "XP_PIPELINE.fx = true;"
+    },
+    {
+      "file": "js/031-core.js",
+      "line": 6806,
+      "before": "{const _gx=gainXp;gainXp=function(n){return Guard.run('gainXp',()=>{const l0=P.lv;let v=Number(n)||0;v=Math.max(0,Math.round(Hooks.apply('xp',v)));_gx(v);EventBus.emit(EV.XP_GAINED,{amount:v,base:n,lv:P.lv});if(P.lv>l0)EventBus.emit(EV.LEVEL_UP,{from:l0,to:P.lv})})};}",
+      "after": "XP_PIPELINE.guard = true;"
+    },
+    {
+      "file": "js/041-fix10.js",
+      "line": 47,
+      "before": "{const _gx=gainXp;gainXp=function(n){return _gx(EV11.cur&&EV11.cur.k==='xp'&&n>0?n*2:n)}}",
+      "after": "XP_PIPELINE.event = true;"
+    },
+    {
+      "file": "js/062-fix31.js",
+      "line": 24,
+      "before": "{const _gx=gainXp;gainXp=function(n){return _gx(Math.max(1,Math.round((+n||0)*.8)))};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.nerf = true;"
+    },
+    {
+      "file": "js/096-fix64.js",
+      "line": 9,
+      "before": "{const _g=gainXp;gainXp=function(n){if(typeof n==='number'&&n>0&&!window.__noXpm64)n=Math.max(1,Math.round(n*XPM64));return _g.call(this,n)};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.testing = {multiplier:XPM64};"
+    },
+    {
+      "file": "js/109-fix77.js",
+      "line": 10,
+      "before": "{const _g=gainXp;gainXp=function(n){if(typeof n==='number'&&n>0&&!window.__noXpm64){const k=P.lv>=100?.6:P.lv>=80?.75:1;if(k<1)n=Math.max(1,Math.round(n*k))}return _g.call(this,n)};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.high = true;"
+    },
+    {
+      "file": "js/124-fix92.js",
+      "line": 37,
+      "before": "{const _g=gainXp;gainXp=function(n){\n  if(typeof MAXLV!=='undefined'&&P.lv>=MAXLV&&typeof n==='number'&&n>0){const m=window.__noXpm64?n:Math.round(n*(window.XPM64||1));pgAdd92(m);return}\n  return _g.apply(this,arguments)};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.legend = {add:pgAdd92};"
+    },
+    {
+      "file": "js/125-fix93.js",
+      "line": 71,
+      "before": "{const _g=gainXp;gainXp=function(n){try{if(inRage93()&&typeof n==='number'&&n>0)n=Math.round(n*.4*comboMul93()*partyMul93())}catch(e){}return _g.call(this,n)};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.rage = {active:inRage93,combo:comboMul93,party:partyMul93};"
+    },
+    {
+      "file": "js/180-fix153.js",
+      "line": 43,
+      "before": "{const _g=gainXp;gainXp=function(n){try{if(typeof n==='number'&&n>0&&inR153()){\n   if(RN153.share>0)n=Math.max(1,Math.round(n*KXP153*RN153.ema));\n   else{const now=performance.now();while(RN153.q.length&&now-RN153.q[0].t>1500)RN153.q.shift();const i=RN153.q.findIndex(q=>q.n===n);if(i>=0){const q=RN153.q.splice(i,1)[0];n=Math.max(1,Math.round(n*KXP153*q.f))}}}}catch(e){}\n  return _g.apply(this,arguments)};window.gainXp=gainXp}",
+      "after": "XP_PIPELINE.quota = {active:inR153,state:RN153,multiplier:KXP153};"
+    }
+  ],
+  "sourceSha256": {
+    "js/030-core.js": "21a5fbd51342647d7054dc15e2e069e448976ef06b9afbe8c9ea4fdb94d15747",
+    "js/031-core.js": "7145d22bb8ab8e7ba69af94c78db77320bf07ddbf8de05a725961e1d9d60c045",
+    "js/041-fix10.js": "04f69bc091c72e1b39c50c397b150a71b3add405caec9ded688f14e33e646dd0",
+    "js/062-fix31.js": "a1b82f556ec30d3ac8e6328d288c3b376442b0c7aefb6a83d327b15624bf388b",
+    "js/096-fix64.js": "ae4bdee43ddae3ab63465ff6435c07a1a84c8c7311c222fa0e25c6b6d483c0a7",
+    "js/109-fix77.js": "a66c002c81334cf7bd5ae13163cbbcb25e14f4d8cab55781cbf365b37cc77d85",
+    "js/124-fix92.js": "66eee58278834785657267bdfc4d80a712d254c18e5c2c992ce718f3e57ebbb3",
+    "js/125-fix93.js": "a8df8c3f99057508490d9ca4669f6512ac63e3234e5341b383993fd18bbff085",
+    "js/180-fix153.js": "98c9493162630387b9a884fb5b79c298636e85cdf9e40a0b39686d55b916aae0"
+  }
+}

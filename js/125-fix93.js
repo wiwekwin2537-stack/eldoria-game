@@ -68,7 +68,7 @@ const partyMul93=()=>1+Math.min(.8,RG93.partyN*.2);
     if(Math.random()<.003)add('egg92',1,'🥚 ไข่สัตว์ลึกลับ!','#ffe08a')}
    if(RG93.combo%25===0){try{refreshInv();save92()}catch(e){}}}catch(e){console.warn('rage93 kill',e)}return r};window.mobKill=mobKill}
 // XP ในทุ่งสังหาร: มอนเยอะ → XP ต่อตัวลดลง แต่คูณคอมโบ × กลุ่ม
-{const _g=gainXp;gainXp=function(n){try{if(inRage93()&&typeof n==='number'&&n>0)n=Math.round(n*.4*comboMul93()*partyMul93())}catch(e){}return _g.call(this,n)};window.gainXp=gainXp}
+XP_PIPELINE.rage = {active:inRage93,combo:comboMul93,party:partyMul93};
 setInterval(()=>{try{if(!inRage93()){RG93.partyN=0;return}let c=0;for(const o of NET.others.values())if(!o.dead&&Math.hypot(o.x-P.x,o.y-P.y)<700)c++;RG93.partyN=Math.min(4,c);
   if(RG93.combo&&performance.now()-RG93.comboT>4000){if(RG93.combo>=20)try{say('คอมโบขาด ('+RG93.combo+')')}catch(e){}RG93.combo=0}}catch(e){}},300);
 // ---------- HUD ----------

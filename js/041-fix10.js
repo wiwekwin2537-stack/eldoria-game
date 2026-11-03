@@ -44,7 +44,7 @@ gid('wrap').appendChild(evHud11);
 setInterval(()=>{try{const e=evNow11();EV11.cur=e;if(!e||!titleEl.hidden){evHud11.style.display='none';return}const left=Math.max(0,(e.end-srvNow())/1000);
   evHud11.style.display='';evHud11.innerHTML=e.n+' · ⌛ '+Math.floor(left/60)+':'+String(Math.floor(left%60)).padStart(2,'0');
   const key=e.k+'@'+Math.floor(e.end/60e3);if(EV11.said!==key){EV11.said=key;try{sysSay('🎉 อีเวนต์เริ่มแล้ว! '+e.n+' — '+e.d+' (40 นาที)');banner('🎉 '+e.n,e.d)}catch(_){}}}catch(_){}},1000);
-{const _gx=gainXp;gainXp=function(n){return _gx(EV11.cur&&EV11.cur.k==='xp'&&n>0?n*2:n)}}
+XP_PIPELINE.event = true;
 {const _mk=mobKill;mobKill=function(m){const c0=inv.coin;const r=_mk(m);try{const e=EV11.cur;if(e&&!(D&&(D.tower10||D.wb10))){if(e.k==='gold'&&inv.coin>c0)inv.coin+=inv.coin-c0;
    if(e.k==='drop'){const Zd=D&&D.zone&&D.zone.Zd;if(Zd&&Zd.raw){addDrop(Zd.raw,m.x,m.y);if(m.boss||m.elite)addDrop(Zd.ing,m.x,m.y)}}}}catch(_){}return r}}
 // ☄️ ดาวตก: ตกใกล้ผู้เล่นในทุ่งหญ้า/เหมืองทุก ~18 วินาที

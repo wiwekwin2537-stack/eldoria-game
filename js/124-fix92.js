@@ -34,9 +34,7 @@ function pgAdd92(n){if(!(n>0))return;const g=E92.pg;if(g.lv>=PGMAX92){g.xp=0;ret
   try{sysSay('🌠 ดาวตำนานขึ้นเป็น Lv.'+g.lv+' (แต้มว่าง '+pgFree92()+')')}catch(e){}}
  try{lvHud()}catch(e){}}
 window.pgAdd92=pgAdd92;
-{const _g=gainXp;gainXp=function(n){
-  if(typeof MAXLV!=='undefined'&&P.lv>=MAXLV&&typeof n==='number'&&n>0){const m=window.__noXpm64?n:Math.round(n*(window.XPM64||1));pgAdd92(m);return}
-  return _g.apply(this,arguments)};window.gainXp=gainXp}
+XP_PIPELINE.legend = {add:pgAdd92};
 {const _l=lvHud;lvHud=function(){_l.apply(this,arguments);try{if(P.lv>=MAXLV){const g=E92.pg,nd=pgNeed92(g.lv),pc=g.lv>=PGMAX92?100:Math.min(100,g.xp/nd*100);
   const x=gid('xpb');if(x)x.style.width=pc+'%';const t=gid('xpt');if(t)t.textContent='⭐ Lv.'+P.lv+' · 🌠 '+g.lv+'  '+(g.lv>=PGMAX92?'MAX':Math.floor(pc)+'%');
   const b=gid('xphud');if(b)b.textContent='🌠'+g.lv}}catch(e){}};window.lvHud=lvHud}
