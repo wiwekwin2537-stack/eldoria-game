@@ -23,7 +23,7 @@ self.addEventListener('activate',event=>{event.waitUntil((async()=>{
 self.addEventListener('message',event=>{if(event.data==='skip')self.skipWaiting()});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
- if(request.method!=='GET'||url.origin!==location.origin||url.pathname.startsWith('/api/')||url.pathname==='/v6'||url.pathname.startsWith('/v6/'))return; /* v6 ไม่ผ่านแคชเกมเดิม */
+ if(request.method!=='GET'||url.origin!==location.origin||url.pathname.startsWith('/api/'))return;
  if(isImage(url)){
   /* Register lifetime work synchronously, so background revalidation can finish. */
   const result=(async()=>{
