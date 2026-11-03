@@ -6,6 +6,7 @@
 ## การจองไฟล์
 | ไฟล์ | ผู้รับผิดชอบ | งาน | เริ่ม |
 |---|---|---|---|
+| `tests/aim_chain_equivalence_test.js`, `tests/fixtures/aim_chain_before.json`, `AGENTS.md`, `TASKS.md`, `SYSTEMS.md`, `index.html`, `sw.js` | ChatGPT | ตรวจจริงก่อนรวมmain/ปล่อยรุ่น เจ้าของอนุญาตรันเทสแล้ว | 2026-11-03 |
 
 ## งานเรียงลำดับ
 | รหัส | งานที่ยังเปิด | เกณฑ์ปิด / จุดเริ่ม |
