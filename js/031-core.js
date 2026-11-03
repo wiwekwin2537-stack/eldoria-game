@@ -1964,7 +1964,29 @@ function hurtE(e,mult,o){o=o||{};if(e.dead)return 0;const cr=Math.random()<critC
  return dmg}
 function eachIn(x,y,r,fn){for(const e of enemies())if(Math.hypot(e.x-x,(e.y-6)-y)<r+eR(e))fn(e)}
 // อาวุธระยะไกล: ใช้ช่องอาวุธเดิม (ระดับอาวุธเดียวกัน) แต่ยิงแทนการฟัน
-function aimDir(range){const v=DIRV[P.dir];let best=null,bs=-1;for(const e of enemies()){const dx=e.x-P.x,dy=(e.y-8)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.55){const sc=c-d/range*.4;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}return best||v}
+/* เจ้าของการเล็งเพียงจุดเดียว: ฐาน031 + พฤติกรรม036/064/198 ไม่มีการเรียกaimDirเก่า */
+function aimDir(range){
+ /* ก่อนMS9พร้อมยังใช้พฤติกรรมช่วงบูตเดิม โดยไม่เก็บfunctionเก่าหรือครอบทับ */
+ if(!window.MS9){const v=DIRV[P.dir];let best=null,bs=-1;for(const e of enemies()){const dx=e.x-P.x,dy=(e.y-8)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.55){const sc=c-d/range*.4;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}return best||v}
+ const cast=window.SKILLAIM46&&SKILLAIM46.cast,cm=window.CLICK594,click=!!(cm&&cm.on),au=click&&typeof AUTO!=='undefined'&&AUTO.on;
+ if(click&&!cast){let m=null;const alive=e=>e&&!e.dead&&e.hp>0;
+  if(alive(cm.tgt))m=cm.tgt;else if(au){const goal=window.A2_110&&A2_110.goal;if(goal&&goal.k==='mob'&&alive(goal.m))m=goal.m;}
+  if(m){const dx=m.x-P.x,dy=(m.y-10)-(P.y-14),d=Math.hypot(dx,dy);if(d>1&&d<=(range||300)+60){P.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'l':'r'):(dy<0?'u':'d');return[dx/d,dy/d];}}
+ }
+ const network=!!window.W33,suppress=!!(au&&!cast),mouseTime=MS9.t;
+ if(suppress)MS9.t=-9e9;if(network)window.AIM33=1;
+ try{
+  if(cast)return cast.dv.slice();let dv=null;
+  if(performance.now()-MS9.t<4000){const dx=MS9.x-P.x,dy=MS9.y-(P.y-14),d=Math.hypot(dx,dy);if(d>10){dv=[dx/d,dy/d];
+   let bd=60,bt=null;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const q=Math.hypot(e.x-MS9.x,(e.y-10)-MS9.y);if(q<bd&&Math.hypot(e.x-P.x,e.y-P.y)<=range+40){bd=q;bt=e;}}
+   if(bt){const ex=bt.x-P.x,ey=(bt.y-10)-(P.y-14),ed=Math.hypot(ex,ey)||1;dv=[ex/ed,ey/ed];}
+  }}
+  if(!dv){const v=DIRV[P.dir];let best=null,bs=-9;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const dx=e.x-P.x,dy=(e.y-10)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.15){const sc=c-d/range*.5;if(sc>bs){bs=sc;best=[dx/d,dy/d];}}}dv=best||v;}
+  try{if(Math.abs(dv[0])>Math.abs(dv[1]))P.dir=dv[0]<0?'l':'r';else P.dir=dv[1]<0?'u':'d';}catch(e){}
+  return dv;
+ }finally{if(network)window.AIM33=0;if(suppress)MS9.t=mouseTime;}
+}
+window.aimDir=aimDir;
 // Segment/circle contact prevents fast projectiles tunneling between frames.
 function shotContact(x0,y0,x1,y1,cx,cy,r){const dx=x1-x0,dy=y1-y0,ox=x0-cx,oy=y0-cy,a=dx*dx+dy*dy,c=ox*ox+oy*oy-r*r;if(c<=0)return 0;if(!a)return null;const b=ox*dx+oy*dy,d=b*b-a*c;if(d<0)return null;const u=(-b-Math.sqrt(d))/a;return u>=0&&u<=1?u:null}
 function meleeContact(e,spin){const v=DIRV[P.dir],x=P.x,y=P.y-8,dx=e.x-x,dy=e.y-8-y,r=(spin?50:34)+(e.F?eR(e)*.6:0);if(typeof wall50==='function'&&D&&D.zone&&wall50(P.x,P.y-6,e.x,e.y-6))return false;if(spin)return Math.hypot(dx,dy)<r;const along=dx*v[0]+dy*v[1];if(along<0&&Math.hypot(dx,dy)>12+(e.F?eR(e)*.6:0))return false;const u=Math.max(0,Math.min(26,along));return Math.hypot(dx-v[0]*u,dy-v[1]*u)<r}

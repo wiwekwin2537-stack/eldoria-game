@@ -10,14 +10,7 @@ window.LOS9=function(x0,y0,x1,y1){try{const Zm=D&&D.zone;if(!Zm)return true;cons
 // ---------- ข้อ 50/91: เล็งสกิลแม่นขึ้น — เมาส์ (เดสก์ท็อป) ชี้ทิศ + จับเป้าใกล้สุดในมุมกว้างขึ้น + ตัวละครหันตามทิศที่ยิง ----------
 window.MS9={x:0,y:0,t:-9e9};
 cv.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const r=cv.getBoundingClientRect(),sx=(e.clientX-r.left)*(VW/r.width),sy=(e.clientY-r.top)*(VH/r.height),c=window.LASTCAM||[0,0];MS9.x=c[0]+sx/Z;MS9.y=c[1]+sy/Z;MS9.t=performance.now()});
-{const _ad=aimDir;aimDir=function(range){if(window.SKILLAIM46&&SKILLAIM46.cast)return SKILLAIM46.cast.dv.slice();let dv=null;
-   if(performance.now()-MS9.t<4000){const dx=MS9.x-P.x,dy=MS9.y-(P.y-14),d=Math.hypot(dx,dy);if(d>10){dv=[dx/d,dy/d];
-     // ดูดเข้าหามอนที่อยู่ใกล้เส้นเล็ง (เมาส์ห่างมอนไม่เกิน 60px)
-     let bd=60,bt=null;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const q=Math.hypot(e.x-MS9.x,(e.y-10)-MS9.y);if(q<bd&&Math.hypot(e.x-P.x,e.y-P.y)<=range+40){bd=q;bt=e}}
-     if(bt){const ex=bt.x-P.x,ey=(bt.y-10)-(P.y-14),ed=Math.hypot(ex,ey)||1;dv=[ex/ed,ey/ed]}}}
-   if(!dv){const v=DIRV[P.dir];let best=null,bs=-9;for(const e of enemies()){if(e.dead||!LOS9(P.x,P.y-4,e.x,e.y-4))continue;const dx=e.x-P.x,dy=(e.y-10)-(P.y-14),d=Math.hypot(dx,dy);if(d>range||d<1)continue;const c=(dx*v[0]+dy*v[1])/d;if(c>.15){const sc=c-d/range*.5;if(sc>bs){bs=sc;best=[dx/d,dy/d]}}}dv=best||v}
-   try{if(Math.abs(dv[0])>Math.abs(dv[1]))P.dir=dv[0]<0?'l':'r';else P.dir=dv[1]<0?'u':'d'}catch(e){}
-   return dv}}
+/* aimDirรวมอยู่ใน031-core.js ใช้MS9/LOS9ชุดนี้โดยตรง */
 // ---------- ข้อ 97: ธนู/คทา ติดสถานะ CC ได้ (ธนู=ชะลอ · คทา=มึน) ----------
 {const _sh=shoot;shoot=function(kind,o){_sh(kind,o);try{const p=PROJ[PROJ.length-1];if(!p||p.cc9)return;p.cc9=1;const sk=!!(o&&o.dv&&!o.basic);
     if(kind==='arrow'&&!p.slow&&Math.random()<(sk?.35:.2))p.slow=1.6;
