@@ -25,7 +25,9 @@ const FIX = path.join(__dirname, 'fixtures', 'exit_scenes.json');
     const out = await page.evaluate(async () => {
       const sl = ms => new Promise(r => setTimeout(r, ms)), R = {};
       const flags = () => D ? Object.keys(D).filter(k => D[k] === true || D[k] === 1).sort().join(',') + (typeof D.name === 'string' ? '|' + D.name : '') : 'field';
-      const msg = () => { const e = document.getElementById('msg'); return e ? e.textContent : '' };
+      /* The coin fallback is a labelled DOM icon, not a text node. Preserve its
+       semantic symbol so the unchanged fixture still checks the whole message. */
+      const msg = () => { const e = document.getElementById('msg'); if (!e) return ''; const copy = e.cloneNode(true); for (const icon of copy.querySelectorAll('i.coin594')) { if (icon.getAttribute('aria-label') !== 'เหรียญ') throw Error('coin icon is missing its accessible label'); icon.replaceWith(document.createTextNode('🪙')); } return copy.textContent };
       const snap = () => ({ scene: flags(), x: Math.round(P.x), y: Math.round(P.y), dir: P.dir, msg: msg(), min: MIN.length, zproj: typeof ZPROJ !== 'undefined' ? ZPROJ.length : -1, bm: typeof bmEl !== 'undefined' ? !!bmEl.hidden : null, sh: typeof shopEl !== 'undefined' ? !!shopEl.hidden : null });
       const reset = async () => { try { PAUSED = false; P.dead = false; P.hp = BAL.hp; P.lv = 150; P.kx = P.ky = 0 } catch (e) {} try { toTown() } catch (e) {} await sl(900); try { P.x = 20 * T; P.y = 12 * T; MIN.push({ k: 'probe', x: P.x, y: P.y }); if (typeof ZPROJ !== 'undefined') { ZPROJ.length = 0; ZPROJ.push({}) } } catch (e) {} };
       const CASES = [

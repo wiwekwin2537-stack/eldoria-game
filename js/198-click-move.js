@@ -63,10 +63,7 @@ CM.tick=function(dt){CM.ix=CM.iy=0;if(!CM.goal&&!CM.tgt)return;
  /* เดินชนอะไรอยู่นาน หรือไปไม่ถึง → หยุด */
  const mv=Math.hypot(P.x-CM.lx,P.y-CM.ly);CM.lx=P.x;CM.ly=P.y;if(P.stun>0||(window.DOORA&&DOORA.k)){CM.stk=0;return}if(P.at<0&&mv<.3){CM.stk+=dt;/* เดินต่อไม่ได้แต่ใกล้ของที่คลิกแล้ว (เช่น ประตูอาคาร) → ใช้ตรงนี้ */if(CM.stk>.5&&!p.length&&CM.goal&&CM.goal.use&&Math.hypot(tx-P.x,ty-P.y)<72){use();return}if(CM.stk>1.2){if(!p.length&&CM.goal)stop();else{CM.path=null;if(CM.stk>2.5)stop()}}}else CM.stk=0};
 /* ยิง/สกิลล็อกเป้า: มอนที่คลิก > มอนของฟาร์มออโต้ · ออโต้ไม่เล็งตามเมาส์ · ลากเล็งสกิล (SKILLAIM46) ยังชนะทุกอย่าง */
-{const _ad=aimDir;aimDir=function(range){if(window.SKILLAIM46&&SKILLAIM46.cast)return _ad(range);let m=null;const au=typeof AUTO!=='undefined'&&AUTO.on;
- if(alive(CM.tgt))m=CM.tgt;else if(au){const g=window.A2_110&&A2_110.goal;if(g&&g.k==='mob'&&alive(g.m))m=g.m}
- if(m){const dx=m.x-P.x,dy=(m.y-10)-(P.y-14),d=Math.hypot(dx,dy);if(d>1&&d<=(range||300)+60){P.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?'l':'r'):(dy<0?'u':'d');return[dx/d,dy/d]}}
- if(au&&window.MS9){const t=MS9.t;MS9.t=-9e9;try{return _ad(range)}finally{MS9.t=t}}return _ad(range)};window.aimDir=aimDir}
+/* aimDirใน031อ่านCLICK594โดยตรง ไม่มีwrapperเล็งเพิ่มเติม */
 /* เดิม: คลิกจอ = ฟันอยู่กับที่ (cv.onpointerdown=attack) → คลิกเดิน/คลิกตี */
 cv.onpointerdown=onClick;
 })();

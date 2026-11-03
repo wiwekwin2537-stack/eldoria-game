@@ -110,7 +110,7 @@ window.partyXp33=partyXp33;
 setInterval(()=>{try{const sc=netScene();if(sc!==W33.lastSc){W33.lastSc=sc;W33.mode='solo'}if(!NET.on&&W33.mode!=='solo')W33.mode='solo'}catch(e){}},250);
 // เล็งอัตโนมัติ: ถ้ามีมอนในระยะ เล็งมอนก่อนผู้เล่น PvP (กันลูกธนูไปโดนเพื่อน)
 {const _en=enemies;enemies=function(){const L=_en();if(window.AIM33&&L.some(e=>!e.pvp7))return L.filter(e=>!e.pvp7);return L}}
-{const _ad=aimDir;aimDir=function(r){window.AIM33=1;try{return _ad(r)}finally{window.AIM33=0}}}
+/* aimDirใน031จัดขอบเขตAIM33เอง คงตัวกรองenemiesด้านบน */
 window.W33=W33;
 // ---------- กันซ็อกเก็ตซ้อน (ซ็อกเก็ตเก่าที่ปิดไปแล้วมาลบซ็อกเก็ตใหม่ → ต่อซ้ำ → เห็นตัวเองซ้อน/ผู้เล่นวาร์ป) ----------
 {const _nc=netConnect;netConnect=function(url){const r=_nc(url);const ws=NET.ws;if(ws&&!ws.g33){ws.g33=1;
