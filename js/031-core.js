@@ -332,7 +332,7 @@ function statMul(m){window.STEPMUL=m;sfx('ui');renderChar()}
   statAdd(held,statStep());tm=setTimeout(()=>{iv=setInterval(tick,70)},380)});
  for(const ev of['pointerup','pointercancel','blur'])addEventListener(ev,stop);
  document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('#chl .stadd'))e.preventDefault()})}
-{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){const g=3*(P.lv-l0);P.sp+=g;recalcStats();P.hp=BAL.hp;P.mp=BAL.mp;say('⭐ เลเวลอัป! Lv.'+P.lv+' ได้แต้มสเตตัส +'+g+' (กดรูปโปรไฟล์เพื่ออัพ)');updBadge();lvHud()}}}
+function applyLevelStats(l0){if(P.lv>l0){const g=3*(P.lv-l0);P.sp+=g;recalcStats();P.hp=BAL.hp;P.mp=BAL.mp;say('⭐ เลเวลอัป! Lv.'+P.lv+' ได้แต้มสเตตัส +'+g+' (กดรูปโปรไฟล์เพื่ออัพ)');updBadge();lvHud()}}
 const chp=document.createElement('div');chp.id='chp';chp.hidden=true;
 chp.innerHTML='<div class="bh"><b>👤 สถานะตัวละคร</b><button class="mini x" onclick="toggleChar()">✕</button></div><div class="chbody"><div class="chl" id="chl"></div><div class="chr"><div class="doll"><canvas id="figc" width="180" height="232" title="แตะเพื่อหมุนตัวละคร"></canvas><div id="che"></div></div></div></div><div id="chpick"></div>';
 gid('wrap').appendChild(chp);
@@ -420,10 +420,11 @@ function autoDraw(){if(!P.draw){P.tool='sword';P.draw=true;QS.cur='weapon'}}
 function stowToggle(){if(P.draw)stowItem();else{const id=QS.last||'weapon';quickUseId(id)}}
 function quickUse(i){if(PAUSED||DOORA.k)return;const id=QS.slots[i];if(!id||!bagEl.hidden){openQPick(i);return}quickUseId(id)}
 function quickUseId(id){
+ if(window.broken68?.(id==='weapon'?P.armor.sword:id)){say('ต้องซ่อมอุปกรณ์ก่อนใช้งาน');sfx('thud');return}
  if(id==='weapon'){if(!P.armor.sword){say('ยังไม่มีอาวุธสวมอยู่ — ไปซื้อหรือคราฟก่อน');return}if(qActive('weapon')){stowItem();return}P.tool='sword';QS.last=id;drawItem('weapon','⚔️ ชัก'+(window.wName9?wName9():'ดาบ')+'ออกมา — กดอีกครั้งเพื่อเก็บ');return}
  const it=ITEMS[id];
  if(it){
-  if(it.kind==='sword'){if(GEAR[id]>0)equipItem(id);else if(P.armor.sword!==id){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'แล้ว');return}
+  if(it.kind==='sword'){if(GEAR[id]>0&&P.armor.sword!==id){equipItem(id);if(P.armor.sword!==id)return}else if(P.armor.sword!==id){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'แล้ว');return}
    if(qActive(id)){stowItem();return}P.tool='sword';QS.last=id;drawItem(id,'⚔️ ชัก'+it.name+'ออกมา');return}
   if(!(GEAR[id]>0)){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'ในกระเป๋าแล้ว');return}
   if(qActive(id)){stowItem();return}
@@ -835,7 +836,6 @@ function fieldGround(x0,x1,y0,y1,t){if(!GCV)buildGround();x0=Math.max(0,x0);y0=M
 // =====================================================================
 const MAXLV=200; /* v4.82 เจ้าของสั่งเปิดเลเวลถึง 200 (เมืองที่ 2) */
 {const _lh=lvHud;lvHud=function(){_lh();if(P.lv>=MAXLV){const b=gid('xphud');if(b)b.textContent='MAX';const x=gid('xpt');if(x)x.textContent='⭐ Lv.'+P.lv+'  MAX'}}}
-{const _g=gainXp;gainXp=function(n){if(P.lv>=MAXLV){P.xp=0;lvHud();return}_g(n);if(P.lv>=MAXLV)P.xp=0}}
 
 // ---------- ตัวช่วยทั่วไป ----------
 const rnd=(a,b)=>a+Math.random()*(b-a),rndi=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -1886,7 +1886,7 @@ chatSend=function(){const ti=gid('chatTi'),t=ti.value.trim();ti.value='';if(!t)r
 gid('chatSend').onclick=chatSend;
 setTimeout(()=>{chatSay('guild',GUILD.mem[0][0],'ยินดีต้อนรับสู่'+GUILD.name+' '+(P.name||'')+'! มีอะไรถามในแชทกิลด์ได้เลย (สมาชิกกิลด์เป็น NPC)',GUILD.mem[0][1])},4000);
 // ฉลองเลเวลอัป/ล้มบอส
-{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){const m=GUILD.mem[Math.random()*GUILD.mem.length|0];setTimeout(()=>chatSay('guild',m[0],'ยินดีด้วย Lv.'+P.lv+' แล้ว! 🎉',m[1]),1200);saveGame()}}}
+function announceGuildLevel(l0){if(P.lv>l0){const m=GUILD.mem[Math.random()*GUILD.mem.length|0];setTimeout(()=>chatSay('guild',m[0],'ยินดีด้วย Lv.'+P.lv+' แล้ว! 🎉',m[1]),1200);saveGame()}}
 {const _mk=mobKill;mobKill=function(m){_mk(m);if(m.boss){chatAnn((P.name||'ผู้กล้า')+' ปราบ '+m.nm+' Lv.'+m.L+' สำเร็จ!');const g=GUILD.mem[Math.random()*GUILD.mem.length|0];setTimeout(()=>chatSay('guild',g[0],'โหดมาก! ล้มบอสได้แล้ว 🔥',g[1]),1500);saveGame()}}}
 
 // ---------- F) เซฟอัตโนมัติ (บันทึกลงเครื่อง) ----------
@@ -2275,8 +2275,8 @@ Object.defineProperty(SHOP_DATA.skill,'buy',{configurable:true,get(){return CSKI
 SHOP_DATA.skill.owner.lines=['ร้านนี้สอนสกิลพื้นฐาน ใครก็เรียนได้','สกิลอาชีพจะปลดล็อกเองเมื่อเลเวลถึง','เลือกอาชีพได้ที่ Lv.10 กับปรมาจารย์ซีรอส','เยียวยาใช้ได้ทุกอาชีพนะ'];
 {const _pc=pickClass;pickClass=function(k){if(P.lv<CLASS_LV){say('🔒 เลือกอาชีพได้ตั้งแต่ Lv.'+CLASS_LV+' — ไปฟาร์มเก็บเลเวลก่อนนะ');sfx('thud');return}_pc(k);say('🎓 อย่าลืมคราฟ'+WNAME[NEEDW[k]]+'ที่ทั่งตีเหล็ก เพื่อใช้สกิลอาชีพนี้')}}
 // แจ้งปลดล็อกสกิล/พาสซีฟเมื่อเลเวลอัป
-{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){if(l0<CLASS_LV&&P.lv>=CLASS_LV)chatAnn('Lv.'+CLASS_LV+' แล้ว! ไปเลือกอาชีพกับปรมาจารย์ซีรอสที่จัตุรัสได้เลย');const L=CSKILLS[P.cls];if(L&&P.cls!=='none')for(const s of L)if(l0<s.lv&&P.lv>=s.lv){castBanner('ปลดล็อกสกิล: '+s.n,'#ffd84a');say('✨ ปลดล็อกสกิลใหม่ '+s.e+' '+s.n+'!')}
- for(const p of (PASSIVE[P.cls]||[]))if(l0<p.lv&&P.lv>=p.lv)say('🌟 ปลดล็อกพาสซีฟ '+p.n+' — '+p.d)}}}
+function announceLevelUnlocks(l0){if(P.lv>l0){if(l0<CLASS_LV&&P.lv>=CLASS_LV)chatAnn('Lv.'+CLASS_LV+' แล้ว! ไปเลือกอาชีพกับปรมาจารย์ซีรอสที่จัตุรัสได้เลย');const L=CSKILLS[P.cls];if(L&&P.cls!=='none')for(const s of L)if(l0<s.lv&&P.lv>=s.lv){castBanner('ปลดล็อกสกิล: '+s.n,'#ffd84a');say('✨ ปลดล็อกสกิลใหม่ '+s.e+' '+s.n+'!')}
+ for(const p of (PASSIVE[P.cls]||[]))if(l0<p.lv&&P.lv>=p.lv)say('🌟 ปลดล็อกพาสซีฟ '+p.n+' — '+p.d)}}
 // ---------- 3) พาสซีฟ ----------
 const PASSIVE={none:[{lv:5,n:'ผู้ฝึกหัดอดทน',d:'END +2',st:{end:2}}],
  sword:[{lv:10,n:'จิตวิญญาณนักรบ',d:'STR +3',st:{str:3}},{lv:20,n:'ผิวเหล็ก',d:'VIT +6',st:{vit:6}},{lv:35,n:'สายเลือดนักรบ',d:'ฟื้นเลือด 1%/วิ',regen:.01},{lv:50,n:'โทสะ',d:'STR +12',st:{str:12}}],
@@ -3157,7 +3157,11 @@ function ptSVG(){const W=430,N=PNODES,t=performance.now();let e='',n='';const fl
  let lab='';PSPK.forEach((s,i)=>{const a=-Math.PI/2+i*2*Math.PI/5;lab+='<text x="'+(Math.cos(a)*400).toFixed(0)+'" y="'+(Math.sin(a)*400+4).toFixed(0)+'" text-anchor="middle" font-size="17" font-weight="800" fill="'+s.c+'" style="pointer-events:none">'+s.e+' '+s.n+'</text>'});
  const hw=W/SKW.zoom;return '<svg viewBox="'+(SKW.cx-hw)+' '+(SKW.cy-hw)+' '+hw*2+' '+hw*2+'" preserveAspectRatio="xMidYMid meet"><defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><radialGradient id="bgc"><stop offset="0" stop-color="rgba(255,220,120,.12)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient></defs><circle r="'+W+'" fill="url(#bgc)"/>'+e+n+lab+'</svg>'}
 // เลเวลอัป → แจ้งแต้มพาสซีฟ
-{const _g=gainXp;gainXp=function(n){const l0=P.lv,f0=ptTotal();_g(n);if(P.lv>l0&&ptTotal()>f0){setTimeout(()=>say('🌟 ได้แต้มพาสซีฟ +'+(ptTotal()-f0)+' — กดปุ่ม 🌟 (K) เพื่ออัพ'),1600);updPasBadge()}}}
+function announcePassivePoints(before){
+  if(ptTotal()<=before)return;
+  setTimeout(()=>say('🌟 ได้แต้มพาสซีฟ +'+(ptTotal()-before)+' — กดปุ่ม 🌟 (K) เพื่ออัพ'),1600);
+  updPasBadge();
+}
 // หน้าสถานะ: ย้ายพาสซีฟ/สกิลไปหน้าต่างใหม่ เหลือปุ่มลิงก์
 {const _rc=renderChar;renderChar=function(){_rc();const el=gid('chl');if(!el||chp.hidden)return;const bs=[...el.querySelectorAll('.setb')].filter(b=>/อาชีพ:/.test(b.textContent));
   for(const b of bs){const C=CLS[P.cls];b.innerHTML='<b>'+C.e+' อาชีพ: '+C.n+'</b><button class="mini" style="margin-top:4px" onclick="chp.hidden=true;openSkw(\'sk\')">⚔️ สกิล</button><button class="mini" style="margin-top:4px" onclick="chp.hidden=true;openSkw(\'pas\')">🌟 พาสซีฟ'+(ptFree()?' (+'+ptFree()+')':'')+'</button>'}}}
@@ -3438,7 +3442,7 @@ function setBar(slot,i){const b=barOf().slice(),j=b.indexOf(i);if(j>=0)b[j]=b[sl
 {const _r=renderSkw;renderSkw=function(){_r();if(skwEl.hidden||SKW.tab!=='sk'||P.cls==='none')return;const L=CSKILLS[P.cls],cards=[...skwEl.querySelectorAll('.list .card.sk')].slice(0,L.length),bar=barOf();
   cards.forEach((c,i)=>{if(!skOwned(i))return;const d=document.createElement('div');d.style.cssText='display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;align-items:center';d.innerHTML='<span style="font-size:11px;opacity:.7">ช่อง:</span>'+[0,1,2,3].map(s=>'<button class="bt'+(bar[s]===i?'':' gr')+'" style="width:34px;padding:3px" onclick="setBar('+s+','+i+')">'+(s+1)+'</button>').join('');c.lastElementChild.appendChild(d);SKSEEN[P.cls+i]=1})}}
 // แจ้งเมื่อปลดล็อกสกิลใหม่
-{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);const L=CSKILLS[P.cls];if(L&&P.lv>l0)L.forEach((s,i)=>{if(s.lv>l0&&s.lv<=P.lv){setTimeout(()=>{say('✨ ปลดล็อกสกิลใหม่: '+s.e+' '+s.n+'! กด 🌟 (K) → สกิล เพื่อใส่ช่อง');if(typeof chatAnn==='function')sysSay('ปลดล็อกสกิล '+s.n)},2400)}})}}
+function announceSkillLevels(l0){const L=CSKILLS[P.cls];if(L&&P.lv>l0)L.forEach((s,i)=>{if(s.lv>l0&&s.lv<=P.lv){setTimeout(()=>{say('✨ ปลดล็อกสกิลใหม่: '+s.e+' '+s.n+'! กด 🌟 (K) → สกิล เพื่อใส่ช่อง');if(typeof chatAnn==='function')sysSay('ปลดล็อกสกิล '+s.n)},2400)}})}
 // ข้อความต้นไม้: ซัพพอร์ตแสดงในสรุป
 {const _r=renderSkw;renderSkw=function(){_r();if(skwEl.hidden||SKW.tab!=='pas')return;const x=PTX(),L=[x.chain&&'วาป/โซ่ +'+x.chain,x.proj&&'กระสุน +'+x.proj,x.minion&&'สมุน +'+x.minion,x.mdmg&&'ดาเมจสมุน +'+Math.round(x.mdmg*100)+'%',x.mdur&&'เวลาสมุน +'+Math.round(x.mdur*100)+'%',x.cdr&&'คูลดาวน์ -'+Math.round(x.cdr*100)+'%',x.mpc&&'มานา -'+Math.round(x.mpc*100)+'%',x.area&&'พื้นที่ +'+Math.round(x.area*100)+'%',x.aspd&&'โจมตีเร็ว +'+Math.round(x.aspd*100)+'%'].filter(Boolean);
   const c=[...skwEl.querySelectorAll('.side .card')].find(q=>/รวมจากต้นไม้/.test(q.textContent));if(c&&L.length)c.insertAdjacentHTML('beforeend','<small style="color:#5affd8">🔧 ซัพพอร์ต: '+L.join(' · ')+'</small>')}}
@@ -3758,8 +3762,8 @@ const bnEl=document.createElement('div');bnEl.id='banner';bnEl.hidden=true;gid('
 function banner(a,b,cls){bnEl.className=cls||'';bnEl.innerHTML='<span class="b1">'+a+'</span>'+(b?'<span class="b2">'+b+'</span>':'');bnEl.hidden=false;clearTimeout(_bnT);_bnT=setTimeout(()=>bnEl.hidden=true,2400)}
 function fanfare(){try{[523,659,784,1047].forEach((f,i)=>tone(f,0,.35,'triangle',.07,i*.09));tone(1568,0,.6,'sine',.05,.36)}catch(e){}}
 // เลเวลอัป: ป้าย + เสาแสง
-{const _g=gainXp;gainXp=function(n){const l0=P.lv;_g(n);if(P.lv>l0){banner('LEVEL UP!','Lv.'+P.lv+' · ได้แต้มสเตตัส +'+3*(P.lv-l0));fanfare();
-  for(let i=0;i<40;i++){const a=Math.random()*6.28,r=Math.random()*18;rfxP(P.x+Math.cos(a)*r,P.y-Math.random()*10,Math.cos(a)*20,-90-Math.random()*140,1.1,Math.random()<.5?'255,220,90':'255,255,220',2.4,'spark')}RFX.push({k:'ring',x:P.x,y:P.y,t:0,l:.6,rgb:'255,220,90',s:50})}}}
+function showLevelEffects(l0){if(P.lv>l0){banner('LEVEL UP!','Lv.'+P.lv+' · ได้แต้มสเตตัส +'+3*(P.lv-l0));fanfare();
+  for(let i=0;i<40;i++){const a=Math.random()*6.28,r=Math.random()*18;rfxP(P.x+Math.cos(a)*r,P.y-Math.random()*10,Math.cos(a)*20,-90-Math.random()*140,1.1,Math.random()<.5?'255,220,90':'255,255,220',2.4,'spark')}RFX.push({k:'ring',x:P.x,y:P.y,t:0,l:.6,rgb:'255,220,90',s:50})}}
 // ภารกิจสำเร็จ / ใหม่
 {let lastKey='';setInterval(()=>{if(!STORY.intro)return;const k=STORY.ch+':'+STORY.st;if(k===lastKey)return;const prev=lastKey;lastKey=k;if(!prev)return;
   if(STORY.st==='report'){banner('ภารกิจสำเร็จ!',STCH[STORY.ch].t+' — กลับไปรายงานพระราชา','green');fanfare()}
@@ -5686,7 +5690,7 @@ const GMA={
  nocd:()=>{GM7.nocd=!GM7.nocd;say(GM7.nocd?'⏱️ ไม่มีคูลดาวน์/มานาไม่จำกัด: เปิด':'⏱️ ไม่มีคูลดาวน์: ปิด')},
  heal:()=>{P.hp=BAL.hp;P.mp=BAL.mp;P.fa=100;if('hu' in P)P.hu=100;P.dead=false},
  lv10:()=>{for(let i=0;i<10&&P.lv<99;i++)gainXp(need(P.lv)-P.xp+1)},
- lv99:()=>{while(P.lv<99)gainXp(need(P.lv)-P.xp+1)},
+ lv99:()=>{for(let attempts=0;P.lv<99&&attempts<1000;attempts++)gainXp(need(P.lv)-P.xp+1)},
  coin:()=>{inv.coin=(inv.coin|0)+100000;say('💰 +100,000')},
  mats:()=>{for(const k of INVORDER){if(k==='coin')continue;inv[k]=Math.max(inv[k]|0,99)}P.bagLv=3;say('📦 วัตถุดิบทุกอย่าง ×99')},
  gear:()=>{for(const id in ITEMS)GEAR[id]=Math.max(GEAR[id]|0,1);say('⚔️ ได้อุปกรณ์ทุกชิ้นแล้ว (ดูในกระเป๋า)')},
@@ -5764,7 +5768,7 @@ function enhList7(){const L=[],seen=new Set();for(const k in P.armor){const id=P
  const ord=Object.keys(ENHCFG.kinds);L.sort((a,b)=>(b.worn-a.worn)||ord.indexOf(ITEMS[a.id].kind)-ord.indexOf(ITEMS[b.id].kind)||ITEMS[b.id].tier-ITEMS[a.id].tier);return L}
 // ตรวจสอบก่อนตีบวก (คืนข้อความเหตุผล หรือ null = ผ่าน)
 function enhCheck7(id){if(!id)return 'ยังไม่ได้เลือกอุปกรณ์';if(!canEnh7(id))return 'อุปกรณ์นี้ไม่สามารถตีบวกได้';
- if(!(P.armor[ITEMS[id].kind]===id||(GEAR[id]|0)>0))return 'ไม่มีอุปกรณ์นี้ในกระเป๋าแล้ว';
+ if(!(Object.values(P.armor).includes(id)||(GEAR[id]|0)>0))return 'ไม่มีอุปกรณ์นี้ในกระเป๋าแล้ว';
  const l=enhLv7(id);if(l>=MAX_ENHANCEMENT)return 'อุปกรณ์นี้ถึงระดับสูงสุดแล้ว (+'+MAX_ENHANCEMENT+')';const c=ENHCFG.cost(l);
  if((inv.coin|0)<c.gold)return 'Gold ไม่เพียงพอ (ต้องใช้ '+c.gold.toLocaleString()+' มี '+(inv.coin|0).toLocaleString()+')';
  if((inv.estone|0)<c.stone)return 'วัตถุดิบไม่เพียงพอ — 💎 หินเสริมพลัง ต้องใช้ '+c.stone+' มี '+(inv.estone|0);return null}
@@ -5837,14 +5841,31 @@ enhItem=function(id){openEnh7(id)};
 {const _of=openForge;openForge=function(k){if(k==='anvil'&&FUI.tab==='enh'){FUI.tab='craft';return openEnh7()}return _of(k)}}
 
 // ---------- กดตีบวก: ตัดของ + บันทึกผลทันที (กันกดรัว/ของหาย) → เล่นแอนิเมชันตีเหล็ก → แสดงผล ----------
-function enhStart7(){if(ENHS.busy)return;const id=ENHS.sel,why=enhCheck7(id);if(why){ENHS.msg=why;sfx('thud');enhRender7();return}
- ENHS.busy=true;const it=ITEMS[id],l=enhLv7(id),c=ENHCFG.cost(l),s0=enhStat7(id,l);
- inv.coin-=c.gold;inv.estone-=c.stone;
- let ok=Math.random()*100<ENHCFG.rate(l),to=l;
- if(ok)to=l+1;else if(l>=5){if(inv.bless>0)inv.bless--;else to=l-1}
- ENH[id]=to;try{recalcStats()}catch(e){}try{refreshInv()}catch(e){}try{saveGame(true)}catch(e){}
- ENHS.res={id,ok,from:l,to,s0,s1:enhStat7(id,to)};
- enhW.hidden=true;forgeStart7(id,ok)}
+function enhStart7(){
+ if(ENHS.busy)return;
+ const id=ENHS.sel,why=enhCheck7(id);
+ if(why){ENHS.msg=why;sfx('thud');enhRender7();return}
+
+ ENHS.busy=true;
+ const from=enhLv7(id),s0=enhStat7(id,from);
+ for(const {k,n} of enhMats7(id,from))inv[k]-=n;
+ const ok=Math.random()*100<ENHCFG.rate(from);
+ const protectedFailure=!ok&&from>=5&&inv.bless>0;
+ if(protectedFailure)inv.bless--;
+
+ const to=ok?from+1:from>=5&&!protectedFailure?from-1:from;
+ ENH[id]=to;
+ const result={id,ok,from,to,s0};
+ if(window.recordEnhancementFailure)window.recordEnhancementFailure(result,protectedFailure);
+ result.s1=enhStat7(id,result.to);
+ ENHS.res=result;
+ try{window.recordDailyEnhancement?.()}catch(e){}
+ try{recalcStats()}catch(e){}
+ try{refreshInv()}catch(e){}
+ try{saveGame(true)}catch(e){}
+ enhW.hidden=true;
+ forgeStart7(id,ok);
+}
 window.enhStart7=enhStart7;
 
 // ---------- FORGING ANIMATION : เดินไปหน้าทั่ง → ยกค้อน → เหวี่ยง → กระแทก → ยกกลับ ×4 (ครั้งสุดท้ายแรงสุด) ----------
@@ -6022,8 +6043,6 @@ window.shopBuy7=()=>{const id=SHOP7.sel;if(!id)return;const n=SHOP7.q;let c0=inv
 ENHCFG.cost=l=>({gold:50*(l+1)*(l+2),stone:ENH_EST(l),ing:1+(l>>2),scale:l>=9?l-8:0});
 const enhMats7=(id,l)=>{const it=ITEMS[id],c=ENHCFG.cost(l),L=[{k:'coin',n:c.gold,nm:'Gold'},{k:'estone',n:c.stone,nm:'หินเสริมพลัง'},{k:MATKEY[it.tier],n:c.ing,nm:MATN[it.tier]}];if(c.scale)L.push({k:'scale',n:c.scale,nm:'เกล็ดมังกร'});return L};
 {const _ck=enhCheck7;enhCheck7=function(id){const r=_ck(id);if(r)return r;const l=enhLv7(id);for(const m of enhMats7(id,l))if((inv[m.k]|0)<m.n)return 'วัตถุดิบไม่เพียงพอ — '+m.nm+' ต้องใช้ '+m.n+' มี '+(inv[m.k]|0);return null}}
-{const _es=enhStart7;enhStart7=function(){const id=ENHS.sel;if(ENHS.busy||!id||enhCheck7(id)){return _es()}const l=enhLv7(id),ms=enhMats7(id,l).filter(m=>m.k!=='coin'&&m.k!=='estone');
-  _es();if(ENHS.busy)for(const m of ms)inv[m.k]=Math.max(0,(inv[m.k]|0)-m.n);try{refreshInv();saveGame(true)}catch(e){}}}
 {const st=document.createElement('style');st.textContent=`
 #enhw .ebd{flex:1;min-height:0;display:flex;gap:10px;padding:10px}
 #enhw .eL{width:46%;display:flex;flex-direction:column;gap:6px;min-width:0;overflow-y:auto}
@@ -6809,9 +6828,9 @@ window.DGMAX7=DGMAX7;window.dgMobs7=dgMobs7;window.dgLv7=dgLv7;window.dgBossOf7=
 // player.js — XP/เลเวล (ผ่าน Hooks('xp')) · สวมใส่ (Guard + ITEM_EQUIPPED) · สถานะผู้เล่น
 // =====================================================================
 (()=>{
- const _gx=gainXp;gainXp=function(n){return Guard.run('gainXp',()=>{const l0=P.lv;let v=Number(n)||0;v=Math.max(0,Math.round(Hooks.apply('xp',v)));_gx(v);EventBus.emit(EV.XP_GAINED,{amount:v,base:n,lv:P.lv});if(P.lv>l0)EventBus.emit(EV.LEVEL_UP,{from:l0,to:P.lv})})};
  window.gainXp=gainXp;
- const _eq=equipItem;equipItem=function(id){return Guard.run('equipItem',()=>{const before=JSON.stringify(P.armor);const r=_eq(id);if(JSON.stringify(P.armor)!==before||(QS&&QS.slots.includes(id)))EventBus.emit(EV.ITEM_EQUIPPED,{id,armor:Object.assign({},P.armor)});return r},'isEquipping',()=>{try{hideBag();CHS.sel=null;refreshInv()}catch(_){}})};
+ const _eq=equipItem;equipItem=function(id){return Guard.run('equipItem',()=>{ if(window.broken68?.(id)){say('ต้องซ่อมอุปกรณ์ก่อนสวมใส่');sfx('thud');return}
+const before=JSON.stringify(P.armor);const r=_eq(id);if(JSON.stringify(P.armor)!==before||(QS&&QS.slots.includes(id)))EventBus.emit(EV.ITEM_EQUIPPED,{id,armor:Object.assign({},P.armor)});return r},'isEquipping',()=>{try{hideBag();CHS.sel=null;refreshInv()}catch(_){}})};
  window.equipItem=equipItem;
  const _ue=unequip;unequip=function(k){return Guard.run('unequip',()=>_ue(k),'isEquipping')};window.unequip=unequip;
  Eldoria.register('player',{state:()=>({lv:P.lv,hp:P.hp,mp:P.mp,cls:P.cls,armor:Object.assign({},P.armor),flags:Object.assign({},PSTATE)})});

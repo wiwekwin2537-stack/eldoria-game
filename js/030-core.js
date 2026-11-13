@@ -7,8 +7,56 @@ const EQ={w:[{n:'ดาบไม้ฝึกหัด',a:0},{n:'ดาบเห�
 const ATK=()=>Math.round((window.atkMul?atkMul():1)*(1+(P.armor.sword?SWATK[P.tier.sword]+(window.enhAtk?enhAtk(ENH[P.armor.sword]||0):(ENH[P.armor.sword]||0)):0)+(window.PRIM10?PRIM10():P.stats.str)+ringAtk()+((P.lv-1)>>1))),DEF=()=>armorDef()+(P.stats.vit>>1)+((P.lv-1)>>2),need=l=>Math.round((20+l*l*12)*(l<20?1:1+(l-20)/40));
 const lvBox=document.getElementById('coinbox');lvBox.style.whiteSpace='nowrap';lvBox.insertAdjacentHTML('beforeend',' · ⭐Lv.<b id="lvhud">1</b> <small id="xphud"></small>');
 function lvHud(){document.getElementById('lvhud').textContent=P.lv;document.getElementById('xphud').textContent=P.xp+'/'+need(P.lv)}
-function gainXp(n){P.xp+=n;let up=0;while(P.xp>=need(P.lv)&&P.lv<(typeof MAXLV!=='undefined'?MAXLV:150)){P.xp-=need(P.lv);P.lv++;up=1}
- if(up){BAL.hp=100+(P.lv-1)*15;BAL.mp=50+(P.lv-1)*5;P.hp=BAL.hp;P.mp=BAL.mp;sfx('heal');say('⭐ เลเวลอัป! Lv.'+P.lv+' เลือดสูงสุด '+BAL.hp+' โจมตี '+ATK())}else say('+'+n+' XP');lvHud();refreshInv()}
+function gainXp(n){
+  try{if(window.rageSceneXp)n=window.rageSceneXp(n)}catch(e){}
+  const max=typeof MAXLV==='undefined'?150:MAXLV;
+  const scaled=!window.__noXpm64;
+  if(window.pgAdd92&&P.lv>=max&&typeof n==='number'&&n>0){
+    pgAdd92(scaled?Math.round(n*(window.XPM64||1)):n);
+    return;
+  }
+  if(scaled&&typeof n==='number'&&n>0){
+    const factor=window.levelXpFactor?.(P.lv) ?? 1;
+    if(factor<1)n=Math.max(1,Math.round(n*factor));
+    if(typeof window.XPM64!=='undefined')n=Math.max(1,Math.round(n*window.XPM64));
+  }
+  if(window.baseXpFactor)n=Math.max(1,Math.round((+n||0)*window.baseXpFactor));
+  if(window.EV11?.cur?.k==='xp'&&n>0)n*=2;
+
+  const apply=()=>{
+    const before=P.lv;
+    const amount=window.Hooks?Math.max(0,Math.round(Hooks.apply('xp',Number(n)||0))):n;
+    const points=typeof ptTotal==='function'?ptTotal():0;
+    if(P.lv>=max){P.xp=0;lvHud()}
+    else{
+      P.xp+=amount;
+      while(P.lv<max&&P.xp>=need(P.lv)){
+        P.xp-=need(P.lv);
+        P.lv++;
+      }
+      if(P.lv>before){
+        BAL.hp=100+(P.lv-1)*15;BAL.mp=50+(P.lv-1)*5;
+        P.hp=BAL.hp;P.mp=BAL.mp;sfx('heal');
+        say('⭐ เลเวลอัป! Lv.'+P.lv+' เลือดสูงสุด '+BAL.hp+' โจมตี '+ATK());
+      }else say('+'+amount+' XP');
+      lvHud();refreshInv();
+      if(P.lv>before&&typeof applyLevelStats==='function')applyLevelStats(before);
+      if(P.lv>=max)P.xp=0;
+      if(P.lv>before&&typeof announceGuildLevel==='function'){
+        announceGuildLevel(before);
+        announceLevelUnlocks(before);
+        announcePassivePoints(points);
+        announceSkillLevels(before);
+        showLevelEffects(before);
+      }
+    }
+    if(window.EventBus&&typeof EV!=='undefined'){
+      EventBus.emit(EV.XP_GAINED,{amount,base:n,lv:P.lv});
+      if(P.lv>before)EventBus.emit(EV.LEVEL_UP,{from:before,to:P.lv});
+    }
+  };
+  return window.Guard?Guard.run('gainXp',apply):apply();
+}
 dropLoot=function(x,y,sl){const lv=(sl&&sl.lv)||1,n=1+(Math.random()<.4?1:0),c=1+Math.floor(Math.random()*3)+(lv>>1);for(let i=0;i<n;i++)addDrop('gel',x,y);for(let i=0;i<c;i++)addDrop('coin',x,y);if(sl)setTimeout(()=>gainXp(5*lv),30)};
 const _dsl=drawSlime;drawSlime=function(s){const k=1+((s.lv||1)-1)*.07;if(k>1){ctx.save();ctx.translate(s.x,s.y);ctx.scale(k,k);ctx.translate(-s.x,-s.y);_dsl(s);ctx.restore()}else _dsl(s);
  ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.lineWidth=2.5;ctx.strokeStyle='#000';const t='Lv.'+(s.lv||1);ctx.strokeText(t,s.x,s.y-26*k);ctx.fillStyle=['#9f9','#cf9','#ff9','#fb7','#f77'][(s.lv||1)-1];ctx.fillText(t,s.x,s.y-26*k);ctx.textAlign='left'};

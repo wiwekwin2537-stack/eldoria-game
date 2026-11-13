@@ -4,14 +4,9 @@ try{
 const cwExtra42=t=>({coin:400*(t+1),ess:2+t});
 window.craftCw42=function(t){t|=0;if(P.cls==='none'||!CW27[P.cls]){say('ต้องมีอาชีพก่อนจึงจะคราฟอาวุธประจำอาชีพได้');sfx('thud');return}
  const base=NEEDW[P.cls]+t,id=cwId27(P.cls,t);if(!ITEMS[base]||!ITEMS[id])return;
- const R=recipe12(base),X=cwExtra42(t);
- if((inv.coin|0)<(R.coin||0)+X.coin||(inv.ess|0)<(R.ess||0)+X.ess){say('วัตถุดิบไม่พอ: ต้องใช้ 🪙 '+((R.coin||0)+X.coin)+' · แก่นเวทมนตร์ '+((R.ess||0)+X.ess)+' (มี 🪙 '+(inv.coin|0)+' · แก่นเวท '+(inv.ess|0)+')');sfx('thud');return}
- const g0=GEAR[base]|0;craftSet12(base);
- if((GEAR[base]|0)!==g0+1)return; // คราฟไม่ผ่าน (ล็อกตำรา/ของไม่พอ/กระเป๋าเต็ม) — craftSet12 แจ้งเหตุผลแล้ว
- GEAR[base]--;if(GEAR[base]<=0)delete GEAR[base];GEAR[id]=(GEAR[id]|0)+1;inv.coin-=X.coin;inv.ess-=X.ess;
- try{refreshInv();saveGame(true)}catch(e){}sfx('warp');try{flash(CW27[P.cls][2],.25)}catch(e){}
- say('⚒️ คราฟ '+ITEMS[id].name+' สำเร็จ! — '+desc26(CW27[P.cls][1])+' · เปิดกระเป๋า 🎒 เพื่อสวมใส่');try{chatAnn((P.name||'ผู้กล้า')+' คราฟ '+ITEMS[id].name+' สำเร็จ!')}catch(e){}
- try{openForge('anvil')}catch(e){}};
+ if(!craftSet12(base,id,cwExtra42(t)))return;
+ sfx('warp');try{flash(CW27[P.cls][2],.25)}catch(e){}
+ try{chatAnn((P.name||'ผู้กล้า')+' คราฟ '+ITEMS[id].name+' สำเร็จ!')}catch(e){}};
 {const _ah=anvilHTML;anvilHTML=function(){let h=_ah();try{
  if(FUI.tab!=='craft'||(FUI.cat||'weapon')!=='weapon')return h;
  const close='<button class="mini" onclick="closeForge()">ปิด</button>',at=h.lastIndexOf(close);if(at<0)return h;

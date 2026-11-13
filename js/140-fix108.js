@@ -38,9 +38,7 @@ function roll108(){const lv=P.lv|0,C=QP108.filter(q=>lv>=(q.min||0)&&lv<=(q.max|
 function chkDay108(){if(!SRV.ok)return;const d=day108();if(DY.day!==d){DY.day=d;roll108();sv108();base108=snap108()}}
 function prog108(t,n){if(!n)return;let ch=0;for(const q of DY.q){if(q.t!==t||q.ok||q.c>=q.n)continue;q.c=Math.min(q.n,q.c+n);ch=1;if(q.c>=q.n){try{say('📅 เควสรายวันสำเร็จ: '+q.d+' — เปิดเมนู 📅 รายวัน เพื่อรับรางวัล');sfx('bell')}catch(e){}}}if(ch){sv108();if(!W108.hidden)render108()}}
 setInterval(()=>{try{if(typeof P==='undefined'||!P||!titleEl.hidden)return;chkDay108();const s=snap108();for(const k in s){const d=s[k]-(base108[k]|0);if(d>0&&d<500)prog108(k,d)}base108=s}catch(e){}},1000);
-{const _e=enhItem;enhItem=function(id){const l0=(ENH&&ENH[id])||0,c0=inv.coin;const r=_e.apply(this,arguments);try{if(((ENH&&ENH[id])||0)!==l0||inv.coin!==c0)prog108('enh',1)}catch(e){}return r};window.enhItem=enhItem}
-// fix123: ตีบวกจริงอยู่ที่ enhStart7 (enhItem แค่เปิดหน้าต่าง) → เควสรายวัน "ตีบวก" ไม่เคยขยับ
-{const _s=enhStart7;enhStart7=function(){const b0=!!ENHS.busy,c0=inv.coin;const r=_s.apply(this,arguments);try{if(!b0&&ENHS.busy&&inv.coin!==c0)prog108('enh',1)}catch(e){}return r};window.enhStart7=enhStart7}
+window.recordDailyEnhancement=()=>prog108('enh',1);
 // ---------- หน้าต่าง ----------
 const W108=mk6('dy108');
 const css108=document.createElement('style');css108.textContent=
