@@ -370,9 +370,11 @@ function drawFig(){if(chp.hidden)return;const sv={x:P.x,y:P.y,dir:P.dir,mv:P.mv,
  fk.setTransform(1,0,0,1,0,0);fk.clearRect(0,0,figc.width,figc.height);
  const g=fk.createRadialGradient(90,150,10,90,150,110);g.addColorStop(0,'#4a4640');g.addColorStop(1,'#25221e');fk.fillStyle=g;fk.fillRect(0,0,figc.width,figc.height);
  fk.fillStyle='rgba(0,0,0,.35)';fk.beginPath();fk.ellipse(90,203,40,10,0,0,7);fk.fill();
+ const skin=FASH.wpn;
  P.draw=false;ctx=fk;fk.setTransform(3,0,0,3,0,0);DPOSE=false;P.x=30;P.y=66;P.dir=CHS.dir;P.mv=false;P.at=-1;P.dash=0;
- try{heroBody()}catch(e){}
- ctx=sc;DPOSE=sd;Object.assign(P,sv)}
+ // The equipment panel shows the item in its slot, rather than its fashion overlay.
+ FASH.wpn=null;
+ try{heroBody()}catch(e){}finally{FASH.wpn=skin;ctx=sc;DPOSE=sd;Object.assign(P,sv)}}
 setInterval(drawFig,70);
 addEventListener('keydown',e=>{if(e.key==='v'||e.key==='V')toggleChar()});
 {const m=menuEl.querySelector('small');if(m)m.insertAdjacentHTML('beforeend',' · V สถานะตัวละคร')}
