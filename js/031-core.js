@@ -1018,7 +1018,13 @@ function mobKill(m){const Zm=D.zone,Zd=Zm.Zd;sfx('splat');m.dead=true;try{if(win
  if(m.boss){for(let i=0;i<rndi(3,6);i++)addDrop(Zd.ing,m.x,m.y);for(let i=0;i<rndi(3,6);i++)addDrop(Zd.raw,m.x,m.y);if(Zd.id==='diamond')for(let i=0;i<4;i++)addDrop('gem',m.x,m.y);
   say('🏆 ปราบ '+m.nm+' สำเร็จ! บอสจะกลับมาอีกใน 3 นาที');sfx('chest');D.boss=null;D.bossT=180}
  else{if(Math.random()<(m.elite?1:.3))for(let i=0;i<(m.elite?2:1);i++)addDrop(Zd.raw,m.x,m.y);if(m.elite&&Math.random()<.4)addDrop(Zd.ing,m.x,m.y)}
- refreshInv();setTimeout(()=>gainXp(mobXp(m.L)*(m.elite?3:1)*(m.boss?15:1)),30)}
+ refreshInv();
+ const quota = window.RN153?.kill;
+ const reward = quota?.mob === m ? quota : null;
+ setTimeout(() => {
+   const xp = mobXp(m.L)*(m.elite?3:1)*(m.boss?15:1);
+   gainXp(reward?.earned && window.rageKillXp153 ? rageKillXp153(xp, reward.f) : xp);
+ }, 30)}
 function bossSkill(b){const n=b.hp/b.max,enr=n<.3;
  if(n<.5&&!b.summoned||(b.summoned&&n<.25&&b.summoned<2)){b.summoned=(b.summoned||0)+1;for(let i=0;i<2;i++){const Zd=D.zone.Zd,[f,nm,col]=Zd.mobs[i%Zd.mobs.length];const mm=mkMob(f,nm,col,Zd.lv[1],b.x+(i?40:-40),b.y+20,{});mm.aggro=1;mm.st='chase';D.mobs.push(mm)}
   say('⚠️ '+b.nm+' เรียกลูกน้องมาช่วย!');sfx('warp');return}

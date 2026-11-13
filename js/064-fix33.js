@@ -84,7 +84,7 @@ function pickTarget33(m){let best=null,bd=(P.dead||P.hp<=0)?1e9:Math.hypot(P.x-m
 // รางวัล XP ให้สมาชิกปาร์ตี้ที่อยู่ใกล้ แม้ไม่ได้ตี (ครึ่งหนึ่ง)
 function partyXp33(m){try{if(!window.PTY35||!PTY35.mem||PTY35.mem.length<2)return;if(Math.hypot(P.x-m.x,P.y-m.y)>700||P.dead)return;
   const ids=new Set(PTY35.mem.map(x=>x.id));let near=false;for(const o of NET.others.values())if(ids.has(o.id)){near=true;break}if(!near)return;
-  const xp=Math.round(mobXp(m.L)*(m.elite?3:1)*(m.boss?15:1)*.5);if(xp>0){gainXp(xp);dmgTxt(P.x,P.y-60,'👥 +'+xp+' XP','#9dffb0')}}catch(e){}}
+  const xp=Math.round(mobXp(m.L)*(m.elite?3:1)*(m.boss?15:1)*.5);if(xp>0){gainXp(window.ragePartyXp153 ? ragePartyXp153(xp) : xp);dmgTxt(P.x,P.y-60,'👥 +'+xp+' XP','#9dffb0')}}catch(e){}}
 window.partyXp33=partyXp33;
 // ---------- อัปเดตโซน (แทนของเดิม): โฮสต์คุมทุกอย่าง · คนดูไม่เกิดมอนเอง ----------
 {const _uz=updZone;updZone=function(dt){if(!D||!D.zone)return;
