@@ -9,18 +9,16 @@
 // =====================================================================
 try{
 // A selected fashion may change the appearance only within its weapon family.
+const classWeaponShape145={ninja:'katana',sniper:'rifle',monk:'knuckles',dragoon:'spear',necro:'scythe'};
+const skinWeaponShape145={w2_ninja:'kunai',w2_necro:'staff'};
 function weaponSkin145(){
  const it=equippedWeapon(), key=FASH.wpn, skin=FWPN[key];
  if(!it||!skin)return null;
- if(!skin.cls){
-  if(it.kind!=='sword'||holdsKnuckles()||it.cls==='dragoon')return null;
-  return !!skin.kat===(it.cls==='ninja')?key:null;
- }
- if(skin.cls!==P.cls||it.kind!==NEEDW[skin.cls])return null;
- if(skin.cls==='sniper'&&!holdsRifle()||skin.cls==='monk'&&!holdsKnuckles())return null;
- if(skin.cls==='dragoon'&&it.cls!=='dragoon')return null;
- if(skin.cls==='ninja'&&it.cls!=='ninja')return null;
- return key;
+ if(skin.cls&&skin.cls!==P.cls)return null;
+ const equippedShape=classWeaponShape145[it.cls]||it.kind;
+ const skinShape=skinWeaponShape145[key]||classWeaponShape145[skin.cls]||
+  (skin.cls?NEEDW[skin.cls]:skin.kat?'katana':'sword');
+ return equippedShape===skinShape?key:null;
 }
 window.weaponSkin145=weaponSkin145;
 const fwMine145=()=>{const key=weaponSkin145();return key&&FWPN[key].cls?key:null};
