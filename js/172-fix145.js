@@ -12,10 +12,14 @@ try{
 function weaponSkin145(){
  const it=equippedWeapon(), key=FASH.wpn, skin=FWPN[key];
  if(!it||!skin)return null;
- if(!skin.cls)return it.kind==='sword'&&!holdsKnuckles()&&it.cls!=='dragoon'?key:null;
+ if(!skin.cls){
+  if(it.kind!=='sword'||holdsKnuckles()||it.cls==='dragoon')return null;
+  return !!skin.kat===(it.cls==='ninja')?key:null;
+ }
  if(skin.cls!==P.cls||it.kind!==NEEDW[skin.cls])return null;
  if(skin.cls==='sniper'&&!holdsRifle()||skin.cls==='monk'&&!holdsKnuckles())return null;
  if(skin.cls==='dragoon'&&it.cls!=='dragoon')return null;
+ if(skin.cls==='ninja'&&it.cls!=='ninja')return null;
  return key;
 }
 window.weaponSkin145=weaponSkin145;
@@ -41,7 +45,7 @@ function back145(x,by,side,f,d){if(!P.armor.sword)return false;const kd=wKind(),
  const saved={tool:P.tool,draw:P.draw,at:P.at};ctx.save();try{P.tool='sword';P.draw=false;P.at=-1;const ox=side?-f*4:d==='u'?3:-3;
   if(kd==='bow'){const aim=holdsRifle()?-Math.PI/2+(d==='l'?.3:d==='r'?-.3:.4):d==='l'?.35:d==='r'?Math.PI-.35:-.7;drawBow6(x+ox,by-23,aim,weaponTier(),0,false,.78);bowGlow145(x+ox,by-23,aim,.78)}
   else if(kd==='staff'){staffAt7(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86);glow145(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86)}
-  else{ctx.translate(x+ox,by-32);ctx.scale(P.cls==='dragoon'?.72:.82,P.cls==='dragoon'?.72:.82);const ang=Math.PI+(d==='l'?-.42:.42);toolSpr(0,0,ang);glow145(0,0,ang)}
+  else{ctx.translate(x+ox,by-32);ctx.scale(P.cls==='dragoon'?.72:.82,P.cls==='dragoon'?.72:.82);const ang=Math.PI+(d==='l'?-.42:.42);glow145(0,0,ang);toolSpr(0,0,ang)}
  }finally{Object.assign(P,saved);ctx.restore()}return true}
 function idlePose145(d,s=0){const f=d==='l'?-1:1,side=d==='l'||d==='r';return{g:side?[f*(10+s*.7),-23+s*.4]:d==='d'?[12,-23+s*.5]:[-12,-25+s*.5],h:side?[-f*3,-13-s]:d==='d'?[-11,-13+s*2]:[11,-13-s*2],a:side?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12}}
 function canIdle145(){return P.cls==='archer'&&wKind()==='bow'&&P.draw&&P.tool==='sword'&&!!P.armor.sword&&!P.dead}
