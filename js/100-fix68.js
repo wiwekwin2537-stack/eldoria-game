@@ -26,6 +26,7 @@ window.recordEnhancementFailure=function(result,protectedFailure){
  result.to=0;
  const slot=Object.keys(P.armor).find(key=>P.armor[key]===id);
  if(slot)unequip(slot);
+ else if(P.draw&&(QS.cur===id||((P.tool==='axe'||P.tool==='pick')&&P.tool+P.tier[P.tool]===id)))stowItem();
 };
 // แจ้งผลหลังตีเสร็จ (แบนเนอร์ใหญ่ + ข้อความแชต)
 {const _e=forgeEnd7;forgeEnd7=function(){const r=_e.apply(this,arguments);try{const R=ENHS.res;if(R){const nm=ITEMS[R.id].name;

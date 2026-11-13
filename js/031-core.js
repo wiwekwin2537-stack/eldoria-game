@@ -420,10 +420,11 @@ function autoDraw(){if(!P.draw){P.tool='sword';P.draw=true;QS.cur='weapon'}}
 function stowToggle(){if(P.draw)stowItem();else{const id=QS.last||'weapon';quickUseId(id)}}
 function quickUse(i){if(PAUSED||DOORA.k)return;const id=QS.slots[i];if(!id||!bagEl.hidden){openQPick(i);return}quickUseId(id)}
 function quickUseId(id){
+ if(window.broken68?.(id==='weapon'?P.armor.sword:id)){say('ต้องซ่อมอุปกรณ์ก่อนใช้งาน');sfx('thud');return}
  if(id==='weapon'){if(!P.armor.sword){say('ยังไม่มีอาวุธสวมอยู่ — ไปซื้อหรือคราฟก่อน');return}if(qActive('weapon')){stowItem();return}P.tool='sword';QS.last=id;drawItem('weapon','⚔️ ชัก'+(window.wName9?wName9():'ดาบ')+'ออกมา — กดอีกครั้งเพื่อเก็บ');return}
  const it=ITEMS[id];
  if(it){
-  if(it.kind==='sword'){if(GEAR[id]>0)equipItem(id);else if(P.armor.sword!==id){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'แล้ว');return}
+  if(it.kind==='sword'){if(GEAR[id]>0&&P.armor.sword!==id){equipItem(id);if(P.armor.sword!==id)return}else if(P.armor.sword!==id){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'แล้ว');return}
    if(qActive(id)){stowItem();return}P.tool='sword';QS.last=id;drawItem(id,'⚔️ ชัก'+it.name+'ออกมา');return}
   if(!(GEAR[id]>0)){QS.slots[QS.slots.indexOf(id)]=null;say('ไม่มี'+it.name+'ในกระเป๋าแล้ว');return}
   if(qActive(id)){stowItem();return}
@@ -5858,6 +5859,7 @@ function enhStart7(){
  if(window.recordEnhancementFailure)window.recordEnhancementFailure(result,protectedFailure);
  result.s1=enhStat7(id,result.to);
  ENHS.res=result;
+ try{window.recordDailyEnhancement?.()}catch(e){}
  try{recalcStats()}catch(e){}
  try{refreshInv()}catch(e){}
  try{saveGame(true)}catch(e){}
