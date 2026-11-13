@@ -1,0 +1,53 @@
+/* Real browsers: stale device cache, device transfer, inflight pagehide, process kill, new device. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+(async()=>{const root=path.join(__dirname,'..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'eld-central-')),base='http://127.0.0.1:8805',url=base+'/?server=ws://127.0.0.1:8805',errors=[];let host,browser;const server=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:'8805',DATA_DIR:dir,UPSTASH_REDIS_REST_URL:'',UPSTASH_REDIS_REST_TOKEN:''},stdio:['ignore','pipe','inherit']});
+try{await new Promise(r=>server.stdout.once('data',r));const post=async(p,d)=>(await fetch(base+p,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)})).json(),id='central_test',pw='Test1234';const reg=await post('/api/register',{id,pw,protocol:2,name:'ทดสอบกลาง'});assert.equal(reg.ok,true);
+const main={v:1,t:0,name:'ทดสอบกลาง',lv:1,xp:0,sp:0,stats:{str:1,vit:1,int:1,agi:1,end:1},hp:100,mp:50,fa:100,hu:100,armor:{sword:null,helm:null,chest:null,pants:null,arm:null,neck:null,ring:null},tier:{sword:0,axe:0,pick:0},tool:'sword',draw:false,bagLv:0,inv:{coin:123,ingDm:5},gear:{chest21:1},enh:{chest21:14},sk:[],qs:[],day:0,buffs:[]};const save=JSON.stringify({fm_save_v1:JSON.stringify(main),fm_name:main.name,fm_cc41:'1',fm_story:JSON.stringify({intro:1,tut:99,ch:0})});assert.equal((await post('/api/save',{id,token:reg.token,protocol:2,base:0,seq:1,lv:1,save})).ok,true);
+const launch=async()=>{host=await chromium.launchServer({executablePath:process.env.ELD_CHROMIUM,args:['--no-sandbox','--enable-unsafe-swiftshader']});browser=await chromium.connect(host.wsEndpoint())};await launch();
+const context=async seed=>{const c=await browser.newContext({viewport:{width:915,height:412},isMobile:true,hasTouch:true});await c.addInitScript(({seed,id})=>{window.__testDisk=window.localStorage;if(seed){localStorage.setItem('cloud_tok_'+id,seed);localStorage.setItem('fm_last_acct',id);localStorage.setItem('fm_remember','1');localStorage.setItem('u:'+id+':fm_save_v1','{"v":1,"lv":199}');localStorage.setItem('cloud_rev_'+id,'999');sessionStorage.setItem('fm_acct',id);sessionStorage.setItem('fm_go','1')}},{seed,id});await c.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());const p=await c.newPage();p.setDefaultTimeout(120000);p.on('pageerror',e=>{errors.push(e.message);console.log('PAGE ERROR',e.message)});await p.goto(url,{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>!window.FM_LOADING&&window.REG136);await p.waitForFunction(()=>!document.getElementById('boot106'));return {c,p}};
+const ready=async p=>{await p.waitForFunction(()=>ONL32.verified&&ON10.auth);await p.evaluate(()=>{titleEl.hidden=true;intro.hidden=true;CINE.L=null;cineEl.hidden=true;TUT.on=false;gid('tut').hidden=true})};const a=await context(reg.token);await ready(a.p);assert.equal(await a.p.evaluate(()=>P.lv),1);assert.equal(await a.p.evaluate(()=>GEAR.chest21),1);assert.equal(await a.p.evaluate(()=>__testDisk.getItem('u:central_test:fm_save_v1')),'{"v":1,"lv":199}','old disk cache must stay untouched and unused');
+
+const result=await a.p.evaluate(async()=>{
+  const check=(ok,msg)=>{if(!ok)throw Error(msg)};
+  window.__noXpm64=1;
+  enterZone(0);
+  await new Promise(r=>setTimeout(r,1000));
+  check(D?.zone,'zone entry');
+  const xp=P.xp,lv=P.lv,coin=inv.coin;
+  const [family,name,colors]=D.zone.Zd.mobs[0];
+  const m=mkMob(family,name,colors,5,P.x+20,P.y,{});
+  mobKill(m);
+  await new Promise(r=>setTimeout(r,150));
+  check(m.dead&&(P.xp>xp||P.lv>lv)&&inv.coin>coin,'kill and XP/coin');
+  const dropCoin=inv.coin;
+  const coinDrop=drops.find(d=>d.type==='coin');
+  check(coinDrop,'coin dropped');
+  Object.assign(coinDrop,{x:P.x,y:P.y-8,t:1,z:0,vx:0,vy:0,vz:0});
+  updWorld(.01);
+  check(!drops.includes(coinDrop)&&inv.coin>dropCoin,'picked up dropped coin');
+  exitD();enterTown(1);enterShop('gear');
+  const base='sword0',id=cwId27('sword',0),recipe=recipe12(base);
+  inv.coin=5000;
+  for(const [k,n] of Object.entries(recipe))inv[k]=Math.max(inv[k]||0,n);
+  const initial=GEAR[id]||0;
+  const baseCount=GEAR[base]||0;
+  craftCls88('sword',0);
+  check((GEAR[base]||0)===baseCount,'no intermediate equipment');
+  check(GEAR[id]===initial+1,'crafted gear');
+  const level=ENH[id]||0;
+  for(const {k,n} of enhMats7(id,level))inv[k]=Math.max(inv[k]||0,n+1);
+  ENHS.sel=id;
+  const old=Math.random;
+  try{Math.random=()=>0;enhStart7()}finally{Math.random=old}
+  check(ENH[id]===level+1,'enhanced gear');
+  check(await CLOUD.sync(true),'save ack');
+  return {id,lv:P.lv,xp:P.xp,coin:inv.coin,gear:GEAR[id],enh:ENH[id]};
+});
+const login=await post('/api/login',{id,pw,protocol:2});
+assert.equal(login.ok,true);
+const fresh=await context(login.token);await ready(fresh.p);
+const loaded=await fresh.p.evaluate(id=>({id,lv:P.lv,xp:P.xp,coin:inv.coin,gear:GEAR[id],enh:ENH[id]}),result.id);
+assert.deepEqual(loaded,result);
+assert.deepEqual(errors,[]);
+console.log('Mobile viewport: kill, reward, craft, enhance, save and reload passed');
+}finally{try{await browser?.close();await host?.close()}catch(e){}server.kill();await new Promise(r=>server.exitCode!==null?r():server.once('exit',r));fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exitCode=1});

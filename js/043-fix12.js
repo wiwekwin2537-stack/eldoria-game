@@ -57,11 +57,26 @@ function recipe12(id){const it=ITEMS[id],t=it.tier,m=(RECIPE[it.kind]||{m:3}).m,
  else{R[ING12[t]]=m;R.ess=Math.ceil(m/2)+t;R[pa]=m;R[pb]=Math.ceil(m/2)}
  if(w)R.wood=(R.wood||0)+2+t;R.coin=50*(t+1)*m;return R}
 const hasAll12=R=>Object.entries(R).every(([k,v])=>(inv[k]|0)>=v);
-function craftSet12(id){const it=ITEMS[id];if(!it)return;if(it.tier>SMITH.u){say('🔒 ยังตีเซ็ต'+SETN12[it.tier]+'ไม่เป็น — รับตำราจากช่างหนวดเหล็ก (Lv.'+SMQ[it.tier].lv+')');sfx('thud');return}
- const R=recipe12(id);if(!hasAll12(R)){say('วัตถุดิบไม่พอ: '+Object.entries(R).map(([k,v])=>MN(k)+' '+(inv[k]|0)+'/'+v).join(' · '));sfx('thud');return}
- try{if(bagCells().length>=bagSlotsMax()){noRoom('slot');return}}catch(e){}
- for(const [k,v] of Object.entries(R))inv[k]-=v;GEAR[id]=(GEAR[id]||0)+1;try{refreshInv();saveGame(true)}catch(e){}sfx('chest');try{anvilFx()}catch(e){}
- say('⚒️ คราฟ '+it.name+' ['+RARE12[it.tier][0]+'] สำเร็จ! เปิดกระเป๋า 🎒 เพื่อสวมใส่');try{questEv&&questEv('craft',id)}catch(e){}openForge('anvil')}
+function craftSet12(id,outputId=id,extra={}){
+ const it=ITEMS[id],output=ITEMS[outputId];
+ if(!it||!output)return;
+ if(it.tier>SMITH.u){say('🔒 ยังตีเซ็ต'+SETN12[it.tier]+'ไม่เป็น — รับตำราจากช่างหนวดเหล็ก (Lv.'+SMQ[it.tier].lv+')');sfx('thud');return}
+ const recipe=recipe12(id);
+ for(const [k,n] of Object.entries(extra))recipe[k]=(recipe[k]||0)+n;
+ if(!hasAll12(recipe)){say('วัตถุดิบไม่พอ: '+Object.entries(recipe).map(([k,v])=>MN(k)+' '+(inv[k]|0)+'/'+v).join(' · '));sfx('thud');return}
+ if(bagCells().length>=bagSlotsMax()){noRoom('slot');return}
+ const consumedWeight=Object.entries(recipe).reduce((w,[k,n])=>w+(WT[k]||0)*n,0);
+ if(bagWeight()-consumedWeight+gearW(outputId)>bagCapMax()){noRoom('weight');return}
+ for(const [k,n] of Object.entries(recipe))inv[k]-=n;
+ GEAR[outputId]=(GEAR[outputId]||0)+1;
+ try{questEv('craft',id)}catch(e){}
+ try{refreshInv()}catch(e){}
+ try{saveGame(true)}catch(e){}
+ sfx('chest');try{anvilFx()}catch(e){}
+ say('⚒️ คราฟ '+output.name+' ['+RARE12[it.tier][0]+'] สำเร็จ! เปิดกระเป๋า 🎒 เพื่อสวมใส่');
+ openForge('anvil');
+ return true;
+}
 window.craftSet12=craftSet12;
 window.fuseEss12=n=>{n=Math.max(1,n|0);const can=Math.min(n,Math.floor((inv.essf|0)/5),inv.ingSt|0);if(can<=0){say('ต้องใช้เศษแก่นเวท 5 + แท่งหิน 1 ต่อ 1 ชิ้น');sfx('thud');return}
  inv.essf-=can*5;inv.ingSt-=can;inv.ess=(inv.ess|0)+can;try{refreshInv();saveGame(true)}catch(e){}sfx('gem');say('🔮 หลอมแก่นเวทมนตร์ได้ '+can+' ชิ้น');openForge('anvil')};

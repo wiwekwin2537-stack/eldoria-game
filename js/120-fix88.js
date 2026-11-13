@@ -4,9 +4,7 @@
 try{
 const ORD88=()=>{const L=Object.keys(CW27).filter(c=>CLS[c]&&NEEDW[c]);if(P.cls&&CW27[P.cls])L.sort((a,b)=>(b===P.cls)-(a===P.cls));return L};
 window.craftCls88=function(cls,t){t|=0;if(!CW27[cls]||!NEEDW[cls])return;const base=NEEDW[cls]+t,id=cwId27(cls,t);if(!ITEMS[base]||!ITEMS[id])return;
- const g0=GEAR[base]|0;craftSet12(base);if((GEAR[base]|0)!==g0+1)return; // ไม่ผ่าน (ล็อก/ของไม่พอ/กระเป๋าเต็ม) — craftSet12 แจ้งเหตุผลแล้ว
- GEAR[base]--;if(GEAR[base]<=0)delete GEAR[base];GEAR[id]=(GEAR[id]|0)+1;
- try{refreshInv();saveGame(true)}catch(e){}say('⚒️ คราฟ '+ITEMS[id].name+' สำเร็จ! (ใช้ได้เฉพาะ'+CLS[cls].n+') เปิดกระเป๋า 🎒 เพื่อสวมใส่');try{openForge('anvil')}catch(e){}};
+ return craftSet12(base,id)};
 {const _ah=anvilHTML;anvilHTML=function(){const h=_ah.apply(this,arguments);try{if(FUI.tab!=='craft'||(FUI.cat||'weapon')!=='weapon')return h;
   const T=document.createElement('template');T.innerHTML=h;const grid=T.content.querySelector('.grid');if(!grid)return h;
   for(const b of grid.querySelectorAll('button.card[onclick^="craftCw42"]'))b.remove();
