@@ -5574,9 +5574,28 @@ function orbOf7(hx,hy,ang,sc){const r=STF_ORB7*(sc||1);return{x:hx+Math.sin(ang)
 // จังหวะ (ยิงจริงที่ P.at=.34 ตามระบบเดิม): ยกธนู+เอื้อมหยิบลูก 0-.08 · พาดสาย .08-.16 · ง้าง .16-.30 · เล็งค้าง .30-.34 · ปล่อย .34-.42 · follow-through .42-.6 · คืนท่า .6-1
 const BWPH=[.08,.16,.30,.34,.42,.6];
 const BOWSHOT7=[{dy:0,tilt:0,deep:1,lean:[-1.5,1]},{dy:2,tilt:-.1,deep:1,lean:[-1,1.5]},{dy:0,tilt:0,deep:1.18,lean:[-3,2.5]}]; // shot 1 ปกติ · 2 ย่อต่ำ เงยนิด · 3 ง้างลึกแรงสุด
+/* Contact points follow the same reflected barrel frame as the rifle art. */
+function rifleGrip7(origin,axis,scale){
+ const [dx,dy]=axis,flip=dx< -1e-3?-1:1;
+ const point=(x,y)=>[origin[0]+scale*(dx*x-dy*y*flip),origin[1]+scale*(dy*x+dx*y*flip)];
+ return {trigger:point(5.8,4.5),support:point(13,2)};
+}
 function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],manual=P.cls==='sniper'&&window.SKPOSE57?.aim,aim0=manual?Math.atan2(manual[1],manual[0]):sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd&&!manual?-f*SH.tilt:0);
  const av=[Math.cos(aim),Math.sin(aim)],sc=d==='u'?.8:sd?.88:.9;
- if(P.cls==='sniper'){const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back),recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0,I=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13],G=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,manual?-31:-36],g=LP7(I,G,hold),aimI=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64,a=L7(aimI,aim,hold),axis=[Math.cos(a),Math.sin(a)];g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;const rest=sd?[-f*2,-14]:d==='d'?[11,-13]:[-11,-13],h=LP7(rest,[g[0]+axis[0]*(manual?9:12)*sc,g[1]+axis[1]*(manual?9:12)*sc+3],hold);return{g,h,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0}}
+ if(P.cls==='sniper'){
+  const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back);
+  const recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0;
+  const rest=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13];
+  const ready=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,manual?-31:-36];
+  const idleAngle=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64;
+  const delta=Math.atan2(Math.sin(aim-idleAngle),Math.cos(aim-idleAngle));
+  const a=idleAngle+delta*hold,axis=[Math.cos(a),Math.sin(a)];
+  const g=LP7(rest,ready,hold);
+  g[0]-=axis[0]*recoil;g[1]-=axis[1]*recoil;
+  const grip=rifleGrip7(g,axis,sc);
+  return{g,h:grip.support,trigger:grip.trigger,a,aim:a,av:axis,sc,pull:0,onStr:false,inHand:null,snap:recoil/3,lean:-recoil*.5,dip:0};
+ }
+
  const G=sd?[f*13,-24+SH.dy]:d==='d'?[10,-23+SH.dy]:[-10,-30+SH.dy*.5];             // ตำแหน่งกำคันธนูตอนเล็ง
  const I=sd?[f*10,-23]:d==='d'?[12,-23]:[-12,-25];                                     // ตำแหน่งมือถือธนูตอนพัก
  const aimI=sd?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12,displayAim=sd?aim:d==='d'?.5:Math.PI+.5,/* v5.52 หน้า/หลัง: เอียงคันไปทางที่ยิง ลูกธนูวางบนคันจริง */stringAxis=[Math.cos(displayAim),Math.sin(displayAim)];
@@ -5598,6 +5617,7 @@ function drawArrow7(x,y,ang,len){ctx.save();ctx.translate(x,y);ctx.rotate(ang);c
 // ไหล่: แขนจับคันธนู = แขนซ้ายตัวละคร · แขนดึงสาย = แขนขวา
 const bowSh7=(x,by,d,f)=>rgSide7(d)?{bow:[x+f*2,by-25],dr:[x-f*1,by-24]}:d==='d'?{bow:[x+10,by-24],dr:[x-10,by-24]}:{bow:[x-10,by-24],dr:[x+10,by-24]};
 function bowParts7(x,by,d,f,TOP,which){const sd7b=rgSide7(d)||!!(P.cls==='sniper'&&window.SKPOSE57?.aim),n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=P.tier.sword|0;
+ const tx=q.trigger?x+q.trigger[0]:gx,ty=q.trigger?by+q.trigger[1]:gy;
  if(which!=='arms'){
   drawBow6(gx,gy,q.a,tier,Math.max(0,q.pull),false,q.sc);
   if(window.Grip145)Grip145.bowGlow(gx,gy,q.a,q.sc);
@@ -5606,9 +5626,9 @@ function bowParts7(x,by,d,f,TOP,which){const sd7b=rgSide7(d)||!!(P.cls==='sniper
    if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+fv[0]*27*q.sc,ty=sy+fv[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
    P.tip={x:sx+fv[0]*26*q.sc,y:sy+fv[1]*26*q.sc,t:performance.now()}}
   if(q.snap>0){const mx=gx+(P.cls==='sniper'?q.av[0]*32*q.sc:0),my=gy+(P.cls==='sniper'?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
-  if(which==='bow'){swArm6(S.bow[0],S.bow[1],gx,gy,TOP,-1);if(!WORLDART.part(7,gx-2.5,gy-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-2.5,5,5)};return}} // หันขึ้น: แขนจับคันอยู่หน้าตัว (หลังลำตัวจากมุมกล้อง)
+  if(which==='bow'){swArm6(S.bow[0],S.bow[1],tx,ty,TOP,-1);if(!WORLDART.part(7,tx-2.5,ty-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(tx-2.5,ty-2.5,5,5)};return}} // หันขึ้น: แขนจับคันอยู่หน้าตัว (หลังลำตัวจากมุมกล้อง)
  // แขนจับคันธนู → มือที่กำคัน · แขนดึงสาย → มือ (ถือลูกธนูตอนหยิบ/พาดสาย)
- if(which!=='arms'||d!=='u'){swArm6(S.bow[0],S.bow[1],gx,gy,TOP,d==='d'?1:d==='u'?-1:f);if(!WORLDART.part(7,gx-2.5,gy-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(gx-2.5,gy-2.5,5,5)}}
+ if(which!=='arms'||d!=='u'){swArm6(S.bow[0],S.bow[1],tx,ty,TOP,d==='d'?1:d==='u'?-1:f);if(!WORLDART.part(7,tx-2.5,ty-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(tx-2.5,ty-2.5,5,5)}}
  if(q.inHand){const k=q.inHand.k,ang=L7(d==='u'?-Math.PI/2-.3:-Math.PI/2+(rgSide7(d)?-f*.5:.4),q.aim,k);drawArrow7(hx-Math.cos(ang)*4,hy-Math.sin(ang)*4,ang,22*q.sc)}
  swArm6(S.dr[0],S.dr[1],hx,hy,TOP,d==='d'?-1:d==='u'?1:-f);if(!WORLDART.part(7,hx-2.5,hy-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(hx-2.5,hy-2.5,5,5)}}
 
