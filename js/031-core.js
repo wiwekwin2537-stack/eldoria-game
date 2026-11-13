@@ -5767,7 +5767,7 @@ function enhList7(){const L=[],seen=new Set();for(const k in P.armor){const id=P
  const ord=Object.keys(ENHCFG.kinds);L.sort((a,b)=>(b.worn-a.worn)||ord.indexOf(ITEMS[a.id].kind)-ord.indexOf(ITEMS[b.id].kind)||ITEMS[b.id].tier-ITEMS[a.id].tier);return L}
 // ตรวจสอบก่อนตีบวก (คืนข้อความเหตุผล หรือ null = ผ่าน)
 function enhCheck7(id){if(!id)return 'ยังไม่ได้เลือกอุปกรณ์';if(!canEnh7(id))return 'อุปกรณ์นี้ไม่สามารถตีบวกได้';
- if(!(P.armor[ITEMS[id].kind]===id||(GEAR[id]|0)>0))return 'ไม่มีอุปกรณ์นี้ในกระเป๋าแล้ว';
+ if(!(Object.values(P.armor).includes(id)||(GEAR[id]|0)>0))return 'ไม่มีอุปกรณ์นี้ในกระเป๋าแล้ว';
  const l=enhLv7(id);if(l>=MAX_ENHANCEMENT)return 'อุปกรณ์นี้ถึงระดับสูงสุดแล้ว (+'+MAX_ENHANCEMENT+')';const c=ENHCFG.cost(l);
  if((inv.coin|0)<c.gold)return 'Gold ไม่เพียงพอ (ต้องใช้ '+c.gold.toLocaleString()+' มี '+(inv.coin|0).toLocaleString()+')';
  if((inv.estone|0)<c.stone)return 'วัตถุดิบไม่เพียงพอ — 💎 หินเสริมพลัง ต้องใช้ '+c.stone+' มี '+(inv.estone|0);return null}
@@ -5840,14 +5840,30 @@ enhItem=function(id){openEnh7(id)};
 {const _of=openForge;openForge=function(k){if(k==='anvil'&&FUI.tab==='enh'){FUI.tab='craft';return openEnh7()}return _of(k)}}
 
 // ---------- กดตีบวก: ตัดของ + บันทึกผลทันที (กันกดรัว/ของหาย) → เล่นแอนิเมชันตีเหล็ก → แสดงผล ----------
-function enhStart7(){if(ENHS.busy)return;const id=ENHS.sel,why=enhCheck7(id);if(why){ENHS.msg=why;sfx('thud');enhRender7();return}
- ENHS.busy=true;const it=ITEMS[id],l=enhLv7(id),c=ENHCFG.cost(l),s0=enhStat7(id,l);
- inv.coin-=c.gold;inv.estone-=c.stone;
- let ok=Math.random()*100<ENHCFG.rate(l),to=l;
- if(ok)to=l+1;else if(l>=5){if(inv.bless>0)inv.bless--;else to=l-1}
- ENH[id]=to;try{recalcStats()}catch(e){}try{refreshInv()}catch(e){}try{saveGame(true)}catch(e){}
- ENHS.res={id,ok,from:l,to,s0,s1:enhStat7(id,to)};
- enhW.hidden=true;forgeStart7(id,ok)}
+function enhStart7(){
+ if(ENHS.busy)return;
+ const id=ENHS.sel,why=enhCheck7(id);
+ if(why){ENHS.msg=why;sfx('thud');enhRender7();return}
+
+ ENHS.busy=true;
+ const from=enhLv7(id),s0=enhStat7(id,from);
+ for(const {k,n} of enhMats7(id,from))inv[k]-=n;
+ const ok=Math.random()*100<ENHCFG.rate(from);
+ const protectedFailure=!ok&&from>=5&&inv.bless>0;
+ if(protectedFailure)inv.bless--;
+
+ const to=ok?from+1:from>=5&&!protectedFailure?from-1:from;
+ ENH[id]=to;
+ const result={id,ok,from,to,s0};
+ if(window.recordEnhancementFailure)window.recordEnhancementFailure(result,protectedFailure);
+ result.s1=enhStat7(id,result.to);
+ ENHS.res=result;
+ try{recalcStats()}catch(e){}
+ try{refreshInv()}catch(e){}
+ try{saveGame(true)}catch(e){}
+ enhW.hidden=true;
+ forgeStart7(id,ok);
+}
 window.enhStart7=enhStart7;
 
 // ---------- FORGING ANIMATION : เดินไปหน้าทั่ง → ยกค้อน → เหวี่ยง → กระแทก → ยกกลับ ×4 (ครั้งสุดท้ายแรงสุด) ----------
@@ -6025,8 +6041,6 @@ window.shopBuy7=()=>{const id=SHOP7.sel;if(!id)return;const n=SHOP7.q;let c0=inv
 ENHCFG.cost=l=>({gold:50*(l+1)*(l+2),stone:ENH_EST(l),ing:1+(l>>2),scale:l>=9?l-8:0});
 const enhMats7=(id,l)=>{const it=ITEMS[id],c=ENHCFG.cost(l),L=[{k:'coin',n:c.gold,nm:'Gold'},{k:'estone',n:c.stone,nm:'หินเสริมพลัง'},{k:MATKEY[it.tier],n:c.ing,nm:MATN[it.tier]}];if(c.scale)L.push({k:'scale',n:c.scale,nm:'เกล็ดมังกร'});return L};
 {const _ck=enhCheck7;enhCheck7=function(id){const r=_ck(id);if(r)return r;const l=enhLv7(id);for(const m of enhMats7(id,l))if((inv[m.k]|0)<m.n)return 'วัตถุดิบไม่เพียงพอ — '+m.nm+' ต้องใช้ '+m.n+' มี '+(inv[m.k]|0);return null}}
-{const _es=enhStart7;enhStart7=function(){const id=ENHS.sel;if(ENHS.busy||!id||enhCheck7(id)){return _es()}const l=enhLv7(id),ms=enhMats7(id,l).filter(m=>m.k!=='coin'&&m.k!=='estone');
-  _es();if(ENHS.busy)for(const m of ms)inv[m.k]=Math.max(0,(inv[m.k]|0)-m.n);try{refreshInv();saveGame(true)}catch(e){}}}
 {const st=document.createElement('style');st.textContent=`
 #enhw .ebd{flex:1;min-height:0;display:flex;gap:10px;padding:10px}
 #enhw .eL{width:46%;display:flex;flex-direction:column;gap:6px;min-width:0;overflow-y:auto}
@@ -6813,7 +6827,8 @@ window.DGMAX7=DGMAX7;window.dgMobs7=dgMobs7;window.dgLv7=dgLv7;window.dgBossOf7=
 // =====================================================================
 (()=>{
  window.gainXp=gainXp;
- const _eq=equipItem;equipItem=function(id){return Guard.run('equipItem',()=>{const before=JSON.stringify(P.armor);const r=_eq(id);if(JSON.stringify(P.armor)!==before||(QS&&QS.slots.includes(id)))EventBus.emit(EV.ITEM_EQUIPPED,{id,armor:Object.assign({},P.armor)});return r},'isEquipping',()=>{try{hideBag();CHS.sel=null;refreshInv()}catch(_){}})};
+ const _eq=equipItem;equipItem=function(id){return Guard.run('equipItem',()=>{ if(window.broken68?.(id)){say('ต้องซ่อมอุปกรณ์ก่อนสวมใส่');sfx('thud');return}
+const before=JSON.stringify(P.armor);const r=_eq(id);if(JSON.stringify(P.armor)!==before||(QS&&QS.slots.includes(id)))EventBus.emit(EV.ITEM_EQUIPPED,{id,armor:Object.assign({},P.armor)});return r},'isEquipping',()=>{try{hideBag();CHS.sel=null;refreshInv()}catch(_){}})};
  window.equipItem=equipItem;
  const _ue=unequip;unequip=function(k){return Guard.run('unequip',()=>_ue(k),'isEquipping')};window.unequip=unequip;
  Eldoria.register('player',{state:()=>({lv:P.lv,hp:P.hp,mp:P.mp,cls:P.cls,armor:Object.assign({},P.armor),flags:Object.assign({},PSTATE)})});

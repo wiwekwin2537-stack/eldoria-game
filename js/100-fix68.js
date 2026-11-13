@@ -12,11 +12,21 @@ const brokenList68=()=>Object.keys(ENH).filter(k=>k.startsWith('c68_')&&(ENH[k]|
 window.brokenList68=brokenList68;
 // ตีบวกไม่ได้ถ้าพัง
 {const _c=enhCheck7;enhCheck7=function(id){if(id&&broken68(id))return '💔 อุปกรณ์นี้พัง (แหกครบ '+BRK68+' ครั้ง) — นำไปซ่อมกับช่างหนวดเหล็กก่อน';return _c.apply(this,arguments)};window.enhCheck7=enhCheck7}
-// หลังตี: นับแหก / พัง
-{const _s=enhStart7;enhStart7=function(){const id=ENHS.sel,was=ENHS.busy;_s.apply(this,arguments);const r=ENHS.res;if(was||!r||r.id!==id||r.c68!=null)return;
-  if(r.ok){r.c68=cracks68(id)}else{const c=cracks68(id)+1;ENH[ck68(id)]=c;r.c68=c;
-   if(c>=BRK68){ENH[bk68(id)]=ENH[id]|0;ENH[id]=0;r.brk=1;r.to=0;try{r.s1=enhStat7(id,0)}catch(e){}try{recalcStats();refreshInv()}catch(e){}}
-   try{saveGame(true)}catch(e){}}};window.enhStart7=enhStart7}
+/* ใช้ผลตีบวกเดียวกันก่อนบันทึกค่าอุปกรณ์และของที่ใช้ */
+window.recordEnhancementFailure=function(result,protectedFailure){
+ const {id}=result;
+ result.c68=cracks68(id);
+ if(result.ok||protectedFailure)return;
+ result.c68+=1;
+ ENH[ck68(id)]=result.c68;
+ if(result.c68<BRK68)return;
+ ENH[bk68(id)]=ENH[id]|0;
+ ENH[id]=0;
+ result.brk=1;
+ result.to=0;
+ const slot=Object.keys(P.armor).find(key=>P.armor[key]===id);
+ if(slot)unequip(slot);
+};
 // แจ้งผลหลังตีเสร็จ (แบนเนอร์ใหญ่ + ข้อความแชต)
 {const _e=forgeEnd7;forgeEnd7=function(){const r=_e.apply(this,arguments);try{const R=ENHS.res;if(R){const nm=ITEMS[R.id].name;
   if(R.ok){banner('✨ ตีบวกสำเร็จ!',nm+' +'+R.to,'');sysSay('✨ ตีบวกสำเร็จ! '+nm+' +'+R.from+' → +'+R.to)}
