@@ -293,7 +293,7 @@ function summoner148(k,t){const p=pal148(t),tt=T148(t),now=tNow148();k.lineCap='
 // ---------- รวม: ใช้แทน wpn25 / rifle27 / knuckle27 เดิม ----------
 const DRAW148={ninja:ninja148,paladin:paladin148,cleric:cleric148,necro:necro148,dragoon:dragoon148,summoner:summoner148,monk:monkHand148};
 window.DRAW148=DRAW148;
-{const _w=wpn25;wpn25=function(cls,k){const f=DRAW148[cls];if(!f)return _w(cls,k);try{k.save();f(k,P.tier.sword|0)}catch(e){console.warn('[fix148]',cls,e);k.restore();return _w(cls,k)}k.restore()};window.wpn25=wpn25}
+{const _w=wpn25;wpn25=function(cls,k,tier=P.tier.sword|0){const f=DRAW148[cls];if(!f)return _w(cls,k);try{k.save();f(k,tier)}catch(e){console.warn('[fix148]',cls,e);k.restore();return _w(cls,k)}k.restore()};window.wpn25=wpn25}
 {const _r=rifle27;rifle27=function(k,Q){try{k.save();sniper148(k,P.tier.sword|0,0)}catch(e){k.restore();return _r(k,Q)}k.restore()};window.rifle27=rifle27}
 {const _kn=knuckle27;knuckle27=function(k,Q){try{k.save();monkIcon148(k,P.tier.sword|0)}catch(e){k.restore();return _kn(k,Q)}k.restore()};window.knuckle27=knuckle27}
 /* ไอคอน (กระเป๋า/ร้าน/หน้าหลอม): จัดขนาด+ตำแหน่งให้เต็มกรอบไม่ล้นขอบ (หัวคทา/ใบเคียว/ลำกล้องยาวขึ้น) */
@@ -304,7 +304,7 @@ const FIT148={ninja:[.62,1.05,0,-11],paladin:[.62,1.1,0,-14],cleric:[.62,1.06,0,
   k.save();k.globalCompositeOperation='destination-over';const g=k.createRadialGradient(32,32,4,32,32,34);g.addColorStop(0,W[2]+'55');g.addColorStop(1,W[2]+'00');k.fillStyle=g;k.fillRect(0,0,64,64);k.restore();
   k.font='14px "Noto Color Emoji","Apple Color Emoji",sans-serif';k.textAlign='right';k.textBaseline='bottom';k.fillText(CLS[it.cls].e,63,64);return CWI27[key]=c}catch(e){console.warn('[fix148 icon]',e);return _ci(it)}};window.cwIcon27=cwIcon27}
 /* ไรเฟิลในมือ (ท่ายืน/ท่ายิง) */
-{const _db=drawBow6;drawBow6=function(x,y,aim,tier,pull,arrow,sc){try{if(P.cls==='sniper'&&window.cwOk25&&cwOk25()&&!(window.fwMine145&&fwMine145())){ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);try{sniper148(ctx,tier|0,pull||0)}finally{ctx.restore()}return}}catch(e){}return _db.apply(this,arguments)};window.drawBow6=drawBow6}
+{const _db=drawBow6;drawBow6=function(x,y,aim,tier,pull,arrow,sc){try{if(holdsRifle()&&!window.weaponSkin145?.()){ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);try{sniper148(ctx,tier|0,pull||0)}finally{ctx.restore()}return}}catch(e){}return _db.apply(this,arguments)};window.drawBow6=drawBow6}
 /* ดาบ/คทา/ธนูอาชีพ: ไม่ย้อมสีเดียวทับทุกระดับ — คงสีจริงของระดับ ให้แค่เงาวาวขึ้นเล็กน้อย */
 try{FLT27.sword='saturate(1.25) brightness(1.08) contrast(1.05)';FLT27.mage='saturate(1.3) brightness(1.08)';FLT27.archer='saturate(1.3) brightness(1.06)'}catch(e){}
 /* ล้างรูปที่แคชไว้ ให้วาดใหม่ทั้งหมด */

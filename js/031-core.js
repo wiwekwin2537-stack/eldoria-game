@@ -1463,7 +1463,7 @@ const _dieOrig=die;die=function(){if(P.dead)return;startDeath()};
 
 // ---------- 1) ขนาดเครื่องมือในมือ: ขวาน/ที่ขุดเล็กลง ----------
 toolSpr=function(hx,hy,ang){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);const s=P.tool==='sword'?1:(P.tool==='axe'||P.tool==='pick')&&window.AXS7?AXS7:.7;ctx.scale(s,s);
- ctx.drawImage(toolIcon(P.tool,P.tier[P.tool],64),-23,-36,46,46);ctx.restore()};
+ if(P.tool!=='sword'||equippedWeapon())ctx.drawImage(toolIcon(P.tool,P.tool==='sword'?weaponTier():P.tier[P.tool],64),-23,-36,46,46);ctx.restore()};
 
 // ---------- 2) กล้องสั่น (ใช้ตอนขุด/ฟันโดน) ----------
 const SHK={t:0,a:0};function shake(a,t){SHK.a=Math.max(SHK.a,a);SHK.t=Math.max(SHK.t,t)}
@@ -2229,7 +2229,11 @@ const NPCNAME={'แม่ค้าผัก':'แม่ค้ามาลี','�
 //        พาสซีฟ · กิลด์นักผจญภัย + เควส · ของขยะขายได้ · หินเสริมพลัง · ดันเจี้ยน 100 ชั้น + กล่องสมบัติ
 //        มอนใหม่: โครงกระดูก ซอมบี้ มังกรเล็ก · แร่มีประกาย · สกิลอลังการขึ้น
 // =====================================================================
-const wKind=()=>P.armor.sword&&ITEMS[P.armor.sword]?ITEMS[P.armor.sword].kind:'none';
+const equippedWeapon=()=>ITEMS[P.armor.sword]||null;
+const wKind=()=>equippedWeapon()?.kind||'none';
+const weaponTier=()=>equippedWeapon()?.tier??0;
+const holdsRifle=()=>equippedWeapon()?.cls==='sniper'&&wKind()==='bow';
+const holdsKnuckles=()=>equippedWeapon()?.cls==='monk'&&wKind()==='sword';
 // ---------- 1) ไอเทมคทา / ธนู ----------
 KINDS.staff='คทา';KINDS.bow='ธนู';RECIPE.staff={m:3,wood:2};RECIPE.bow={m:2,wood:3};GWB.staff=1.6;GWB.bow=1.4;GK.staff=1;GK.bow=1;
 for(let t=0;t<6;t++)for(const k of ['staff','bow']){const id=k+t;ITEMS[id]={id,kind:k,tier:t,tool:true,name:KINDS[k]+TNAMES[t],stat:(k==='staff'?'โจมตีเวท +':'โจมตีธนู +')+SWATK[t]+(k==='staff'?' · ยิงลูกเวท (INT)':' · ยิงธนู (AGI)')}}
@@ -2492,7 +2496,7 @@ function paintBow(k,t){const Q=TIERS[t],gq=t===0?{hi:'#8a5a30',mid:'#6a4322',lo:
 for(const key in TICON)if(/^(staff|bow)/.test(key))delete TICON[key];for(const key in IURL)if(/^item:(staff|bow)/.test(key))delete IURL[key];
 toolIcon=function(type,tier,sz){sz=sz||64;const key=type+tier+'_'+sz;return TICON[key]||(TICON[key]=iconCanvasT(type,sz,tier))};
 // ถือในมือ: ใช้ภาพเดียวกับไอคอน เหมือนดาบ · จดตำแหน่งลูกแก้ว/ศูนย์กลางคันธนู
-{const _tp=toolSpr;toolSpr=function(hx,hy,ang){if(!(P.tool==='sword'&&isRng()))return _tp(hx,hy,ang);const kd=wKind(),tier=P.tier.sword|0;
+{const _tp=toolSpr;toolSpr=function(hx,hy,ang){if(!(P.tool==='sword'&&isRng()))return _tp(hx,hy,ang);const kd=wKind(),tier=weaponTier();
  ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);ctx.drawImage(toolIcon(kd,tier,64),-23,-36,46,46);
  if(kd==='bow'&&P.at>=0&&P.at<.36){const pull=Math.min(1,P.at/.3);ctx.strokeStyle='#6a4a2a';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(6.5-pull*9,-13);ctx.lineTo(-14,-13);ctx.stroke();ctx.fillStyle='#cfd4dc';ctx.beginPath();ctx.moveTo(-17,-13);ctx.lineTo(-12,-15.5);ctx.lineTo(-12,-10.5);ctx.fill()}
  ctx.restore();const d=kd==='staff'?29.5:13;P.tip={x:hx+Math.sin(ang)*d,y:hy-Math.cos(ang)*d,t:performance.now()}}}
@@ -4784,7 +4788,7 @@ function fashSword(id){if(FW6[id])return FW6[id];const W=FWPN[id],c=document.cre
  q.fillStyle=W.kat?'#1a1a22':'#4a2a14';q.fillRect(30.5,49,3,9);if(W.kat){q.fillStyle='#f4f0e8';for(let y=50;y<58;y+=2.5)q.fillRect(30.5,y,3,1)}q.fillStyle=W.g;q.beginPath();q.arc(32,59,2.4,0,7);q.fill();q.stroke();
  if(id==='dragon'){q.fillStyle='#c8901a';q.beginPath();q.moveTo(22,47);q.lineTo(16,42);q.lineTo(20,48);q.fill();q.beginPath();q.moveTo(42,47);q.lineTo(48,42);q.lineTo(44,48);q.fill()}
  return FW6[id]=c}
-{const _ts=toolSpr;toolSpr=function(hx,hy,ang){if(!(FASH.wpn&&P.tool==='sword'&&FWPN[FASH.wpn]&&!isRng()))return _ts(hx,hy,ang);const W=FWPN[FASH.wpn],t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);ctx.drawImage(fashSword(FASH.wpn),-23,-36,46,46);
+{const _ts=toolSpr;toolSpr=function(hx,hy,ang){const skin=window.weaponSkin145?.();if(!skin||P.tool!=='sword'||wKind()!=='sword')return _ts(hx,hy,ang);const W=FWPN[skin],t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r')ctx.scale(-1,1);ctx.drawImage(fashSword(skin),-23,-36,46,46);
   ctx.globalCompositeOperation='lighter';const g=ctx.createLinearGradient(0,-34,0,0);g.addColorStop(0,'rgba('+W.glow+',0)');g.addColorStop(.5,'rgba('+W.glow+','+(.25+.15*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+W.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-6,-34,12,30);ctx.restore();
   if(Math.random()<.12){const a=ang-Math.PI/2;rfxP(hx+Math.cos(a)*18,hy+Math.sin(a)*18,(Math.random()-.5)*14,-14,.5,W.glow,1.6,W.bolt&&Math.random()<.4?'spark':'dot')}}}
 // ชุด: ซ่อนเกราะเดิมตอนวาด แล้ววาดชุดแฟชั่นแทน
@@ -5297,7 +5301,7 @@ function drawBow6(x,y,aim,tier,pull,arrow,sc){const C=BOWT[tier|0]||BOWT[0],t=pe
   if(pull>.6){ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(17,0,0,17,0,7);g.addColorStop(0,'rgba(255,240,180,.8)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(10,-7,14,14)}}
  ctx.restore()}
 const AIM={r:0,l:Math.PI,d:Math.PI/2,u:-Math.PI/2};
-{const _ts=toolSpr;toolSpr=function(hx,hy,ang){if(!(P.tool==='sword'&&isRng()&&wKind()==='bow'))return _ts(hx,hy,ang);const tier=P.tier.sword|0,at=P.at>=0&&P.at<.5,pull=at?Math.min(1,P.at/.3)*(P.at<.36?1:0):0;
+{const _ts=toolSpr;toolSpr=function(hx,hy,ang){if(!(P.tool==='sword'&&isRng()&&wKind()==='bow'))return _ts(hx,hy,ang);const tier=weaponTier(),at=P.at>=0&&P.at<.5,pull=at?Math.min(1,P.at/.3)*(P.at<.36?1:0):0;
   if(at){const sd=P.dir==='l'?-1:P.dir==='r'?1:0;hx+=sd*7;if(P.dir==='u')hy-=6}const aim=at?AIM[P.dir]:(P.dir==='d'?Math.PI/2+.75:P.dir==='u'?-Math.PI/2-.6:AIM[P.dir]);drawBow6(hx,hy,aim,tier,pull,at&&P.at<.36,at?1:.85);
   if(!WORLDART.part(7,hx-2.5,hy-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(hx-2.5,hy-2.5,5,5)};P.tip={x:hx+Math.cos(aim)*16,y:hy+Math.sin(aim)*16,t:performance.now()}}}
 {const _h=hero;hero=function(){_h();try{if(!window.BOW7&&!P.dead&&P.draw&&P.tool==='sword'&&isRng()&&wKind()==='bow'&&(P.dir==='l'||P.dir==='r')&&!(P.at>=0)&&!(MOUNT&&MOUNT.on)&&!P.sit){const f=P.dir==='l'?-1:1,s=P.mv?Math.sin(P.t):0;drawBow6(P.x+f*5+s*3*f,P.y-17,AIM[P.dir],P.tier.sword|0,0,false,.85);ctx.fillStyle='#f1d2b0';ctx.fillRect(P.x+f*5+s*3*f-2.5,P.y-19.5,5,5)}}catch(e){}}}
@@ -5550,20 +5554,20 @@ function drawQuiver7(x,y,r,n){ctx.save();ctx.translate(x,y);ctx.rotate(r);ctx.li
  for(let i=0;i<(n==null?3:n);i++){const ox=-2+i*2;ctx.strokeStyle='#7a5a32';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(ox,2);ctx.lineTo(ox,-5);ctx.stroke();ctx.fillStyle=i===1?'#f2efe6':'#d84a3a';ctx.beginPath();ctx.moveTo(ox,-8);ctx.lineTo(ox-1.6,-4);ctx.lineTo(ox,-5);ctx.lineTo(ox+1.6,-4);ctx.closePath();ctx.fill()}
  ctx.fillStyle='#1a1008';ctx.fillRect(-4,0,8,19);ctx.fillStyle='#7a4a24';ctx.fillRect(-3,1,6,17);ctx.fillStyle='#a8703a';ctx.fillRect(-3,1,2,17);ctx.fillStyle='#c9a04a';ctx.fillRect(-4,0,8,2);ctx.fillRect(-4,13,8,1.5);ctx.restore()}
 function bowBack7(x,by,side,f,d,phase){ // phase: 'pre' = เรียกก่อนลำตัว (d/side) · 'post' = หลังลำตัว (u)
- const tier=P.tier.sword|0,drawn=P.draw&&P.tool==='sword',q=quiverOffset7[d];
- const O={u:bowBackOffsetUp,d:bowBackOffsetDown,l:bowBackOffsetLeft,r:bowBackOffsetRight}[d],R=P.cls==='sniper'?-Math.PI/2+(d==='l'?.25:d==='r'?-.25:d==='u'?.45:-.45):{u:bowBackRotationUp,d:bowBackRotationDown,l:bowBackRotationLeft,r:bowBackRotationRight}[d];
+ const tier=weaponTier(),drawn=P.draw&&P.tool==='sword',q=quiverOffset7[d];
+ const O={u:bowBackOffsetUp,d:bowBackOffsetDown,l:bowBackOffsetLeft,r:bowBackOffsetRight}[d],R=holdsRifle()?-Math.PI/2+(d==='l'?.25:d==='r'?-.25:d==='u'?.45:-.45):{u:bowBackRotationUp,d:bowBackRotationDown,l:bowBackRotationLeft,r:bowBackRotationRight}[d];
  if(!drawn)drawBow6(x+O.x,by+O.y,R,tier,0,false,.82);
- if(P.cls==='sniper')return;const nq=(P.at>=0&&P.at<.12)?2:3;drawQuiver7(x+q.x,by+q.y,q.r,nq)}
+ if(holdsRifle())return;const nq=(P.at>=0&&P.at<.12)?2:3;drawQuiver7(x+q.x,by+q.y,q.r,nq)}
 {const _bs=backSword;backSword=function(x,by,side,f,d){if(window.Grip145&&Grip145.back(x,by,side,f,d))return;if(!(P.armor.sword&&wKind()==='bow'))return _bs(x,by,side,f,d);bowBack7(x,by,side,f,d)}}
 
 // ---------------- ท่าถือ (ยืน/เดิน) ----------------
 // คฑา: จับช่วงล่างของด้าม ตั้งเกือบตรง ไม้แกว่งตามจังหวะเดิน · ธนู: ถือมือซ้ายข้างลำตัว คันตั้งแนวขา
 const STF_GRIP7=-33; // วาดไอคอนคฑาให้มืออยู่ช่วงล่าง 1/4 ของด้าม
-function staffAt7(hx,hy,ang,sc){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);ctx.drawImage(toolIcon('staff',P.tier.sword|0,64),-23,STF_GRIP7,46,46);ctx.restore()}
+function staffAt7(hx,hy,ang,sc){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);ctx.drawImage(toolIcon('staff',weaponTier(),64),-23,STF_GRIP7,46,46);ctx.restore()}
 const STF_ORB7=27; // ระยะมือ→ลูกแก้ว (px)
 function orbOf7(hx,hy,ang,sc){const r=STF_ORB7*(sc||1);return{x:hx+Math.sin(ang)*r,y:hy-Math.cos(ang)*r}}
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){if(!(P.tool==='sword'&&isRng()&&P.at<0))return _ts(hx,hy,ang);
-  const d=P.dir,f=rgF7(d),s=P.mv?Math.sin(P.t):0,kd=wKind(),tier=P.tier.sword|0;
+  const d=P.dir,f=rgF7(d),s=P.mv?Math.sin(P.t):0,kd=wKind(),tier=weaponTier();
   if(kd==='staff'){let a;if(rgSide7(d))a=f*(.1+.12*s);else a=(d==='d'?-.06:.06)+.05*s;staffAt7(hx,hy,a);const o=orbOf7(hx,hy,a);P.tip={x:o.x,y:o.y,t:performance.now()};
    ctx.fillStyle='#f1d2b0';ctx.fillRect(hx-3,hy-2.5,6,5);return}
   // ธนู: หน้า/หลัง ถือมือซ้ายตัวละคร (หน้า=ขวาจอ, หลัง=ซ้ายจอ) · ข้าง = มือข้างลำตัว
@@ -5580,11 +5584,12 @@ function rifleGrip7(origin,axis,scale){
  const point=(x,y)=>[origin[0]+scale*(dx*x-dy*y*flip),origin[1]+scale*(dy*x+dx*y*flip)];
  return {trigger:point(5.8,4.5),support:point(13,2)};
 }
-function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],manual=P.cls==='sniper'&&window.SKPOSE57?.aim,aim0=manual?Math.atan2(manual[1],manual[0]):sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd&&!manual?-f*SH.tilt:0);
+function bowPose7(d,p,n){const f=rgF7(d),sd=rgSide7(d),SH=BOWSHOT7[n%3],manual=holdsRifle()&&window.SKPOSE57?.aim,aim0=manual?Math.atan2(manual[1],manual[0]):sd?(f>0?0:Math.PI):(d==='d'?Math.PI/2:-Math.PI/2),aim=aim0+(sd&&!manual?-f*SH.tilt:0);
  const av=[Math.cos(aim),Math.sin(aim)],sc=d==='u'?.8:sd?.88:.9;
- if(P.cls==='sniper'){
+ if(holdsRifle()){
   const raise=e6o(Math.min(1,p/.22)),back=p>.62?e6io((p-.62)/.38):0,hold=raise*(1-back);
-  const recoil=p>=.34&&p<.55?Math.exp(-(p-.34)*22)*3:0;
+  const after=p-.34;
+  const recoil=after>=0&&p<.62?(1-Math.exp(-after*180))*Math.exp(-after*17)*3.8:0;
   const rest=sd?[f*5,-13]:d==='d'?[-11,-13]:[11,-13];
   const ready=sd?[f*7,-25]:d==='d'?[-3,-18]:[3,manual?-31:-36];
   const idleAngle=sd?(f>0?.45:Math.PI-.45):d==='d'?.5:-2.64;
@@ -5616,16 +5621,16 @@ function drawArrow7(x,y,ang,len){ctx.save();ctx.translate(x,y);ctx.rotate(ang);c
  ctx.fillStyle='#d8dce8';ctx.beginPath();ctx.moveTo(len+5,0);ctx.lineTo(len-1,-2.6);ctx.lineTo(len-1,2.6);ctx.closePath();ctx.fill();ctx.fillStyle='#e04a3a';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-3,-2.5);ctx.lineTo(3,0);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.restore()}
 // ไหล่: แขนจับคันธนู = แขนซ้ายตัวละคร · แขนดึงสาย = แขนขวา
 const bowSh7=(x,by,d,f)=>rgSide7(d)?{bow:[x+f*2,by-25],dr:[x-f*1,by-24]}:d==='d'?{bow:[x+10,by-24],dr:[x-10,by-24]}:{bow:[x-10,by-24],dr:[x+10,by-24]};
-function bowParts7(x,by,d,f,TOP,which){const sd7b=rgSide7(d)||!!(P.cls==='sniper'&&window.SKPOSE57?.aim),n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=P.tier.sword|0;
+function bowParts7(x,by,d,f,TOP,which){const sd7b=rgSide7(d)||!!(holdsRifle()&&window.SKPOSE57?.aim),n=P._rgN|0,p=P.at,q=bowPose7(d,p,n),gx=x+q.g[0],gy=by+q.g[1],hx=x+q.h[0],hy=by+q.h[1],S=bowSh7(x,by,d,f),tier=weaponTier();
  const tx=q.trigger?x+q.trigger[0]:gx,ty=q.trigger?by+q.trigger[1]:gy;
  if(which!=='arms'){
   drawBow6(gx,gy,q.a,tier,Math.max(0,q.pull),false,q.sc);
   if(window.Grip145)Grip145.bowGlow(gx,gy,q.a,q.sc);
-  if(P.cls==='sniper')P.tip={x:gx+q.av[0]*32*q.sc,y:gy+q.av[1]*32*q.sc,t:performance.now()};
+  if(holdsRifle())P.tip={x:gx+q.av[0]*32*q.sc,y:gy+q.av[1]*32*q.sc,t:performance.now()};
   if(q.onStr){const sx=gx+q.stringAxis[0]*(-5-11*q.pull)*q.sc,sy=gy+q.stringAxis[1]*(-5-11*q.pull)*q.sc;const fa=sd7b?q.aim:q.a,fv=sd7b?q.av:q.stringAxis;/* v5.52 ลูกธนู+แสง อยู่แนวเดียวกับคันธนู ไม่แยกข้าง */drawArrow7(sx,sy,fa,24*q.sc);
    if(q.pull>.85){ctx.save();ctx.globalCompositeOperation='lighter';const tx=sx+fv[0]*27*q.sc,ty=sy+fv[1]*27*q.sc,g=ctx.createRadialGradient(tx,ty,0,tx,ty,7);g.addColorStop(0,'rgba(255,240,180,.85)');g.addColorStop(1,'rgba(255,200,80,0)');ctx.fillStyle=g;ctx.fillRect(tx-7,ty-7,14,14);ctx.restore()}
    P.tip={x:sx+fv[0]*26*q.sc,y:sy+fv[1]*26*q.sc,t:performance.now()}}
-  if(q.snap>0){const mx=gx+(P.cls==='sniper'?q.av[0]*32*q.sc:0),my=gy+(P.cls==='sniper'?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
+  if(q.snap>0&&!(holdsRifle()&&window.SKPOSE57?.pierce)){const mx=gx+(holdsRifle()?q.av[0]*32*q.sc:0),my=gy+(holdsRifle()?q.av[1]*32*q.sc:0);ctx.save();ctx.globalAlpha=.6*q.snap;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(let i=1;i<=2;i++){ctx.beginPath();ctx.arc(mx,my,10+i*5*(1-q.snap),q.aim-.6,q.aim+.6);ctx.stroke()}ctx.restore()}
   if(which==='bow'){swArm6(S.bow[0],S.bow[1],tx,ty,TOP,-1);if(!WORLDART.part(7,tx-2.5,ty-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(tx-2.5,ty-2.5,5,5)};return}} // หันขึ้น: แขนจับคันอยู่หน้าตัว (หลังลำตัวจากมุมกล้อง)
  // แขนจับคันธนู → มือที่กำคัน · แขนดึงสาย → มือ (ถือลูกธนูตอนหยิบ/พาดสาย)
  if(which!=='arms'||d!=='u'){swArm6(S.bow[0],S.bow[1],tx,ty,TOP,d==='d'?1:d==='u'?-1:f);if(!WORLDART.part(7,tx-2.5,ty-2.5,5,5)){ctx.fillStyle='#f1d2b0';ctx.fillRect(tx-2.5,ty-2.5,5,5)}}
@@ -6397,7 +6402,7 @@ const ULTM7={base:.55,per:.06,max:15};if(typeof ULT!=='undefined'){ULT.fury7=0;U
 // ดาบบนหลังใช้สกินอาวุธที่ตั้งไว้ด้วย
 window.BACKSW7=0;
 {const _bs=backSword;backSword=function(x,by,side,f,d){window.BACKSW7++;try{return _bs(x,by,side,f,d)}finally{window.BACKSW7--}}}
-{const _ti=toolIcon;toolIcon=function(type,tier,sz){if(window.BACKSW7>0&&type==='sword'&&FASH.wpn&&typeof FWPN!=='undefined'&&FWPN[FASH.wpn]&&!isRng()){try{return fashSword(FASH.wpn)}catch(e){}}return _ti(type,tier,sz)}}
+{const _ti=toolIcon;toolIcon=function(type,tier,sz){if(window.BACKSW7>0&&type==='sword'&&wKind()==='sword'&&window.weaponSkin145?.()){try{return fashSword(weaponSkin145())}catch(e){}}return _ti(type,tier,sz)}}
 
 // แลกของกิลด์: ปุ่ม "🔁 แลก" + แสดงวัตถุดิบที่ต้องใช้ ✅/❌ · ราคาขนนกฟีนิกซ์ใหม่
 const GX7={gx_estone:{core:2,dust:2},gx_estone2:{bone:6,rag:4},gx_bless:{scale:3},gx_phoenix:{wing:8,pelt:4}};

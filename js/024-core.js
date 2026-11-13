@@ -23,6 +23,12 @@ function grade(t,k){if(!SET.grade)return;const cave=k==='cave',g=ctx.createRadia
 function tufts(x,y,t){const h=hash(x*2.3,y*1.9);if(h>.42)return;const n=h<.18?3:1,gust=Math.sin(x*.35+y*.18-t*1.5)*.5+.5;ctx.lineCap='round';ctx.lineWidth=1.4;
  for(let i=0;i<n;i++){const bx=x*T+4+hash(x+i*3.1,y*1.7)*24,by=y*T+10+hash(y+i*2.3,x*.9)*20,len=7+hash(i,x*y)*8,dx=bx-P.x,dy=by-P.y,dd=Math.hypot(dx,dy),push=dd<28?(1-dd/28)*Math.sign(dx||1)*9:0,sw=(Math.sin(t*2.3+bx*.05)*.6+gust*2.2)*len*.22+push;
   ctx.strokeStyle=['#5fae3f','#7cc65a','#3f8a30','#8ed168'][(i+x+y)&3];ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx+sw*.4,by-len*.6,bx+sw,by-len);ctx.stroke()}}
+// World bounds are checked before submitting a draw. Extra space covers
+// sprite overhang, effects and shadows near the edges of the screen.
+function sceneView(cx,cy){
+ const right=cx+VW/Z,bottom=cy+VH/Z;
+ return (x,y,w,h,pad=0)=>x+w+pad>=cx&&x-pad<=right&&y+h+pad>=cy&&y-pad<=bottom;
+}
 // ---- วาดฉากโลกภายนอก ----
 function draw(){if(D)return drawD();
  const t=performance.now()/1000,[cx,cy]=cam(W*T,H*T,.58);view(cx,cy);
@@ -37,8 +43,10 @@ function draw(){if(D)return drawD();
  const pr=Math.floor(P.y/T),[tx,ty]=target();ctx.strokeStyle='#fff8';ctx.strokeRect(tx*T+1,ty*T+1,T-2,T-2);
  drawGhosts();drawDrops();const L=[];
  for(let y=y0;y<=Math.min(H-1,y1+3);y++)for(let x=Math.max(0,x0-2);x<=Math.min(W-1,x1+2);x++)if(map[y][x]===TREE&&treeAt[y*W+x])L.push([y*T+28,()=>drawTree(x,y,y>pr)]);
- L.push([3*T+30,()=>drawCave(t)],[SP.y+14,()=>drawSign(t)]);
- for(const s of slimes)L.push([s.y,()=>drawSlime(s)]);
+ const visible=sceneView(cx,cy);
+ if(visible((W-7)*T,0,7*T,5*T,64))L.push([3*T+30,()=>drawCave(t)]);
+ if(visible(SP.x,SP.y,0,0,180))L.push([SP.y+14,()=>drawSign(t)]);
+ for(const s of slimes)if(visible(s.x,s.y-120,0,136,96))L.push([s.y,()=>drawSlime(s)]);
  L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
  L.sort((p,q)=>p[0]-q[0]);for(const o of L)o[1]();drawFalling();drawBars();
  if(dbg)for(const t2 of trees)if(t2.alive&&t2.tx>=x0-1&&t2.tx<=x1+1&&t2.ty>=y0&&t2.ty<=y1+3){ctx.strokeStyle='#ff0';ctx.strokeRect(t2.tx*T+.5,t2.ty*T+.5,T-1,T-1)}

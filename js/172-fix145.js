@@ -8,33 +8,44 @@
 //  แก้: ทุกท่าใช้ลำดับเดียวกับตอนยืนถือ → อาวุธแฟชั่นของอาชีพ ▸ หน้าตาอาวุธอาชีพ ▸ สีย้อมอาชีพ ▸ อาวุธปกติ (ห่อฟังก์ชันเดิม ไม่รื้อระบบ)
 // =====================================================================
 try{
-const fwMine145=()=>{try{const k=FASH&&FASH.wpn,W=k&&typeof FWPN!=='undefined'&&FWPN[k];return W&&W.cls===P.cls?k:null}catch(e){return null}};
+// A selected fashion may change the appearance only within its weapon family.
+function weaponSkin145(){
+ const it=equippedWeapon(), key=FASH.wpn, skin=FWPN[key];
+ if(!it||!skin)return null;
+ if(!skin.cls)return it.kind==='sword'&&!holdsKnuckles()&&it.cls!=='dragoon'?key:null;
+ if(skin.cls!==P.cls||it.kind!==NEEDW[skin.cls])return null;
+ if(skin.cls==='sniper'&&!holdsRifle()||skin.cls==='monk'&&!holdsKnuckles())return null;
+ if(skin.cls==='dragoon'&&it.cls!=='dragoon')return null;
+ return key;
+}
+window.weaponSkin145=weaponSkin145;
+const fwMine145=()=>{const key=weaponSkin145();return key&&FWPN[key].cls?key:null};
 window.fwMine145=fwMine145;
 /* 2) สีย้อมอาชีพไม่ทับอาวุธแฟชั่น */
-{const _wf=withFlt27;withFlt27=function(fn,self,args){if(fwMine145())return fn.apply(self,args);return _wf(fn,self,args)};window.withFlt27=withFlt27}
+{const _wf=withFlt27;withFlt27=function(fn,self,args){if(weaponSkin145())return fn.apply(self,args);return _wf(fn,self,args)};window.withFlt27=withFlt27}
 /* 1) ท่ายิงเวท: คทาเดียวกับที่ถือ */
 {const _sa=staffAt7;staffAt7=function(hx,hy,ang,sc){try{if(wKind()==='staff'){const fw=fwMine145();
    if(fw){const W=FWPN[fw],t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);ctx.drawImage(fashSword(fw),-23,STF_GRIP7,46,46);
     if(W&&W.glow){ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(0,STF_GRIP7+8,0,0,STF_GRIP7+8,18);g.addColorStop(0,'rgba('+W.glow+','+(.22+.12*Math.sin(t*4))+')');g.addColorStop(1,'rgba('+W.glow+',0)');ctx.fillStyle=g;ctx.fillRect(-18,STF_GRIP7-10,36,36)}ctx.restore();return}
-   if(STAFF25.has(P.cls)&&window.cwOk25&&cwOk25()){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);try{wpn25(P.cls,ctx)}catch(e){}ctx.restore();return}
-   if(typeof cwOld27==='function'&&cwOld27()){ctx.save();ctx.filter=FLT27[P.cls]||'none';try{return _sa.apply(this,arguments)}finally{ctx.restore()}}}}catch(e){}
+   if(STAFF25.has(equippedWeapon().cls)){ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(sc)ctx.scale(sc,sc);try{wpn25(equippedWeapon().cls,ctx,weaponTier())}catch(e){}ctx.restore();return}
+   if(typeof cwOld27==='function'&&cwOld27()){ctx.save();ctx.filter=FLT27[equippedWeapon().cls]||'none';try{return _sa.apply(this,arguments)}finally{ctx.restore()}}}}catch(e){}
   return _sa.apply(this,arguments)};window.staffAt7=staffAt7}
 /* 3) คทาแฟชั่นตอนเก็บหลัง */
 {const _ti=toolIcon;toolIcon=function(type,tier,sz){if(type==='axe'||type==='pick'){const art=TOOLART.icon(type,tier);if(art)return art}try{if(window.BACKSW7>0&&type==='staff'&&wKind()==='staff'){const fw=fwMine145();if(fw)return fashSword(fw)}}catch(e){}return _ti.apply(this,arguments)};window.toolIcon=toolIcon}
 /* The back uses the same live weapon renderer as the hand, without thumbnail cropping. */
 function glow145(hx,hy,ang,sc=1){try{const W=wAura(),len={dragoon:50,ninja:32,paladin:34,monk:9,cleric:40,necro:40,summoner:40}[P.cls]||30;if(W&&typeof aura151==='function')aura151(hx,hy,ang,len*sc,W)}catch(e){}}
-function bowGlow145(x,y,aim,sc=1){try{const W=wAura();if(!W)return;if(P.cls==='sniper'){aura151(x,y,aim+Math.PI/2,29*sc,W);return}ctx.save();try{ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc,sc);ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba('+W.rgb+',.26)';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(1,-18);ctx.quadraticCurveTo(16,0,1,18);ctx.stroke();ctx.strokeStyle='rgba('+W.rgb2+',.55)';ctx.lineWidth=1.4;ctx.stroke()}finally{ctx.restore()}const px=-Math.sin(aim)*18*sc,py=Math.cos(aim)*18*sc;auraEmit(x+px,y+py,x-px,y-py,W,DT||0,1)}catch(e){}}
+function bowGlow145(x,y,aim,sc=1){try{const W=wAura();if(!W)return;if(holdsRifle()){aura151(x,y,aim+Math.PI/2,29*sc,W);return}ctx.save();try{ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc,sc);ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba('+W.rgb+',.26)';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(1,-18);ctx.quadraticCurveTo(16,0,1,18);ctx.stroke();ctx.strokeStyle='rgba('+W.rgb2+',.55)';ctx.lineWidth=1.4;ctx.stroke()}finally{ctx.restore()}const px=-Math.sin(aim)*18*sc,py=Math.cos(aim)*18*sc;auraEmit(x+px,y+py,x-px,y-py,W,DT||0,1)}catch(e){}}
 function back145(x,by,side,f,d){if(!P.armor.sword)return false;const kd=wKind(),drawn=!!window.SKPOSE57||(P.draw&&P.tool==='sword');
- if(kd==='bow'&&P.cls!=='sniper'){const q=quiverOffset7[d];drawQuiver7(x+q.x,by+q.y,q.r,3)}
- if(drawn||P.cls==='monk')return true;
+ if(kd==='bow'&&!holdsRifle()){const q=quiverOffset7[d];drawQuiver7(x+q.x,by+q.y,q.r,3)}
+ if(drawn||holdsKnuckles())return true;
  const saved={tool:P.tool,draw:P.draw,at:P.at};ctx.save();try{P.tool='sword';P.draw=false;P.at=-1;const ox=side?-f*4:d==='u'?3:-3;
-  if(kd==='bow'){const aim=P.cls==='sniper'?-Math.PI/2+(d==='l'?.3:d==='r'?-.3:.4):d==='l'?.35:d==='r'?Math.PI-.35:-.7;drawBow6(x+ox,by-23,aim,P.tier.sword|0,0,false,.78);bowGlow145(x+ox,by-23,aim,.78)}
+  if(kd==='bow'){const aim=holdsRifle()?-Math.PI/2+(d==='l'?.3:d==='r'?-.3:.4):d==='l'?.35:d==='r'?Math.PI-.35:-.7;drawBow6(x+ox,by-23,aim,weaponTier(),0,false,.78);bowGlow145(x+ox,by-23,aim,.78)}
   else if(kd==='staff'){staffAt7(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86);glow145(x+ox,by-10,d==='l'?-.22:d==='r'?.22:.3,.86)}
   else{ctx.translate(x+ox,by-32);ctx.scale(P.cls==='dragoon'?.72:.82,P.cls==='dragoon'?.72:.82);const ang=Math.PI+(d==='l'?-.42:.42);toolSpr(0,0,ang);glow145(0,0,ang)}
  }finally{Object.assign(P,saved);ctx.restore()}return true}
 function idlePose145(d,s=0){const f=d==='l'?-1:1,side=d==='l'||d==='r';return{g:side?[f*(10+s*.7),-23+s*.4]:d==='d'?[12,-23+s*.5]:[-12,-25+s*.5],h:side?[-f*3,-13-s]:d==='d'?[-11,-13+s*2]:[11,-13-s*2],a:side?(f>0?.12:Math.PI-.12):d==='d'?.12:Math.PI-.12}}
 function canIdle145(){return P.cls==='archer'&&wKind()==='bow'&&P.draw&&P.tool==='sword'&&!!P.armor.sword&&!P.dead}
-function idle145(x,by,d,top){const q=idlePose145(d,P.mv?Math.sin(P.t):0),S=bowSh7(x,by,d,d==='l'?-1:1),gx=x+q.g[0],gy=by+q.g[1];drawBow6(gx,gy,q.a,P.tier.sword|0,0,false,.78);bowGlow145(gx,gy,q.a,.78);for(const [shoulder,hand,bend] of [[S.bow,q.g,d==='d'?1:-1],[S.dr,q.h,d==='d'?-1:1]]){swArm6(shoulder[0],shoulder[1],x+hand[0],by+hand[1],top,bend);if(!WORLDART.part(7,x+hand[0]-2.5,by+hand[1]-2.5,5,5,d)){ctx.fillStyle='#f1d2b0';ctx.fillRect(x+hand[0]-2.5,by+hand[1]-2.5,5,5)}}P.tip={x:gx,y:gy,t:performance.now()}}
+function idle145(x,by,d,top){const q=idlePose145(d,P.mv?Math.sin(P.t):0),S=bowSh7(x,by,d,d==='l'?-1:1),gx=x+q.g[0],gy=by+q.g[1];drawBow6(gx,gy,q.a,weaponTier(),0,false,.78);bowGlow145(gx,gy,q.a,.78);for(const [shoulder,hand,bend] of [[S.bow,q.g,d==='d'?1:-1],[S.dr,q.h,d==='d'?-1:1]]){swArm6(shoulder[0],shoulder[1],x+hand[0],by+hand[1],top,bend);if(!WORLDART.part(7,x+hand[0]-2.5,by+hand[1]-2.5,5,5,d)){ctx.fillStyle='#f1d2b0';ctx.fillRect(x+hand[0]-2.5,by+hand[1]-2.5,5,5)}}P.tip={x:gx,y:gy,t:performance.now()}}
 window.Grip145={back:back145,glow:glow145,bowGlow:bowGlow145,idlePose:idlePose145,canIdle:canIdle145,idle:idle145};
 /* REG136 */
 try{if(window.REG136)REG136.push(

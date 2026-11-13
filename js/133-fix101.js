@@ -143,7 +143,7 @@ const CW101={
 // แทนรูปอาวุธอาชีพเดิมเมื่อถือของเซ็ตใหม่
 {const _w=wpn25;wpn25=function(cls,k){const th=th101();if(th>=0&&CW101[cls]){try{k.lineCap='round';k.lineJoin='round';CW101[cls](k,TIERS[P.tier.sword|0],th);return}catch(e){}}return _w.apply(this,arguments)};window.wpn25=wpn25}
 // สไนเปอร์: ปืนเดิม + ของประดับตามธีม
-{const _db=drawBow6;drawBow6=function(x,y,aim,tier,pull,arrow,sc){const r=_db.apply(this,arguments);try{const th=(tier|0)-T0_101;if(P.cls==='sniper'&&th>=0&&th<5&&window.cwOk25&&cwOk25()){ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);
+{const _db=drawBow6;drawBow6=function(x,y,aim,tier,pull,arrow,sc){const r=_db.apply(this,arguments);try{const th=(tier|0)-T0_101;if(holdsRifle()&&th>=0&&th<5&&!window.weaponSkin145?.()){ctx.save();ctx.translate(x,y);ctx.rotate(aim);ctx.scale(sc||1,sc||1);
    [()=>{crystal(ctx,10,-8,1.8,5,0);crystal(ctx,20,-6,1.4,4,.4)},()=>{cap(ctx,10,-7,5,3,'#a03ac8')},()=>{flame(ctx,30,1,.5,.6);crack(ctx,[[2,0],[24,0]])},()=>{shell(ctx,8,-4,3.4);pearl(ctx,16,-5,1.6)},()=>{wing(ctx,4,-3,-1,.4);star(ctx,22,-6,2.4,'#ffe88a')}][th]();ctx.restore()}}catch(e){}return r};window.drawBow6=drawBow6}
 // ---------- ใส่ได้ตามเลเวล ----------
 {const _eq=equipItem;equipItem=function(id){const it=ITEMS[id];if(it&&it.c2101){const S=B101[it.tier-T0_101];if(P.lv<S.lv){say('🔒 '+it.name+' ต้อง Lv.'+S.lv+' ขึ้นไป');sfx('thud');return}const b=it.boss59;it.boss59=0;try{return _eq.apply(this,arguments)}finally{it.boss59=b;try{recalcStats()}catch(e){}}}return _eq.apply(this,arguments)};window.equipItem=equipItem}

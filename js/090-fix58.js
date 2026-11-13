@@ -72,7 +72,7 @@ function skCanvas58(id){if(SKC58[id])return SKC58[id];const c=document.createEle
  else if(id==='w_mage'){q.strokeStyle='#2a1a4a';q.lineWidth=3;q.beginPath();q.moveTo(32,62);q.lineTo(32,18);q.stroke();q.strokeStyle='#c8a0ff';q.lineWidth=1;q.stroke();q.fillStyle='#ffd23a';q.strokeStyle='#5a3a10';q.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?4:9;q.lineTo(32+Math.cos(a)*r,11+Math.sin(a)*r)}q.closePath();q.fill();q.stroke();glow(32,11,17,S.glow,.7)}
  else{q.fillStyle='#888';q.fillRect(30,10,4,48)}
  return SKC58[id]=c}
-const sk58=()=>{const k=FASH.wpn;return k&&SK58[k]?SK58[k]:null};
+const sk58=()=>SK58[window.weaponSkin145?.()]||null;
 {const _fs=fashSword;fashSword=function(id){if(SK58[id])return skCanvas58(id);return _fs(id)};window.fashSword=fashSword}
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){const S=sk58();if(!S)return _ts(hx,hy,ang);
  if(S.cls!==P.cls||P.tool!=='sword'||S.bow||S.rifle){const sv=FASH.wpn;if(S.cls!==P.cls)FASH.wpn=null;try{return _ts(hx,hy,ang)}finally{FASH.wpn=sv}}

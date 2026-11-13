@@ -35,12 +35,19 @@ function townDoors(){const L=SHOP_ORDER.map(id=>{const S=SHOP_DATA[id],[bx,by,bw
  return L}
 function doorNear(){for(const d of D.doors)if(Math.abs(P.x-d.cx)<30&&P.y>d.cy-4&&P.y<d.cy+30)return d;return null}
 function drawTown(){const t=performance.now()/1000,[cx,cy]=cam(TW*T,TH*T,.55);
- view(cx,cy);ctx.fillStyle='#223';ctx.fillRect(cx,cy,VW/Z,VH/Z);ctx.drawImage(dcv,0,0);TOWNLIFE.drawBuildings(ctx);if(!D.city2)padLight();
+ view(cx,cy);const visible=sceneView(cx,cy);ctx.fillStyle='#223';ctx.fillRect(cx,cy,VW/Z,VH/Z);
+ const x=Math.max(0,Math.floor(cx)-2),y=Math.max(0,Math.floor(cy)-2);
+ const w=Math.min(dcv.width,Math.ceil(cx+VW/Z)+2)-x,h=Math.min(dcv.height,Math.ceil(cy+VH/Z)+2)-y;
+ if(w>0&&h>0)ctx.drawImage(dcv,x,y,w,h,x,y,w,h);
+ TOWNLIFE.drawBuildings(ctx,visible);if(!D.city2)padLight();
  for(let i=0;i<3;i++){const u=((t*.5+i/3)%1);ctx.strokeStyle='rgba(235,248,255,'+(.7*(1-u))+')';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(22*T,13*T+2,8+u*36,3.5+u*15,0,0,7);ctx.stroke()}
- drawGhosts();drawDrops();const L=D.npcs.map(n=>[n.y,()=>drawNPC(n,t)]).concat(D.carts.map(c=>[c.y,()=>drawCart(c,t)]),D.stalls.map(s=>[(s.y+1)*T,()=>drawStall(s,t)]),doorLayer(t),FORGE.map(f=>[(f.y+1)*T,()=>drawForge(f,t)]));
+ drawGhosts();drawDrops();const L=D.npcs.filter(n=>visible(n.x,n.y-145,0,155,64)).map(n=>[n.y,()=>drawNPC(n,t)]).concat(
+  D.carts.filter(c=>visible(c.x,c.y,0,0,170)).map(c=>[c.y,()=>drawCart(c,t)]),
+  D.stalls.filter(s=>visible(s.x*T,s.y*T,2*T,T,80)).map(s=>[(s.y+1)*T,()=>drawStall(s,t)]),
+  doorLayer(t),FORGE.filter(f=>visible(f.x*T,f.y*T,T,T,85)).map(f=>[(f.y+1)*T,()=>drawForge(f,t)]));
  L.push([P.y,()=>{ctx.globalAlpha=1;/* v5.14: เลิกกะพริบตัวตอนโดนโจมตี (เจ้าของสั่ง) — ช่วงอมตะหลังโดนยังทำงานเหมือนเดิม */hero();ctx.globalAlpha=1}]);
  L.sort((p,q)=>p[0]-q[0]);for(const o of L)o[1]();
-  if(!D.city2){TOWNLIFE.drawFlags(ctx,t);TOWNLIFE.drawNativeFlags(ctx,t);TOWNLIFE.drawLights(ctx,t);TOWNLIFE.drawLabels(ctx);}drawBubbles();drawDoorPrompt(t);
+  if(!D.city2){TOWNLIFE.drawFlags(ctx,t,visible);TOWNLIFE.drawNativeFlags(ctx,t,visible);TOWNLIFE.drawLights(ctx,t,visible);TOWNLIFE.drawLabels(ctx,visible);}drawBubbles();drawDoorPrompt(t);
  for(const p of fx){ctx.fillStyle=`rgba(${p.c||'90,170,255'},${Math.min(1,p.l*2)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,7);ctx.fill()}
  ui();grade(t,'town');ctx.fillStyle='#000a';ctx.fillRect(VW/2-70,lby(),140,22);ctx.fillStyle='#fff';ctx.font='bold 13px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('เมืองเอลโดเรีย',VW/2,lby()+16);ctx.textAlign='left';
  if(P.red>0){ctx.fillStyle='rgba(255,0,0,'+P.red+')';ctx.fillRect(0,0,VW,VH)}}

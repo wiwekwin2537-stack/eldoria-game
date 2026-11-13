@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const src=fs.readFileSync(require.resolve('../js/031-core.js'),'utf8');
-const box=vm.createContext({P:{cls:'sniper'},BOWSHOT7:[{tilt:0}],rgF7:d=>d==='l'?-1:1,
+const box=vm.createContext({P:{cls:'sniper'},BOWSHOT7:[{tilt:0}],holdsRifle:()=>true,rgF7:d=>d==='l'?-1:1,
   rgSide7:d=>d==='l'||d==='r',e6o:x=>x,e6io:x=>x,LP7:(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t)});
 box.window=box;
 vm.runInContext(src.slice(src.indexOf('function rifleGrip7('),src.indexOf('function drawArrow7(')),box);

@@ -67,7 +67,7 @@ function knuckle27(k,Q){k.save();k.globalCompositeOperation='lighter';const g=k.
 const _tiBase27=(t,tier)=>toolIcon(t,tier,64);
 {const _iu=iconURL;iconURL=function(key){const art=typeof key==='string'&&ITEMART.url(key);if(art){IREV[art]=key;return art}if(typeof key==='string'&&key.startsWith('item:')){const it=ITEMS[key.slice(5)];if(it&&it.cls){if(IURL[key])return IURL[key];try{return IURL[key]=cwIcon27(it).toDataURL()+'#eldoria-art='+encodeURIComponent(key)}catch(e){}}}return _iu(key)};window.iconURL=iconURL}
 // คลาสเดิม (ดาบ/คทา/ธนู): ใช้ภาพเดิมแต่ย้อมสีประจำอาวุธ + เรืองแสง
-const cwOld27=()=>{const it=cwOf27();return it&&it.cls===P.cls&&FLT27[it.cls]?it:null};
+const cwOld27=()=>{const it=cwOf27();return it&&FLT27[it.cls]?it:null};
 function withFlt27(fn,self,args){const it=cwOld27();if(!it)return fn.apply(self,args);ctx.save();ctx.filter=FLT27[it.cls];try{return fn.apply(self,args)}finally{ctx.restore()}}
 {const _ts=toolSpr;toolSpr=function(){return withFlt27(_ts,this,arguments)}}
 {const _bs=backSword;backSword=function(){return withFlt27(_bs,this,arguments)}}

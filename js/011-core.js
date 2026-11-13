@@ -8,6 +8,13 @@ function auVol(){if(!AU.c)return;AU.m.gain.value=SET.mute?0:SET.master;AU.s.gain
 function tone(f,f2,d,ty,v,dl,o){if(!AU.c)return;const C=AU.c,t=C.currentTime+(dl||0),os=C.createOscillator(),g=C.createGain();os.type=ty||'sine';os.frequency.setValueAtTime(f,t);if(f2)os.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);os.connect(g);g.connect(AU[o||'s']);os.start(t);os.stop(t+d+.05)}
 function nz(d,v,f1,f2,q,ty,dl,o){if(!AU.c)return;const C=AU.c,t=C.currentTime+(dl||0),s=C.createBufferSource(),f=C.createBiquadFilter(),g=C.createGain();s.buffer=AU.nb;f.type=ty||'bandpass';f.Q.value=q||1;f.frequency.setValueAtTime(f1,t);f.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(AU[o||'s']);s.start(t,Math.random());s.stop(t+d+.05)}
 const SFX={
+rifleBrace:()=>{nz(.06,.08,1100,620,.7);nz(.028,.09,3200,1450,1.2,'bandpass',.045)},
+riflePierce:()=>{
+ nz(.048,.38,3100,1200,.65);
+ nz(.135,.26,650,120,.7,'lowpass',.004);
+ nz(.16,.09,1200,450,.6,'bandpass',.038);
+ nz(.036,.07,5100,2400,1.35,'bandpass',.14);
+},
 swing:()=>nz(.18,.25,500,2400,1.2),swing2:()=>nz(.22,.3,300,1500,1),
 hit:()=>{nz(.1,.4,900,200,1);tone(180,60,.12,'square',.15)},
 chop:()=>{nz(.09,.5,1800,300,2);tone(140,70,.12,'triangle',.3)},

@@ -82,7 +82,7 @@ function cv104(id){if(CV104[id])return CV104[id];const c=document.createElement(
  else{q.fillStyle='#888';q.fillRect(30,10,4,48)}
  return CV104[id]=c}
 window.cv104=cv104;
-const w104=()=>{const k=FASH.wpn;return k&&W104[k]?W104[k]:null};
+const w104=()=>W104[window.weaponSkin145?.()]||null;
 {const _fs=fashSword;fashSword=function(id){if(W104[id])return cv104(id);return _fs.apply(this,arguments)};window.fashSword=fashSword}
 {const _ts=toolSpr;toolSpr=function(hx,hy,ang){const S=w104();if(!S||S.cls!==P.cls||P.tool!=='sword'||S.bow||S.rifle){if(S&&S.cls!==P.cls){const sv=FASH.wpn;FASH.wpn=null;try{return _ts.apply(this,arguments)}finally{FASH.wpn=sv}}return _ts.apply(this,arguments)}
   if(S.staff){staffAt7(hx,hy,ang);return}const t=performance.now()/1000;ctx.save();ctx.translate(hx,hy);ctx.rotate(ang);if(P.dir==='r'&&!S.staff)ctx.scale(-1,1);
