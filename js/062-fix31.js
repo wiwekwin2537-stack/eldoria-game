@@ -3,6 +3,7 @@
 // =====================================================================
 // ---------- 1) ของดรอปจากมอน ----------
 // วัตถุดิบจากการขุด/ตัดไม้ — ต้องหาเองจากเหมือง/ต้นไม้ ไม่ดรอปจากมอนแล้ว
+window.baseXpFactor=.8;
 const NOMOB31=new Set(['stone','iron','copper','silver','gold','gem','ore','ingSt','ingot','ingCu','ingAg','ingAu','ingDm','wood','woodE','woodF','woodS','woodH','woodG']);
 let MK31=0;
 {const _ad=addDrop;addDrop=function(type,x,y){if(MK31>0&&NOMOB31.has(type))return;return _ad(type,x,y)};window.addDrop=addDrop}
@@ -21,7 +22,6 @@ try{const _ls=lifeSell;lifeSell=function(k,p){return _ls(k,Math.max(1,Math.round
 try{const _oc=openChest_;openChest_=function(){const c0=inv.coin;const r=_oc.apply(this,arguments);try{const g=inv.coin-c0;if(g>0)inv.coin=c0+Math.round(g*.5)}catch(e){}return r};window.openChest_=openChest_}catch(e){}
 // ---------- 3) ความยาก ----------
 {const _ms=mobStats;mobStats=function(L,f,el,bo){const s=_ms(L,f,el,bo);return Object.assign({},s,{hp:Math.round(s.hp*1.25),atk:Math.round(s.atk*1.2)})}}
-{const _gx=gainXp;gainXp=function(n){return _gx(Math.max(1,Math.round((+n||0)*.8)))};window.gainXp=gainXp}
 
 // กระสุน/ดาวกระจายห้ามทำดาเมจทะลุกำแพง (ตรวจเส้นระหว่างจุดกระสุนกับเป้า)
 {const _h=hurtE;hurtE=function(e,mult,o){try{if(o&&o.fx!=null&&e&&!e.pvp7&&typeof wallBetween7==='function'&&D&&D.zone&&wallBetween7(o.fx,o.fy,e.x,e.y-6))return 0}catch(_){}return _h(e,mult,o)}}
